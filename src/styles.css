@@ -42,6 +42,10 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-warn: var(--warn);
+  --color-warn-foreground: var(--warn-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -80,6 +84,12 @@
   --accent-foreground: oklch(0.98 0.002 260);
   --destructive: oklch(0.62 0.2 22);
   --destructive-foreground: oklch(0.98 0.002 260);
+  /* Azul dos controles de descanso / ações secundárias fortes */
+  --info: oklch(0.7 0.14 240);
+  --info-foreground: oklch(0.17 0.02 240);
+  /* Laranja do aquecimento */
+  --warn: oklch(0.78 0.15 62);
+  --warn-foreground: oklch(0.2 0.03 62);
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 16%);
   --ring: oklch(0.74 0.17 145);

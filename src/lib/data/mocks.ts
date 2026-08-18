@@ -75,6 +75,7 @@ export let profile: Profile = {
   sexo: "masculino",
   nivelAtividade: "moderado",
   objetivo: "manutencao",
+  metaTreinosSemana: 4,
 };
 
 export function setProfile(next: Profile) {
