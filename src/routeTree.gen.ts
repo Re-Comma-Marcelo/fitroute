@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as DietaRouteImport } from './routes/dieta'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
@@ -32,6 +33,11 @@ const BibliotecaRoute = BibliotecaRouteImport.update({
 const DietaRoute = DietaRouteImport.update({
   id: '/dieta',
   path: '/dieta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProgressoRoute = ProgressoRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/biblioteca'
     | '/dieta'
+    | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/biblioteca'
     | '/dieta'
+    | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/biblioteca'
     | '/dieta'
+    | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BibliotecaRoute: typeof BibliotecaRoute
   DietaRoute: typeof DietaRoute
+  PerfilRoute: typeof PerfilRoute
   ProgressoRoute: typeof ProgressoRouteWithChildren
   SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/dieta'
       fullPath: '/dieta'
       preLoaderRoute: typeof DietaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/progresso': {
@@ -230,6 +250,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BibliotecaRoute: BibliotecaRoute,
   DietaRoute: DietaRoute,
+  PerfilRoute: PerfilRoute,
   ProgressoRoute: ProgressoRouteWithChildren,
   SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
