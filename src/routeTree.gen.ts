@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessaoRoute = SessaoRouteImport.update({
+  id: '/sessao',
+  path: '/sessao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TreinoRoute = TreinoRouteImport.update({
@@ -25,27 +31,31 @@ const TreinoRoute = TreinoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/treino'
+  fullPaths: '/' | '/sessao' | '/treino'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/treino'
-  id: '__root__' | '/' | '/treino'
+  to: '/' | '/sessao' | '/treino'
+  id: '__root__' | '/' | '/sessao' | '/treino'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
 }
 
@@ -56,6 +66,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessao': {
+      id: '/sessao'
+      path: '/sessao'
+      fullPath: '/sessao'
+      preLoaderRoute: typeof SessaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/treino': {
@@ -70,6 +87,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
 }
 export const routeTree = rootRouteImport
