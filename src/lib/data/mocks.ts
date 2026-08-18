@@ -144,8 +144,11 @@ dias.forEach((diasAtras, i) => {
   rotina.exercicios.forEach((rex, exIdx) => {
     const base = baseCargas[rex.exerciseId] ?? 20;
     const peso = Math.round((base + semana * (base > 50 ? 5 : 2)) * 2) / 2;
+    // Nas últimas sessões, alguns exercícios fecham o topo da faixa com PSE baixo
+    // (dispara a sugestão de progressão de carga).
+    const fechouTopo = i >= 4 && exIdx % 2 === 0;
     for (let s = 1; s <= rex.seriesAlvo; s++) {
-      const reps = rex.repsMax - ((s - 1) % 2);
+      const reps = fechouTopo ? rex.repsMax : rex.repsMax - ((s - 1) % 2);
       volume += peso * reps;
       workoutSets.push({
         id: `${wid}s${exIdx}-${s}`,
@@ -156,7 +159,7 @@ dias.forEach((diasAtras, i) => {
         tipoSerie: s === 1 ? "aquecimento" : "normal",
         pesoKg: s === 1 ? Math.round(peso * 0.6 * 2) / 2 : peso,
         reps,
-        rpe: s === rex.seriesAlvo ? 9 : 8,
+        rpe: fechouTopo ? 8 : s === rex.seriesAlvo ? 9 : 8,
         concluida: true,
       });
     }
