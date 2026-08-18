@@ -16,6 +16,7 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as ProgressoIndexRouteImport } from './routes/progresso.index'
 import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
 import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
 import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
@@ -55,6 +56,11 @@ const TreinoRoute = TreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProgressoIndexRoute = ProgressoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProgressoRoute,
+} as any)
 const ProgressoIdRoute = ProgressoIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -82,18 +88,19 @@ export interface FileRoutesByFullPath {
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
   '/perfil': typeof PerfilRoute
-  '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/progresso': typeof ProgressoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +114,7 @@ export interface FileRoutesById {
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,18 +129,19 @@ export interface FileRouteTypes {
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/progresso/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/biblioteca'
     | '/dieta'
     | '/perfil'
-    | '/progresso'
     | '/sessao'
     | '/treino'
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/progresso'
   id:
     | '__root__'
     | '/'
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/progresso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -210,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreinoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/progresso/': {
+      id: '/progresso/'
+      path: '/'
+      fullPath: '/progresso/'
+      preLoaderRoute: typeof ProgressoIndexRouteImport
+      parentRoute: typeof ProgressoRoute
+    }
     '/progresso/$id': {
       id: '/progresso/$id'
       path: '/$id'
@@ -236,10 +253,12 @@ declare module '@tanstack/react-router' {
 
 interface ProgressoRouteChildren {
   ProgressoIdRoute: typeof ProgressoIdRoute
+  ProgressoIndexRoute: typeof ProgressoIndexRoute
 }
 
 const ProgressoRouteChildren: ProgressoRouteChildren = {
   ProgressoIdRoute: ProgressoIdRoute,
+  ProgressoIndexRoute: ProgressoIndexRoute,
 }
 
 const ProgressoRouteWithChildren = ProgressoRoute._addFileChildren(
