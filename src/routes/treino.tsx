@@ -58,6 +58,7 @@ function HomePage() {
     enabled: rotinas.length > 0,
     queryFn: async () => {
       const listas = await Promise.all(rotinas.map((r) => getRoutineSuggestions(r)));
+      console.log('SUGDBG', JSON.stringify(listas));
       return Object.assign({} as Record<string, ProgressionSuggestion>, ...listas);
     },
   });
