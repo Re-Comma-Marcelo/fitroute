@@ -240,8 +240,8 @@ function SessionPage() {
           tipoSerie: s.tipoSerie,
           pesoKg: peso,
           reps,
-          rpe: s.rpe ? Number(s.rpe) : undefined,
           concluida: true,
+          ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
         });
       });
       if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
@@ -250,7 +250,7 @@ function SessionPage() {
     await saveWorkout(
       {
         id: session.id,
-        routineId: session.routineId,
+        ...(session.routineId ? { routineId: session.routineId } : {}),
         iniciadoEm: session.iniciadoEm,
         finalizadoEm: new Date().toISOString(),
         duracaoSeg,
@@ -268,7 +268,7 @@ function SessionPage() {
       );
     }
     clearActiveSession();
-    navigate({ to: "/resumo/$id", params: { id: session.id } });
+    navigate({ to: "/resumo/$id", params: { id: session.id } as never });
   }
 
   const seriesFeitas = sessionSetsDone(session);
@@ -344,7 +344,7 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> Adicionar série
                     </DropdownMenuItem>
-                    <DropdownMenuItem variant="destructive" onClick={() => removeExercise(exIdx)}>
+                    <DropdownMenuItem className="text-destructive" onClick={() => removeExercise(exIdx)}>
                       <Trash2 className="mr-2 size-4" /> Remover exercício
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -399,7 +399,7 @@ function SessionPage() {
         <Button
           variant="secondary"
           className="h-12 w-full font-semibold"
-          onClick={() => navigate({ to: "/biblioteca", search: { para: "sessao" } })}
+          onClick={() => navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })}
         >
           <Plus className="mr-1 size-5" /> Adicionar exercício
         </Button>
@@ -501,7 +501,7 @@ function SetRow({
               {tipoNome[tipo]}
             </DropdownMenuItem>
           ))}
-          <DropdownMenuItem variant="destructive" onClick={onRemove}>
+          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
             <Trash2 className="mr-2 size-4" /> Remover série
           </DropdownMenuItem>
         </DropdownMenuContent>

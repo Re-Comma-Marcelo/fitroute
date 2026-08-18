@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
 
-export const Route = createFileRoute("/resumo/")({
+export const Route = createFileRoute("/resumo/$id")({
   head: () => ({
     meta: [
       { title: "Resumo do treino — Forja" },

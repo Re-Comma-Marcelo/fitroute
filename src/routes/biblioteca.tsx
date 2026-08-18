@@ -12,8 +12,8 @@ import type { Exercise } from "@/lib/types";
 
 export const Route = createFileRoute("/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
-    para: (search.para as "sessao" | "rotina" | undefined) ?? undefined,
-    rotinaId: (search.rotinaId as string | undefined) ?? undefined,
+    para: search["para"] as "sessao" | "rotina" | undefined,
+    rotinaId: search["rotinaId"] as string | undefined,
   }),
   head: () => ({
     meta: [
