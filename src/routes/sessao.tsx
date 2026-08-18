@@ -87,6 +87,13 @@ function SessionPage() {
 
   useTick(true);
 
+  // Timer de descanso zera sozinho, sem modal e sem toque extra.
+  useEffect(() => {
+    if (!rest) return;
+    const id = setTimeout(() => setRest(null), Math.max(0, rest.endsAt - Date.now()) + 500);
+    return () => clearTimeout(id);
+  }, [rest]);
+
   useEffect(() => {
     if (loadedRef.current) return;
     loadedRef.current = true;
@@ -134,7 +141,6 @@ function SessionPage() {
 
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
   const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
-  if (rest && restLeft === 0) setTimeout(() => setRest(null), 400);
 
   function toggleSet(exIdx: number, setIdx: number) {
     let descanso = 0;
@@ -268,7 +274,7 @@ function SessionPage() {
       );
     }
     clearActiveSession();
-    navigate({ to: "/resumo/$id", params: { id: session.id } as never });
+    navigate({ to: "/resumo/$id", params: { id: session.id } });
   }
 
   const seriesFeitas = sessionSetsDone(session);
