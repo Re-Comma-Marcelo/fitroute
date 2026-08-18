@@ -15,6 +15,7 @@ import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
 import { Route as ResumoRouteImport } from './routes/resumo.'
+import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const ResumoRoute = ResumoRouteImport.update({
   path: '/resumo/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RotinaIdRoute = RotinaIdRouteImport.update({
+  id: '/rotina/$id',
+  path: '/rotina/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
   '/resumo/': typeof ResumoRoute
+  '/rotina/$id': typeof RotinaIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
   '/resumo': typeof ResumoRoute
+  '/rotina/$id': typeof RotinaIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
   '/resumo/': typeof ResumoRoute
+  '/rotina/$id': typeof RotinaIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/biblioteca' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
+  fullPaths:
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/sessao'
+    | '/treino'
+    | '/resumo/'
+    | '/rotina/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/biblioteca' | '/dieta' | '/sessao' | '/treino' | '/resumo'
+  to:
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/sessao'
+    | '/treino'
+    | '/resumo'
+    | '/rotina/$id'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/sessao'
     | '/treino'
     | '/resumo/'
+    | '/rotina/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
   ResumoRoute: typeof ResumoRoute
+  RotinaIdRoute: typeof RotinaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResumoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/rotina/$id': {
+      id: '/rotina/$id'
+      path: '/rotina/$id'
+      fullPath: '/rotina/$id'
+      preLoaderRoute: typeof RotinaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
   ResumoRoute: ResumoRoute,
+  RotinaIdRoute: RotinaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
