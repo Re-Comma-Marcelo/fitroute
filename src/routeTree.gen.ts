@@ -10,33 +10,163 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BibliotecaRouteImport } from './routes/biblioteca'
+import { Route as DietaRouteImport } from './routes/dieta'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as ProgressoRouteImport } from './routes/progresso'
+import { Route as SessaoRouteImport } from './routes/sessao'
+import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as ProgressoIndexRouteImport } from './routes/progresso.index'
+import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
+import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
+import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BibliotecaRoute = BibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DietaRoute = DietaRouteImport.update({
+  id: '/dieta',
+  path: '/dieta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressoRoute = ProgressoRouteImport.update({
+  id: '/progresso',
+  path: '/progresso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SessaoRoute = SessaoRouteImport.update({
+  id: '/sessao',
+  path: '/sessao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TreinoRoute = TreinoRouteImport.update({
+  id: '/treino',
+  path: '/treino',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProgressoIndexRoute = ProgressoIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProgressoRoute,
+} as any)
+const ProgressoIdRoute = ProgressoIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ProgressoRoute,
+} as any)
+const ResumoIdRoute = ResumoIdRouteImport.update({
+  id: '/resumo/$id',
+  path: '/resumo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RotinaIdRoute = RotinaIdRouteImport.update({
+  id: '/rotina/$id',
+  path: '/rotina/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
+  '/progresso': typeof ProgressoRouteWithChildren
+  '/sessao': typeof SessaoRoute
+  '/treino': typeof TreinoRoute
+  '/progresso/$id': typeof ProgressoIdRoute
+  '/resumo/$id': typeof ResumoIdRoute
+  '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
+  '/sessao': typeof SessaoRoute
+  '/treino': typeof TreinoRoute
+  '/progresso/$id': typeof ProgressoIdRoute
+  '/resumo/$id': typeof ResumoIdRoute
+  '/rotina/$id': typeof RotinaIdRoute
+  '/progresso': typeof ProgressoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
+  '/dieta': typeof DietaRoute
+  '/perfil': typeof PerfilRoute
+  '/progresso': typeof ProgressoRouteWithChildren
+  '/sessao': typeof SessaoRoute
+  '/treino': typeof TreinoRoute
+  '/progresso/$id': typeof ProgressoIdRoute
+  '/resumo/$id': typeof ResumoIdRoute
+  '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/perfil'
+    | '/progresso'
+    | '/sessao'
+    | '/treino'
+    | '/progresso/$id'
+    | '/resumo/$id'
+    | '/rotina/$id'
+    | '/progresso/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/perfil'
+    | '/sessao'
+    | '/treino'
+    | '/progresso/$id'
+    | '/resumo/$id'
+    | '/rotina/$id'
+    | '/progresso'
+  id:
+    | '__root__'
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/perfil'
+    | '/progresso'
+    | '/sessao'
+    | '/treino'
+    | '/progresso/$id'
+    | '/resumo/$id'
+    | '/rotina/$id'
+    | '/progresso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BibliotecaRoute: typeof BibliotecaRoute
+  DietaRoute: typeof DietaRoute
+  PerfilRoute: typeof PerfilRoute
+  ProgressoRoute: typeof ProgressoRouteWithChildren
+  SessaoRoute: typeof SessaoRoute
+  TreinoRoute: typeof TreinoRoute
+  ResumoIdRoute: typeof ResumoIdRoute
+  RotinaIdRoute: typeof RotinaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +178,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/biblioteca': {
+      id: '/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof BibliotecaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dieta': {
+      id: '/dieta'
+      path: '/dieta'
+      fullPath: '/dieta'
+      preLoaderRoute: typeof DietaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progresso': {
+      id: '/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof ProgressoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sessao': {
+      id: '/sessao'
+      path: '/sessao'
+      fullPath: '/sessao'
+      preLoaderRoute: typeof SessaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/treino': {
+      id: '/treino'
+      path: '/treino'
+      fullPath: '/treino'
+      preLoaderRoute: typeof TreinoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/progresso/': {
+      id: '/progresso/'
+      path: '/'
+      fullPath: '/progresso/'
+      preLoaderRoute: typeof ProgressoIndexRouteImport
+      parentRoute: typeof ProgressoRoute
+    }
+    '/progresso/$id': {
+      id: '/progresso/$id'
+      path: '/$id'
+      fullPath: '/progresso/$id'
+      preLoaderRoute: typeof ProgressoIdRouteImport
+      parentRoute: typeof ProgressoRoute
+    }
+    '/resumo/$id': {
+      id: '/resumo/$id'
+      path: '/resumo/$id'
+      fullPath: '/resumo/$id'
+      preLoaderRoute: typeof ResumoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/rotina/$id': {
+      id: '/rotina/$id'
+      path: '/rotina/$id'
+      fullPath: '/rotina/$id'
+      preLoaderRoute: typeof RotinaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface ProgressoRouteChildren {
+  ProgressoIdRoute: typeof ProgressoIdRoute
+  ProgressoIndexRoute: typeof ProgressoIndexRoute
+}
+
+const ProgressoRouteChildren: ProgressoRouteChildren = {
+  ProgressoIdRoute: ProgressoIdRoute,
+  ProgressoIndexRoute: ProgressoIndexRoute,
+}
+
+const ProgressoRouteWithChildren = ProgressoRoute._addFileChildren(
+  ProgressoRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BibliotecaRoute: BibliotecaRoute,
+  DietaRoute: DietaRoute,
+  PerfilRoute: PerfilRoute,
+  ProgressoRoute: ProgressoRouteWithChildren,
+  SessaoRoute: SessaoRoute,
+  TreinoRoute: TreinoRoute,
+  ResumoIdRoute: ResumoIdRoute,
+  RotinaIdRoute: RotinaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
