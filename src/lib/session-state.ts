@@ -94,16 +94,8 @@ export function makeSets(
       serieNum: i + 1,
       tipoSerie,
       pesoKg: sugPeso !== null ? String(sugPeso) : "",
-      reps:
-        tipoSerie === "aquecimento"
-          ? ant?.reps
-            ? String(ant.reps)
-            : ""
-          : opts.repsAlvo
-            ? String(opts.repsAlvo)
-            : ant?.reps
-              ? String(ant.reps)
-              : "",
+      // REPS fica vazio para exibir a faixa alvo em cinza; o toque no ✓ aplica sugReps.
+      reps: opts.repsAlvo ? String(opts.repsAlvo) : "",
       rpe: "",
       sugPeso,
       sugReps: tipoSerie === "aquecimento" ? (ant?.reps ?? null) : (opts.repsAlvo ?? ant?.reps ?? null),
