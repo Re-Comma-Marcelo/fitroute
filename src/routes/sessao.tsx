@@ -6,8 +6,9 @@ import {
   MoreVertical,
   Plus,
   SkipForward,
+  Timer,
   Trash2,
-  X,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,21 +19,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { formatDuration } from "@/lib/format";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { formatDuration, formatRest } from "@/lib/format";
 import {
   clearActiveSession,
   loadActiveSession,
   makeSets,
   saveActiveSession,
+  serieLabel,
   sessionSetsDone,
   sessionVolume,
   takePendingExercise,
+  type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
 } from "@/lib/session-state";
+import { isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
-import { getPersonalRecord } from "@/lib/data/workouts";
-import { saveWorkout } from "@/lib/data/workouts";
+import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
 export const Route = createFileRoute("/sessao")({
@@ -42,24 +46,17 @@ export const Route = createFileRoute("/sessao")({
       {
         name: "description",
         content:
-          "Registre séries, cargas, reps e descanso durante o treino com sugestões da sessão anterior.",
+          "Registre séries, cargas, reps e PSE durante o treino com a carga anterior sempre visível.",
       },
       { property: "og:title", content: "Sessão de treino — Forja" },
       {
         property: "og:description",
-        content: "Cronômetro, séries pré-preenchidas e timer de descanso automático.",
+        content: "Cronômetro, carga anterior fixa, sugestão de progressão e timer de descanso.",
       },
     ],
   }),
   component: SessionPage,
 });
-
-const tipoLabel: Record<TipoSerie, string> = {
-  aquecimento: "A",
-  normal: "",
-  falha: "F",
-  drop: "D",
-};
 
 const tipoNome: Record<TipoSerie, string> = {
   aquecimento: "Aquecimento",
@@ -67,6 +64,11 @@ const tipoNome: Record<TipoSerie, string> = {
   falha: "Falha",
   drop: "Drop set",
 };
+
+const PSE_OPCOES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+const DESCANSO_OPCOES = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
+
+const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
 
 function useTick(active: boolean) {
   const [, setN] = useState(0);
@@ -142,6 +144,11 @@ function SessionPage() {
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
   const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
 
+  function iniciarDescanso(segundos: number) {
+    if (segundos <= 0) return;
+    setRest({ total: segundos, endsAt: Date.now() + segundos * 1000 });
+  }
+
   function toggleSet(exIdx: number, setIdx: number) {
     let descanso = 0;
     update((s) => {
@@ -151,8 +158,8 @@ function SessionPage() {
         set.concluida = false;
         return s;
       }
-      // Sugerir sempre: aceita valores anteriores num toque.
-      if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? "");
+      // Registro em 2 toques: valores sugeridos são aceitos sem digitar nada.
+      if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
       if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
       set.concluida = true;
       descanso = ex.descansoSeg;
@@ -162,7 +169,7 @@ function SessionPage() {
       }
       return s;
     });
-    if (descanso > 0) setRest({ total: descanso, endsAt: Date.now() + descanso * 1000 });
+    if (descanso > 0) iniciarDescanso(descanso);
   }
 
   function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
@@ -179,16 +186,26 @@ function SessionPage() {
     });
   }
 
+  function setDescanso(exIdx: number, segundos: number) {
+    update((s) => {
+      s.exercicios[exIdx]!.descansoSeg = segundos;
+      return s;
+    });
+  }
+
   function addSet(exIdx: number) {
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const last = ex.sets[ex.sets.length - 1];
+      const base = makeSets(1, [])[0]!;
       ex.sets.push({
-        ...makeSets(1, [])[0]!,
+        ...base,
         serieNum: ex.sets.length + 1,
         tipoSerie: "normal",
         sugPeso: last ? Number(last.pesoKg) || last.sugPeso : null,
         sugReps: last ? Number(last.reps) || last.sugReps : null,
+        pesoKg: last ? last.pesoKg : "",
+        reps: last ? last.reps : "",
       });
       return s;
     });
@@ -235,8 +252,11 @@ function SessionPage() {
         if (!s.concluida) return;
         const peso = Number(s.pesoKg) || 0;
         const reps = Number(s.reps) || 0;
-        volume += peso * reps;
-        melhor = Math.max(melhor, peso);
+        // Aquecimento é registrado, mas não entra no volume.
+        if (isSerieValida(s)) {
+          volume += peso * reps;
+          melhor = Math.max(melhor, peso);
+        }
         sets.push({
           id: `${session.id}_${i}_${s.serieNum}`,
           workoutId: session.id,
@@ -279,37 +299,51 @@ function SessionPage() {
 
   const seriesFeitas = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
+  const descansoAtual = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
 
   return (
-    <div className="min-h-screen bg-background pb-40">
+    <div className="min-h-screen bg-background pb-44">
       <header className="sticky top-0 z-30 border-b border-border bg-card">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-3 py-2">
+        <div className="mx-auto flex max-w-md items-center gap-1 px-2 py-2">
           <Button
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Voltar"
+            aria-label="Colapsar sessão"
             onClick={() => navigate({ to: "/treino" })}
           >
-            <X className="size-6" />
+            <ChevronDown className="size-6" />
           </Button>
-          <div className="flex-1">
-            <p className="text-xs font-medium text-muted-foreground">{session.routineNome}</p>
-            <p className="font-mono text-3xl font-bold leading-none tabular-nums">
-              {formatDuration(elapsed)}
-            </p>
-          </div>
-          <div className="text-right text-xs font-medium text-muted-foreground">
-            <p>{seriesFeitas} séries</p>
-            <p>{Math.round(volumeAtual).toLocaleString("pt-BR")} kg</p>
-          </div>
+          <h1 className="flex-1 truncate text-base font-bold">{session.routineNome}</h1>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="tap-target text-info"
+            aria-label="Abrir timer de descanso"
+            onClick={() => iniciarDescanso(descansoAtual)}
+          >
+            <Timer className="size-6" />
+          </Button>
+          <Button
+            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+            disabled={finishing}
+            onClick={finalizar}
+          >
+            Concluir
+          </Button>
         </div>
+        <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
+          <HeaderStat label="Duração" value={formatDuration(elapsed)} mono />
+          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("pt-BR")} kg`} />
+          <HeaderStat label="Séries" value={String(seriesFeitas)} />
+        </dl>
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
         {session.exercicios.map((ex, exIdx) => {
           const aberto = exIdx === session.atual;
-          const feitas = ex.sets.filter((s) => s.concluida).length;
+          const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
+          const validas = ex.sets.filter(isSerieValida).length;
           return (
             <section
               key={ex.exerciseId + exIdx}
@@ -317,28 +351,41 @@ function SessionPage() {
                 aberto ? "border-primary/50" : "border-border"
               } ${ex.pulado ? "opacity-50" : ""}`}
             >
-              <div className="flex items-center gap-1 p-3">
-                <button
-                  type="button"
-                  className="tap-target flex flex-1 items-center gap-2 text-left"
-                  onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
-                >
-                  <div className="flex-1">
-                    <p className="text-base font-bold leading-tight">{ex.nome}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {feitas}/{ex.sets.length} séries · {ex.repsMin}-{ex.repsMax} reps · descanso{" "}
-                      {ex.descansoSeg}s
-                    </p>
+              <div className="flex items-start gap-1 p-3">
+                <div className="min-w-0 flex-1">
+                  <button
+                    type="button"
+                    className="flex w-full items-start gap-2 text-left"
+                    onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="text-base font-bold leading-tight">{ex.nome}</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {feitas}/{validas} séries · alvo {ex.repsMin}-{ex.repsMax} reps
+                      </p>
+                    </div>
+                    <ChevronDown
+                      className={`mt-1 size-5 shrink-0 text-muted-foreground transition-transform ${
+                        aberto ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <RestPicker
+                      value={ex.descansoSeg}
+                      onChange={(segundos) => setDescanso(exIdx, segundos)}
+                    />
+                    {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
-                  <ChevronDown
-                    className={`size-5 shrink-0 text-muted-foreground transition-transform ${
-                      aberto ? "rotate-180" : ""
-                    }`}
-                  />
-                </button>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="tap-target" aria-label="Opções do exercício">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="tap-target"
+                      aria-label="Opções do exercício"
+                    >
                       <MoreVertical className="size-5" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -350,7 +397,10 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> Adicionar série
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive" onClick={() => removeExercise(exIdx)}>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => removeExercise(exIdx)}
+                    >
                       <Trash2 className="mr-2 size-4" /> Remover exercício
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -359,11 +409,14 @@ function SessionPage() {
 
               {aberto ? (
                 <div className="px-3 pb-3">
-                  <div className="mb-1 grid grid-cols-[36px_1fr_1fr_56px_44px] items-center gap-2 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                  <div
+                    className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
+                  >
                     <span>Sér</span>
+                    <span className="text-center">Anterior</span>
                     <span className="text-center">kg</span>
                     <span className="text-center">reps</span>
-                    <span className="text-center">RPE</span>
+                    <span className="text-center">PSE</span>
                     <span />
                   </div>
                   <ul className="space-y-2">
@@ -371,6 +424,8 @@ function SessionPage() {
                       <SetRow
                         key={set.id}
                         set={set}
+                        label={serieLabel(ex.sets, setIdx)}
+                        exercise={ex}
                         onTipo={(tipo) => setTipo(exIdx, setIdx, tipo)}
                         onRemove={() => removeSet(exIdx, setIdx)}
                         onField={(field, value) => setField(exIdx, setIdx, field, value)}
@@ -405,7 +460,9 @@ function SessionPage() {
         <Button
           variant="secondary"
           className="h-12 w-full font-semibold"
-          onClick={() => navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })}
+          onClick={() =>
+            navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
+          }
         >
           <Plus className="mr-1 size-5" /> Adicionar exercício
         </Button>
@@ -423,7 +480,7 @@ function SessionPage() {
           {rest ? (
             <div className="mb-3">
               <div className="mb-1 flex items-center justify-between text-sm font-bold">
-                <span className="text-primary">Descanso {formatDuration(restLeft)}</span>
+                <span className="text-info">Descanso {formatDuration(restLeft)}</span>
                 <div className="flex gap-1">
                   <Button
                     variant="secondary"
@@ -452,17 +509,13 @@ function SessionPage() {
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-muted">
                 <div
-                  className="h-full rounded-full bg-primary transition-[width] duration-1000 ease-linear"
+                  className="h-full rounded-full bg-info transition-[width] duration-1000 ease-linear"
                   style={{ width: `${Math.min(100, (restLeft / rest.total) * 100)}%` }}
                 />
               </div>
             </div>
           ) : null}
-          <Button
-            className="h-14 w-full text-base font-bold"
-            disabled={finishing}
-            onClick={finalizar}
-          >
+          <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
             Finalizar treino
           </Button>
         </div>
@@ -472,33 +525,156 @@ function SessionPage() {
   );
 }
 
+function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  return (
+    <div className="px-3 py-2">
+      <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className={`text-lg font-bold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
+    </div>
+  );
+}
+
+function ProgressBadge({ motivo }: { motivo: string }) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
+        >
+          <TrendingUp className="size-3.5" strokeWidth={3} />
+          Peso aumentado
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64 text-sm">
+        {motivo}
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function RestPicker({ value, onChange }: { value: number; onChange: (segundos: number) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
+        >
+          <Timer className="size-3.5" strokeWidth={2.6} />
+          Descanso: {formatRest(value)}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="start" className="w-64">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          Descanso deste exercício
+        </p>
+        <div className="grid grid-cols-3 gap-1.5">
+          {DESCANSO_OPCOES.map((op) => (
+            <button
+              key={op}
+              type="button"
+              onClick={() => {
+                onChange(op);
+                setOpen(false);
+              }}
+              className={`tap-target rounded-lg border px-1 text-sm font-bold ${
+                op === value ? "border-info bg-info text-info-foreground" : "border-border bg-card"
+              }`}
+            >
+              {formatRest(op)}
+            </button>
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function PsePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={value ? `PSE ${value}` : "Definir PSE (opcional)"}
+          className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
+            value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
+          }`}
+        >
+          {value || "PSE"}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-56">
+        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          PSE (opcional)
+        </p>
+        <div className="grid grid-cols-3 gap-1.5">
+          {PSE_OPCOES.map((op) => (
+            <button
+              key={op}
+              type="button"
+              onClick={() => {
+                onChange(String(op));
+                setOpen(false);
+              }}
+              className={`tap-target rounded-lg border text-sm font-bold ${
+                value === String(op)
+                  ? "border-info bg-info text-info-foreground"
+                  : "border-border bg-card"
+              }`}
+            >
+              {op}
+            </button>
+          ))}
+        </div>
+        <Button
+          variant="ghost"
+          className="mt-2 h-10 w-full text-xs font-bold text-muted-foreground"
+          onClick={() => {
+            onChange("");
+            setOpen(false);
+          }}
+        >
+          Limpar
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 function SetRow({
   set,
+  label,
+  exercise,
   onField,
   onCheck,
   onTipo,
   onRemove,
 }: {
   set: ActiveSet;
+  label: string;
+  exercise: ActiveExercise;
   onField: (field: "pesoKg" | "reps" | "rpe", value: string) => void;
   onCheck: () => void;
   onTipo: (tipo: TipoSerie) => void;
   onRemove: () => void;
 }) {
+  const aquecimento = !isSerieValida(set);
   return (
-    <li
-      className={`grid grid-cols-[36px_1fr_1fr_56px_44px] items-center gap-2 rounded-lg px-1 py-1 ${
-        set.concluida ? "bg-primary/10" : ""
-      }`}
-    >
+    <li className={`${GRID} rounded-lg py-1 ${set.concluida ? "bg-primary/10" : ""}`}>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="tap-target flex size-9 items-center justify-center rounded-md bg-muted text-sm font-bold"
-            aria-label={`Série ${set.serieNum} — tipo ${tipoNome[set.tipoSerie]}`}
+            className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
+              aquecimento ? "text-warn" : ""
+            }`}
+            aria-label={`Série ${label} — tipo ${tipoNome[set.tipoSerie]}`}
           >
-            {tipoLabel[set.tipoSerie] || set.serieNum}
+            {label}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
@@ -513,30 +689,38 @@ function SetRow({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      <div className="text-center text-[11px] font-semibold leading-tight text-muted-foreground">
+        {set.antPeso !== null && set.antReps !== null ? (
+          <>
+            <span className="block tabular-nums">
+              {set.antPeso}kg x {set.antReps}
+            </span>
+            <span className="block tabular-nums">
+              {set.antRpe ? `@ ${set.antRpe} rpe` : "—"}
+            </span>
+          </>
+        ) : (
+          <span>—</span>
+        )}
+      </div>
+
       <Input
         value={set.pesoKg}
         onChange={(e) => onField("pesoKg", e.target.value)}
         inputMode="decimal"
-        placeholder={set.sugPeso !== null ? String(set.sugPeso) : "—"}
+        placeholder="kg"
         aria-label="Peso em kg"
-        className="numeric-field tap-target h-11 text-base"
+        className="numeric-field tap-target h-11 px-1 text-base"
       />
       <Input
         value={set.reps}
         onChange={(e) => onField("reps", e.target.value)}
         inputMode="numeric"
-        placeholder={set.sugReps !== null ? String(set.sugReps) : "—"}
+        placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
         aria-label="Repetições"
-        className="numeric-field tap-target h-11 text-base"
+        className="numeric-field tap-target h-11 px-1 text-base"
       />
-      <Input
-        value={set.rpe}
-        onChange={(e) => onField("rpe", e.target.value)}
-        inputMode="numeric"
-        placeholder="RPE"
-        aria-label="RPE opcional"
-        className="numeric-field tap-target h-11 px-1 text-sm"
-      />
+      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
       <button
         type="button"
         onClick={onCheck}
