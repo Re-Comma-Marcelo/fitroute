@@ -12,6 +12,8 @@ export interface Profile {
   sexo: Sexo;
   nivelAtividade: NivelAtividade;
   objetivo: Objetivo;
+  /** Meta de treinos por semana (usada no card de objetivo semanal). */
+  metaTreinosSemana: number;
 }
 
 export interface Exercise {

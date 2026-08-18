@@ -1,6 +1,7 @@
 import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise } from "./data/workouts";
+import { suggestProgression, type PrevSet } from "./progression";
 import { makeSets, saveActiveSession, type ActiveExercise, type ActiveSession } from "./session-state";
 
 export async function buildActiveExercise(
@@ -10,18 +11,36 @@ export async function buildActiveExercise(
   const exercise = await getExercise(exerciseId);
   if (!exercise) return null;
   const last = await getLastSetsForExercise(exerciseId);
-  const sugestoes = last.map((s) => ({ pesoKg: s.pesoKg, reps: s.reps, tipoSerie: s.tipoSerie }));
-  const seriesAlvo = opts.seriesAlvo ?? Math.max(3, sugestoes.length);
+  const anteriores: PrevSet[] = last.map((s) => ({
+    pesoKg: s.pesoKg,
+    reps: s.reps,
+    tipoSerie: s.tipoSerie,
+    ...(typeof s.rpe === "number" ? { rpe: s.rpe } : {}),
+  }));
+  const repsMin = opts.repsMin ?? 8;
+  const repsMax = opts.repsMax ?? 12;
+  const seriesAlvo = opts.seriesAlvo ?? Math.max(3, anteriores.length);
+  const sugestao = suggestProgression({
+    anteriores,
+    repsMin,
+    repsMax,
+    equipamento: exercise.equipamento,
+  });
   return {
     exerciseId,
     nome: exercise.nome,
     grupoPrimario: exercise.grupoPrimario,
+    equipamento: exercise.equipamento,
     descansoSeg: opts.descansoSeg ?? 90,
-    repsMin: opts.repsMin ?? 8,
-    repsMax: opts.repsMax ?? 12,
+    repsMin,
+    repsMax,
     notas: opts.notas ?? "",
     pulado: false,
-    sets: makeSets(seriesAlvo, sugestoes),
+    sugestao,
+    sets: makeSets(seriesAlvo, anteriores, {
+      pesoSugerido: sugestao?.pesoSugerido ?? null,
+      repsAlvo: null,
+    }),
   };
 }
 

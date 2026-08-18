@@ -172,6 +172,25 @@ function ProfilePage() {
           </div>
         </Field>
 
+        <Field label="Meta de treinos por semana">
+          <div className="grid grid-cols-6 gap-2">
+            {[2, 3, 4, 5, 6, 7].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setForm({ ...form, metaTreinosSemana: n })}
+                className={`tap-target rounded-lg border py-3 text-sm font-bold tabular-nums transition-colors ${
+                  form.metaTreinosSemana === n
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card"
+                }`}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </Field>
+
         <Button type="submit" className="h-14 w-full text-base font-bold">
           Salvar perfil
         </Button>
