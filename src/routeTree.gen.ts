@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
@@ -18,6 +19,11 @@ import { Route as ResumoRouteImport } from './routes/resumo.'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BibliotecaRoute = BibliotecaRouteImport.update({
+  id: '/biblioteca',
+  path: '/biblioteca',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DietaRoute = DietaRouteImport.update({
@@ -43,6 +49,7 @@ const ResumoRoute = ResumoRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
@@ -65,14 +74,22 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
+  fullPaths: '/' | '/biblioteca' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dieta' | '/sessao' | '/treino' | '/resumo'
-  id: '__root__' | '/' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
+  to: '/' | '/biblioteca' | '/dieta' | '/sessao' | '/treino' | '/resumo'
+  id:
+    | '__root__'
+    | '/'
+    | '/biblioteca'
+    | '/dieta'
+    | '/sessao'
+    | '/treino'
+    | '/resumo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BibliotecaRoute: typeof BibliotecaRoute
   DietaRoute: typeof DietaRoute
   SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
@@ -86,6 +103,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/biblioteca': {
+      id: '/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof BibliotecaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dieta': {
@@ -121,6 +145,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BibliotecaRoute: BibliotecaRoute,
   DietaRoute: DietaRoute,
   SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
