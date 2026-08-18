@@ -1,3 +1,4 @@
+import { isSerieValida, type PrevSet, type ProgressionSuggestion } from "./progression";
 import type { TipoSerie } from "./types";
 
 export interface ActiveSet {
@@ -9,6 +10,10 @@ export interface ActiveSet {
   rpe: string;
   sugPeso: number | null;
   sugReps: number | null;
+  /** Coluna ANTERIOR — somente leitura, nunca muda durante a sessão. */
+  antPeso: number | null;
+  antReps: number | null;
+  antRpe: number | null;
   concluida: boolean;
 }
 
@@ -16,11 +21,13 @@ export interface ActiveExercise {
   exerciseId: string;
   nome: string;
   grupoPrimario: string;
+  equipamento: string;
   descansoSeg: number;
   repsMin: number;
   repsMax: number;
   notas: string;
   pulado: boolean;
+  sugestao: ProgressionSuggestion | null;
   sets: ActiveSet[];
 }
 
@@ -72,30 +79,60 @@ export function takePendingExercise(): string | null {
 
 export function makeSets(
   quantidade: number,
-  sugestoes: { pesoKg: number; reps: number; tipoSerie: TipoSerie }[],
+  anteriores: PrevSet[],
+  opts: { pesoSugerido?: number | null; repsAlvo?: number | null } = {},
 ): ActiveSet[] {
   return Array.from({ length: quantidade }, (_, i) => {
-    const sug = sugestoes[i] ?? sugestoes[sugestoes.length - 1];
+    const ant = anteriores[i] ?? null;
+    const tipoSerie: TipoSerie = ant?.tipoSerie ?? "normal";
+    const sugPeso =
+      tipoSerie === "aquecimento"
+        ? (ant?.pesoKg ?? null)
+        : (opts.pesoSugerido ?? ant?.pesoKg ?? null);
     return {
       id: `s_${Math.random().toString(36).slice(2, 9)}`,
       serieNum: i + 1,
-      tipoSerie: sug?.tipoSerie ?? (i === 0 ? "aquecimento" : "normal"),
-      pesoKg: "",
-      reps: "",
+      tipoSerie,
+      pesoKg: sugPeso !== null ? String(sugPeso) : "",
+      reps:
+        tipoSerie === "aquecimento"
+          ? ant?.reps
+            ? String(ant.reps)
+            : ""
+          : opts.repsAlvo
+            ? String(opts.repsAlvo)
+            : ant?.reps
+              ? String(ant.reps)
+              : "",
       rpe: "",
-      sugPeso: sug ? sug.pesoKg : null,
-      sugReps: sug ? sug.reps : null,
+      sugPeso,
+      sugReps: tipoSerie === "aquecimento" ? (ant?.reps ?? null) : (opts.repsAlvo ?? ant?.reps ?? null),
+      antPeso: ant?.pesoKg ?? null,
+      antReps: ant?.reps ?? null,
+      antRpe: ant?.rpe ?? null,
       concluida: false,
     };
   });
 }
 
+/** Numeração exibida: aquecimento é "W", séries válidas contam 1, 2, 3… */
+export function serieLabel(sets: ActiveSet[], index: number): string {
+  const set = sets[index];
+  if (!set) return "";
+  if (!isSerieValida(set)) return "W";
+  return String(sets.slice(0, index + 1).filter(isSerieValida).length);
+}
+
+/** Volume ignora aquecimento. */
 export function sessionVolume(session: ActiveSession): number {
   return session.exercicios.reduce(
     (total, ex) =>
       total +
       ex.sets.reduce(
-        (sub, s) => (s.concluida ? sub + (Number(s.pesoKg) || 0) * (Number(s.reps) || 0) : sub),
+        (sub, s) =>
+          s.concluida && isSerieValida(s)
+            ? sub + (Number(s.pesoKg) || 0) * (Number(s.reps) || 0)
+            : sub,
         0,
       ),
     0,
@@ -104,7 +141,19 @@ export function sessionVolume(session: ActiveSession): number {
 
 export function sessionSetsDone(session: ActiveSession): number {
   return session.exercicios.reduce(
-    (total, ex) => total + ex.sets.filter((s) => s.concluida).length,
+    (total, ex) => total + ex.sets.filter((s) => s.concluida && isSerieValida(s)).length,
     0,
   );
+}
+
+export function sessionElapsed(session: ActiveSession): number {
+  return Math.max(0, Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000));
+}
+
+/** Exercício atual do mini-player: o primeiro com série pendente. */
+export function currentExerciseName(session: ActiveSession): string {
+  const atual = session.exercicios[session.atual];
+  if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return atual.nome;
+  const pendente = session.exercicios.find((ex) => !ex.pulado && ex.sets.some((s) => !s.concluida));
+  return pendente?.nome ?? atual?.nome ?? "Treino livre";
 }
