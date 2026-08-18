@@ -24,7 +24,7 @@ export const Route = createFileRoute("/rotina/$id")({
       { property: "og:description", content: "Séries-alvo, faixa de reps, descanso e notas por exercício." },
     ],
   }),
-  component: RoutineEditor;
+  component: RoutineEditor,
 });
 
 const DRAFT_KEY = "forja.draftRoutine.v1";
