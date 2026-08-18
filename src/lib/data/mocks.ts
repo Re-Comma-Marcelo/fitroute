@@ -133,7 +133,7 @@ const baseCargas: Record<string, number> = {
 
 const dias = [20, 18, 15, 12, 8, 4];
 dias.forEach((diasAtras, i) => {
-  const rotina = routines[i % 2];
+  const rotina = routines[i % 2]!;
   const semana = Math.floor(i / 2);
   const inicio = new Date(Date.now() - diasAtras * 86400000);
   inicio.setHours(19, 30, 0, 0);
