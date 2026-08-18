@@ -10,12 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as ResumoRouteImport } from './routes/resumo.'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DietaRoute = DietaRouteImport.update({
+  id: '/dieta',
+  path: '/dieta',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SessaoRoute = SessaoRouteImport.update({
@@ -28,35 +35,48 @@ const TreinoRoute = TreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ResumoRoute = ResumoRouteImport.update({
+  id: '/resumo/',
+  path: '/resumo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/resumo/': typeof ResumoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/resumo': typeof ResumoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dieta': typeof DietaRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/resumo/': typeof ResumoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sessao' | '/treino'
+  fullPaths: '/' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sessao' | '/treino'
-  id: '__root__' | '/' | '/sessao' | '/treino'
+  to: '/' | '/dieta' | '/sessao' | '/treino' | '/resumo'
+  id: '__root__' | '/' | '/dieta' | '/sessao' | '/treino' | '/resumo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DietaRoute: typeof DietaRoute
   SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
+  ResumoRoute: typeof ResumoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -66,6 +86,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dieta': {
+      id: '/dieta'
+      path: '/dieta'
+      fullPath: '/dieta'
+      preLoaderRoute: typeof DietaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sessao': {
@@ -82,13 +109,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreinoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/resumo/': {
+      id: '/resumo/'
+      path: '/resumo'
+      fullPath: '/resumo/'
+      preLoaderRoute: typeof ResumoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DietaRoute: DietaRoute,
   SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
+  ResumoRoute: ResumoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
