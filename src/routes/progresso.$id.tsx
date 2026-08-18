@@ -78,7 +78,7 @@ function WorkoutDetail() {
       <div className="mx-auto max-w-md space-y-4 px-4 py-4">
         {workout ? (
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm capitalize text-muted-foreground">{formatDateLong(workout.iniciadoEm)}</p>
+            <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDateLong(workout.iniciadoEm)}</p>
             <p className="mt-2 text-base font-bold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
               {sets.length} séries

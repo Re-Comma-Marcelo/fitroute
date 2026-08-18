@@ -62,7 +62,7 @@ function ProgressPage() {
                 <p className="text-base font-bold leading-tight">
                   {routines.find((r) => r.id === w.routineId)?.nome ?? "Treino em branco"}
                 </p>
-                <p className="mt-0.5 text-xs capitalize text-muted-foreground">
+                <p className="mt-0.5 text-xs text-muted-foreground first-letter:uppercase">
                   {formatDateLong(w.iniciadoEm)}
                 </p>
                 <p className="mt-1 text-xs font-semibold text-muted-foreground">
