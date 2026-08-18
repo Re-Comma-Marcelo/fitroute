@@ -13,6 +13,16 @@ export function formatDurationShort(totalSeconds: number): string {
   return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}min`;
 }
 
+/** Descanso legível: "2min 15s", "45s", "3min". */
+export function formatRest(totalSeconds: number): string {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  if (m === 0) return `${sec}s`;
+  if (sec === 0) return `${m}min`;
+  return `${m}min ${sec}s`;
+}
+
 const dtf = new Intl.DateTimeFormat("pt-BR", {
   day: "2-digit",
   month: "short",

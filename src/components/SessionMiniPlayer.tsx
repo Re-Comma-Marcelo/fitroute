@@ -1,0 +1,102 @@
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { ChevronUp, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { formatDuration } from "@/lib/format";
+import {
+  clearActiveSession,
+  currentExerciseName,
+  loadActiveSession,
+  sessionElapsed,
+  type ActiveSession,
+} from "@/lib/session-state";
+
+/**
+ * Barra flutuante de sessão em andamento, exibida acima da navegação inferior
+ * em todas as abas. Permite navegar pelo app sem perder o treino.
+ */
+export function SessionMiniPlayer() {
+  const navigate = useNavigate();
+  const [session, setSession] = useState<ActiveSession | null>(null);
+
+  useEffect(() => {
+    const sync = () => setSession(loadActiveSession());
+    sync();
+    const id = setInterval(sync, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  if (!session) return null;
+
+  return (
+    <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 px-3">
+      <div className="mx-auto flex max-w-md items-center gap-2 rounded-xl border border-primary/40 bg-card p-2 shadow-lg shadow-black/40">
+        <Link
+          to="/sessao"
+          aria-label="Voltar para a sessão de treino"
+          className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
+        >
+          <ChevronUp className="size-5 shrink-0 text-primary" />
+          <span className="relative flex size-2.5 shrink-0">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <span className="truncate text-sm font-bold">{session.routineNome}</span>
+              <span className="ml-auto font-mono text-sm font-bold tabular-nums text-primary">
+                {formatDuration(sessionElapsed(session))}
+              </span>
+            </span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {currentExerciseName(session)}
+            </span>
+          </span>
+        </Link>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              type="button"
+              aria-label="Descartar treino em andamento"
+              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg text-destructive"
+            >
+              <Trash2 className="size-5" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Descartar este treino?</AlertDialogTitle>
+              <AlertDialogDescription>
+                As séries registradas em {session.routineNome} serão perdidas. Essa ação não pode ser
+                desfeita.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel className="tap-target">Continuar treinando</AlertDialogCancel>
+              <AlertDialogAction
+                className="tap-target bg-destructive text-destructive-foreground"
+                onClick={() => {
+                  clearActiveSession();
+                  setSession(null);
+                  navigate({ to: "/treino" });
+                }}
+              >
+                Descartar
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </div>
+  );
+}
