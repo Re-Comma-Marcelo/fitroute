@@ -57,9 +57,8 @@ function HomePage() {
     queryKey: ["routine-suggestions", rotinas.map((r) => r.id).join("|")],
     enabled: rotinas.length > 0,
     queryFn: async () => {
-      const out: Record<string, ProgressionSuggestion> = {};
-      for (const r of rotinas) Object.assign(out, await getRoutineSuggestions(r));
-      return out;
+      const listas = await Promise.all(rotinas.map((r) => getRoutineSuggestions(r)));
+      return Object.assign({} as Record<string, ProgressionSuggestion>, ...listas);
     },
   });
   const sugestoes = suggestionsQuery.data ?? {};
