@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ChevronRight, Dumbbell, Play, Plus, TrendingUp } from "lucide-react";
+import { ChevronRight, Play, Plus, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
