@@ -46,23 +46,21 @@ function ProgressPage() {
         />
       </dl>
 
-      <h2 className="mt-6 mb-3 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-        Histórico
-      </h2>
+      <h2 className="label-caps mt-8 mb-3">Histórico</h2>
 
-      <ul className="space-y-3">
+      <ul className="space-y-2">
         {workouts.map((w) => (
           <li key={w.id}>
             <Link
               to="/progresso/$id"
               params={{ id: w.id }}
-              className="flex items-center gap-3 rounded-xl border border-border bg-card p-4"
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
             >
               <div className="flex-1">
-                <p className="text-base font-bold leading-tight">
+                <p className="font-display text-base font-semibold leading-tight">
                   {routines.find((r) => r.id === w.routineId)?.nome ?? "Treino em branco"}
                 </p>
-                <p className="mt-0.5 text-xs text-muted-foreground first-letter:uppercase">
+                <p className="mt-0.5 text-xs text-muted-foreground/80 first-letter:uppercase">
                   {formatDateLong(w.iniciadoEm)}
                 </p>
                 <p className="mt-1 text-xs font-semibold text-muted-foreground">
@@ -80,9 +78,11 @@ function ProgressPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-3">
-      <dt className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-xl font-bold tabular-nums">{value}</dd>
+    <div className="rounded-2xl border border-border bg-card p-3">
+      <dt className="label-caps">{label}</dt>
+      <dd className="font-display mt-1 whitespace-nowrap text-lg font-semibold tabular-nums">
+        {value}
+      </dd>
     </div>
   );
 }

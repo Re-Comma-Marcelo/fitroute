@@ -40,7 +40,7 @@ export function SessionMiniPlayer() {
 
   return (
     <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 px-3">
-      <div className="mx-auto flex max-w-md items-center gap-2 rounded-xl border border-primary/40 bg-card p-2 shadow-lg shadow-black/40">
+      <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
           aria-label="Voltar para a sessão de treino"
@@ -53,12 +53,12 @@ export function SessionMiniPlayer() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
-              <span className="truncate text-sm font-bold">{session.routineNome}</span>
+              <span className="truncate text-sm font-semibold">{session.routineNome}</span>
               <span className="ml-auto font-mono text-sm font-bold tabular-nums text-primary">
                 {formatDuration(sessionElapsed(session))}
               </span>
             </span>
-            <span className="block truncate text-xs text-muted-foreground">
+            <span className="block truncate text-xs text-muted-foreground/80">
               {currentExerciseName(session)}
             </span>
           </span>
