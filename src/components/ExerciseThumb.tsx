@@ -7,9 +7,9 @@ export function ExerciseThumb({
   nome,
   className,
 }: {
-  grupo?: string | null;
-  nome?: string;
-  className?: string;
+  grupo?: string | null | undefined;
+  nome?: string | undefined;
+  className?: string | undefined;
 }) {
   return (
     <span

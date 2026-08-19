@@ -5,6 +5,7 @@ import { ArrowLeft, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/AppShell";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { getEquipments, getExercises, getMuscleGroups } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
@@ -107,22 +108,25 @@ function LibraryPage() {
           onChange={setEquip}
         />
 
-        <p className="mt-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          {lista.length} exercícios
-        </p>
+        <p className="label-caps mt-5">{lista.length} exercícios</p>
 
-        <ul className="mt-2 divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
+        <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
           {lista.map((e) => (
             <li key={e.id} className="flex items-center">
               <button
                 type="button"
                 onClick={() => escolher(e)}
-                className="tap-target flex-1 px-4 py-3 text-left"
+                className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
               >
-                <p className="text-base font-semibold leading-tight">{e.nome}</p>
-                <p className="text-xs text-muted-foreground">
-                  {e.grupoPrimario} · {e.equipamento}
-                </p>
+                <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[15px] font-semibold leading-tight">
+                    {e.nome}
+                  </span>
+                  <span className="block text-xs text-muted-foreground/80">
+                    {e.grupoPrimario} · {e.equipamento}
+                  </span>
+                </span>
               </button>
               <Button
                 variant="ghost"
@@ -211,8 +215,8 @@ function FilterRow({
   onChange: (value: string | null) => void;
 }) {
   return (
-    <div className="mt-3">
-      <p className="mb-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">{label}</p>
+      <div className="mt-4">
+      <p className="label-caps mb-1.5">{label}</p>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <FilterChip active={value === null} onClick={() => onChange(null)}>
           Todos
@@ -240,8 +244,10 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`tap-target shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
-        active ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card"
+      className={`tap-target shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+        active
+          ? "border-primary/60 bg-primary/15 text-primary"
+          : "border-border bg-card text-muted-foreground"
       }`}
     >
       {children}
