@@ -80,7 +80,9 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-3">
       <dt className="label-caps">{label}</dt>
-      <dd className="font-display mt-1 text-xl font-semibold tabular-nums">{value}</dd>
+      <dd className="font-display mt-1 whitespace-nowrap text-lg font-semibold tabular-nums">
+        {value}
+      </dd>
     </div>
   );
 }
