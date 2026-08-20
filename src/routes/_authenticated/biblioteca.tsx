@@ -37,7 +37,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 
 function LibraryPage() {
   const navigate = useNavigate();
-  const { para, rotinaId } = useSearch({ from: "/biblioteca" });
+  const { para, rotinaId } = useSearch({ from: "/_authenticated/biblioteca" });
   const [q, setQ] = useState("");
   const [grupo, setGrupo] = useState<string | null>(null);
   const [equip, setEquip] = useState<string | null>(null);
@@ -47,9 +47,9 @@ function LibraryPage() {
   const fetchMuscleGroups = useServerFn(getMuscleGroups);
   const fetchEquipments = useServerFn(getEquipments);
 
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
-  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: () => fetchMuscleGroups({ data: {} }) });
-  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: () => fetchEquipments({ data: {} }) });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises(undefined) });
+  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: () => fetchMuscleGroups(undefined) });
+  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: () => fetchEquipments(undefined) });
 
   const lista = useMemo(() => {
     const all = exercisesQuery.data ?? [];

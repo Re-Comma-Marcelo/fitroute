@@ -64,15 +64,15 @@ function InicioPage() {
 
   const workoutsQuery = useQuery({
     queryKey: ["workouts"],
-    queryFn: () => fetchWorkouts({ data: {} }),
+    queryFn: () => fetchWorkouts(undefined),
   });
   const routinesQuery = useQuery({
     queryKey: ["routines"],
-    queryFn: () => fetchRoutines({ data: {} }),
+    queryFn: () => fetchRoutines(undefined),
   });
   const profileQuery = useQuery({
     queryKey: ["profile"],
-    queryFn: () => fetchProfile({ data: {} }),
+    queryFn: () => fetchProfile(undefined),
   });
 
   const workouts = workoutsQuery.data ?? [];

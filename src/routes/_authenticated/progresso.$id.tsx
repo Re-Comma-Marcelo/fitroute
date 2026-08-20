@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/progresso/$id")({
 });
 
 function WorkoutDetail() {
-  const { id } = useParams({ from: "/progresso/$id" });
+  const { id } = useParams({ from: "/_authenticated/progresso/$id" });
   const navigate = useNavigate();
 
   const fetchWorkout = useServerFn(getWorkout);
@@ -44,8 +44,8 @@ function WorkoutDetail() {
 
   const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => fetchWorkout({ data: { id } }) });
   const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => fetchWorkoutSets({ data: { workoutId: id } }) });
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
-  const allWorkoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts({ data: {} }) });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises(undefined) });
+  const allWorkoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts(undefined) });
 
   const sets = setsQuery.data ?? [];
   const exerciseIds = [...new Set(sets.map((s) => s.exerciseId))];
