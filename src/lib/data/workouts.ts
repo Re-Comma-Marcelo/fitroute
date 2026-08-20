@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/lib/database.types";
 import type { Workout, WorkoutSet } from "@/lib/types";
@@ -44,14 +45,18 @@ export const getWorkouts = createServerFn({ method: "GET" })
     return (data ?? []).map(mapWorkout);
   });
 
+const idSchema = z.object({ id: z.string().uuid() });
+const workoutIdSchema = z.object({ workoutId: z.string().uuid() });
+const exerciseIdSchema = z.object({ exerciseId: z.string().uuid() });
+
 export const getWorkout = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { id } = data as { id: string };
     const { data: row, error } = await context.supabase
       .from("workouts")
       .select("*")
-      .eq("id", id)
+      .eq("id", data.id)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw error;
@@ -60,12 +65,12 @@ export const getWorkout = createServerFn({ method: "GET" })
 
 export const getWorkoutSets = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => workoutIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { workoutId } = data as { workoutId: string };
     const { data: rows, error } = await context.supabase
       .from("workout_sets")
       .select("*")
-      .eq("workout_id", workoutId)
+      .eq("workout_id", data.workoutId)
       .order("ordem_exercicio", { ascending: true })
       .order("serie_num", { ascending: true });
     if (error) throw error;
@@ -74,12 +79,12 @@ export const getWorkoutSets = createServerFn({ method: "GET" })
 
 export const getExerciseHistory = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => exerciseIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { exerciseId } = data as { exerciseId: string };
     const { data: rows, error } = await context.supabase
       .from("workout_sets")
       .select("*, workouts!inner(iniciado_em)")
-      .eq("exercise_id", exerciseId)
+      .eq("exercise_id", data.exerciseId)
       .eq("concluida", true)
       .order("workouts(iniciado_em)", { ascending: true });
     if (error) throw error;
@@ -87,23 +92,25 @@ export const getExerciseHistory = createServerFn({ method: "GET" })
     return (rows ?? [])
       .sort(
         (a, b) =>
-          (a.workouts as unknown as { iniciado_em: string }).iniciado_em.localeCompare(
-            (b.workouts as unknown as { iniciado_em: string }).iniciado_em,
-          ) || a.ordem_exercicio - b.ordem_exercicio || a.serie_num - b.serie_num,
+          String(a.workouts?.iniciado_em ?? "").localeCompare(
+            String(b.workouts?.iniciado_em ?? ""),
+          ) ||
+          a.ordem_exercicio - b.ordem_exercicio ||
+          a.serie_num - b.serie_num,
       )
       .map(mapWorkoutSet);
   });
 
 export const getLastSetsForExercise = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => exerciseIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { exerciseId } = data as { exerciseId: string };
     const { data: rows, error } = await context.supabase
       .from("workouts")
       .select("id, iniciado_em, workout_sets(*)")
       .eq("user_id", context.userId)
       .not("finalizado_em", "is", null)
-      .eq("workout_sets.exercise_id", exerciseId)
+      .eq("workout_sets.exercise_id", data.exerciseId)
       .eq("workout_sets.concluida", true)
       .order("iniciado_em", { ascending: false })
       .limit(1);
@@ -120,35 +127,64 @@ export const getLastSetsForExercise = createServerFn({ method: "GET" })
 
 export const getPersonalRecord = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => exerciseIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { exerciseId } = data as { exerciseId: string };
-    const { data, error } = await context.supabase
+    const { data: rows, error } = await context.supabase
       .from("workout_sets")
       .select("peso_kg")
-      .eq("exercise_id", exerciseId)
+      .eq("exercise_id", data.exerciseId)
       .eq("concluida", true)
       .order("peso_kg", { ascending: false })
       .limit(1);
     if (error) throw error;
-    return Number(data?.[0]?.peso_kg ?? 0);
+    return Number(rows?.[0]?.peso_kg ?? 0);
   });
+
+const workoutSchema = z.object({
+  id: z.string().uuid(),
+  routineId: z.string().uuid().optional(),
+  iniciadoEm: z.string(),
+  finalizadoEm: z.string().optional(),
+  duracaoSeg: z.number().int(),
+  volumeTotalKg: z.number(),
+  notas: z.string(),
+  origem: z.enum(["rotina", "branco"]),
+});
+
+const workoutSetSchema = z.object({
+  id: z.string().uuid(),
+  workoutId: z.string().uuid(),
+  exerciseId: z.string().uuid(),
+  ordemExercicio: z.number().int(),
+  serieNum: z.number().int(),
+  tipoSerie: z.enum(["aquecimento", "normal", "falha", "drop"]),
+  pesoKg: z.number(),
+  reps: z.number().int(),
+  rpe: z.number().optional(),
+  concluida: z.boolean(),
+});
+
+const saveWorkoutSchema = z.object({
+  workout: workoutSchema,
+  sets: z.array(workoutSetSchema),
+});
 
 export const saveWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => saveWorkoutSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { workout, sets } = data as { workout: Workout; sets: WorkoutSet[] };
-    const id = workout.id || crypto.randomUUID();
+    const id = data.workout.id || crypto.randomUUID();
 
     const workoutRow: Database["public"]["Tables"]["workouts"]["Insert"] = {
       id,
       user_id: context.userId,
-      routine_id: workout.routineId ?? null,
-      iniciado_em: workout.iniciadoEm,
-      finalizado_em: workout.finalizadoEm ?? null,
-      duracao_seg: workout.duracaoSeg,
-      volume_total_kg: workout.volumeTotalKg,
-      notas: workout.notas,
-      origem: workout.origem,
+      routine_id: data.workout.routineId ?? null,
+      iniciado_em: data.workout.iniciadoEm,
+      finalizado_em: data.workout.finalizadoEm ?? null,
+      duracao_seg: data.workout.duracaoSeg,
+      volume_total_kg: data.workout.volumeTotalKg,
+      notas: data.workout.notas,
+      origem: data.workout.origem,
     };
 
     const { data: saved, error } = await context.supabase
@@ -161,8 +197,8 @@ export const saveWorkout = createServerFn({ method: "POST" })
     // Delete existing sets and re-insert
     await context.supabase.from("workout_sets").delete().eq("workout_id", id);
 
-    const setRows: Database["public"]["Tables"]["workout_sets"]["Insert"][] = sets.map(
-      (s, i) => ({
+    const setRows: Database["public"]["Tables"]["workout_sets"]["Insert"][] = data.sets.map(
+      (s) => ({
         workout_id: id,
         exercise_id: s.exerciseId,
         ordem_exercicio: s.ordemExercicio,
@@ -187,12 +223,12 @@ export const saveWorkout = createServerFn({ method: "POST" })
 
 export const deleteWorkout = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { id } = data as { id: string };
     const { error } = await context.supabase
       .from("workouts")
       .delete()
-      .eq("id", id)
+      .eq("id", data.id)
       .eq("user_id", context.userId);
     if (error) throw error;
   });
