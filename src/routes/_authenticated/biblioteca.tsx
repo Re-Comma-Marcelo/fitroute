@@ -43,9 +43,13 @@ function LibraryPage() {
   const [equip, setEquip] = useState<string | null>(null);
   const [detalhe, setDetalhe] = useState<Exercise | null>(null);
 
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
-  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
-  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: getEquipments });
+  const fetchExercises = useServerFn(getExercises);
+  const fetchMuscleGroups = useServerFn(getMuscleGroups);
+  const fetchEquipments = useServerFn(getEquipments);
+
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
+  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: () => fetchMuscleGroups({ data: {} }) });
+  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: () => fetchEquipments({ data: {} }) });
 
   const lista = useMemo(() => {
     const all = exercisesQuery.data ?? [];
