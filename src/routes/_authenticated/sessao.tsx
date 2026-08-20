@@ -39,7 +39,7 @@ import { buildActiveExercise } from "@/lib/start-session";
 import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
-export const Route = createFileRoute("/sessao")({
+export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
     meta: [
       { title: "Sessão de treino — Forja" },

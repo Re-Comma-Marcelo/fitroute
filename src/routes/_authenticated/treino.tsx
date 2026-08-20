@@ -17,7 +17,7 @@ import { loadActiveSession, type ActiveSession } from "@/lib/session-state";
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import type { ProgressionSuggestion } from "@/lib/progression";
 
-export const Route = createFileRoute("/treino")({
+export const Route = createFileRoute("/_authenticated/treino")({
   head: () => ({
     meta: [
       { title: "Treino — Forja" },

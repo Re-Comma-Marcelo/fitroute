@@ -6,7 +6,7 @@ import { getWorkouts } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import { formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 
-export const Route = createFileRoute("/progresso/")({
+export const Route = createFileRoute("/_authenticated/progresso/")({
   head: () => ({
     meta: [
       { title: "Progresso — Forja" },

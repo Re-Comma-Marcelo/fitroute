@@ -11,7 +11,7 @@ import { getEquipments, getExercises, getMuscleGroups } from "@/lib/data/exercis
 import { setPendingExercise } from "@/lib/session-state";
 import type { Exercise } from "@/lib/types";
 
-export const Route = createFileRoute("/biblioteca")({
+export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
     para: search["para"] as "sessao" | "rotina" | undefined,
     rotinaId: search["rotinaId"] as string | undefined,
