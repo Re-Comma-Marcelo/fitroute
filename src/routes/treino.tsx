@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { ChevronRight, Play, Plus, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -18,7 +17,7 @@ import { loadActiveSession, type ActiveSession } from "@/lib/session-state";
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import type { ProgressionSuggestion } from "@/lib/progression";
 
-export const Route = createFileRoute("/_authenticated/treino")({
+export const Route = createFileRoute("/treino")({
   head: () => ({
     meta: [
       { title: "Treino — Forja" },
@@ -47,16 +46,10 @@ function HomePage() {
 
   useEffect(() => setActive(loadActiveSession()), []);
 
-  const fetchRoutines = useServerFn(getRoutines);
-  const fetchWorkouts = useServerFn(getWorkouts);
-  const fetchExercises = useServerFn(getExercises);
-  const fetchProfile = useServerFn(getProfile);
-  const fetchSuggestions = useServerFn(getRoutineSuggestions);
-
-  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines(undefined) });
-  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts(undefined) });
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises(undefined) });
-  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile(undefined) });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
 
   const rotinas = routinesQuery.data ?? [];
   const workouts = workoutsQuery.data ?? [];
@@ -66,9 +59,7 @@ function HomePage() {
     queryKey: ["routine-suggestions", rotinas.map((r) => r.id).join("|")],
     enabled: rotinas.length > 0,
     queryFn: async () => {
-      const listas = await Promise.all(
-        rotinas.map((r) => fetchSuggestions({ data: r })),
-      );
+      const listas = await Promise.all(rotinas.map((r) => getRoutineSuggestions(r)));
       return Object.assign({} as Record<string, ProgressionSuggestion>, ...listas);
     },
   });

@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
@@ -17,7 +16,7 @@ import {
 import { getProfile, saveProfile } from "@/lib/data/profile";
 import type { NivelAtividade, Objetivo, Profile, Sexo } from "@/lib/types";
 
-export const Route = createFileRoute("/_authenticated/perfil")({
+export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
       { title: "Perfil — Forja" },
@@ -54,9 +53,7 @@ const sexos: { value: Sexo; label: string }[] = [
 
 function ProfilePage() {
   const queryClient = useQueryClient();
-  const fetchProfile = useServerFn(getProfile);
-  const updateProfile = useServerFn(saveProfile);
-  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile(undefined) });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const [form, setForm] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -72,7 +69,7 @@ function ProfilePage() {
   }
 
   async function salvar() {
-    await updateProfile({ data: form! });
+    await saveProfile(form!);
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     toast.success("Perfil salvo");
   }

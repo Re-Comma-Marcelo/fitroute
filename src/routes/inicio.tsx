@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { ChevronRight, Flame, Play } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -12,7 +11,7 @@ import { formatDurationShort, relativeDays } from "@/lib/format";
 import { loadActiveSession, type ActiveSession } from "@/lib/session-state";
 import { startBlankSession } from "@/lib/start-session";
 
-export const Route = createFileRoute("/_authenticated/inicio")({
+export const Route = createFileRoute("/inicio")({
   head: () => ({
     meta: [
       { title: "Início — Forja" },
@@ -58,22 +57,9 @@ function InicioPage() {
 
   useEffect(() => setActive(loadActiveSession()), []);
 
-  const fetchWorkouts = useServerFn(getWorkouts);
-  const fetchRoutines = useServerFn(getRoutines);
-  const fetchProfile = useServerFn(getProfile);
-
-  const workoutsQuery = useQuery({
-    queryKey: ["workouts"],
-    queryFn: () => fetchWorkouts(undefined),
-  });
-  const routinesQuery = useQuery({
-    queryKey: ["routines"],
-    queryFn: () => fetchRoutines(undefined),
-  });
-  const profileQuery = useQuery({
-    queryKey: ["profile"],
-    queryFn: () => fetchProfile(undefined),
-  });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => getWorkouts() });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => getRoutines() });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => getProfile() });
 
   const workouts = workoutsQuery.data ?? [];
   const rotinas = routinesQuery.data ?? [];
@@ -127,9 +113,7 @@ function InicioPage() {
 
       <section className="mb-8">
         <div className="mb-3 flex items-baseline justify-between">
-          <h3 className="font-display text-2xl font-semibold uppercase tracking-tight">
-            Rotinas
-          </h3>
+          <h3 className="font-display text-2xl font-semibold uppercase tracking-tight">Rotinas</h3>
           <Link to="/treino" className="text-xs font-medium text-primary">
             ver todas
           </Link>

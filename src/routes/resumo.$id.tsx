@@ -1,6 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,7 @@ import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import heroLogin from "@/assets/hero-login.jpg";
 
-export const Route = createFileRoute("/_authenticated/resumo/$id")({
+export const Route = createFileRoute("/resumo/$id")({
   head: () => ({
     meta: [
       { title: "Resumo do treino — Forja" },
@@ -24,11 +23,8 @@ export const Route = createFileRoute("/_authenticated/resumo/$id")({
 });
 
 function SummaryPage() {
-  const { id } = useParams({ from: "/_authenticated/resumo/$id" });
+  const { id } = useParams({ from: "/resumo/$id" });
   const [prs, setPrs] = useState<{ nome: string; pesoKg: number }[]>([]);
-
-  const fetchWorkout = useServerFn(getWorkout);
-  const fetchWorkoutSets = useServerFn(getWorkoutSets);
 
   useEffect(() => {
     try {
@@ -39,8 +35,8 @@ function SummaryPage() {
     }
   }, [id]);
 
-  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => fetchWorkout({ data: { id } }) });
-  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => fetchWorkoutSets({ data: { workoutId: id } }) });
+  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });
+  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];

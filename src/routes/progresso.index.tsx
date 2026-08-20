@@ -1,13 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { ChevronRight } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { getWorkouts } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import { formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/progresso/")({
+export const Route = createFileRoute("/progresso/")({
   head: () => ({
     meta: [
       { title: "Progresso — Forja" },
@@ -23,10 +22,8 @@ export const Route = createFileRoute("/_authenticated/progresso/")({
 });
 
 function ProgressPage() {
-  const fetchWorkouts = useServerFn(getWorkouts);
-  const fetchRoutines = useServerFn(getRoutines);
-  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts(undefined) });
-  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines(undefined) });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const workouts = workoutsQuery.data ?? [];
   const routines = routinesQuery.data ?? [];
 

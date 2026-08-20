@@ -8,9 +8,9 @@ export async function buildActiveExercise(
   exerciseId: string,
   opts: { seriesAlvo?: number; repsMin?: number; repsMax?: number; descansoSeg?: number; notas?: string } = {},
 ): Promise<ActiveExercise | null> {
-  const exercise = await getExercise({ data: { id: exerciseId } });
+  const exercise = await getExercise(exerciseId);
   if (!exercise) return null;
-  const last = await getLastSetsForExercise({ data: { exerciseId } });
+  const last = await getLastSetsForExercise(exerciseId);
   const anteriores: PrevSet[] = last.map((s) => ({
     pesoKg: s.pesoKg,
     reps: s.reps,
@@ -45,7 +45,7 @@ export async function buildActiveExercise(
 }
 
 export async function startRoutineSession(routineId: string): Promise<ActiveSession | null> {
-  const routine = await getRoutine({ data: { id: routineId } });
+  const routine = await getRoutine(routineId);
   if (!routine) return null;
   const exercicios: ActiveExercise[] = [];
   for (const rex of [...routine.exercicios].sort((a, b) => a.ordem - b.ordem)) {
@@ -72,7 +72,8 @@ export async function startRoutineSession(routineId: string): Promise<ActiveSess
 }
 
 export async function startBlankSession(): Promise<ActiveSession> {
-  const all = await getExercises(undefined);
+  // Treino em branco começa com um exercício sugerido para nunca abrir vazio.
+  const all = await getExercises();
   const first = all[0];
   const exercicios: ActiveExercise[] = [];
   if (first) {
