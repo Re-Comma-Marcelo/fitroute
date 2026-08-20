@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/lib/database.types";
 import type { Profile } from "@/lib/types";
@@ -50,18 +51,29 @@ export const getProfile = createServerFn({ method: "GET" })
     return mapProfile(data);
   });
 
+const profileSchema = z.object({
+  id: z.string().uuid(),
+  nome: z.string(),
+  pesoKg: z.number(),
+  alturaCm: z.number(),
+  sexo: z.enum(["masculino", "feminino", "outro"]),
+  nivelAtividade: z.enum(["sedentario", "leve", "moderado", "intenso", "atleta"]),
+  objetivo: z.enum(["cutting", "manutencao", "bulking"]),
+  metaTreinosSemana: z.number().int(),
+});
+
 export const saveProfile = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => profileSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const next = data as Profile;
     const row: Database["public"]["Tables"]["profiles"]["Update"] = {
-      nome: next.nome,
-      peso_kg: next.pesoKg,
-      altura_cm: next.alturaCm,
-      sexo: next.sexo,
-      nivel_atividade: next.nivelAtividade,
-      objetivo: next.objetivo,
-      meta_treinos_semana: next.metaTreinosSemana,
+      nome: data.nome,
+      peso_kg: data.pesoKg,
+      altura_cm: data.alturaCm,
+      sexo: data.sexo,
+      nivel_atividade: data.nivelAtividade,
+      objetivo: data.objetivo,
+      meta_treinos_semana: data.metaTreinosSemana,
     };
     const { data: saved, error } = await context.supabase
       .from("profiles")

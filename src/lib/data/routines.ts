@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/lib/database.types";
 import type { Routine, RoutineExercise } from "@/lib/types";
@@ -57,14 +58,17 @@ export const getRoutines = createServerFn({ method: "GET" })
     return (routines ?? []).map((r) => mapRoutine(r, exercises));
   });
 
+const idSchema = z.object({ id: z.string().uuid() });
+const routineIdSchema = z.object({ routineId: z.string().uuid() });
+
 export const getRoutine = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { id } = data as { id: string };
     const { data: routine, error } = await context.supabase
       .from("routines")
       .select("*")
-      .eq("id", id)
+      .eq("id", data.id)
       .eq("user_id", context.userId)
       .maybeSingle();
     if (error) throw error;
@@ -73,7 +77,7 @@ export const getRoutine = createServerFn({ method: "GET" })
     const { data: exercises } = await context.supabase
       .from("routine_exercises")
       .select("*")
-      .eq("routine_id", id)
+      .eq("routine_id", data.id)
       .order("ordem");
 
     return mapRoutine(routine, exercises ?? []);
@@ -81,13 +85,13 @@ export const getRoutine = createServerFn({ method: "GET" })
 
 export const getRoutineLastWorkoutDate = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => routineIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { routineId } = data as { routineId: string };
     const { data: rows, error } = await context.supabase
       .from("workouts")
       .select("iniciado_em")
       .eq("user_id", context.userId)
-      .eq("routine_id", routineId)
+      .eq("routine_id", data.routineId)
       .not("finalizado_em", "is", null)
       .order("iniciado_em", { ascending: false })
       .limit(1);
@@ -95,17 +99,35 @@ export const getRoutineLastWorkoutDate = createServerFn({ method: "GET" })
     return rows?.[0]?.iniciado_em ?? null;
   });
 
+const routineExerciseSchema = z.object({
+  id: z.string().uuid(),
+  exerciseId: z.string().uuid(),
+  ordem: z.number().int(),
+  seriesAlvo: z.number().int(),
+  repsMin: z.number().int(),
+  repsMax: z.number().int(),
+  descansoSeg: z.number().int(),
+  notas: z.string(),
+});
+
+const routineSchema = z.object({
+  id: z.string().uuid(),
+  nome: z.string(),
+  descricao: z.string(),
+  exercicios: z.array(routineExerciseSchema),
+});
+
 export const saveRoutine = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => routineSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const routine = data as Routine;
-    const id = routine.id || crypto.randomUUID();
+    const id = data.id || crypto.randomUUID();
 
     const routineRow: Database["public"]["Tables"]["routines"]["Insert"] = {
       id,
       user_id: context.userId,
-      nome: routine.nome,
-      descricao: routine.descricao,
+      nome: data.nome,
+      descricao: data.descricao,
     };
 
     const { data: saved, error } = await context.supabase
@@ -119,7 +141,7 @@ export const saveRoutine = createServerFn({ method: "POST" })
     await context.supabase.from("routine_exercises").delete().eq("routine_id", id);
 
     const exerciseRows: Database["public"]["Tables"]["routine_exercises"]["Insert"][] =
-      routine.exercicios.map((e, i) => ({
+      data.exercicios.map((e, i) => ({
         routine_id: id,
         exercise_id: e.exerciseId,
         ordem: i,
@@ -137,17 +159,17 @@ export const saveRoutine = createServerFn({ method: "POST" })
       if (insertError) throw insertError;
     }
 
-    return { ...routine, id };
+    return { ...data, id };
   });
 
 export const deleteRoutine = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { id } = data as { id: string };
     const { error } = await context.supabase
       .from("routines")
       .delete()
-      .eq("id", id)
+      .eq("id", data.id)
       .eq("user_id", context.userId);
     if (error) throw error;
   });
@@ -167,15 +189,15 @@ export function newRoutineExercise(exerciseId: string, ordem: number): RoutineEx
 
 export const countRoutineSetsLogged = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => routineIdSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { routineId } = data as { routineId: string };
     const { data: workouts, error } = await context.supabase
       .from("workouts")
       .select("id")
       .eq("user_id", context.userId)
-      .eq("routine_id", routineId);
+      .eq("routine_id", data.routineId);
     if (error) throw error;
-    if (workouts.length === 0) return 0;
+    if (!workouts || workouts.length === 0) return 0;
 
     const { count, error: countError } = await context.supabase
       .from("workout_sets")
