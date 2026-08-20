@@ -17,10 +17,10 @@ import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
 import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated/treino'
-import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
-import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
-import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
 import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
+import { Route as AuthenticatedProgressoIdRouteImport } from './routes/_authenticated/progresso.$id'
+import { Route as AuthenticatedResumoIdRouteImport } from './routes/_authenticated/resumo.$id'
+import { Route as AuthenticatedRotinaIdRouteImport } from './routes/_authenticated/rotina.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -61,27 +61,28 @@ const AuthenticatedTreinoRoute = AuthenticatedTreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const ProgressoIdRoute = ProgressoIdRouteImport.update({
-  id: '/progresso/$id',
-  path: '/progresso/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ResumoIdRoute = ResumoIdRouteImport.update({
-  id: '/resumo/$id',
-  path: '/resumo/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RotinaIdRoute = RotinaIdRouteImport.update({
-  id: '/rotina/$id',
-  path: '/rotina/$id',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedProgressoIndexRoute =
   AuthenticatedProgressoIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedProgressoRoute,
   } as any)
+const AuthenticatedProgressoIdRoute =
+  AuthenticatedProgressoIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedProgressoRoute,
+  } as any)
+const AuthenticatedResumoIdRoute = AuthenticatedResumoIdRouteImport.update({
+  id: '/resumo/$id',
+  path: '/resumo/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRotinaIdRoute = AuthenticatedRotinaIdRouteImport.update({
+  id: '/rotina/$id',
+  path: '/rotina/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -91,9 +92,9 @@ export interface FileRoutesByFullPath {
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/progresso/': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -103,9 +104,9 @@ export interface FileRoutesByTo {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
+  '/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/progresso': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRoutesById {
@@ -118,9 +119,9 @@ export interface FileRoutesById {
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
+  '/_authenticated/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/_authenticated/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/_authenticated/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/_authenticated/progresso/': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRouteTypes {
@@ -159,18 +160,15 @@ export interface FileRouteTypes {
     | '/_authenticated/progresso'
     | '/_authenticated/sessao'
     | '/_authenticated/treino'
-    | '/progresso/$id'
-    | '/resumo/$id'
-    | '/rotina/$id'
+    | '/_authenticated/progresso/$id'
+    | '/_authenticated/resumo/$id'
+    | '/_authenticated/rotina/$id'
     | '/_authenticated/progresso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
-  ProgressoIdRoute: typeof ProgressoIdRoute
-  ResumoIdRoute: typeof ResumoIdRoute
-  RotinaIdRoute: typeof RotinaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -231,27 +229,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTreinoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/progresso/$id': {
-      id: '/progresso/$id'
-      path: '/progresso/$id'
-      fullPath: '/progresso/$id'
-      preLoaderRoute: typeof ProgressoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/resumo/$id': {
-      id: '/resumo/$id'
-      path: '/resumo/$id'
-      fullPath: '/resumo/$id'
-      preLoaderRoute: typeof ResumoIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/rotina/$id': {
-      id: '/rotina/$id'
-      path: '/rotina/$id'
-      fullPath: '/rotina/$id'
-      preLoaderRoute: typeof RotinaIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/progresso/': {
       id: '/_authenticated/progresso/'
       path: '/'
@@ -259,15 +236,38 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressoIndexRouteImport
       parentRoute: typeof AuthenticatedProgressoRoute
     }
+    '/_authenticated/progresso/$id': {
+      id: '/_authenticated/progresso/$id'
+      path: '/$id'
+      fullPath: '/progresso/$id'
+      preLoaderRoute: typeof AuthenticatedProgressoIdRouteImport
+      parentRoute: typeof AuthenticatedProgressoRoute
+    }
+    '/_authenticated/resumo/$id': {
+      id: '/_authenticated/resumo/$id'
+      path: '/resumo/$id'
+      fullPath: '/resumo/$id'
+      preLoaderRoute: typeof AuthenticatedResumoIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rotina/$id': {
+      id: '/_authenticated/rotina/$id'
+      path: '/rotina/$id'
+      fullPath: '/rotina/$id'
+      preLoaderRoute: typeof AuthenticatedRotinaIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedProgressoRouteChildren {
+  AuthenticatedProgressoIdRoute: typeof AuthenticatedProgressoIdRoute
   AuthenticatedProgressoIndexRoute: typeof AuthenticatedProgressoIndexRoute
 }
 
 const AuthenticatedProgressoRouteChildren: AuthenticatedProgressoRouteChildren =
   {
+    AuthenticatedProgressoIdRoute: AuthenticatedProgressoIdRoute,
     AuthenticatedProgressoIndexRoute: AuthenticatedProgressoIndexRoute,
   }
 
@@ -283,6 +283,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
   AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
   AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
+  AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
+  AuthenticatedRotinaIdRoute: typeof AuthenticatedRotinaIdRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -292,6 +294,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
   AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
+  AuthenticatedResumoIdRoute: AuthenticatedResumoIdRoute,
+  AuthenticatedRotinaIdRoute: AuthenticatedRotinaIdRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -300,9 +304,6 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
-  ProgressoIdRoute: ProgressoIdRoute,
-  ResumoIdRoute: ResumoIdRoute,
-  RotinaIdRoute: RotinaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

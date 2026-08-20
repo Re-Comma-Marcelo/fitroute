@@ -7,7 +7,7 @@ import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import heroLogin from "@/assets/hero-login.jpg";
 
-export const Route = createFileRoute("/resumo/$id")({
+export const Route = createFileRoute("/_authenticated/resumo/$id")({
   head: () => ({
     meta: [
       { title: "Resumo do treino — Forja" },

@@ -16,7 +16,7 @@ import { getExercises } from "@/lib/data/exercises";
 import { getExerciseHistory, getWorkout, getWorkoutSets, getWorkouts } from "@/lib/data/workouts";
 import { formatDate, formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 
-export const Route = createFileRoute("/progresso/$id")({
+export const Route = createFileRoute("/_authenticated/progresso/$id")({
   head: () => ({
     meta: [
       { title: "Sessão registrada — Forja" },
