@@ -5,21 +5,27 @@ import { SessionMiniPlayer } from "./SessionMiniPlayer";
 export function AppShell({
   title,
   action,
+  hideHeader = false,
   children,
 }: {
   title: string;
   action?: ReactNode;
+  hideHeader?: boolean;
   children: ReactNode;
 }) {
   return (
     <div className="min-h-screen bg-background pb-40">
-      <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3 px-4 pb-3 pt-5">
-          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-          {action}
-        </div>
-      </header>
-      <main className="mx-auto max-w-md px-4 pb-4 pt-2">{children}</main>
+      {hideHeader ? null : (
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl">
+          <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">
+            <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
+            {action}
+          </div>
+        </header>
+      )}
+      <main className={`mx-auto max-w-md px-4 pb-4 ${hideHeader ? "pt-6" : "pt-2"}`}>
+        {children}
+      </main>
       <SessionMiniPlayer />
       <BottomNav />
     </div>
