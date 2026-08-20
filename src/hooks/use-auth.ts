@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, assertSupabaseConfigured } from "@/integrations/supabase/client";
+
 
 export interface AuthUser {
   id: string;
@@ -14,21 +15,28 @@ export function useAuth() {
     let mounted = true;
 
     async function loadUser() {
-      const {
-        data: { user: supabaseUser },
-      } = await supabase.auth.getUser();
-      if (mounted) {
-        setUser(
-          supabaseUser
-            ? {
-                id: supabaseUser.id,
-                email: supabaseUser.email,
-              }
-            : null,
-        );
-        setLoading(false);
+      try {
+        assertSupabaseConfigured();
+        const {
+          data: { user: supabaseUser },
+        } = await supabase.auth.getUser();
+        if (mounted) {
+          setUser(
+            supabaseUser
+              ? {
+                  id: supabaseUser.id,
+                  email: supabaseUser.email,
+                }
+              : null,
+          );
+        }
+      } catch {
+        if (mounted) setUser(null);
+      } finally {
+        if (mounted) setLoading(false);
       }
     }
+
 
     loadUser();
 
