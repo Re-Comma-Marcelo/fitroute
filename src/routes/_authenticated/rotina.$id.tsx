@@ -39,11 +39,16 @@ function RoutineEditor() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const loaded = useRef(false);
 
+  const fetchExercises = useServerFn(getExercises);
+  const fetchRoutine = useServerFn(getRoutine);
+  const saveRoutineFn = useServerFn(saveRoutine);
+  const deleteRoutineFn = useServerFn(deleteRoutine);
+
   useEffect(() => {
     if (loaded.current) return;
     loaded.current = true;
 
-    getExercises().then((all) =>
+    fetchExercises({ data: {} }).then((all) =>
       setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))),
     );
 
@@ -58,7 +63,7 @@ function RoutineEditor() {
       } else if (id === "nova") {
         base = { id: "", nome: "", descricao: "", exercicios: [] };
       } else {
-        base = (await getRoutine(id)) ?? { id: "", nome: "", descricao: "", exercicios: [] };
+        base = (await fetchRoutine({ data: { id } })) ?? { id: "", nome: "", descricao: "", exercicios: [] };
       }
       if (pending) {
         base = {
@@ -70,7 +75,7 @@ function RoutineEditor() {
       window.localStorage.removeItem(DRAFT_KEY);
     }
     init();
-  }, [id]);
+  }, [id, fetchExercises, fetchRoutine]);
 
   if (!routine) return <div className="min-h-screen bg-background" />;
 
@@ -102,14 +107,14 @@ function RoutineEditor() {
   }
 
   async function salvar() {
-    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || "Nova rotina" });
+    await saveRoutineFn({ data: { ...routine!, nome: routine!.nome.trim() || "Nova rotina" } });
     await queryClient.invalidateQueries({ queryKey: ["routines"] });
     navigate({ to: "/treino" });
   }
 
   async function excluir() {
     if (routine!.id) {
-      await deleteRoutine(routine!.id);
+      await deleteRoutineFn({ data: { id: routine!.id } });
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
     }
     navigate({ to: "/treino" });
