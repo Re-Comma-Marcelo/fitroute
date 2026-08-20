@@ -25,8 +25,8 @@ export const Route = createFileRoute("/_authenticated/progresso/")({
 function ProgressPage() {
   const fetchWorkouts = useServerFn(getWorkouts);
   const fetchRoutines = useServerFn(getRoutines);
-  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts({ data: {} }) });
-  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines({ data: {} }) });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts(undefined) });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines(undefined) });
   const workouts = workoutsQuery.data ?? [];
   const routines = routinesQuery.data ?? [];
 

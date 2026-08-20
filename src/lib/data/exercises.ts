@@ -35,7 +35,7 @@ export const getExercise = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { row, error } = await context.supabase
+    const { data: row, error } = await context.supabase
       .from("exercises")
       .select("*")
       .eq("id", data.id)

@@ -56,7 +56,7 @@ function ProfilePage() {
   const queryClient = useQueryClient();
   const fetchProfile = useServerFn(getProfile);
   const updateProfile = useServerFn(saveProfile);
-  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile({ data: {} }) });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile(undefined) });
   const [form, setForm] = useState<Profile | null>(null);
 
   useEffect(() => {

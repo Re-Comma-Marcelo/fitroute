@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/resumo/$id")({
 });
 
 function SummaryPage() {
-  const { id } = useParams({ from: "/resumo/$id" });
+  const { id } = useParams({ from: "/_authenticated/resumo/$id" });
   const [prs, setPrs] = useState<{ nome: string; pesoKg: number }[]>([]);
 
   const fetchWorkout = useServerFn(getWorkout);

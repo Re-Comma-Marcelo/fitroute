@@ -89,7 +89,10 @@ export const getExerciseHistory = createServerFn({ method: "GET" })
       .order("workouts(iniciado_em)", { ascending: true });
     if (error) throw error;
 
-    return (rows ?? [])
+    type JoinedSet = Database["public"]["Tables"]["workout_sets"]["Row"] & {
+      workouts?: { iniciado_em: string } | null;
+    };
+    return ((rows ?? []) as unknown as JoinedSet[])
       .sort(
         (a, b) =>
           String(a.workouts?.iniciado_em ?? "").localeCompare(

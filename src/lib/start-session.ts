@@ -72,7 +72,7 @@ export async function startRoutineSession(routineId: string): Promise<ActiveSess
 }
 
 export async function startBlankSession(): Promise<ActiveSession> {
-  const all = await getExercises({ data: {} });
+  const all = await getExercises(undefined);
   const first = all[0];
   const exercicios: ActiveExercise[] = [];
   if (first) {

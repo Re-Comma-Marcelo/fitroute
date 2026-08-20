@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_authenticated/rotina/$id")({
 const DRAFT_KEY = "forja.draftRoutine.v1";
 
 function RoutineEditor() {
-  const { id } = useParams({ from: "/rotina/$id" });
+  const { id } = useParams({ from: "/_authenticated/rotina/$id" });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [routine, setRoutine] = useState<Routine | null>(null);
@@ -48,7 +48,7 @@ function RoutineEditor() {
     if (loaded.current) return;
     loaded.current = true;
 
-    fetchExercises({ data: {} }).then((all) =>
+    fetchExercises(undefined).then((all) =>
       setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))),
     );
 

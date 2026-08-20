@@ -53,10 +53,10 @@ function HomePage() {
   const fetchProfile = useServerFn(getProfile);
   const fetchSuggestions = useServerFn(getRoutineSuggestions);
 
-  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines({ data: {} }) });
-  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts({ data: {} }) });
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
-  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile({ data: {} }) });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: () => fetchRoutines(undefined) });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts(undefined) });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises(undefined) });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile(undefined) });
 
   const rotinas = routinesQuery.data ?? [];
   const workouts = workoutsQuery.data ?? [];

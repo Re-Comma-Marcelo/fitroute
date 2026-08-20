@@ -6,13 +6,21 @@ const key =
   import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
   process.env["SUPABASE_PUBLISHABLE_KEY"];
 
-export const supabase = createClient<Database>(url ?? "", key ?? "", {
+// Fallback placeholders keep module evaluation from throwing before Supabase is
+// connected — assertSupabaseConfigured() reports the real problem at call time.
+export const supabase = createClient<Database>(
+  url ?? "https://placeholder.supabase.co",
+  key ?? "placeholder-key",
+  {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
   },
-});
+  },
+);
+
+export const isSupabaseConfigured = Boolean(url && key);
 
 export function assertSupabaseConfigured() {
   if (!url || !key) {

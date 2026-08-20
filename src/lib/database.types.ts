@@ -46,6 +46,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       exercises: {
         Row: {
@@ -84,6 +85,7 @@ export interface Database {
           is_custom?: boolean;
           created_at?: string;
         };
+        Relationships: [];
       };
       routines: {
         Row: {
@@ -110,6 +112,7 @@ export interface Database {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       routine_exercises: {
         Row: {
@@ -145,6 +148,7 @@ export interface Database {
           descanso_seg?: number;
           notas?: string;
         };
+        Relationships: [];
       };
       workouts: {
         Row: {
@@ -183,6 +187,7 @@ export interface Database {
           origem?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       workout_sets: {
         Row: {
@@ -221,10 +226,12 @@ export interface Database {
           rpe?: number | null;
           concluida?: boolean;
         };
+        Relationships: [];
       };
     };
-    Views: never;
-    Functions: never;
-    Enums: never;
+    Views: { [_ in never]: never };
+    Functions: { [_ in never]: never };
+    Enums: { [_ in never]: never };
+    CompositeTypes: { [_ in never]: never };
   };
 }
