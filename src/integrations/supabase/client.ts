@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/database.types";
 
-const url = import.meta.env.VITE_SUPABASE_URL ?? process.env.SUPABASE_URL;
+const url = import.meta.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"];
 const key =
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? process.env.SUPABASE_PUBLISHABLE_KEY;
+  import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
+  process.env["SUPABASE_PUBLISHABLE_KEY"];
 
 export const supabase = createClient<Database>(url ?? "", key ?? "", {
   auth: {
@@ -20,3 +21,4 @@ export function assertSupabaseConfigured() {
     );
   }
 }
+
