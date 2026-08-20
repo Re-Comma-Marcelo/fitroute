@@ -138,7 +138,7 @@ function InicioPage() {
           {saudacao()}
           {profileQuery.data?.nome ? `, ${profileQuery.data.nome.split(" ")[0]}` : ""}
         </p>
-        <p className="mt-0.5 text-xs capitalize text-muted-foreground/70">
+        <p className="mt-0.5 text-xs first-letter:uppercase text-muted-foreground/70">
           {dataLonga.format(new Date())}
         </p>
       </header>
