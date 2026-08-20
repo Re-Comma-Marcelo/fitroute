@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import heroLogin from "@/assets/hero-login.jpg";
 
 export const Route = createFileRoute("/")({
@@ -24,10 +27,38 @@ export const Route = createFileRoute("/")({
 
 function LoginPage() {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState<"sign-in" | "sign-up">("sign-in");
 
-  // TODO: Supabase Auth — nenhuma validação aqui, só navegação visual.
-  function entrar() {
-    navigate({ to: "/treino" });
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      if (mode === "sign-in") {
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast.success("Bem-vindo de volta!");
+      } else {
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        toast.success("Conta criada! Verifique seu e-mail.");
+      }
+
+      navigate({ to: "/treino" });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erro ao autenticar");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -48,13 +79,7 @@ function LoginPage() {
           Séries, cargas e descanso em dois toques.
         </p>
 
-        <form
-          className="mt-10 space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault();
-            entrar();
-          }}
-        >
+        <form className="mt-10 space-y-4" onSubmit={handleSubmit}>
           <div className="space-y-1.5">
             <Label htmlFor="email" className="label-caps">
               E-mail
@@ -65,6 +90,9 @@ function LoginPage() {
               inputMode="email"
               autoComplete="email"
               placeholder="voce@email.com"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="tap-target h-12 border-border bg-card/70 text-base backdrop-blur"
             />
           </div>
@@ -75,27 +103,35 @@ function LoginPage() {
             <Input
               id="senha"
               type="password"
-              autoComplete="current-password"
+              autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
               placeholder="••••••••"
+              required
+              minLength={6}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="tap-target h-12 border-border bg-card/70 text-base backdrop-blur"
             />
           </div>
 
-          <Button type="submit" className="shadow-elegant h-14 w-full text-base font-semibold">
-            Entrar
+          <Button
+            type="submit"
+            disabled={loading}
+            className="shadow-elegant h-14 w-full text-base font-semibold"
+          >
+            {loading ? "Carregando..." : mode === "sign-in" ? "Entrar" : "Criar conta"}
           </Button>
           <Button
             type="button"
             variant="ghost"
             className="h-12 w-full text-sm font-medium text-muted-foreground"
-            onClick={entrar}
+            onClick={() => setMode(mode === "sign-in" ? "sign-up" : "sign-in")}
           >
-            Entrar com link mágico
+            {mode === "sign-in" ? "Criar nova conta" : "Já tenho conta"}
           </Button>
         </form>
 
         <p className="mt-6 text-center text-xs text-muted-foreground/70">
-          Demonstração visual — os dados são de exemplo.
+          Conectado ao Supabase externo.
         </p>
       </div>
     </div>

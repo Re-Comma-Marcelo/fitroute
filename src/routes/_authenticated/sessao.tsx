@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Check,
   ChevronDown,
@@ -39,7 +40,7 @@ import { buildActiveExercise } from "@/lib/start-session";
 import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
-export const Route = createFileRoute("/sessao")({
+export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
     meta: [
       { title: "Sessão de treino — Forja" },
@@ -81,6 +82,8 @@ function useTick(active: boolean) {
 
 function SessionPage() {
   const navigate = useNavigate();
+  const fetchPersonalRecord = useServerFn(getPersonalRecord);
+  const saveWorkoutFn = useServerFn(saveWorkout);
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
@@ -246,7 +249,7 @@ function SessionPage() {
 
     for (let i = 0; i < session.exercicios.length; i++) {
       const ex = session.exercicios[i]!;
-      const pr = await getPersonalRecord(ex.exerciseId);
+      const pr = await fetchPersonalRecord({ data: { exerciseId: ex.exerciseId } });
       let melhor = 0;
       ex.sets.forEach((s) => {
         if (!s.concluida) return;
@@ -273,19 +276,21 @@ function SessionPage() {
       if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
     }
 
-    await saveWorkout(
-      {
-        id: session.id,
-        ...(session.routineId ? { routineId: session.routineId } : {}),
-        iniciadoEm: session.iniciadoEm,
-        finalizadoEm: new Date().toISOString(),
-        duracaoSeg,
-        volumeTotalKg: Math.round(volume),
-        notas: session.notas,
-        origem: session.routineId ? "rotina" : "branco",
+    await saveWorkoutFn({
+      data: {
+        workout: {
+          id: session.id,
+          ...(session.routineId ? { routineId: session.routineId } : {}),
+          iniciadoEm: session.iniciadoEm,
+          finalizadoEm: new Date().toISOString(),
+          duracaoSeg,
+          volumeTotalKg: Math.round(volume),
+          notas: session.notas,
+          origem: session.routineId ? "rotina" : "branco",
+        },
+        sets,
       },
-      sets,
-    );
+    });
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(

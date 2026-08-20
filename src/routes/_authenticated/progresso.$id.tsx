@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ArrowLeft } from "lucide-react";
 import {
   CartesianGrid,
@@ -16,7 +17,7 @@ import { getExercises } from "@/lib/data/exercises";
 import { getExerciseHistory, getWorkout, getWorkoutSets, getWorkouts } from "@/lib/data/workouts";
 import { formatDate, formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 
-export const Route = createFileRoute("/progresso/$id")({
+export const Route = createFileRoute("/_authenticated/progresso/$id")({
   head: () => ({
     meta: [
       { title: "Sessão registrada — Forja" },
@@ -35,10 +36,16 @@ function WorkoutDetail() {
   const { id } = useParams({ from: "/progresso/$id" });
   const navigate = useNavigate();
 
-  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });
-  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
-  const allWorkoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const fetchWorkout = useServerFn(getWorkout);
+  const fetchWorkoutSets = useServerFn(getWorkoutSets);
+  const fetchExercises = useServerFn(getExercises);
+  const fetchWorkouts = useServerFn(getWorkouts);
+  const fetchExerciseHistory = useServerFn(getExerciseHistory);
+
+  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => fetchWorkout({ data: { id } }) });
+  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => fetchWorkoutSets({ data: { workoutId: id } }) });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
+  const allWorkoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: () => fetchWorkouts({ data: {} }) });
 
   const sets = setsQuery.data ?? [];
   const exerciseIds = [...new Set(sets.map((s) => s.exerciseId))];
@@ -46,7 +53,7 @@ function WorkoutDetail() {
   const histories = useQueries({
     queries: exerciseIds.map((exId) => ({
       queryKey: ["exerciseHistory", exId],
-      queryFn: () => getExerciseHistory(exId),
+      queryFn: () => fetchExerciseHistory({ data: { exerciseId: exId } }),
     })),
   });
 

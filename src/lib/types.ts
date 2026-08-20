@@ -23,9 +23,10 @@ export interface Exercise {
   gruposSecundarios: string[];
   equipamento: string;
   instrucoes: string;
-  midiaUrl?: string;
+  midiaUrl?: string | undefined;
   isCustom: boolean;
 }
+
 
 export interface RoutineExercise {
   id: string;
@@ -47,9 +48,9 @@ export interface Routine {
 
 export interface Workout {
   id: string;
-  routineId?: string;
+  routineId?: string | undefined;
   iniciadoEm: string;
-  finalizadoEm?: string;
+  finalizadoEm?: string | undefined;
   duracaoSeg: number;
   volumeTotalKg: number;
   notas: string;
@@ -65,6 +66,6 @@ export interface WorkoutSet {
   tipoSerie: TipoSerie;
   pesoKg: number;
   reps: number;
-  rpe?: number;
+  rpe?: number | undefined;
   concluida: boolean;
 }

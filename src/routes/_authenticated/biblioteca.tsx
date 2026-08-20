@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import { getEquipments, getExercises, getMuscleGroups } from "@/lib/data/exercis
 import { setPendingExercise } from "@/lib/session-state";
 import type { Exercise } from "@/lib/types";
 
-export const Route = createFileRoute("/biblioteca")({
+export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
     para: search["para"] as "sessao" | "rotina" | undefined,
     rotinaId: search["rotinaId"] as string | undefined,
@@ -42,9 +43,13 @@ function LibraryPage() {
   const [equip, setEquip] = useState<string | null>(null);
   const [detalhe, setDetalhe] = useState<Exercise | null>(null);
 
-  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
-  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
-  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: getEquipments });
+  const fetchExercises = useServerFn(getExercises);
+  const fetchMuscleGroups = useServerFn(getMuscleGroups);
+  const fetchEquipments = useServerFn(getEquipments);
+
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: () => fetchExercises({ data: {} }) });
+  const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: () => fetchMuscleGroups({ data: {} }) });
+  const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: () => fetchEquipments({ data: {} }) });
 
   const lista = useMemo(() => {
     const all = exercisesQuery.data ?? [];
