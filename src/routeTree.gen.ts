@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedDietaRouteImport } from './routes/_authenticated/dieta'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
@@ -39,6 +40,11 @@ const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
 const AuthenticatedDietaRoute = AuthenticatedDietaRouteImport.update({
   id: '/dieta',
   path: '/dieta',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/inicio',
+  path: '/inicio',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
@@ -88,6 +94,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/dieta': typeof AuthenticatedDietaRoute
+  '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
@@ -101,6 +108,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/dieta': typeof AuthenticatedDietaRoute
+  '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
@@ -115,6 +123,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/dieta': typeof AuthenticatedDietaRoute
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
@@ -130,6 +139,7 @@ export interface FileRouteTypes {
     | '/'
     | '/biblioteca'
     | '/dieta'
+    | '/inicio'
     | '/perfil'
     | '/progresso'
     | '/sessao'
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/'
     | '/biblioteca'
     | '/dieta'
+    | '/inicio'
     | '/perfil'
     | '/sessao'
     | '/treino'
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/_authenticated/biblioteca'
     | '/_authenticated/dieta'
+    | '/_authenticated/inicio'
     | '/_authenticated/perfil'
     | '/_authenticated/progresso'
     | '/_authenticated/sessao'
@@ -199,6 +211,13 @@ declare module '@tanstack/react-router' {
       path: '/dieta'
       fullPath: '/dieta'
       preLoaderRoute: typeof AuthenticatedDietaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
@@ -279,6 +298,7 @@ const AuthenticatedProgressoRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedDietaRoute: typeof AuthenticatedDietaRoute
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
   AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
@@ -290,6 +310,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedDietaRoute: AuthenticatedDietaRoute,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,

@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Dumbbell, Salad, TrendingUp, User } from "lucide-react";
+import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
 
 const tabs = [
+  { to: "/inicio", label: "Início", icon: Home },
   { to: "/treino", label: "Treino", icon: Dumbbell },
   { to: "/dieta", label: "Dieta", icon: Salad },
   { to: "/progresso", label: "Progresso", icon: TrendingUp },
