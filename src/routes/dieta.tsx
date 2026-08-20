@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 import { Salad } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/dieta")({
+export const Route = createFileRoute("/dieta")({
   head: () => ({
     meta: [
       { title: "Dieta — Forja" },

@@ -1,5 +1,5 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/_authenticated/progresso")({
+export const Route = createFileRoute("/progresso")({
   component: () => <Outlet />,
 });
