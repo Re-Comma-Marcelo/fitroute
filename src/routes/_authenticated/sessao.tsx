@@ -82,6 +82,8 @@ function useTick(active: boolean) {
 
 function SessionPage() {
   const navigate = useNavigate();
+  const fetchPersonalRecord = useServerFn(getPersonalRecord);
+  const saveWorkoutFn = useServerFn(saveWorkout);
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
