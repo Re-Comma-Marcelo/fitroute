@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import type { Database } from "@/lib/database.types";
 import type { Exercise } from "@/lib/types";
@@ -28,14 +29,16 @@ export const getExercises = createServerFn({ method: "GET" })
     return (data ?? []).map(mapExercise);
   });
 
+const idSchema = z.object({ id: z.string().uuid() });
+
 export const getExercise = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => idSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const { id } = data as { id: string };
-    const { data: row, error } = await context.supabase
+    const { row, error } = await context.supabase
       .from("exercises")
       .select("*")
-      .eq("id", id)
+      .eq("id", data.id)
       .or(`user_id.is.null, user_id.eq.${context.userId}`)
       .maybeSingle();
     if (error) throw error;
@@ -45,7 +48,9 @@ export const getExercise = createServerFn({ method: "GET" })
 export const getMuscleGroups = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.from("exercises").select("grupo_primario");
+    const { data, error } = await context.supabase
+      .from("exercises")
+      .select("grupo_primario");
     if (error) throw error;
     return [...new Set((data ?? []).map((e) => e.grupo_primario))].sort();
   });
@@ -53,23 +58,34 @@ export const getMuscleGroups = createServerFn({ method: "GET" })
 export const getEquipments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { data, error } = await context.supabase.from("exercises").select("equipamento");
+    const { data, error } = await context.supabase
+      .from("exercises")
+      .select("equipamento");
     if (error) throw error;
     return [...new Set((data ?? []).map((e) => e.equipamento))].sort();
   });
 
+const exerciseInputSchema = z.object({
+  nome: z.string().min(1),
+  grupoPrimario: z.string().min(1),
+  gruposSecundarios: z.array(z.string()),
+  equipamento: z.string().min(1),
+  instrucoes: z.string(),
+  midiaUrl: z.string().optional(),
+});
+
 export const createExercise = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input) => exerciseInputSchema.parse(input))
   .handler(async ({ context, data }) => {
-    const input = data as Omit<Exercise, "id" | "isCustom">;
     const row: Database["public"]["Tables"]["exercises"]["Insert"] = {
       user_id: context.userId,
-      nome: input.nome,
-      grupo_primario: input.grupoPrimario,
-      grupos_secundarios: input.gruposSecundarios,
-      equipamento: input.equipamento,
-      instrucoes: input.instrucoes,
-      midia_url: input.midiaUrl ?? null,
+      nome: data.nome,
+      grupo_primario: data.grupoPrimario,
+      grupos_secundarios: data.gruposSecundarios,
+      equipamento: data.equipamento,
+      instrucoes: data.instrucoes,
+      midia_url: data.midiaUrl ?? null,
       is_custom: true,
     };
     const { data: saved, error } = await context.supabase
