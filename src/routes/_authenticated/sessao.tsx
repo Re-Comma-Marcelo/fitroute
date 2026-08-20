@@ -249,7 +249,7 @@ function SessionPage() {
 
     for (let i = 0; i < session.exercicios.length; i++) {
       const ex = session.exercicios[i]!;
-      const pr = await getPersonalRecord(ex.exerciseId);
+      const pr = await fetchPersonalRecord({ data: { exerciseId: ex.exerciseId } });
       let melhor = 0;
       ex.sets.forEach((s) => {
         if (!s.concluida) return;
@@ -276,19 +276,21 @@ function SessionPage() {
       if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
     }
 
-    await saveWorkout(
-      {
-        id: session.id,
-        ...(session.routineId ? { routineId: session.routineId } : {}),
-        iniciadoEm: session.iniciadoEm,
-        finalizadoEm: new Date().toISOString(),
-        duracaoSeg,
-        volumeTotalKg: Math.round(volume),
-        notas: session.notas,
-        origem: session.routineId ? "rotina" : "branco",
+    await saveWorkoutFn({
+      data: {
+        workout: {
+          id: session.id,
+          ...(session.routineId ? { routineId: session.routineId } : {}),
+          iniciadoEm: session.iniciadoEm,
+          finalizadoEm: new Date().toISOString(),
+          duracaoSeg,
+          volumeTotalKg: Math.round(volume),
+          notas: session.notas,
+          origem: session.routineId ? "rotina" : "branco",
+        },
+        sets,
       },
-      sets,
-    );
+    });
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(
