@@ -54,7 +54,9 @@ const sexos: { value: Sexo; label: string }[] = [
 
 function ProfilePage() {
   const queryClient = useQueryClient();
-  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const fetchProfile = useServerFn(getProfile);
+  const updateProfile = useServerFn(saveProfile);
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: () => fetchProfile({ data: {} }) });
   const [form, setForm] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ function ProfilePage() {
   }
 
   async function salvar() {
-    await saveProfile(form!);
+    await updateProfile({ data: form! });
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
     toast.success("Perfil salvo");
   }
