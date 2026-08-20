@@ -32,8 +32,9 @@ function mapSetRow(
 
 export const getRoutineSuggestions = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => input as Routine)
   .handler(async ({ context, data }) => {
-    const routine = data as Routine;
+    const routine = data;
     if (!routine.exercicios.length) return {};
 
     const exerciseIds = [...new Set(routine.exercicios.map((re) => re.exerciseId))];
