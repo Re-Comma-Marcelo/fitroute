@@ -149,7 +149,7 @@ function InicioPage() {
           src={routineCover("semana")}
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 size-full object-cover opacity-30"
+          className="absolute inset-0 size-full object-cover opacity-20"
         />
         <div className="veil absolute inset-0" />
         <div className="relative px-5 pb-5 pt-6">
