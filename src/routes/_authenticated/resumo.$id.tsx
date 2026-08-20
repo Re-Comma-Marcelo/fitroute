@@ -27,6 +27,9 @@ function SummaryPage() {
   const { id } = useParams({ from: "/resumo/$id" });
   const [prs, setPrs] = useState<{ nome: string; pesoKg: number }[]>([]);
 
+  const fetchWorkout = useServerFn(getWorkout);
+  const fetchWorkoutSets = useServerFn(getWorkoutSets);
+
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(`forja.resumo.${id}`);
@@ -36,8 +39,8 @@ function SummaryPage() {
     }
   }, [id]);
 
-  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });
-  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
+  const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => fetchWorkout({ data: { id } }) });
+  const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => fetchWorkoutSets({ data: { workoutId: id } }) });
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];
