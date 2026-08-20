@@ -23,9 +23,10 @@ export interface Exercise {
   gruposSecundarios: string[];
   equipamento: string;
   instrucoes: string;
-  midiaUrl?: string;
+  midiaUrl?: string | undefined;
   isCustom: boolean;
 }
+
 
 export interface RoutineExercise {
   id: string;
