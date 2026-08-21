@@ -59,14 +59,14 @@ export const Route = createFileRoute("/sessao")({
 });
 
 const typeName: Record<TipoSerie, string> = {
-  warmup: "Warm-up",
+  aquecimento: "Warm-up",
   normal: "Normal",
-  failure: "Failure",
+  falha: "Failure",
   drop: "Drop set",
 };
 
-const PSE_OPCOES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
-const DESCANSO_OPCOES = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
+const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
 
@@ -89,7 +89,7 @@ function SessionPage() {
 
   useTick(true);
 
-  // Timer de descanso zera sozinho, sem modal e sem toque extra.
+  // Rest timer clears on its own, no modal, no extra tap.
   useEffect(() => {
     if (!rest) return;
     const id = setTimeout(() => setRest(null), Math.max(0, rest.endsAt - Date.now()) + 500);
@@ -103,7 +103,7 @@ function SessionPage() {
     setSession(loaded);
     setReady(true);
     if (!loaded) return;
-    // Exercício escolhido na biblioteca durante a sessão
+    // Exercise chosen from library during session
     const pending = takePendingExercise();
     if (pending) {
       buildActiveExercise(pending).then((built) => {
@@ -133,9 +133,9 @@ function SessionPage() {
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <p className="text-lg font-semibold">Nenhum treino em andamento</p>
+        <p className="text-lg font-semibold">No workout in progress</p>
         <Button className="h-12 w-full max-w-xs" onClick={() => navigate({ to: "/treino" })}>
-          Voltar para o treino
+          Back to training
         </Button>
       </div>
     );
@@ -144,7 +144,7 @@ function SessionPage() {
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
   const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
 
-  function iniciarDescanso(segundos: number) {
+  function startRest(segundos: number) {
     if (segundos <= 0) return;
     setRest({ total: segundos, endsAt: Date.now() + segundos * 1000 });
   }
@@ -169,7 +169,7 @@ function SessionPage() {
       }
       return s;
     });
-    if (descanso > 0) iniciarDescanso(descanso);
+    if (descanso > 0) startRest(descanso);
   }
 
   function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
@@ -186,7 +186,7 @@ function SessionPage() {
     });
   }
 
-  function setDescanso(exIdx: number, segundos: number) {
+  function setRest(exIdx: number, segundos: number) {
     update((s) => {
       s.exercicios[exIdx]!.descansoSeg = segundos;
       return s;
@@ -252,7 +252,7 @@ function SessionPage() {
         if (!s.concluida) return;
         const peso = Number(s.pesoKg) || 0;
         const reps = Number(s.reps) || 0;
-        // Aquecimento é registrado, mas não entra no volume.
+        // Warm-up is logged but does not count toward volume.
         if (isSerieValida(s)) {
           volume += peso * reps;
           melhor = Math.max(melhor, peso);
@@ -297,9 +297,9 @@ function SessionPage() {
     navigate({ to: "/resumo/$id", params: { id: session.id } });
   }
 
-  const seriesFeitas = sessionSetsDone(session);
+  const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
-  const descansoAtual = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
+  const currentRest = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
 
   return (
     <div className="min-h-screen bg-background pb-44">
@@ -320,7 +320,7 @@ function SessionPage() {
             size="icon"
             className="tap-target text-info"
             aria-label="Open rest timer"
-            onClick={() => iniciarDescanso(descansoAtual)}
+            onClick={() => startRest(currentRest)}
           >
             <Timer className="size-6" />
           </Button>
@@ -335,7 +335,7 @@ function SessionPage() {
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label="Duration" value={formatDuration(elapsed)} mono />
           <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
-          <HeaderStat label="Sets" value={String(seriesFeitas)} />
+          <HeaderStat label="Sets" value={String(setsDone)} />
         </dl>
       </header>
 
@@ -361,7 +361,7 @@ function SessionPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-bold leading-tight">{ex.nome}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {feitas}/{validas} séries · alvo {ex.repsMin}-{ex.repsMax} reps
+                        {feitas}/{validas} sets · target {ex.repsMin}-{ex.repsMax} reps
                       </p>
                     </div>
                     <ChevronDown
@@ -373,7 +373,7 @@ function SessionPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <RestPicker
                       value={ex.descansoSeg}
-                      onChange={(segundos) => setDescanso(exIdx, segundos)}
+                      onChange={(segundos) => setRest(exIdx, segundos)}
                     />
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
@@ -395,13 +395,13 @@ function SessionPage() {
                       {ex.pulado ? "Resume exercise" : "Skip exercise"}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
-                      <Plus className="mr-2 size-4" /> Adicionar série
+                      <Plus className="mr-2 size-4" /> Add set
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
                       onClick={() => removeExercise(exIdx)}
                     >
-                      <Trash2 className="mr-2 size-4" /> Remover exercício
+                      <Trash2 className="mr-2 size-4" /> Remove exercise
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -413,7 +413,7 @@ function SessionPage() {
                     className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
                     <span>Set</span>
-                    <span className="text-center">Anterior</span>
+                    <span className="text-center">Previous</span>
                     <span className="text-center">kg</span>
                     <span className="text-center">reps</span>
                     <span className="text-center">PSE</span>
@@ -480,7 +480,7 @@ function SessionPage() {
           {rest ? (
             <div className="mb-3">
               <div className="mb-1 flex items-center justify-between text-sm font-bold">
-                <span className="text-info">Descanso {formatDuration(restLeft)}</span>
+                <span className="text-info">Rest {formatDuration(restLeft)}</span>
                 <div className="flex gap-1">
                   <Button
                     variant="secondary"
@@ -503,7 +503,7 @@ function SessionPage() {
                     className="tap-target h-9 px-3 text-xs font-bold"
                     onClick={() => setRest(null)}
                   >
-                    Pular
+                    Skip
                   </Button>
                 </div>
               </div>
@@ -516,7 +516,7 @@ function SessionPage() {
             </div>
           ) : null}
           <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
-            Finalizar treino
+            Finish workout
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
@@ -543,7 +543,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
           className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
-          Peso aumentado
+          Weight increased
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
@@ -563,15 +563,15 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
           className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
-          Descanso: {formatRest(value)}
+          Rest: {formatRest(value)}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Descanso deste exercício
+          Rest for this exercise
         </p>
         <div className="grid grid-cols-3 gap-1.5">
-          {DESCANSO_OPCOES.map((op) => (
+          {REST_OPTIONS.map((op) => (
             <button
               key={op}
               type="button"
@@ -612,7 +612,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
           PSE (opcional)
         </p>
         <div className="grid grid-cols-3 gap-1.5">
-          {PSE_OPCOES.map((op) => (
+          {RPE_OPTIONS.map((op) => (
             <button
               key={op}
               type="button"
@@ -638,7 +638,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
             setOpen(false);
           }}
         >
-          Limpar
+          Clear
         </Button>
       </PopoverContent>
     </Popover>
@@ -684,7 +684,7 @@ function SetRow({
             </DropdownMenuItem>
           ))}
           <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> Remover série
+            <Trash2 className="mr-2 size-4" /> Remove set
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
