@@ -39,10 +39,11 @@ export function isSerieValida(set: { tipoSerie: TipoSerie }): boolean {
   return set.tipoSerie !== "aquecimento";
 }
 
-/** +2 kg para halteres (1 kg por lado); +2,5 kg para barra, máquina e polia. */
+/** +2 kg for dumbbells (1 kg per side); +2.5 kg for barbell, machine and cable. */
 export function incrementoPara(equipamento: string): number {
-  return equipamento.trim().toLowerCase().startsWith("halter") ? 2 : 2.5;
+  return equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
 }
+
 
 function media(valores: number[]): number | null {
   if (valores.length === 0) return null;
