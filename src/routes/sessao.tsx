@@ -329,7 +329,7 @@ function SessionPage() {
             disabled={finishing}
             onClick={finalizar}
           >
-            Concluir
+            Finish
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
@@ -416,7 +416,7 @@ function SessionPage() {
                     <span className="text-center">Previous</span>
                     <span className="text-center">kg</span>
                     <span className="text-center">reps</span>
-                    <span className="text-center">PSE</span>
+                    <span className="text-center">RPE</span>
                     <span />
                   </div>
                   <ul className="space-y-2">
@@ -438,7 +438,7 @@ function SessionPage() {
                     className="mt-2 h-11 w-full justify-start text-sm font-semibold text-muted-foreground"
                     onClick={() => addSet(exIdx)}
                   >
-                    <Plus className="mr-1 size-4" /> Adicionar série
+                    <Plus className="mr-1 size-4" /> Add set
                   </Button>
                   <Textarea
                     value={ex.notas}
@@ -464,7 +464,7 @@ function SessionPage() {
             navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
           }
         >
-          <Plus className="mr-1 size-5" /> Adicionar exercício
+          <Plus className="mr-1 size-5" /> Add exercise
         </Button>
 
         <Textarea
