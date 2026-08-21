@@ -1,5 +1,5 @@
 create type public.equipamento_enum as enum (
-  'Barra', 'Halteres', 'Máquina', 'Cabos', 'Peso Corporal', 'Kettlebell', 'Elástico', 'Smith'
+  'Barbell', 'Dumbbells', 'Machine', 'Cable', 'Bodyweight', 'Kettlebell', 'Band', 'Smith'
 );
 
 -- Profiles
@@ -13,9 +13,15 @@ create table public.profiles (
   nivel_atividade text not null default 'moderado',
   objetivo text not null default 'hipertrofia',
   meta_treinos_semana integer not null default 4,
+  equipment text[] not null default '{}',
+  avoided_exercises jsonb not null default '[]',
+  session_length_min integer not null default 60,
+  preferred_time text not null default 'evening',
+  check_in_mode text not null default 'card',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
 
 grant select, insert, update, delete on public.profiles to authenticated;
 grant all on public.profiles to service_role;
@@ -197,9 +203,32 @@ create policy "Users can manage sets of own workouts"
     workout_id in (
       select id from public.workouts where user_id = auth.uid()
     )
-  );
+);
+
+-- Coach notes (long-term coaching memory)
+
+create table public.coach_notes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null default 'observation',
+  content text not null default '',
+  tags text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+grant select, insert, update, delete on public.coach_notes to authenticated;
+grant all on public.coach_notes to service_role;
+
+alter table public.coach_notes enable row level security;
+
+create policy "Users can manage own coach notes"
+  on public.coach_notes for all
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 
 -- Indexes
+
 
 create index exercises_user_id_idx on public.exercises (user_id);
 create index exercises_grupo_idx on public.exercises (grupo_primario);
@@ -209,6 +238,8 @@ create index workouts_user_id_idx on public.workouts (user_id);
 create index workouts_finalizado_em_idx on public.workouts (finalizado_em);
 create index workout_sets_workout_id_idx on public.workout_sets (workout_id);
 create index workout_sets_exercise_id_idx on public.workout_sets (exercise_id);
+create index coach_notes_user_id_idx on public.coach_notes (user_id);
+
 
 -- Trigger to update profiles.updated_at and routines.updated_at
 

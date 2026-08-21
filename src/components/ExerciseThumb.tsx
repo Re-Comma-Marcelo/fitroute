@@ -20,7 +20,8 @@ export function ExerciseThumb({
     >
       <img
         src={exerciseImage(grupo)}
-        alt={nome ? `Ilustração de ${nome}` : ""}
+        alt={nome ? `Illustration of ${nome}` : ""}
+
         loading="lazy"
         width={512}
         height={512}

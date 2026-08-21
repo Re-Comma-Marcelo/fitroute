@@ -14,46 +14,59 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getProfile, saveProfile } from "@/lib/data/profile";
-import type { NivelAtividade, Objetivo, Profile, Sexo } from "@/lib/types";
+import { getExercises } from "@/lib/data/exercises";
+import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
+import { CoachChatButton } from "@/components/CoachChatSheet";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/perfil")({
   head: () => ({
     meta: [
-      { title: "Perfil — Forja" },
+      { title: "Profile — Forja" },
       {
         name: "description",
-        content: "Seus dados: peso, altura, sexo, nível de atividade e objetivo de treino.",
+        content: "Your body data, training model, equipment and weekly goal.",
       },
-      { property: "og:title", content: "Perfil — Forja" },
-      { property: "og:description", content: "Ajuste peso, altura, nível de atividade e objetivo." },
+      { property: "og:title", content: "Profile — Forja" },
+      { property: "og:description", content: "Your body data, training model, equipment and weekly goal." },
     ],
   }),
   component: ProfilePage,
 });
 
-const niveis: { value: NivelAtividade; label: string }[] = [
-  { value: "sedentario", label: "Sedentário" },
-  { value: "leve", label: "Leve" },
-  { value: "moderado", label: "Moderado" },
-  { value: "intenso", label: "Intenso" },
-  { value: "atleta", label: "Atleta" },
+const activityLevels: { value: NivelAtividade; label: string }[] = [
+  { value: "sedentario", label: "Sedentary" },
+  { value: "leve", label: "Light" },
+  { value: "moderado", label: "Moderate" },
+  { value: "intenso", label: "Intense" },
+  { value: "atleta", label: "Athlete" },
 ];
 
-const objetivos: { value: Objetivo; label: string }[] = [
+const goals: { value: Objetivo; label: string }[] = [
   { value: "cutting", label: "Cutting" },
-  { value: "manutencao", label: "Manutenção" },
+  { value: "manutencao", label: "Maintenance" },
   { value: "bulking", label: "Bulking" },
 ];
 
-const sexos: { value: Sexo; label: string }[] = [
-  { value: "masculino", label: "Masculino" },
-  { value: "feminino", label: "Feminino" },
-  { value: "outro", label: "Outro" },
+const sexes: { value: Sexo; label: string }[] = [
+  { value: "masculino", label: "Male" },
+  { value: "feminino", label: "Female" },
+  { value: "outro", label: "Other" },
 ];
+
+const times: { value: PreferredTime; label: string }[] = [
+  { value: "morning", label: "Morning" },
+  { value: "midday", label: "Midday" },
+  { value: "afternoon", label: "Afternoon" },
+  { value: "evening", label: "Evening" },
+];
+
+const EQUIPMENT_OPTIONS = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight"];
 
 function ProfilePage() {
   const queryClient = useQueryClient();
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const [form, setForm] = useState<Profile | null>(null);
 
   useEffect(() => {
@@ -62,31 +75,70 @@ function ProfilePage() {
 
   if (!form) {
     return (
-      <AppShell title="Perfil">
+      <AppShell title="Profile">
         <div className="h-64 animate-pulse rounded-xl bg-card" />
       </AppShell>
     );
   }
 
-  async function salvar() {
+  async function save() {
     await saveProfile(form!);
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    toast.success("Perfil salvo");
+    toast.success("Profile saved");
+  }
+
+  const exercises = exercisesQuery.data ?? [];
+
+  function toggleEquipment(item: string) {
+    setForm((prev) => {
+      if (!prev) return prev;
+      const has = prev.equipment.includes(item);
+      const next = has ? prev.equipment.filter((e) => e !== item) : [...prev.equipment, item];
+      return { ...prev, equipment: next };
+    });
+  }
+
+  function toggleAvoid(exerciseId: string) {
+    setForm((prev) => {
+      if (!prev) return prev;
+      const has = prev.avoidExercises.find((a) => a.exerciseId === exerciseId);
+      const next = has
+        ? prev.avoidExercises.filter((a) => a.exerciseId !== exerciseId)
+        : [...prev.avoidExercises, { exerciseId, reason: "" }];
+      return { ...prev, avoidExercises: next };
+    });
+  }
+
+  function setAvoidReason(exerciseId: string, reason: string) {
+    setForm((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        avoidExercises: prev.avoidExercises.map((a) =>
+          a.exerciseId === exerciseId ? { ...a, reason } : a,
+        ),
+      };
+    });
   }
 
   return (
-    <AppShell title="Perfil">
+    <AppShell
+      title="Profile"
+      action={
+        <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
+      }
+    >
       <form
-        className="space-y-4"
+        className="space-y-5"
         onSubmit={(e) => {
           e.preventDefault();
-          salvar();
+          save();
         }}
       >
         <div className="space-y-2">
-          <Label htmlFor="nome">Nome</Label>
+          <Label htmlFor="name">Name</Label>
           <Input
-            id="nome"
+            id="name"
             value={form.nome}
             onChange={(e) => setForm({ ...form, nome: e.target.value })}
             className="tap-target h-12 text-base"
@@ -95,9 +147,9 @@ function ProfilePage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="peso">Peso (kg)</Label>
+            <Label htmlFor="weight">Weight (kg)</Label>
             <Input
-              id="peso"
+              id="weight"
               inputMode="decimal"
               value={String(form.pesoKg)}
               onChange={(e) =>
@@ -107,9 +159,9 @@ function ProfilePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="altura">Altura (cm)</Label>
+            <Label htmlFor="height">Height (cm)</Label>
             <Input
-              id="altura"
+              id="height"
               inputMode="numeric"
               value={String(form.alturaCm)}
               onChange={(e) =>
@@ -120,13 +172,13 @@ function ProfilePage() {
           </div>
         </div>
 
-        <Field label="Sexo">
+        <Field label="Sex">
           <Select value={form.sexo} onValueChange={(v) => setForm({ ...form, sexo: v as Sexo })}>
             <SelectTrigger className="tap-target h-12 w-full text-base">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {sexos.map((s) => (
+              {sexes.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
                 </SelectItem>
@@ -135,7 +187,7 @@ function ProfilePage() {
           </Select>
         </Field>
 
-        <Field label="Nível de atividade">
+        <Field label="Activity level">
           <Select
             value={form.nivelAtividade}
             onValueChange={(v) => setForm({ ...form, nivelAtividade: v as NivelAtividade })}
@@ -144,7 +196,7 @@ function ProfilePage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {niveis.map((n) => (
+              {activityLevels.map((n) => (
                 <SelectItem key={n.value} value={n.value}>
                   {n.label}
                 </SelectItem>
@@ -153,18 +205,19 @@ function ProfilePage() {
           </Select>
         </Field>
 
-        <Field label="Objetivo">
+        <Field label="Goal">
           <div className="grid grid-cols-3 gap-2">
-            {objetivos.map((o) => (
+            {goals.map((o) => (
               <button
                 key={o.value}
                 type="button"
                 onClick={() => setForm({ ...form, objetivo: o.value })}
-                className={`tap-target rounded-lg border px-2 py-3 text-sm font-bold transition-colors ${
+                className={cn(
+                  "tap-target rounded-lg border px-2 py-3 text-sm font-bold transition-colors",
                   form.objetivo === o.value
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card"
-                }`}
+                    : "border-border bg-card",
+                )}
               >
                 {o.label}
               </button>
@@ -172,18 +225,19 @@ function ProfilePage() {
           </div>
         </Field>
 
-        <Field label="Meta de treinos por semana">
+        <Field label="Weekly training target">
           <div className="grid grid-cols-6 gap-2">
             {[2, 3, 4, 5, 6, 7].map((n) => (
               <button
                 key={n}
                 type="button"
                 onClick={() => setForm({ ...form, metaTreinosSemana: n })}
-                className={`tap-target rounded-lg border py-3 text-sm font-bold tabular-nums transition-colors ${
+                className={cn(
+                  "tap-target rounded-lg border py-3 text-sm font-bold tabular-nums transition-colors",
                   form.metaTreinosSemana === n
                     ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card"
-                }`}
+                    : "border-border bg-card",
+                )}
               >
                 {n}
               </button>
@@ -191,8 +245,131 @@ function ProfilePage() {
           </div>
         </Field>
 
+        <Field label="Equipment available">
+          <div className="flex flex-wrap gap-2">
+            {EQUIPMENT_OPTIONS.map((item) => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => toggleEquipment(item)}
+                className={cn(
+                  "tap-target rounded-full border px-3 py-2 text-xs font-bold transition-colors",
+                  form.equipment.includes(item)
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card",
+                )}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label="Preferred session length (minutes)">
+          <div className="grid grid-cols-5 gap-2">
+            {[30, 45, 60, 75, 90, 105, 120].map((n) => (
+              <button
+                key={n}
+                type="button"
+                onClick={() => setForm({ ...form, sessionLengthMin: n })}
+                className={cn(
+                  "tap-target rounded-lg border py-2.5 text-xs font-bold tabular-nums transition-colors",
+                  form.sessionLengthMin === n
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card",
+                )}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label="Preferred training time">
+          <div className="grid grid-cols-4 gap-2">
+            {times.map((t) => (
+              <button
+                key={t.value}
+                type="button"
+                onClick={() => setForm({ ...form, preferredTime: t.value })}
+                className={cn(
+                  "tap-target rounded-lg border py-3 text-xs font-bold transition-colors",
+                  form.preferredTime === t.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card",
+                )}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+
+        <Field label="Exercises to avoid">
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {exercises.map((ex) => {
+                const avoided = form.avoidExercises.find((a) => a.exerciseId === ex.id);
+                return (
+                  <button
+                    key={ex.id}
+                    type="button"
+                    onClick={() => toggleAvoid(ex.id)}
+                    className={cn(
+                      "tap-target rounded-full border px-3 py-2 text-xs font-bold transition-colors",
+                      avoided
+                        ? "border-destructive bg-destructive text-destructive-foreground"
+                        : "border-border bg-card",
+                    )}
+                  >
+                    {ex.nome}
+                  </button>
+                );
+              })}
+            </div>
+            {form.avoidExercises.map((a) => {
+              const ex = exercises.find((e) => e.id === a.exerciseId);
+              if (!ex) return null;
+              return (
+                <div key={a.exerciseId} className="space-y-1">
+                  <p className="text-xs font-semibold text-muted-foreground">{ex.nome}</p>
+                  <Input
+                    value={a.reason}
+                    onChange={(e) => setAvoidReason(a.exerciseId, e.target.value)}
+                    placeholder="Reason (e.g., shoulder pain)"
+                    className="h-10 text-sm"
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </Field>
+
+        <Field label="Weekly check-in prompt">
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: "card" as const, label: "Card on Home" },
+              { value: "prompt" as const, label: "Modal prompt" },
+            ].map((m) => (
+              <button
+                key={m.value}
+                type="button"
+                onClick={() => setForm({ ...form, checkInMode: m.value })}
+                className={cn(
+                  "tap-target rounded-lg border py-3 text-sm font-bold transition-colors",
+                  form.checkInMode === m.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card",
+                )}
+              >
+                {m.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+
         <Button type="submit" className="h-14 w-full text-base font-bold">
-          Salvar perfil
+          Save profile
         </Button>
       </form>
     </AppShell>

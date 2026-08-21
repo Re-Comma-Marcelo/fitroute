@@ -1,8 +1,7 @@
 import type { Exercise, Profile, Routine, Workout, WorkoutSet } from "../types";
 
-// Mock em memória. NUNCA importar este arquivo em componentes —
-// use apenas as funções de src/lib/data/*.
-// TODO: Supabase — substituir por queries reais.
+// In-memory mock. NEVER import this file directly in components —
+// use only functions from src/lib/data/*.
 
 const ex = (
   id: string,
@@ -22,49 +21,92 @@ const ex = (
 });
 
 export const exercises: Exercise[] = [
-  ex("e1", "Supino reto", "Peito", ["Tríceps", "Ombros"], "Barra", "Deite no banco com os pés firmes no chão e segure a barra na largura dos ombros. Desça controlado até tocar o meio do peito. Empurre até estender os braços sem travar os cotovelos."),
-  ex("e2", "Supino inclinado com halteres", "Peito", ["Ombros", "Tríceps"], "Halteres", "Ajuste o banco entre 30 e 45 graus e segure os halteres na altura do peito. Desça até sentir alongamento na porção superior do peitoral. Suba juntando levemente os halteres no topo."),
-  ex("e3", "Supino declinado", "Peito", ["Tríceps"], "Barra", "Posicione o banco em declínio e prenda as pernas. Desça a barra na direção da parte inferior do peito. Empurre de volta mantendo os punhos alinhados."),
-  ex("e4", "Crucifixo na máquina", "Peito", ["Ombros"], "Máquina", "Sente com as costas apoiadas e segure as manoplas na altura do peito. Junte os braços num arco lento, apertando o peitoral. Volte controlando o alongamento."),
-  ex("e5", "Crossover na polia", "Peito", ["Ombros"], "Polia", "Fique em pé no meio do cabo com um leve passo à frente. Traga as mãos para frente e para baixo, cruzando levemente. Retorne devagar sem deixar os ombros subirem."),
-  ex("e6", "Flexão de braço", "Peito", ["Tríceps", "Core"], "Peso corporal", "Apoie as mãos pouco além da largura dos ombros e mantenha o corpo reto. Desça até o peito quase tocar o chão. Empurre mantendo o abdômen firme."),
-  ex("e7", "Agachamento livre", "Quadríceps", ["Glúteos", "Core", "Posterior"], "Barra", "Apoie a barra no trapézio, pés na largura dos ombros e peito aberto. Desça empurrando o quadril para trás até as coxas passarem da paralela. Suba pressionando o chão com o meio do pé."),
-  ex("e8", "Agachamento frontal", "Quadríceps", ["Glúteos", "Core"], "Barra", "Sustente a barra sobre os deltoides frontais com os cotovelos altos. Desça mantendo o tronco o mais vertical possível. Suba sem deixar os cotovelos caírem."),
-  ex("e9", "Leg press 45", "Quadríceps", ["Glúteos"], "Máquina", "Apoie os pés na plataforma na largura dos ombros e destrave o carro. Desça até formar cerca de 90 graus no joelho. Empurre sem travar completamente os joelhos."),
-  ex("e10", "Cadeira extensora", "Quadríceps", [], "Máquina", "Ajuste o encosto para o joelho ficar alinhado ao eixo da máquina. Estenda as pernas até quase o bloqueio, apertando o quadríceps. Volte controlando por 2 segundos."),
-  ex("e11", "Afundo com halteres", "Quadríceps", ["Glúteos", "Posterior"], "Halteres", "Segure um halter em cada mão e dê um passo à frente. Desça até o joelho de trás quase tocar o chão. Volte empurrando com a perna da frente."),
-  ex("e12", "Búlgaro", "Quadríceps", ["Glúteos"], "Halteres", "Apoie o pé de trás em um banco e mantenha o tronco levemente inclinado. Desça até sentir o glúteo alongar. Suba com a perna da frente sem impulso."),
-  ex("e13", "Hack machine", "Quadríceps", ["Glúteos"], "Máquina", "Encaixe os ombros nas almofadas e mantenha as costas apoiadas. Desça o quadril controlando o movimento. Empurre pelo meio do pé."),
-  ex("e14", "Levantamento terra", "Posterior", ["Glúteos", "Lombar", "Trapézio"], "Barra", "Com a barra sobre o meio do pé, segure com colunas neutras e peito aberto. Suba empurrando o chão e estendendo quadril e joelhos juntos. Desça mantendo a barra rente às pernas."),
-  ex("e15", "Stiff", "Posterior", ["Glúteos", "Lombar"], "Barra", "Segure a barra na frente do corpo com joelhos levemente flexionados. Empurre o quadril para trás descendo a barra rente às pernas. Suba contraindo glúteos e posteriores."),
-  ex("e16", "Mesa flexora", "Posterior", ["Panturrilha"], "Máquina", "Deite de barriga para baixo com o rolo acima do tendão de Aquiles. Flexione os joelhos levando os pés até os glúteos. Desça devagar sem soltar o peso."),
-  ex("e17", "Cadeira flexora", "Posterior", [], "Máquina", "Sente com as costas apoiadas e o rolo sobre a panturrilha. Puxe os pés para baixo e para trás contraindo o posterior. Retorne controlado."),
-  ex("e18", "Elevação pélvica", "Glúteos", ["Posterior", "Core"], "Barra", "Apoie as costas em um banco com a barra sobre o quadril. Suba o quadril até alinhar tronco e coxas. Aperte os glúteos no topo por 1 segundo."),
-  ex("e19", "Cadeira abdutora", "Glúteos", [], "Máquina", "Sente com as almofadas na parte externa das coxas. Abra as pernas até o limite confortável. Volte resistindo ao peso."),
-  ex("e20", "Panturrilha em pé", "Panturrilha", [], "Máquina", "Apoie a ponta dos pés na plataforma com os joelhos estendidos. Suba o máximo possível na ponta dos pés. Desça até sentir alongamento total."),
-  ex("e21", "Panturrilha sentado", "Panturrilha", [], "Máquina", "Sente com a almofada sobre os joelhos e a ponta dos pés na plataforma. Eleve os calcanhares ao máximo. Desça lentamente controlando o alongamento."),
-  ex("e22", "Remada curvada", "Costas", ["Bíceps", "Lombar"], "Barra", "Incline o tronco cerca de 45 graus com a coluna neutra. Puxe a barra em direção ao abdômen fechando as escápulas. Desça controlado sem levantar o tronco."),
-  ex("e23", "Remada curvada com halteres", "Costas", ["Bíceps"], "Halteres", "Apoie uma mão no banco e mantenha as costas retas. Puxe o halter até a lateral do tronco. Desça alongando bem o dorsal."),
-  ex("e24", "Puxada alta na frente", "Costas", ["Bíceps"], "Polia", "Segure a barra com pegada aberta e trave as coxas no apoio. Puxe até a barra chegar perto da clavícula. Suba controlando sem encolher os ombros."),
-  ex("e25", "Remada baixa na polia", "Costas", ["Bíceps"], "Polia", "Sente com os pés apoiados e o tronco levemente inclinado. Puxe o triângulo até o abdômen fechando as escápulas. Volte alongando o dorsal."),
-  ex("e26", "Remada cavalinho", "Costas", ["Bíceps", "Trapézio"], "Máquina", "Apoie o peito no suporte e segure as manoplas. Puxe levando os cotovelos para trás. Desça devagar."),
-  ex("e27", "Barra fixa", "Costas", ["Bíceps", "Core"], "Peso corporal", "Segure a barra com pegada pronada na largura dos ombros. Puxe até o queixo passar da barra. Desça controlando toda a descida."),
-  ex("e28", "Pulldown com corda", "Costas", ["Ombros"], "Polia", "Em pé, segure a corda com os braços estendidos acima. Puxe para baixo mantendo os braços retos. Retorne com controle."),
-  ex("e29", "Desenvolvimento militar", "Ombros", ["Tríceps", "Core"], "Barra", "Em pé, segure a barra na altura da clavícula com o core firme. Empurre acima da cabeça até estender os braços. Desça controlado até o queixo."),
-  ex("e30", "Desenvolvimento com halteres", "Ombros", ["Tríceps"], "Halteres", "Sente com as costas apoiadas e os halteres na altura das orelhas. Empurre para cima sem bater os halteres. Desça devagar até 90 graus."),
-  ex("e31", "Elevação lateral", "Ombros", [], "Halteres", "Em pé com halteres ao lado do corpo e cotovelos levemente flexionados. Eleve até a linha dos ombros liderando com os cotovelos. Desça em 2 segundos."),
-  ex("e32", "Elevação frontal", "Ombros", [], "Halteres", "Segure os halteres à frente das coxas. Eleve os braços até a altura dos olhos. Desça controlado sem balançar o tronco."),
-  ex("e33", "Crucifixo inverso", "Ombros", ["Costas"], "Máquina", "Sente de frente para o aparelho com o peito apoiado. Abra os braços para trás apertando a parte posterior dos ombros. Volte devagar."),
-  ex("e34", "Encolhimento", "Trapézio", ["Ombros"], "Halteres", "Segure halteres ao lado do corpo com os braços estendidos. Eleve os ombros na direção das orelhas. Desça alongando o trapézio."),
-  ex("e35", "Rosca direta", "Bíceps", ["Antebraço"], "Barra", "Em pé, segure a barra com pegada supinada na largura dos ombros. Flexione os cotovelos sem mover os ombros. Desça até estender completamente."),
-  ex("e36", "Rosca alternada", "Bíceps", ["Antebraço"], "Halteres", "Em pé com halteres ao lado do corpo. Flexione um braço girando o punho para fora. Desça controlado e alterne."),
-  ex("e37", "Rosca martelo", "Bíceps", ["Antebraço"], "Halteres", "Segure os halteres com pegada neutra. Flexione os cotovelos mantendo os punhos fixos. Desça devagar."),
-  ex("e38", "Tríceps testa", "Tríceps", [], "Barra", "Deite no banco com a barra acima da testa e cotovelos apontando ao teto. Flexione os cotovelos descendo a barra até perto da cabeça. Estenda sem abrir os cotovelos."),
-  ex("e39", "Tríceps na polia com corda", "Tríceps", [], "Polia", "Em pé com cotovelos junto ao corpo, segure a corda. Estenda os cotovelos abrindo a corda no fim. Volte controlado até 90 graus."),
-  ex("e40", "Tríceps francês", "Tríceps", [], "Halteres", "Sente e segure um halter com as duas mãos acima da cabeça. Desça atrás da cabeça flexionando os cotovelos. Estenda sem afastar os cotovelos."),
-  ex("e41", "Mergulho no banco", "Tríceps", ["Peito"], "Peso corporal", "Apoie as mãos na borda do banco com as pernas à frente. Desça o quadril flexionando os cotovelos. Empurre até estender os braços."),
-  ex("e42", "Prancha", "Core", ["Ombros"], "Peso corporal", "Apoie os antebraços e a ponta dos pés mantendo o corpo alinhado. Contraia abdômen e glúteos. Respire mantendo a posição."),
-  ex("e43", "Abdominal na polia", "Core", [], "Polia", "Ajoelhe de costas para a polia segurando a corda ao lado da cabeça. Flexione o tronco aproximando as costelas do quadril. Volte devagar."),
+  ex("e1", "Bench Press", "Chest", ["Triceps", "Shoulders"], "Barbell", "Lie on the bench with feet flat on the floor and grip the bar at shoulder width. Lower with control to the mid-chest. Press back up without locking your elbows.",
+  ),
+  ex("e2", "Incline Dumbbell Press", "Chest", ["Shoulders", "Triceps"], "Dumbbells", "Set the bench between 30 and 45 degrees and hold the dumbbells at chest height. Lower until you feel a stretch in the upper chest. Press up, lightly bringing the dumbbells together at the top.",
+  ),
+  ex("e3", "Decline Bench Press", "Chest", ["Triceps"], "Barbell", "Set the bench to decline and secure your legs. Lower the bar toward the lower chest. Press back up keeping your wrists aligned.",
+  ),
+  ex("e4", "Pec Deck Machine", "Chest", ["Shoulders"], "Machine", "Sit with your back supported and hold the handles at chest height. Bring your arms together in a slow arc, squeezing the chest. Return under control, feeling the stretch.",
+  ),
+  ex("e5", "Cable Crossover", "Chest", ["Shoulders"], "Cable", "Stand in the center of the cable with one foot slightly forward. Bring your hands forward and down, crossing them slightly. Return slowly without letting your shoulders rise.",
+  ),
+  ex("e6", "Push-up", "Chest", ["Triceps", "Core"], "Bodyweight", "Place your hands slightly wider than shoulder width and keep your body straight. Lower until your chest almost touches the floor. Press back up while keeping your core tight.",
+  ),
+  ex("e7", "Barbell Squat", "Quads", ["Glutes", "Core", "Hamstrings"], "Barbell", "Rest the bar on your upper back, feet shoulder-width apart, chest up. Lower by pushing your hips back until your thighs break parallel. Press up through the middle of your foot.",
+  ),
+  ex("e8", "Front Squat", "Quads", ["Glutes", "Core"], "Barbell", "Hold the bar on the front delts with elbows high. Lower while keeping your torso as upright as possible. Drive up without letting your elbows drop.",
+  ),
+  ex("e9", "Leg Press", "Quads", ["Glutes"], "Machine", "Place your feet on the platform shoulder-width apart and release the safety. Lower until your knees reach about 90 degrees. Press without fully locking your knees.",
+  ),
+  ex("e10", "Leg Extension", "Quads", [], "Machine", "Adjust the seat so your knee aligns with the machine axis. Extend your legs until just short of lockout, squeezing the quads. Lower under control for two seconds.",
+  ),
+  ex("e11", "Dumbbell Lunge", "Quads", ["Glutes", "Hamstrings"], "Dumbbells", "Hold a dumbbell in each hand and step forward. Lower until your back knee nearly touches the floor. Push back up through the front leg.",
+  ),
+  ex("e12", "Bulgarian Split Squat", "Quads", ["Glutes"], "Dumbbells", "Rest your back foot on a bench and keep your torso slightly leaned forward. Lower until you feel the glute stretch. Rise through the front leg without bouncing.",
+  ),
+  ex("e13", "Hack Squat", "Quads", ["Glutes"], "Machine", "Set your shoulders on the pads and keep your back supported. Lower your hips under control. Press through the middle of your foot.",
+  ),
+  ex("e14", "Deadlift", "Hamstrings", ["Glutes", "Lower back", "Traps"], "Barbell", "With the bar over mid-foot, grip with a neutral spine and chest up. Lift by pushing the floor away and extending hips and knees together. Lower keeping the bar close to your legs.",
+  ),
+  ex("e15", "Romanian Deadlift", "Hamstrings", ["Glutes", "Lower back"], "Barbell", "Hold the bar in front with knees slightly bent. Push your hips back, lowering the bar along your legs. Rise by contracting glutes and hamstrings.",
+  ),
+  ex("e16", "Lying Leg Curl", "Hamstrings", ["Calves"], "Machine", "Lie face down with the pad above the Achilles. Curl your heels toward your glutes. Lower slowly without dropping the weight.",
+  ),
+  ex("e17", "Seated Leg Curl", "Hamstrings", [], "Machine", "Sit with your back supported and the pad over your lower calf. Curl your feet down and back, squeezing the hamstrings. Return under control.",
+  ),
+  ex("e18", "Hip Thrust", "Glutes", ["Hamstrings", "Core"], "Barbell", "Rest your upper back on a bench with the bar over your hips. Thrust your hips up until your torso and thighs align. Squeeze your glutes for one second at the top.",
+  ),
+  ex("e19", "Hip Abduction Machine", "Glutes", [], "Machine", "Sit with the pads on the outside of your thighs. Open your legs to a comfortable range. Return while resisting the weight.",
+  ),
+  ex("e20", "Standing Calf Raise", "Calves", [], "Machine", "Place the balls of your feet on the platform with knees extended. Rise onto your toes as high as possible. Lower until you feel a full stretch.",
+  ),
+  ex("e21", "Seated Calf Raise", "Calves", [], "Machine", "Sit with the pad over your knees and the balls of your feet on the platform. Raise your heels as high as possible. Lower slowly, controlling the stretch.",
+  ),
+  ex("e22", "Barbell Row", "Back", ["Biceps", "Lower back"], "Barbell", "Lean your torso to about 45 degrees with a neutral spine. Pull the bar toward your lower chest, retracting your shoulder blades. Lower without raising your torso.",
+  ),
+  ex("e23", "One-Arm Dumbbell Row", "Back", ["Biceps"], "Dumbbells", "Support one hand on the bench and keep your back flat. Pull the dumbbell to the side of your torso. Lower with a full lat stretch.",
+  ),
+  ex("e24", "Lat Pulldown", "Back", ["Biceps"], "Cable", "Grip the bar wide with your thighs locked under the pad. Pull until the bar reaches your upper chest. Return under control without shrugging.",
+  ),
+  ex("e25", "Seated Cable Row", "Back", ["Biceps"], "Cable", "Sit with your feet braced and torso slightly leaned forward. Pull the triangle to your lower abs, retracting your shoulder blades. Return with a full lat stretch.",
+  ),
+  ex("e26", "Chest-Supported Row", "Back", ["Biceps", "Traps"], "Machine", "Rest your chest on the support and grip the handles. Pull with your elbows going back. Lower slowly.",
+  ),
+  ex("e27", "Pull-up", "Back", ["Biceps", "Core"], "Bodyweight", "Grip the bar pronated at shoulder width. Pull until your chin clears the bar. Lower with control all the way down.",
+  ),
+  ex("e28", "Rope Pulldown", "Back", ["Shoulders"], "Cable", "Standing, hold the rope with arms extended overhead. Pull down keeping your arms straight. Return under control.",
+  ),
+  ex("e29", "Overhead Press", "Shoulders", ["Triceps", "Core"], "Barbell", "Standing, hold the bar at collar height with your core tight. Press overhead until your arms extend. Lower with control to chin height.",
+  ),
+  ex("e30", "Dumbbell Shoulder Press", "Shoulders", ["Triceps"], "Dumbbells", "Sit with your back supported and dumbbells at ear height. Press up without banging the dumbbells. Lower to 90 degrees under control.",
+  ),
+  ex("e31", "Lateral Raise", "Shoulders", [], "Dumbbells", "Stand with dumbbells at your sides and elbows slightly bent. Raise to shoulder height, leading with your elbows. Lower in two seconds.",
+  ),
+  ex("e32", "Front Raise", "Shoulders", [], "Dumbbells", "Hold the dumbbells in front of your thighs. Raise your arms to eye level. Lower under control without swinging.",
+  ),
+  ex("e33", "Reverse Pec Deck", "Shoulders", ["Back"], "Machine", "Sit facing the machine with your chest supported. Open your arms back, squeezing the rear shoulders. Return slowly.",
+  ),
+  ex("e34", "Dumbbell Shrug", "Traps", ["Shoulders"], "Dumbbells", "Hold dumbbells at your sides with arms extended. Shrug your shoulders toward your ears. Lower with a full trap stretch.",
+  ),
+  ex("e35", "Barbell Curl", "Biceps", ["Forearms"], "Barbell", "Standing, grip the bar supinated at shoulder width. Curl without moving your shoulders. Lower until your arms are fully extended.",
+  ),
+  ex("e36", "Alternating Dumbbell Curl", "Biceps", ["Forearms"], "Dumbbells", "Standing with dumbbells at your sides. Curl one arm, rotating the wrist outward. Lower under control and alternate.",
+  ),
+  ex("e37", "Hammer Curl", "Biceps", ["Forearms"], "Dumbbells", "Hold the dumbbells with a neutral grip. Curl keeping your wrists fixed. Lower slowly.",
+  ),
+  ex("e38", "Skull Crusher", "Triceps", [], "Barbell", "Lie on the bench with the bar above your forehead and elbows pointing at the ceiling. Lower the bar near your head by bending your elbows. Extend without flaring your elbows.",
+  ),
+  ex("e39", "Tricep Rope Pushdown", "Triceps", [], "Cable", "Stand with elbows pinned to your sides and hold the rope. Extend your elbows, spreading the rope at the bottom. Return to 90 degrees under control.",
+  ),
+  ex("e40", "Overhead Tricep Extension", "Triceps", [], "Dumbbells", "Sit and hold a dumbbell with both hands above your head. Lower behind your head by bending your elbows. Extend without flaring your elbows.",
+  ),
+  ex("e41", "Bench Dip", "Triceps", ["Chest"], "Bodyweight", "Place your hands on the edge of the bench with your legs extended in front. Lower your hips by bending your elbows. Press until your arms extend.",
+  ),
+  ex("e42", "Plank", "Core", ["Shoulders"], "Bodyweight", "Support your forearms and toes while keeping your body aligned. Brace your abs and glutes. Breathe while holding the position.",
+  ),
+  ex("e43", "Cable Crunch", "Core", [], "Cable", "Kneel facing away from the cable, holding the rope by your head. Crunch your torso, bringing your ribs toward your hips. Return slowly.",
+  ),
 ];
 
 export let profile: Profile = {
@@ -76,6 +118,11 @@ export let profile: Profile = {
   nivelAtividade: "moderado",
   objetivo: "manutencao",
   metaTreinosSemana: 4,
+  equipment: ["Barbell", "Dumbbells", "Machine", "Cable"],
+  avoidExercises: [],
+  sessionLengthMin: 60,
+  preferredTime: "evening",
+  checkInMode: "card",
 };
 
 export function setProfile(next: Profile) {
@@ -97,9 +144,9 @@ export const routines: Routine[] = [
   {
     id: "r1",
     nome: "Upper A",
-    descricao: "Peito, costas e ombros — foco em força",
+    descricao: "Chest, back and shoulders — strength focus",
     exercicios: [
-      re("r1e1", "e1", 0, 4, 5, 8, 150, "Progredir 2,5kg quando fechar 8 reps"),
+      re("r1e1", "e1", 0, 4, 5, 8, 150, "Add 2.5 kg when you can close 8 reps"),
       re("r1e2", "e24", 1, 4, 8, 12, 120),
       re("r1e3", "e2", 2, 3, 8, 12, 120),
       re("r1e4", "e25", 3, 3, 10, 12, 90),
@@ -111,9 +158,9 @@ export const routines: Routine[] = [
   {
     id: "r2",
     nome: "Lower B",
-    descricao: "Pernas completas com ênfase em posterior",
+    descricao: "Full legs with hamstring emphasis",
     exercicios: [
-      re("r2e1", "e7", 0, 4, 5, 8, 180, "Descer sempre abaixo da paralela"),
+      re("r2e1", "e7", 0, 4, 5, 8, 180, "Always break parallel on the way down"),
       re("r2e2", "e15", 1, 3, 8, 10, 150),
       re("r2e3", "e9", 2, 3, 10, 12, 120),
       re("r2e4", "e16", 3, 3, 10, 12, 90),
@@ -126,7 +173,7 @@ export const routines: Routine[] = [
 export const workouts: Workout[] = [];
 export const workoutSets: WorkoutSet[] = [];
 
-// ---- Histórico gerado: 6 sessões nas últimas 3 semanas ----
+// ---- Generated history: 6 sessions over the last 3 weeks ----
 const baseCargas: Record<string, number> = {
   e1: 70, e24: 60, e2: 24, e25: 55, e31: 12, e39: 25, e35: 30,
   e7: 90, e15: 70, e9: 160, e16: 45, e10: 55, e20: 80,
@@ -144,8 +191,8 @@ dias.forEach((diasAtras, i) => {
   rotina.exercicios.forEach((rex, exIdx) => {
     const base = baseCargas[rex.exerciseId] ?? 20;
     const peso = Math.round((base + semana * (base > 50 ? 5 : 2)) * 2) / 2;
-    // Nas últimas sessões, alguns exercícios fecham o topo da faixa com PSE baixo
-    // (dispara a sugestão de progressão de carga).
+    // In recent sessions some exercises close the top of the rep range with low RPE
+    // (triggers the load-progression suggestion).
     const fechouTopo = i >= 4 && exIdx % 2 === 0;
     for (let s = 1; s <= rex.seriesAlvo; s++) {
       const reps = fechouTopo ? rex.repsMax : rex.repsMax - ((s - 1) % 2);
@@ -171,7 +218,7 @@ dias.forEach((diasAtras, i) => {
     finalizadoEm: new Date(inicio.getTime() + duracaoSeg * 1000).toISOString(),
     duracaoSeg,
     volumeTotalKg: Math.round(volume),
-    notas: i === 5 ? "Sessão forte, dormi bem." : "",
+    notas: i === 5 ? "Strong session, slept well." : "",
     origem: "rotina",
   });
 });

@@ -22,9 +22,10 @@ import {
 } from "@/lib/session-state";
 
 /**
- * Barra flutuante de sessão em andamento, exibida acima da navegação inferior
- * em todas as abas. Permite navegar pelo app sem perder o treino.
+ * Floating session bar shown above the bottom nav on every tab.
+ * Lets you navigate the app without losing your workout.
  */
+
 export function SessionMiniPlayer() {
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
@@ -43,7 +44,8 @@ export function SessionMiniPlayer() {
       <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
-          aria-label="Voltar para a sessão de treino"
+          aria-label="Return to workout session"
+
           className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
@@ -67,7 +69,8 @@ export function SessionMiniPlayer() {
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              aria-label="Descartar treino em andamento"
+              aria-label="Discard active workout"
+
               className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg text-destructive"
             >
               <Trash2 className="size-5" />
@@ -75,14 +78,13 @@ export function SessionMiniPlayer() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Descartar este treino?</AlertDialogTitle>
+              <AlertDialogTitle>Discard this workout?</AlertDialogTitle>
               <AlertDialogDescription>
-                As séries registradas em {session.routineNome} serão perdidas. Essa ação não pode ser
-                desfeita.
+                Sets logged for {session.routineNome} will be lost. This cannot be undone.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="tap-target">Continuar treinando</AlertDialogCancel>
+              <AlertDialogCancel className="tap-target">Keep training</AlertDialogCancel>
               <AlertDialogAction
                 className="tap-target bg-destructive text-destructive-foreground"
                 onClick={() => {
@@ -91,8 +93,9 @@ export function SessionMiniPlayer() {
                   navigate({ to: "/treino" });
                 }}
               >
-                Descartar
+                Discard
               </AlertDialogAction>
+
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

@@ -10,13 +10,13 @@ import heroLogin from "@/assets/hero-login.jpg";
 export const Route = createFileRoute("/resumo/$id")({
   head: () => ({
     meta: [
-      { title: "Resumo do treino — Forja" },
+      { title: "Workout summary — Forja" },
       {
         name: "description",
-        content: "Duração, volume total, séries registradas e recordes batidos na sessão.",
+        content: "Duration, total volume, logged sets and personal records hit in this session.",
       },
-      { property: "og:title", content: "Resumo do treino — Forja" },
-      { property: "og:description", content: "Duração, volume, séries e PRs da sua sessão." },
+      { property: "og:title", content: "Workout summary — Forja" },
+      { property: "og:description", content: "Duration, volume, sets and PRs from your session." },
     ],
   }),
   component: SummaryPage,
@@ -55,20 +55,20 @@ function SummaryPage() {
         <div className="veil absolute inset-0" />
       </div>
       <div className="relative mx-auto max-w-md">
-        <p className="label-caps">Sessão finalizada</p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight">Treino concluído</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Bom trabalho. Aqui está o resumo.</p>
+        <p className="label-caps">Session finished</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight">Workout done</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Good work. Here is the summary.</p>
 
         <dl className="mt-6 grid grid-cols-2 gap-3">
-          <Stat label="Duração" value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
-          <Stat label="Volume total" value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
-          <Stat label="Séries" value={String(sets.length)} />
-          <Stat label="Exercícios" value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
+          <Stat label="Duration" value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
+          <Stat label="Total volume" value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
+          <Stat label="Sets" value={String(sets.length)} />
+          <Stat label="Exercises" value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
         </dl>
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-4">
           <h2 className="label-caps flex items-center gap-2">
-            <Trophy className="size-4 text-primary" /> PRs batidos
+            <Trophy className="size-4 text-primary" /> PRs hit
           </h2>
           {prs.length ? (
             <ul className="mt-3 space-y-2">
@@ -81,7 +81,7 @@ function SummaryPage() {
             </ul>
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
-              Nenhum recorde hoje — consistência também conta.
+              No records today — consistency also counts.
             </p>
           )}
         </section>
@@ -93,11 +93,11 @@ function SummaryPage() {
         <div className="mt-8 space-y-3">
           <Button asChild className="shadow-elegant h-14 w-full text-base font-semibold">
             <Link to="/progresso/$id" params={{ id }}>
-              Ver detalhes da sessão
+              View session details
             </Link>
           </Button>
           <Button asChild variant="ghost" className="h-12 w-full text-sm font-medium text-muted-foreground">
-            <Link to="/treino">Voltar ao início</Link>
+            <Link to="/treino">Back to start</Link>
           </Button>
         </div>
       </div>

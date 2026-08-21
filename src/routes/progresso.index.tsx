@@ -9,13 +9,13 @@ import { formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 export const Route = createFileRoute("/progresso/")({
   head: () => ({
     meta: [
-      { title: "Progresso — Forja" },
+      { title: "Progress — Forja" },
       {
         name: "description",
-        content: "Histórico de sessões com duração, volume total e evolução de carga por exercício.",
+        content: "Session history with duration, total volume and load progression per exercise.",
       },
-      { property: "og:title", content: "Progresso — Forja" },
-      { property: "og:description", content: "Histórico de treinos e gráficos de evolução de carga." },
+      { property: "og:title", content: "Progress — Forja" },
+      { property: "og:description", content: "Workout history and load progression charts." },
     ],
   }),
   component: ProgressPage,
@@ -30,9 +30,9 @@ function ProgressPage() {
   const volumeTotal = workouts.reduce((sum, w) => sum + w.volumeTotalKg, 0);
 
   return (
-    <AppShell title="Progresso">
+    <AppShell title="Progress">
       <dl className="grid grid-cols-3 gap-2">
-        <Stat label="Sessões" value={String(workouts.length)} />
+        <Stat label="Sessions" value={String(workouts.length)} />
         <Stat label="Volume" value={`${Math.round(volumeTotal / 1000)}t`} />
         <Stat
           label="Média"
@@ -46,7 +46,7 @@ function ProgressPage() {
         />
       </dl>
 
-      <h2 className="label-caps mt-8 mb-3">Histórico</h2>
+      <h2 className="label-caps mt-8 mb-3">History</h2>
 
       <ul className="space-y-2">
         {workouts.map((w) => (
@@ -58,7 +58,7 @@ function ProgressPage() {
             >
               <div className="flex-1">
                 <p className="font-display text-base font-semibold leading-tight">
-                  {routines.find((r) => r.id === w.routineId)?.nome ?? "Treino em branco"}
+                  {routines.find((r) => r.id === w.routineId)?.nome ?? "Blank workout"}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground/80 first-letter:uppercase">
                   {formatDateLong(w.iniciadoEm)}

@@ -15,13 +15,13 @@ import type { Routine } from "@/lib/types";
 export const Route = createFileRoute("/rotina/$id")({
   head: () => ({
     meta: [
-      { title: "Editor de rotina — Forja" },
+      { title: "Routine editor — Forja" },
       {
         name: "description",
-        content: "Monte sua rotina: ordene exercícios, defina séries-alvo, faixa de reps e descanso.",
+        content: "Build your routine: order exercises, set target sets, rep range and rest.",
       },
-      { property: "og:title", content: "Editor de rotina — Forja" },
-      { property: "og:description", content: "Séries-alvo, faixa de reps, descanso e notas por exercício." },
+      { property: "og:title", content: "Routine editor — Forja" },
+      { property: "og:description", content: "Target sets, rep range, rest and notes per exercise." },
     ],
   }),
   component: RoutineEditor,
@@ -95,18 +95,18 @@ function RoutineEditor() {
     });
   }
 
-  function abrirBiblioteca() {
+  function openLibrary() {
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
     navigate({ to: "/biblioteca", search: { para: "rotina", rotinaId: id } });
   }
 
-  async function salvar() {
-    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || "Nova rotina" });
+  async function handleSave() {
+    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || "New routine" });
     await queryClient.invalidateQueries({ queryKey: ["routines"] });
     navigate({ to: "/treino" });
   }
 
-  async function excluir() {
+  async function handleDelete() {
     if (routine!.id) {
       await deleteRoutine(routine!.id);
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
@@ -117,13 +117,13 @@ function RoutineEditor() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <PageHeader
-        title={id === "nova" ? "Nova rotina" : "Editar rotina"}
+        title={id === "nova" ? "New routine" : "Edit routine"}
         left={
           <Button
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Voltar"
+            aria-label="Back"
             onClick={() => navigate({ to: "/treino" })}
           >
             <ArrowLeft className="size-6" />
@@ -135,8 +135,8 @@ function RoutineEditor() {
               variant="ghost"
               size="icon"
               className="tap-target text-destructive"
-              aria-label="Excluir rotina"
-              onClick={excluir}
+              aria-label="Delete routine"
+              onClick={handleDelete}
             >
               <Trash2 className="size-5" />
             </Button>
@@ -146,37 +146,37 @@ function RoutineEditor() {
 
       <div className="mx-auto max-w-md space-y-4 px-4 py-4">
         <div className="space-y-2">
-          <Label htmlFor="nome">Nome da rotina</Label>
+          <Label htmlFor="nome">Routine name</Label>
           <Input
             id="nome"
             value={routine.nome}
             onChange={(e) => patch({ nome: e.target.value })}
-            placeholder="Ex: Upper A"
+            placeholder="e.g. Upper A"
             className="tap-target h-12 text-base"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="descricao">Descrição</Label>
+          <Label htmlFor="descricao">Description</Label>
           <Textarea
             id="descricao"
             value={routine.descricao}
             onChange={(e) => patch({ descricao: e.target.value })}
-            placeholder="Foco, dias da semana, observações"
+            placeholder="Focus, days of the week, notes"
             className="min-h-16 text-base"
           />
         </div>
 
         <h2 className="pt-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-          Exercícios ({routine.exercicios.length})
+          Exercises ({routine.exercicios.length})
         </h2>
 
         {routine.exercicios.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Nenhum exercício ainda. Adicione o primeiro da biblioteca.
+              No exercises yet. Add the first one from the library.
             </p>
-            <Button className="mt-4 h-12 w-full font-bold" onClick={abrirBiblioteca}>
-              <Plus className="mr-1 size-5" /> Adicionar exercício
+            <Button className="mt-4 h-12 w-full font-bold" onClick={openLibrary}>
+              <Plus className="mr-1 size-5" /> Add exercise
             </Button>
           </div>
         ) : (
@@ -200,13 +200,13 @@ function RoutineEditor() {
                     <GripVertical className="size-5" />
                   </span>
                   <p className="flex-1 text-base font-bold leading-tight">
-                    {nomes[rex.exerciseId] ?? "Exercício"}
+                    {nomes[rex.exerciseId] ?? "Exercise"}
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="tap-target"
-                    aria-label="Mover para cima"
+                    aria-label="Move up"
                     onClick={() => move(idx, idx - 1)}
                   >
                     ↑
@@ -215,7 +215,7 @@ function RoutineEditor() {
                     variant="ghost"
                     size="icon"
                     className="tap-target"
-                    aria-label="Mover para baixo"
+                    aria-label="Move down"
                     onClick={() => move(idx, idx + 1)}
                   >
                     ↓
@@ -224,7 +224,7 @@ function RoutineEditor() {
                     variant="ghost"
                     size="icon"
                     className="tap-target text-destructive"
-                    aria-label="Remover exercício"
+                    aria-label="Remove exercise"
                     onClick={() =>
                       setRoutine((prev) =>
                         prev
@@ -244,22 +244,22 @@ function RoutineEditor() {
 
                 <div className="mt-3 grid grid-cols-4 gap-2">
                   <NumField
-                    label="Séries"
+                    label="Sets"
                     value={rex.seriesAlvo}
                     onChange={(v) => patchExercise(idx, { seriesAlvo: v })}
                   />
                   <NumField
-                    label="Rep mín"
+                    label="Min reps"
                     value={rex.repsMin}
                     onChange={(v) => patchExercise(idx, { repsMin: v })}
                   />
                   <NumField
-                    label="Rep máx"
+                    label="Max reps"
                     value={rex.repsMax}
                     onChange={(v) => patchExercise(idx, { repsMax: v })}
                   />
                   <NumField
-                    label="Desc (s)"
+                    label="Rest (s)"
                     value={rex.descansoSeg}
                     onChange={(v) => patchExercise(idx, { descansoSeg: v })}
                   />
@@ -267,7 +267,7 @@ function RoutineEditor() {
                 <Input
                   value={rex.notas}
                   onChange={(e) => patchExercise(idx, { notas: e.target.value })}
-                  placeholder="Notas do exercício"
+                  placeholder="Exercise notes"
                   className="mt-2 h-11 text-sm"
                 />
               </li>
@@ -276,16 +276,16 @@ function RoutineEditor() {
         )}
 
         {routine.exercicios.length > 0 ? (
-          <Button variant="secondary" className="h-12 w-full font-semibold" onClick={abrirBiblioteca}>
-            <Plus className="mr-1 size-5" /> Adicionar exercício
+          <Button variant="secondary" className="h-12 w-full font-semibold" onClick={openLibrary}>
+            <Plus className="mr-1 size-5" /> Add exercise
           </Button>
         ) : null}
       </div>
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto max-w-md">
-          <Button className="h-14 w-full text-base font-bold" onClick={salvar}>
-            Salvar rotina
+          <Button className="h-14 w-full text-base font-bold" onClick={handleSave}>
+            Save routine
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />

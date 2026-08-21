@@ -42,31 +42,31 @@ import type { TipoSerie, WorkoutSet } from "@/lib/types";
 export const Route = createFileRoute("/sessao")({
   head: () => ({
     meta: [
-      { title: "Sessão de treino — Forja" },
+      { title: "Workout session — Forja" },
       {
         name: "description",
         content:
-          "Registre séries, cargas, reps e PSE durante o treino com a carga anterior sempre visível.",
+          "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
       },
-      { property: "og:title", content: "Sessão de treino — Forja" },
+      { property: "og:title", content: "Workout session — Forja" },
       {
         property: "og:description",
-        content: "Cronômetro, carga anterior fixa, sugestão de progressão e timer de descanso.",
+        content: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
       },
     ],
   }),
   component: SessionPage,
 });
 
-const tipoNome: Record<TipoSerie, string> = {
-  aquecimento: "Aquecimento",
+const typeName: Record<TipoSerie, string> = {
+  aquecimento: "Warm-up",
   normal: "Normal",
-  falha: "Falha",
+  falha: "Failure",
   drop: "Drop set",
 };
 
-const PSE_OPCOES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
-const DESCANSO_OPCOES = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
+const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
 
@@ -89,7 +89,7 @@ function SessionPage() {
 
   useTick(true);
 
-  // Timer de descanso zera sozinho, sem modal e sem toque extra.
+  // Rest timer clears on its own, no modal, no extra tap.
   useEffect(() => {
     if (!rest) return;
     const id = setTimeout(() => setRest(null), Math.max(0, rest.endsAt - Date.now()) + 500);
@@ -103,7 +103,7 @@ function SessionPage() {
     setSession(loaded);
     setReady(true);
     if (!loaded) return;
-    // Exercício escolhido na biblioteca durante a sessão
+    // Exercise chosen from library during session
     const pending = takePendingExercise();
     if (pending) {
       buildActiveExercise(pending).then((built) => {
@@ -133,9 +133,9 @@ function SessionPage() {
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <p className="text-lg font-semibold">Nenhum treino em andamento</p>
+        <p className="text-lg font-semibold">No workout in progress</p>
         <Button className="h-12 w-full max-w-xs" onClick={() => navigate({ to: "/treino" })}>
-          Voltar para o treino
+          Back to training
         </Button>
       </div>
     );
@@ -144,7 +144,7 @@ function SessionPage() {
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
   const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
 
-  function iniciarDescanso(segundos: number) {
+  function startRest(segundos: number) {
     if (segundos <= 0) return;
     setRest({ total: segundos, endsAt: Date.now() + segundos * 1000 });
   }
@@ -169,7 +169,7 @@ function SessionPage() {
       }
       return s;
     });
-    if (descanso > 0) iniciarDescanso(descanso);
+    if (descanso > 0) startRest(descanso);
   }
 
   function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
@@ -186,7 +186,7 @@ function SessionPage() {
     });
   }
 
-  function setDescanso(exIdx: number, segundos: number) {
+  function setExerciseRest(exIdx: number, segundos: number) {
     update((s) => {
       s.exercicios[exIdx]!.descansoSeg = segundos;
       return s;
@@ -252,7 +252,7 @@ function SessionPage() {
         if (!s.concluida) return;
         const peso = Number(s.pesoKg) || 0;
         const reps = Number(s.reps) || 0;
-        // Aquecimento é registrado, mas não entra no volume.
+        // Warm-up is logged but does not count toward volume.
         if (isSerieValida(s)) {
           volume += peso * reps;
           melhor = Math.max(melhor, peso);
@@ -297,9 +297,9 @@ function SessionPage() {
     navigate({ to: "/resumo/$id", params: { id: session.id } });
   }
 
-  const seriesFeitas = sessionSetsDone(session);
+  const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
-  const descansoAtual = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
+  const currentRest = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
 
   return (
     <div className="min-h-screen bg-background pb-44">
@@ -309,7 +309,7 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Colapsar sessão"
+            aria-label="Collapse session"
             onClick={() => navigate({ to: "/treino" })}
           >
             <ChevronDown className="size-6" />
@@ -319,8 +319,8 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target text-info"
-            aria-label="Abrir timer de descanso"
-            onClick={() => iniciarDescanso(descansoAtual)}
+            aria-label="Open rest timer"
+            onClick={() => startRest(currentRest)}
           >
             <Timer className="size-6" />
           </Button>
@@ -329,13 +329,13 @@ function SessionPage() {
             disabled={finishing}
             onClick={finalizar}
           >
-            Concluir
+            Finish
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <HeaderStat label="Duração" value={formatDuration(elapsed)} mono />
-          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("pt-BR")} kg`} />
-          <HeaderStat label="Séries" value={String(seriesFeitas)} />
+          <HeaderStat label="Duration" value={formatDuration(elapsed)} mono />
+          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
+          <HeaderStat label="Sets" value={String(setsDone)} />
         </dl>
       </header>
 
@@ -361,7 +361,7 @@ function SessionPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-bold leading-tight">{ex.nome}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {feitas}/{validas} séries · alvo {ex.repsMin}-{ex.repsMax} reps
+                        {feitas}/{validas} sets · target {ex.repsMin}-{ex.repsMax} reps
                       </p>
                     </div>
                     <ChevronDown
@@ -373,7 +373,7 @@ function SessionPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <RestPicker
                       value={ex.descansoSeg}
-                      onChange={(segundos) => setDescanso(exIdx, segundos)}
+                      onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                     />
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
@@ -384,7 +384,7 @@ function SessionPage() {
                       variant="ghost"
                       size="icon"
                       className="tap-target"
-                      aria-label="Opções do exercício"
+                      aria-label="Exercise options"
                     >
                       <MoreVertical className="size-5" />
                     </Button>
@@ -392,16 +392,16 @@ function SessionPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => skipExercise(exIdx)}>
                       <SkipForward className="mr-2 size-4" />
-                      {ex.pulado ? "Retomar exercício" : "Pular exercício"}
+                      {ex.pulado ? "Resume exercise" : "Skip exercise"}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
-                      <Plus className="mr-2 size-4" /> Adicionar série
+                      <Plus className="mr-2 size-4" /> Add set
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
                       onClick={() => removeExercise(exIdx)}
                     >
-                      <Trash2 className="mr-2 size-4" /> Remover exercício
+                      <Trash2 className="mr-2 size-4" /> Remove exercise
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -412,11 +412,11 @@ function SessionPage() {
                   <div
                     className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
-                    <span>Sér</span>
-                    <span className="text-center">Anterior</span>
+                    <span>Set</span>
+                    <span className="text-center">Previous</span>
                     <span className="text-center">kg</span>
                     <span className="text-center">reps</span>
-                    <span className="text-center">PSE</span>
+                    <span className="text-center">RPE</span>
                     <span />
                   </div>
                   <ul className="space-y-2">
@@ -438,7 +438,7 @@ function SessionPage() {
                     className="mt-2 h-11 w-full justify-start text-sm font-semibold text-muted-foreground"
                     onClick={() => addSet(exIdx)}
                   >
-                    <Plus className="mr-1 size-4" /> Adicionar série
+                    <Plus className="mr-1 size-4" /> Add set
                   </Button>
                   <Textarea
                     value={ex.notas}
@@ -448,7 +448,7 @@ function SessionPage() {
                         return s;
                       })
                     }
-                    placeholder="Nota do exercício (ex: pegada mais fechada)"
+                    placeholder="Exercise note (e.g., closer grip)"
                     className="mt-2 min-h-11 text-sm"
                   />
                 </div>
@@ -464,13 +464,13 @@ function SessionPage() {
             navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
           }
         >
-          <Plus className="mr-1 size-5" /> Adicionar exercício
+          <Plus className="mr-1 size-5" /> Add exercise
         </Button>
 
         <Textarea
           value={session.notas}
           onChange={(e) => update((s) => ({ ...s, notas: e.target.value }))}
-          placeholder="Nota geral da sessão"
+          placeholder="Session note"
           className="min-h-16 text-sm"
         />
       </main>
@@ -480,7 +480,7 @@ function SessionPage() {
           {rest ? (
             <div className="mb-3">
               <div className="mb-1 flex items-center justify-between text-sm font-bold">
-                <span className="text-info">Descanso {formatDuration(restLeft)}</span>
+                <span className="text-info">Rest {formatDuration(restLeft)}</span>
                 <div className="flex gap-1">
                   <Button
                     variant="secondary"
@@ -503,7 +503,7 @@ function SessionPage() {
                     className="tap-target h-9 px-3 text-xs font-bold"
                     onClick={() => setRest(null)}
                   >
-                    Pular
+                    Skip
                   </Button>
                 </div>
               </div>
@@ -516,7 +516,7 @@ function SessionPage() {
             </div>
           ) : null}
           <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
-            Finalizar treino
+            Finish workout
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
@@ -543,7 +543,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
           className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
-          Peso aumentado
+          Weight increased
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
@@ -563,15 +563,15 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
           className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
-          Descanso: {formatRest(value)}
+          Rest: {formatRest(value)}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Descanso deste exercício
+          Rest for this exercise
         </p>
         <div className="grid grid-cols-3 gap-1.5">
-          {DESCANSO_OPCOES.map((op) => (
+          {REST_OPTIONS.map((op) => (
             <button
               key={op}
               type="button"
@@ -599,20 +599,20 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={value ? `PSE ${value}` : "Definir PSE (opcional)"}
+          aria-label={value ? `RPE ${value}` : "Set RPE (optional)"}
           className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
             value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
           }`}
         >
-          {value || "PSE"}
+          {value || "RPE"}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          PSE (opcional)
+          RPE (optional)
         </p>
         <div className="grid grid-cols-3 gap-1.5">
-          {PSE_OPCOES.map((op) => (
+          {RPE_OPTIONS.map((op) => (
             <button
               key={op}
               type="button"
@@ -638,7 +638,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
             setOpen(false);
           }}
         >
-          Limpar
+          Clear
         </Button>
       </PopoverContent>
     </Popover>
@@ -672,7 +672,7 @@ function SetRow({
             className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
               aquecimento ? "text-warn" : ""
             }`}
-            aria-label={`Série ${label} — tipo ${tipoNome[set.tipoSerie]}`}
+            aria-label={`Série ${label} — tipo ${typeName[set.tipoSerie]}`}
           >
             {label}
           </button>
@@ -680,11 +680,11 @@ function SetRow({
         <DropdownMenuContent align="start">
           {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
             <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-              {tipoNome[tipo]}
+              {typeName[tipo]}
             </DropdownMenuItem>
           ))}
           <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> Remover série
+            <Trash2 className="mr-2 size-4" /> Remove set
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -709,7 +709,7 @@ function SetRow({
         onChange={(e) => onField("pesoKg", e.target.value)}
         inputMode="decimal"
         placeholder="kg"
-        aria-label="Peso em kg"
+        aria-label="Weight in kg"
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <Input
@@ -717,14 +717,14 @@ function SetRow({
         onChange={(e) => onField("reps", e.target.value)}
         inputMode="numeric"
         placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-        aria-label="Repetições"
+        aria-label="Reps"
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
       <button
         type="button"
         onClick={onCheck}
-        aria-label={set.concluida ? "Desmarcar série" : "Concluir série"}
+        aria-label={set.concluida ? "Uncheck set" : "Complete set"}
         aria-pressed={set.concluida}
         className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
           set.concluida

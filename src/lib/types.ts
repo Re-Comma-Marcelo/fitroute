@@ -4,6 +4,15 @@ export type Objetivo = "cutting" | "manutencao" | "bulking";
 export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop";
 export type OrigemTreino = "rotina" | "branco";
 
+export type PreferredTime = "morning" | "midday" | "afternoon" | "evening";
+export type CheckInMode = "prompt" | "card";
+export type CoachNoteKind = "checkin" | "observation";
+
+export interface AvoidedExercise {
+  exerciseId: string;
+  reason: string;
+}
+
 export interface Profile {
   id: string;
   nome: string;
@@ -12,8 +21,13 @@ export interface Profile {
   sexo: Sexo;
   nivelAtividade: NivelAtividade;
   objetivo: Objetivo;
-  /** Meta de treinos por semana (usada no card de objetivo semanal). */
+  /** Weekly workout target (used in the weekly goal card). */
   metaTreinosSemana: number;
+  equipment: string[];
+  avoidExercises: AvoidedExercise[];
+  sessionLengthMin: number;
+  preferredTime: PreferredTime;
+  checkInMode: CheckInMode;
 }
 
 export interface Exercise {
@@ -67,4 +81,12 @@ export interface WorkoutSet {
   reps: number;
   rpe?: number;
   concluida: boolean;
+}
+
+export interface CoachNote {
+  id: string;
+  createdAt: string;
+  kind: CoachNoteKind;
+  content: string;
+  tags: string[];
 }

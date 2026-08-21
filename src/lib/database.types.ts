@@ -19,6 +19,11 @@ export interface Database {
           nivel_atividade: string;
           objetivo: string;
           meta_treinos_semana: number;
+          equipment: string[];
+          avoided_exercises: Json;
+          session_length_min: number;
+          preferred_time: string;
+          check_in_mode: string;
           created_at: string;
           updated_at: string;
         };
@@ -31,6 +36,11 @@ export interface Database {
           nivel_atividade?: string;
           objetivo?: string;
           meta_treinos_semana?: number;
+          equipment?: string[];
+          avoided_exercises?: Json;
+          session_length_min?: number;
+          preferred_time?: string;
+          check_in_mode?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,11 +53,17 @@ export interface Database {
           nivel_atividade?: string;
           objetivo?: string;
           meta_treinos_semana?: number;
+          equipment?: string[];
+          avoided_exercises?: Json;
+          session_length_min?: number;
+          preferred_time?: string;
+          check_in_mode?: string;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
+
       exercises: {
         Row: {
           id: string;
@@ -228,7 +244,35 @@ export interface Database {
         };
         Relationships: [];
       };
+      coach_notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: string;
+          content: string;
+          tags: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind?: string;
+          content?: string;
+          tags?: string[];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          kind?: string;
+          content?: string;
+          tags?: string[];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
+
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
     Enums: { [_ in never]: never };

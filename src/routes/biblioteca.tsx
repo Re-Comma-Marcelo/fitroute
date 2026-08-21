@@ -18,16 +18,16 @@ export const Route = createFileRoute("/biblioteca")({
   }),
   head: () => ({
     meta: [
-      { title: "Biblioteca de exercícios — Forja" },
+      { title: "Exercise library — Forja" },
       {
         name: "description",
         content:
-          "Mais de 40 exercícios de musculação com grupo muscular, equipamento e instruções de execução.",
+          "Over 40 resistance exercises with muscle group, equipment and execution instructions.",
       },
-      { property: "og:title", content: "Biblioteca de exercícios — Forja" },
+      { property: "og:title", content: "Exercise library — Forja" },
       {
         property: "og:description",
-        content: "Busque exercícios por nome, grupo muscular e equipamento.",
+        content: "Search exercises by name, muscle group and equipment.",
       },
     ],
   }),
@@ -40,7 +40,7 @@ function LibraryPage() {
   const [q, setQ] = useState("");
   const [grupo, setGrupo] = useState<string | null>(null);
   const [equip, setEquip] = useState<string | null>(null);
-  const [detalhe, setDetalhe] = useState<Exercise | null>(null);
+  const [detail, setDetail] = useState<Exercise | null>(null);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
@@ -57,27 +57,27 @@ function LibraryPage() {
     );
   }, [exercisesQuery.data, q, grupo, equip]);
 
-  function voltar() {
+  function goBack() {
     if (para === "sessao") navigate({ to: "/sessao" });
     else if (para === "rotina" && rotinaId) navigate({ to: "/rotina/$id", params: { id: rotinaId } });
     else navigate({ to: "/treino" });
   }
 
-  function escolher(exercise: Exercise) {
+  function choose(exercise: Exercise) {
     if (!para) {
-      setDetalhe(exercise);
+      setDetail(exercise);
       return;
     }
     setPendingExercise(exercise.id);
-    voltar();
+    goBack();
   }
 
   return (
     <div className="min-h-screen bg-background pb-8">
       <PageHeader
-        title={para ? "Escolher exercício" : "Biblioteca"}
+        title={para ? "Choose exercise" : "Library"}
         left={
-          <Button variant="ghost" size="icon" className="tap-target" aria-label="Voltar" onClick={voltar}>
+          <Button variant="ghost" size="icon" className="tap-target" aria-label="Back" onClick={goBack}>
             <ArrowLeft className="size-6" />
           </Button>
         }
@@ -89,33 +89,33 @@ function LibraryPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar exercício"
-            aria-label="Buscar exercício"
+            placeholder="Search exercise"
+            aria-label="Search exercise"
             className="tap-target h-12 pl-11 text-base"
           />
         </div>
 
         <FilterRow
-          label="Grupo"
+          label="Muscle"
           options={gruposQuery.data ?? []}
           value={grupo}
           onChange={setGrupo}
         />
         <FilterRow
-          label="Equipamento"
+          label="Equipment"
           options={equipQuery.data ?? []}
           value={equip}
           onChange={setEquip}
         />
 
-        <p className="label-caps mt-5">{lista.length} exercícios</p>
+        <p className="label-caps mt-5">{lista.length} exercises</p>
 
         <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
           {lista.map((e) => (
             <li key={e.id} className="flex items-center">
               <button
                 type="button"
-                onClick={() => escolher(e)}
+                onClick={() => choose(e)}
                 className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
               >
                 <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
@@ -132,8 +132,8 @@ function LibraryPage() {
                 variant="ghost"
                 size="icon"
                 className="tap-target mr-2"
-                aria-label={`Detalhes de ${e.nome}`}
-                onClick={() => setDetalhe(e)}
+                aria-label={`Details for ${e.nome}`}
+                onClick={() => setDetail(e)}
               >
                 <Info className="size-5 text-muted-foreground" />
               </Button>
@@ -141,7 +141,7 @@ function LibraryPage() {
           ))}
           {!lista.length && !exercisesQuery.isLoading ? (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground">
-              Nenhum exercício encontrado.{" "}
+              No exercises found.{" "}
               <button
                 type="button"
                 className="font-semibold text-primary"
@@ -151,48 +151,48 @@ function LibraryPage() {
                   setEquip(null);
                 }}
               >
-                Limpar filtros
+                Clear filters
               </button>
             </li>
           ) : null}
         </ul>
       </div>
 
-      <Sheet open={detalhe !== null} onOpenChange={(open) => !open && setDetalhe(null)}>
+      <Sheet open={detail !== null} onOpenChange={(open) => !open && setDetail(null)}>
         <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
           <SheetHeader>
-            <SheetTitle className="text-xl">{detalhe?.nome}</SheetTitle>
+            <SheetTitle className="text-xl">{detail?.nome}</SheetTitle>
           </SheetHeader>
-          {detalhe ? (
+          {detail ? (
             <div className="space-y-4 px-4 pb-6">
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
-                  {detalhe.grupoPrimario}
+                  {detail.grupoPrimario}
                 </span>
-                {detalhe.gruposSecundarios.map((g) => (
+                {detail.gruposSecundarios.map((g) => (
                   <span key={g} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
                     {g}
                   </span>
                 ))}
                 <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
-                  {detalhe.equipamento}
+                  {detail.equipamento}
                 </span>
               </div>
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-                  Execução
+                  Execution
                 </h3>
-                <p className="mt-1 text-base leading-relaxed">{detalhe.instrucoes}</p>
+                <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
               {para ? (
                 <Button
                   className="h-14 w-full text-base font-bold"
                   onClick={() => {
-                    setPendingExercise(detalhe.id);
-                    voltar();
+                    setPendingExercise(detail.id);
+                    goBack();
                   }}
                 >
-                  Adicionar {detalhe.nome}
+                  Add {detail.nome}
                 </Button>
               ) : null}
             </div>
@@ -219,7 +219,7 @@ function FilterRow({
       <p className="label-caps mb-1.5">{label}</p>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <FilterChip active={value === null} onClick={() => onChange(null)}>
-          Todos
+          All
         </FilterChip>
         {options.map((option) => (
           <FilterChip key={option} active={value === option} onClick={() => onChange(option)}>

@@ -19,13 +19,13 @@ import { formatDate, formatDateLong, formatDurationShort, formatKg } from "@/lib
 export const Route = createFileRoute("/progresso/$id")({
   head: () => ({
     meta: [
-      { title: "Sessão registrada — Forja" },
+      { title: "Logged session — Forja" },
       {
         name: "description",
-        content: "Todas as séries registradas na sessão e a evolução de carga de cada exercício.",
+        content: "All sets logged in the session and load progression for each exercise.",
       },
-      { property: "og:title", content: "Sessão registrada — Forja" },
-      { property: "og:description", content: "Séries, cargas e gráfico de evolução por exercício." },
+      { property: "og:title", content: "Logged session — Forja" },
+      { property: "og:description", content: "Sets, loads and progression chart per exercise." },
     ],
   }),
   component: WorkoutDetail,
@@ -50,8 +50,8 @@ function WorkoutDetail() {
     })),
   });
 
-  const nomeDe = (exId: string) =>
-    exercisesQuery.data?.find((e) => e.id === exId)?.nome ?? "Exercício";
+  const exerciseName = (exId: string) =>
+    exercisesQuery.data?.find((e) => e.id === exId)?.nome ?? "Exercise";
 
   const dataDe = (workoutId: string) =>
     allWorkoutsQuery.data?.find((w) => w.id === workoutId)?.iniciadoEm ?? "";
@@ -61,13 +61,13 @@ function WorkoutDetail() {
   return (
     <div className="min-h-screen bg-background pb-10">
       <PageHeader
-        title="Sessão"
+        title="Session"
         left={
           <Button
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Voltar"
+            aria-label="Back"
             onClick={() => navigate({ to: "/progresso" })}
           >
             <ArrowLeft className="size-6" />
@@ -81,7 +81,7 @@ function WorkoutDetail() {
             <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDateLong(workout.iniciadoEm)}</p>
             <p className="mt-2 text-base font-bold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
-              {sets.length} séries
+              {sets.length} sets
             </p>
             {workout.notas ? <p className="mt-2 text-sm">{workout.notas}</p> : null}
           </div>
@@ -102,12 +102,12 @@ function WorkoutDetail() {
 
           return (
             <section key={exId} className="rounded-xl border border-border bg-card p-4">
-              <h2 className="text-base font-bold">{nomeDe(exId)}</h2>
+              <h2 className="text-base font-bold">{exerciseName(exId)}</h2>
               <ul className="mt-2 space-y-1 text-sm">
                 {exSets.map((s) => (
                   <li key={s.id} className="flex justify-between tabular-nums">
                     <span className="text-muted-foreground">
-                      {s.tipoSerie === "aquecimento" ? "Aquec." : `Série ${s.serieNum}`}
+                      {s.tipoSerie === "aquecimento" ? "Warm-up" : `Set ${s.serieNum}`}
                     </span>
                     <span className="font-semibold">
                       {s.pesoKg} kg × {s.reps}
@@ -145,7 +145,7 @@ function WorkoutDetail() {
                 </div>
               ) : (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Registre mais uma sessão para ver o gráfico de evolução.
+                  Log one more session to see the progression chart.
                 </p>
               )}
             </section>
