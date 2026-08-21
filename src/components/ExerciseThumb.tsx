@@ -24,9 +24,9 @@ export function ExerciseThumb({
         loading="lazy"
         width={512}
         height={512}
-        className="size-full object-cover opacity-90"
+        className="size-full object-cover brightness-110"
       />
-      <span className="absolute inset-0 bg-background/25" />
+      <span className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
     </span>
   );
 }
