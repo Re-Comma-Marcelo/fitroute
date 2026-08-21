@@ -42,26 +42,26 @@ import type { TipoSerie, WorkoutSet } from "@/lib/types";
 export const Route = createFileRoute("/sessao")({
   head: () => ({
     meta: [
-      { title: "Sessão de treino — Forja" },
+      { title: "Workout session — Forja" },
       {
         name: "description",
         content:
-          "Registre séries, cargas, reps e PSE durante o treino com a carga anterior sempre visível.",
+          "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
       },
-      { property: "og:title", content: "Sessão de treino — Forja" },
+      { property: "og:title", content: "Workout session — Forja" },
       {
         property: "og:description",
-        content: "Cronômetro, carga anterior fixa, sugestão de progressão e timer de descanso.",
+        content: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
       },
     ],
   }),
   component: SessionPage,
 });
 
-const tipoNome: Record<TipoSerie, string> = {
-  aquecimento: "Aquecimento",
+const typeName: Record<TipoSerie, string> = {
+  warmup: "Warm-up",
   normal: "Normal",
-  falha: "Falha",
+  failure: "Failure",
   drop: "Drop set",
 };
 
@@ -309,7 +309,7 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Colapsar sessão"
+            aria-label="Collapse session"
             onClick={() => navigate({ to: "/treino" })}
           >
             <ChevronDown className="size-6" />
@@ -319,7 +319,7 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target text-info"
-            aria-label="Abrir timer de descanso"
+            aria-label="Open rest timer"
             onClick={() => iniciarDescanso(descansoAtual)}
           >
             <Timer className="size-6" />
@@ -333,9 +333,9 @@ function SessionPage() {
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <HeaderStat label="Duração" value={formatDuration(elapsed)} mono />
-          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("pt-BR")} kg`} />
-          <HeaderStat label="Séries" value={String(seriesFeitas)} />
+          <HeaderStat label="Duration" value={formatDuration(elapsed)} mono />
+          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
+          <HeaderStat label="Sets" value={String(seriesFeitas)} />
         </dl>
       </header>
 
@@ -384,7 +384,7 @@ function SessionPage() {
                       variant="ghost"
                       size="icon"
                       className="tap-target"
-                      aria-label="Opções do exercício"
+                      aria-label="Exercise options"
                     >
                       <MoreVertical className="size-5" />
                     </Button>
@@ -392,7 +392,7 @@ function SessionPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => skipExercise(exIdx)}>
                       <SkipForward className="mr-2 size-4" />
-                      {ex.pulado ? "Retomar exercício" : "Pular exercício"}
+                      {ex.pulado ? "Resume exercise" : "Skip exercise"}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> Adicionar série
@@ -412,7 +412,7 @@ function SessionPage() {
                   <div
                     className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
-                    <span>Sér</span>
+                    <span>Set</span>
                     <span className="text-center">Anterior</span>
                     <span className="text-center">kg</span>
                     <span className="text-center">reps</span>
@@ -448,7 +448,7 @@ function SessionPage() {
                         return s;
                       })
                     }
-                    placeholder="Nota do exercício (ex: pegada mais fechada)"
+                    placeholder="Exercise note (e.g., closer grip)"
                     className="mt-2 min-h-11 text-sm"
                   />
                 </div>
@@ -470,7 +470,7 @@ function SessionPage() {
         <Textarea
           value={session.notas}
           onChange={(e) => update((s) => ({ ...s, notas: e.target.value }))}
-          placeholder="Nota geral da sessão"
+          placeholder="Session note"
           className="min-h-16 text-sm"
         />
       </main>
@@ -599,12 +599,12 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={value ? `PSE ${value}` : "Definir PSE (opcional)"}
+          aria-label={value ? `PSE ${value}` : "Set RPE (optional)"}
           className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
             value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
           }`}
         >
-          {value || "PSE"}
+          {value || "RPE"}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
@@ -672,7 +672,7 @@ function SetRow({
             className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
               aquecimento ? "text-warn" : ""
             }`}
-            aria-label={`Série ${label} — tipo ${tipoNome[set.tipoSerie]}`}
+            aria-label={`Série ${label} — tipo ${typeName[set.tipoSerie]}`}
           >
             {label}
           </button>
@@ -680,7 +680,7 @@ function SetRow({
         <DropdownMenuContent align="start">
           {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
             <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-              {tipoNome[tipo]}
+              {typeName[tipo]}
             </DropdownMenuItem>
           ))}
           <DropdownMenuItem className="text-destructive" onClick={onRemove}>
@@ -709,7 +709,7 @@ function SetRow({
         onChange={(e) => onField("pesoKg", e.target.value)}
         inputMode="decimal"
         placeholder="kg"
-        aria-label="Peso em kg"
+        aria-label="Weight in kg"
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <Input
@@ -717,14 +717,14 @@ function SetRow({
         onChange={(e) => onField("reps", e.target.value)}
         inputMode="numeric"
         placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-        aria-label="Repetições"
+        aria-label="Reps"
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
       <button
         type="button"
         onClick={onCheck}
-        aria-label={set.concluida ? "Desmarcar série" : "Concluir série"}
+        aria-label={set.concluida ? "Uncheck set" : "Complete set"}
         aria-pressed={set.concluida}
         className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
           set.concluida
