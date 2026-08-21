@@ -599,7 +599,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={value ? `PSE ${value}` : "Set RPE (optional)"}
+          aria-label={value ? `RPE ${value}` : "Set RPE (optional)"}
           className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
             value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
           }`}
@@ -609,7 +609,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          PSE (opcional)
+          RPE (optional)
         </p>
         <div className="grid grid-cols-3 gap-1.5">
           {RPE_OPTIONS.map((op) => (
