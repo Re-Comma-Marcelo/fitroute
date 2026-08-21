@@ -16,7 +16,7 @@ export async function getRoutineInsights(
 ): Promise<Record<string, CoachInsight>> {
   const workouts: Workout[] = allWorkouts ?? (await getWorkouts());
   const sets: WorkoutSet[] =
-    allSet ?? (await Promise.all(workouts.map((w) => getWorkoutSets(w.id)))).flat();
+    allSets ?? (await Promise.all(workouts.map((w) => getWorkoutSets(w.id)))).flat();
   const result: Record<string, CoachInsight> = {};
   for (const re of routine.exercicios) {
     const insight = await getExerciseInsight(re, workouts, sets);
