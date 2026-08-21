@@ -22,7 +22,7 @@ import { getProfile } from "@/lib/data/profile";
 import { getRecentCoachNotes, saveCoachNote } from "@/lib/data/coach-notes";
 import { getTodayPlan } from "@/lib/coach/recommendations";
 import { currentWeekStart } from "@/lib/coach/signals";
-import { loadActiveSession } from "@/lib/session-state";
+import { loadActiveSession, type ActiveSession } from "@/lib/session-state";
 import { startRoutineSession, startBlankSession } from "@/lib/start-session";
 import {
   formatDate,
