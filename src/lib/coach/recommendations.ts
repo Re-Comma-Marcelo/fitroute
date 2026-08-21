@@ -6,6 +6,7 @@ import { getCoachNotes } from "@/lib/data/coach-notes";
 import {
   currentWeekStart,
   daysSince,
+  isSameWeightForLastN,
   muscleGroupVolumeThisWeek,
   perWorkoutStats,
   rpeTrend,
