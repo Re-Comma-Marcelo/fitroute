@@ -69,7 +69,7 @@ function LibraryPage() {
       return;
     }
     setPendingExercise(exercise.id);
-    voltar();
+    goBack();
   }
 
   return (
@@ -189,7 +189,7 @@ function LibraryPage() {
                   className="h-14 w-full text-base font-bold"
                   onClick={() => {
                     setPendingExercise(detail.id);
-                    voltar();
+                    goBack();
                   }}
                 >
                   Add {detail.nome}
