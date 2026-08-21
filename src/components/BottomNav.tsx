@@ -2,12 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
 
 const tabs = [
-  { to: "/inicio", label: "Início", icon: Home },
-  { to: "/treino", label: "Treino", icon: Dumbbell },
-  { to: "/dieta", label: "Dieta", icon: Salad },
-  { to: "/progresso", label: "Progresso", icon: TrendingUp },
-  { to: "/perfil", label: "Perfil", icon: User },
+  { to: "/inicio", label: "Home", icon: Home },
+  { to: "/treino", label: "Train", icon: Dumbbell },
+  { to: "/dieta", label: "Diet", icon: Salad },
+  { to: "/progresso", label: "Progress", icon: TrendingUp },
+  { to: "/perfil", label: "Profile", icon: User },
 ] as const;
+
 
 export function BottomNav() {
   return (
