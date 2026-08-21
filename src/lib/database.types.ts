@@ -19,6 +19,11 @@ export interface Database {
           nivel_atividade: string;
           objetivo: string;
           meta_treinos_semana: number;
+          equipment: string[];
+          avoided_exercises: Json;
+          session_length_min: number;
+          preferred_time: string;
+          check_in_mode: string;
           created_at: string;
           updated_at: string;
         };
@@ -31,6 +36,11 @@ export interface Database {
           nivel_atividade?: string;
           objetivo?: string;
           meta_treinos_semana?: number;
+          equipment?: string[];
+          avoided_exercises?: Json;
+          session_length_min?: number;
+          preferred_time?: string;
+          check_in_mode?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -43,11 +53,17 @@ export interface Database {
           nivel_atividade?: string;
           objetivo?: string;
           meta_treinos_semana?: number;
+          equipment?: string[];
+          avoided_exercises?: Json;
+          session_length_min?: number;
+          preferred_time?: string;
+          check_in_mode?: string;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [];
       };
+
       exercises: {
         Row: {
           id: string;
