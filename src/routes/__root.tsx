@@ -78,21 +78,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Forja — registro de treino de musculação" },
+      { title: "Forja — AI strength training tracker" },
       {
         name: "description",
         content:
-          "Registre séries, cargas e descanso durante o treino com dois toques. Rotinas, histórico e progressão de carga.",
+          "Log sets, weight and rest between sets with two taps. Routines, history, and an AI coach that adapts to your recovery.",
       },
-      { property: "og:title", content: "Forja — registro de treino" },
+      { property: "og:title", content: "Forja — AI strength training tracker" },
       {
         property: "og:description",
-        content: "App de musculação mobile-first: sessão de treino rápida, rotinas e progresso.",
+        content: "Mobile-first strength training app with fast session logging, routines, and adaptive coaching.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
     ],
+
     links: [
       {
         rel: "stylesheet",
