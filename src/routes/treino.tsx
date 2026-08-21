@@ -211,7 +211,7 @@ function RoutineCard({
 }: {
   r: Routine;
   exercises: Awaited<ReturnType<typeof getExercises>>;
-  last?: ReturnType<typeof getWorkouts>[number];
+  last?: Workout;
   insights: Record<string, CoachInsight>;
   active: boolean;
   loading: string | null;
