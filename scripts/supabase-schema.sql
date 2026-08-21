@@ -1,5 +1,5 @@
 create type public.equipamento_enum as enum (
-  'Barra', 'Halteres', 'Máquina', 'Cabos', 'Peso Corporal', 'Kettlebell', 'Elástico', 'Smith'
+  'Barbell', 'Dumbbells', 'Machine', 'Cable', 'Bodyweight', 'Kettlebell', 'Band', 'Smith'
 );
 
 -- Profiles
@@ -13,9 +13,15 @@ create table public.profiles (
   nivel_atividade text not null default 'moderado',
   objetivo text not null default 'hipertrofia',
   meta_treinos_semana integer not null default 4,
+  equipment text[] not null default '{}',
+  avoided_exercises jsonb not null default '[]',
+  session_length_min integer not null default 60,
+  preferred_time text not null default 'evening',
+  check_in_mode text not null default 'card',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
 
 grant select, insert, update, delete on public.profiles to authenticated;
 grant all on public.profiles to service_role;
