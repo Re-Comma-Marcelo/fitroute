@@ -238,6 +238,8 @@ create index workouts_user_id_idx on public.workouts (user_id);
 create index workouts_finalizado_em_idx on public.workouts (finalizado_em);
 create index workout_sets_workout_id_idx on public.workout_sets (workout_id);
 create index workout_sets_exercise_id_idx on public.workout_sets (exercise_id);
+create index coach_notes_user_id_idx on public.coach_notes (user_id);
+
 
 -- Trigger to update profiles.updated_at and routines.updated_at
 
