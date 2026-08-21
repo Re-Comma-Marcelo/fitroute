@@ -203,9 +203,32 @@ create policy "Users can manage sets of own workouts"
     workout_id in (
       select id from public.workouts where user_id = auth.uid()
     )
-  );
+);
+
+-- Coach notes (long-term coaching memory)
+
+create table public.coach_notes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  kind text not null default 'observation',
+  content text not null default '',
+  tags text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+
+grant select, insert, update, delete on public.coach_notes to authenticated;
+grant all on public.coach_notes to service_role;
+
+alter table public.coach_notes enable row level security;
+
+create policy "Users can manage own coach notes"
+  on public.coach_notes for all
+  to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
 
 -- Indexes
+
 
 create index exercises_user_id_idx on public.exercises (user_id);
 create index exercises_grupo_idx on public.exercises (grupo_primario);
