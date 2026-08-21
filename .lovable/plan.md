@@ -1,22 +1,10 @@
-# English UI + Ambient AI Coach + Training Model
+# Ambient AI Coach + English UI + Training Model
 
 Frontend-only pass (no Cloud, no backend). All data keeps flowing through `src/lib/data/`.
 
-## 1. Language: full switch to English
+We will ship the coach layer first, then the language switch and visual cleanup, then the training model/profile extensions.
 
-- Every screen's copy: nav labels become Home, Train, Nutrition, Progress, Profile; buttons, empty states, toasts, errors, session table headers (`SET | PREVIOUS | KG | REPS | RPE | ✓`), and all route `head()` titles/descriptions.
-- Seeded data translated too: exercise names (Bench Press, Barbell Squat...), muscle groups (Chest, Quads, Hamstrings...), equipment (Barbell, Dumbbells, Machine, Cable, Bodyweight), routine names/descriptions.
-- Dates/numbers switch from `pt-BR` to `en-US` formatting; greeting becomes "Good evening, {name}".
-- Positioning copy shifts from tracker to coach: login/hero and Profile framing become "an AI trainer that adapts to your actual life" — recovery, schedule, other sports.
-
-## 2. Hierarchy and density cleanup
-
-Same dark theme, cards and accent color — only layout weight changes.
-
-- **Home**: one clear vertical rhythm — Today coach card (new) → weekly goal card with the primary CTA as the single strong button → a quiet 3-metric row (volume / time / sets) demoted to small labels → routines → recent sessions as a plain list. Metrics lose card chrome so they stop competing with the CTA.
-- **Train**: each routine card leads with name + exercise count; exercises render as one line each (thumbnail, name, `3 × 8-12`), with numbers de-emphasized and at most one badge/note per exercise so the list reads at a glance instead of as a stat dump.
-
-## 3. Ambient AI coach (rule-based, no separate tab)
+## 1. Ambient AI coach (rule-based, no separate tab) — FIRST
 
 New `src/lib/coach/` module — pure, deterministic, no UI imports:
 
@@ -32,7 +20,21 @@ Surfaces:
 - **Nutrition**: placeholder screen gains the same inline-note slot, wired to training-load signals, ready for when meal logging ships.
 - **Chat**: single lightweight entry — a small coach icon in the header plus a "Ask your coach" row in Profile — opening a sheet, not a tab.
 
-## 4. Profile as a real training model
+## 2. Language: full switch to English — SECOND
+
+- Every screen's copy: nav labels become Home, Train, Nutrition, Progress, Profile; buttons, empty states, toasts, errors, session table headers (`SET | PREVIOUS | KG | REPS | RPE | ✓`), and all route `head()` titles/descriptions.
+- Seeded data translated too: exercise names (Bench Press, Barbell Squat...), muscle groups (Chest, Quads, Hamstrings...), equipment (Barbell, Dumbbells, Machine, Cable, Bodyweight), routine names/descriptions.
+- Dates/numbers switch from `pt-BR` to `en-US` formatting; greeting becomes "Good evening, {name}".
+- Positioning copy shifts from tracker to coach: login/hero and Profile framing become "an AI trainer that adapts to your actual life" — recovery, schedule, other sports.
+
+## 3. Hierarchy and density cleanup — THIRD
+
+Same dark theme, cards and accent color — only layout weight changes.
+
+- **Home**: one clear vertical rhythm — Today coach card (new) → weekly goal card with the primary CTA as the single strong button → a quiet 3-metric row (volume / time / sets) demoted to small labels → routines → recent sessions as a plain list. Metrics lose card chrome so they stop competing with the CTA.
+- **Train**: each routine card leads with name + exercise count; exercises render as one line each (thumbnail, name, `3 × 8-12`), with numbers de-emphasized and at most one badge/note per exercise so the list reads at a glance instead of as a stat dump.
+
+## 4. Profile as a real training model — FOURTH
 
 Extend `Profile` with: `equipment: string[]`, `avoidExercises: string[]` (with reason), `sessionLengthMin`, `preferredTime`. Rendered as a new "Training setup" section in Profile, and a short guided flow for first-run users.
 
