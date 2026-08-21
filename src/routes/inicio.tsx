@@ -32,7 +32,8 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CoachChatButton } from "@/components/CoachChatSheet";
-import type { CoachNote } from "@/lib/types";
+import type { CoachNote, Profile } from "@/lib/types";
+import type { TodayPlan } from "@/lib/coach/types";
 
 export const Route = createFileRoute("/inicio")({
   component: Inicio,
@@ -74,7 +75,7 @@ export default function Inicio() {
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const workoutsQ = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const coachQ = useQuery({ queryKey: ["coach-today"], queryFn: getTodayPlan });
-  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getRecentCoachNotes });
+  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: () => getRecentCoachNotes() });
 
   async function startAction() {
     if (active) {
@@ -282,8 +283,8 @@ function TodayCard({
   recommendation,
   onStart,
 }: {
-  active: ReturnType<typeof loadActiveSession>;
-  recommendation?: ReturnType<typeof getTodayPlan> extends Promise<infer T> ? T["recommendation"] : never;
+  active: ActiveSession | null;
+  recommendation?: TodayPlan["recommendation"] | undefined;
   onStart: () => void;
 }) {
   if (active) {
@@ -428,7 +429,7 @@ function CheckInPrompt({
   notes,
   onSaved,
 }: {
-  profile: ReturnType<typeof useQuery<typeof getProfile>>["data"];
+  profile: Profile | undefined;
   notes: CoachNote[];
   onSaved: () => void;
 }) {
