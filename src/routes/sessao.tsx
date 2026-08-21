@@ -373,7 +373,7 @@ function SessionPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2">
                     <RestPicker
                       value={ex.descansoSeg}
-                      onChange={(segundos) => setRest(exIdx, segundos)}
+                      onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                     />
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
