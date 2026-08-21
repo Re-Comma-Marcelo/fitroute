@@ -186,7 +186,7 @@ function SessionPage() {
     });
   }
 
-  function setRest(exIdx: number, segundos: number) {
+  function setExerciseRest(exIdx: number, segundos: number) {
     update((s) => {
       s.exercicios[exIdx]!.descansoSeg = segundos;
       return s;
