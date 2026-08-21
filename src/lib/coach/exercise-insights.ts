@@ -1,5 +1,5 @@
 import { getExercise } from "@/lib/data/exercises";
-import { getLastSetsForExercise } from "@/lib/data/workouts";
+import { getLastSetsForExercise, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { suggestProgression } from "@/lib/progression";
 import {
   isSameWeightForLastN,
