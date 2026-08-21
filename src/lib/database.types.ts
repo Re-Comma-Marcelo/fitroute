@@ -244,7 +244,35 @@ export interface Database {
         };
         Relationships: [];
       };
+      coach_notes: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: string;
+          content: string;
+          tags: string[];
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          kind?: string;
+          content?: string;
+          tags?: string[];
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          kind?: string;
+          content?: string;
+          tags?: string[];
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
+
     Views: { [_ in never]: never };
     Functions: { [_ in never]: never };
     Enums: { [_ in never]: never };
