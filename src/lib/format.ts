@@ -13,7 +13,7 @@ export function formatDurationShort(totalSeconds: number): string {
   return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, "0")}min`;
 }
 
-/** Descanso legível: "2min 15s", "45s", "3min". */
+/** Human-readable rest: "2min 15s", "45s", "3min". */
 export function formatRest(totalSeconds: number): string {
   const s = Math.max(0, Math.round(totalSeconds));
   const m = Math.floor(s / 60);
@@ -23,7 +23,7 @@ export function formatRest(totalSeconds: number): string {
   return `${m}min ${sec}s`;
 }
 
-const dtf = new Intl.DateTimeFormat("pt-BR", {
+const dtf = new Intl.DateTimeFormat("en-US", {
   day: "2-digit",
   month: "short",
 });
@@ -33,7 +33,7 @@ export function formatDate(iso: string): string {
 }
 
 export function formatDateLong(iso: string): string {
-  return new Intl.DateTimeFormat("pt-BR", {
+  return new Intl.DateTimeFormat("en-US", {
     weekday: "short",
     day: "2-digit",
     month: "long",
@@ -44,14 +44,14 @@ export function formatDateLong(iso: string): string {
 
 export function relativeDays(iso: string): string {
   const days = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days <= 0) return "hoje";
-  if (days === 1) return "ontem";
-  if (days < 7) return `há ${days} dias`;
+  if (days <= 0) return "today";
+  if (days === 1) return "yesterday";
+  if (days < 7) return `${days} days ago`;
   const weeks = Math.floor(days / 7);
-  return weeks === 1 ? "há 1 semana" : `há ${weeks} semanas`;
+  return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
 }
 
 export function formatKg(value: number): string {
   const rounded = Math.round(value * 10) / 10;
-  return `${rounded.toLocaleString("pt-BR")} kg`;
+  return `${rounded.toLocaleString("en-US")} kg`;
 }

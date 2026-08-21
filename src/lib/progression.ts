@@ -50,7 +50,7 @@ function media(valores: number[]): number | null {
 }
 
 function fmt(n: number): string {
-  return n.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+  return n.toLocaleString("en-US", { maximumFractionDigits: 1 });
 }
 
 export function suggestProgression(input: ProgressionInput): ProgressionSuggestion | null {
@@ -72,15 +72,15 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
   const repsMenor = Math.min(...validas.map((s) => s.reps));
   const repsMaior = Math.max(...validas.map((s) => s.reps));
   const repsTexto = repsMenor === repsMaior ? `${repsMaior}` : `${repsMenor}-${repsMaior}`;
-  const resumo = `Última sessão: ${validas.length}x${repsTexto}${
-    pseMedio !== null ? ` @ ${fmt(pseMedio)} PSE` : ""
+  const resumo = `Last session: ${validas.length}x${repsTexto}${
+    pseMedio !== null ? ` @ ${fmt(pseMedio)} RPE` : ""
   }.`;
 
   const motivo = aumentou
-    ? `${resumo} Sugerido +${fmt(incrementoKg)} kg.`
+    ? `${resumo} Suggested +${fmt(incrementoKg)} kg.`
     : pseAlto
-      ? `${resumo} PSE alto — manter ${fmt(pesoAnterior)} kg.`
-      : `${resumo} Faixa alvo é ${input.repsMin}-${input.repsMax} reps — manter ${fmt(pesoAnterior)} kg.`;
+      ? `${resumo} High RPE — hold ${fmt(pesoAnterior)} kg.`
+      : `${resumo} Target range is ${input.repsMin}-${input.repsMax} reps — hold ${fmt(pesoAnterior)} kg.`;
 
   return {
     pesoAnterior,
