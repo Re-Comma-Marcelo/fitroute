@@ -1,22 +1,22 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 
-// Acesso livre durante o desenvolvimento: sem login, a raiz vai direto ao app.
+// Free entry during development: no login, root redirects straight into the app.
 export const Route = createFileRoute("/")({
   beforeLoad: () => {
     throw redirect({ to: "/inicio" });
   },
   head: () => ({
     meta: [
-      { title: "Forja — Registro de treino de musculação" },
+      { title: "Forja — AI strength training tracker" },
       {
         name: "description",
         content:
-          "App mobile para registrar treinos de musculação: rotinas, cargas, PSE e progresso.",
+          "Mobile-first strength tracker: routines, weights, RPE and adaptive AI coaching.",
       },
-      { property: "og:title", content: "Forja — Registro de treino de musculação" },
+      { property: "og:title", content: "Forja — AI strength training tracker" },
       {
         property: "og:description",
-        content: "Registre séries, cargas e progresso de musculação em dois toques.",
+        content: "Log sets, weights and progress in two taps. Built around your recovery.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
