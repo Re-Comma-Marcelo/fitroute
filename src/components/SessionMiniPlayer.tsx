@@ -22,9 +22,10 @@ import {
 } from "@/lib/session-state";
 
 /**
- * Barra flutuante de sessão em andamento, exibida acima da navegação inferior
- * em todas as abas. Permite navegar pelo app sem perder o treino.
+ * Floating session bar shown above the bottom nav on every tab.
+ * Lets you navigate the app without losing your workout.
  */
+
 export function SessionMiniPlayer() {
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
