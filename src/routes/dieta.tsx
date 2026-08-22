@@ -2,8 +2,9 @@ import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 
 export const Route = createFileRoute("/dieta")({
-  component: DietLayout;
+  component: DietLayout,
 });
+
 
 const modes = [
   { to: "/dieta", label: "Today" },
