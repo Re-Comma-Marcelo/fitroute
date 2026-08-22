@@ -17,6 +17,7 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as DietaIndexRouteImport } from './routes/dieta.index'
 import { Route as ProgressoIndexRouteImport } from './routes/progresso.index'
 import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
 import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
@@ -62,6 +63,11 @@ const TreinoRoute = TreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DietaIndexRoute = DietaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DietaRoute,
+} as any)
 const ProgressoIndexRoute = ProgressoIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -86,7 +92,7 @@ const RotinaIdRoute = RotinaIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
-  '/dieta': typeof DietaRoute
+  '/dieta': typeof DietaRouteWithChildren
   '/inicio': typeof InicioRoute
   '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
@@ -95,12 +101,12 @@ export interface FileRoutesByFullPath {
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/dieta/': typeof DietaIndexRoute
   '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
-  '/dieta': typeof DietaRoute
   '/inicio': typeof InicioRoute
   '/perfil': typeof PerfilRoute
   '/sessao': typeof SessaoRoute
@@ -108,13 +114,14 @@ export interface FileRoutesByTo {
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/dieta': typeof DietaIndexRoute
   '/progresso': typeof ProgressoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
-  '/dieta': typeof DietaRoute
+  '/dieta': typeof DietaRouteWithChildren
   '/inicio': typeof InicioRoute
   '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
@@ -123,6 +130,7 @@ export interface FileRoutesById {
   '/progresso/$id': typeof ProgressoIdRoute
   '/resumo/$id': typeof ResumoIdRoute
   '/rotina/$id': typeof RotinaIdRoute
+  '/dieta/': typeof DietaIndexRoute
   '/progresso/': typeof ProgressoIndexRoute
 }
 export interface FileRouteTypes {
@@ -139,12 +147,12 @@ export interface FileRouteTypes {
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/dieta/'
     | '/progresso/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/biblioteca'
-    | '/dieta'
     | '/inicio'
     | '/perfil'
     | '/sessao'
@@ -152,6 +160,7 @@ export interface FileRouteTypes {
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/dieta'
     | '/progresso'
   id:
     | '__root__'
@@ -166,13 +175,14 @@ export interface FileRouteTypes {
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rotina/$id'
+    | '/dieta/'
     | '/progresso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BibliotecaRoute: typeof BibliotecaRoute
-  DietaRoute: typeof DietaRoute
+  DietaRoute: typeof DietaRouteWithChildren
   InicioRoute: typeof InicioRoute
   PerfilRoute: typeof PerfilRoute
   ProgressoRoute: typeof ProgressoRouteWithChildren
@@ -240,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TreinoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dieta/': {
+      id: '/dieta/'
+      path: '/'
+      fullPath: '/dieta/'
+      preLoaderRoute: typeof DietaIndexRouteImport
+      parentRoute: typeof DietaRoute
+    }
     '/progresso/': {
       id: '/progresso/'
       path: '/'
@@ -271,6 +288,16 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface DietaRouteChildren {
+  DietaIndexRoute: typeof DietaIndexRoute
+}
+
+const DietaRouteChildren: DietaRouteChildren = {
+  DietaIndexRoute: DietaIndexRoute,
+}
+
+const DietaRouteWithChildren = DietaRoute._addFileChildren(DietaRouteChildren)
+
 interface ProgressoRouteChildren {
   ProgressoIdRoute: typeof ProgressoIdRoute
   ProgressoIndexRoute: typeof ProgressoIndexRoute
@@ -288,7 +315,7 @@ const ProgressoRouteWithChildren = ProgressoRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BibliotecaRoute: BibliotecaRoute,
-  DietaRoute: DietaRoute,
+  DietaRoute: DietaRouteWithChildren,
   InicioRoute: InicioRoute,
   PerfilRoute: PerfilRoute,
   ProgressoRoute: ProgressoRouteWithChildren,
