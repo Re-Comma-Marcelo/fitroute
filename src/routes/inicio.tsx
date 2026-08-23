@@ -9,7 +9,10 @@ import {
   Layers,
   Timer,
   MessageSquare,
+  Target,
+  Moon,
 } from "lucide-react";
+
 import { AppShell } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
