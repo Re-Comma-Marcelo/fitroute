@@ -296,12 +296,98 @@ function Metric({
   );
 }
 
+function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
+  if (!profile?.pesoMetaKg) return null;
+  const current = profile.pesoKg;
+  const target = profile.pesoMetaKg;
+  const start = profile.pesoInicialKg ?? current;
+  const gaining = target >= start;
+  const total = Math.abs(target - start) || 1;
+  const done = Math.abs(current - start);
+  const pct = Math.max(0, Math.min(100, (done / total) * 100));
+  const remaining = Math.abs(target - current);
+
+  const daysElapsed = profile.metaIniciadaEm
+    ? Math.max(1, Math.round((Date.now() - new Date(profile.metaIniciadaEm).getTime()) / 86400000))
+    : 0;
+  const perDay = daysElapsed && done > 0 ? done / daysElapsed : 0;
+  const paceDate =
+    perDay > 0 && remaining > 0
+      ? new Date(Date.now() + (remaining / perDay) * 86400000)
+      : null;
+
+  const fmtKg = (n: number) => n.toFixed(1).replace(".", ",");
+  const shortDate = (d: Date) =>
+    new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(d);
+
+  return (
+    <Card className="rounded-2xl border-border bg-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+          <Target className="size-4 text-primary" />
+          Body goal
+        </div>
+        {profile.metaPrazo && (
+          <span className="text-xs text-muted-foreground">
+            by {shortDate(new Date(profile.metaPrazo))}
+          </span>
+        )}
+      </div>
+
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <div>
+          <p className="text-xs text-muted-foreground">Current</p>
+          <p className="font-display text-3xl font-bold tabular-nums">
+            {fmtKg(current)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xs text-muted-foreground">Target</p>
+          <p className="font-display text-3xl font-bold tabular-nums text-primary">
+            {fmtKg(target)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+      </div>
+
+      <p className="mt-2 text-sm leading-snug text-muted-foreground">
+        {remaining < 0.05 ? (
+          "Goal reached. Time to set a new one."
+        ) : (
+          <>
+            <span className="font-semibold text-foreground">
+              {fmtKg(remaining)} kg
+            </span>{" "}
+            to {gaining ? "gain" : "lose"}.
+            {paceDate ? (
+              <>
+                {" "}
+                At the current pace:{" "}
+                <span className="font-semibold text-primary">
+                  {formatDate(paceDate.toISOString())}
+                </span>
+              </>
+            ) : (
+              " Log your weight to project a date."
+            )}
+          </>
+        )}
+      </p>
+    </Card>
+  );
+}
+
 function TodayCard({
   active,
+  restDay,
   recommendation,
   onStart,
 }: {
   active: ActiveSession | null;
+  restDay?: boolean;
   recommendation?: TodayPlan["recommendation"] | undefined;
   onStart: () => void;
 }) {
@@ -314,7 +400,7 @@ function TodayCard({
             <Flame className="size-4" />
             Session in progress
           </div>
-          <h2 className="mt-2 text-xl font-bold">{active.routineNome}</h2>
+          <h2 className="mt-2 font-display text-xl font-bold">{active.routineNome}</h2>
           <p className="text-sm text-muted-foreground">
             Tap resume to keep going where you left off.
           </p>
@@ -326,18 +412,36 @@ function TodayCard({
     );
   }
 
+  if (restDay) {
+    return (
+      <Card className="rounded-2xl border-border bg-card p-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-warn">
+          <Moon className="size-4" />
+          Today's training
+        </div>
+        <h2 className="mt-2 font-display text-xl font-bold">Rest day</h2>
+        <p className="text-sm leading-snug text-muted-foreground">
+          Use it to recover. Hydrate and sleep well.
+        </p>
+        <Button onClick={onStart} variant="outline" className="mt-4 w-full font-bold">
+          <Dumbbell className="mr-2 size-4" /> Train anyway
+        </Button>
+      </Card>
+    );
+  }
+
   return (
     <Card className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-5">
       <div className="absolute -right-6 -top-6 size-24 rounded-full bg-primary/20 blur-2xl" />
       <div className="relative">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary">
           <MessageSquare className="size-4" />
-          Today
+          Today's training
         </div>
-        <h2 className="mt-2 text-xl font-bold">
+        <h2 className="mt-2 font-display text-xl font-bold">
           {recommendation?.title ?? "Start a workout"}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm leading-snug text-muted-foreground">
           {recommendation?.reason ?? "Pick a routine and start logging."}
         </p>
         <Button onClick={onStart} className="mt-4 w-full font-bold">
@@ -348,6 +452,7 @@ function TodayCard({
     </Card>
   );
 }
+
 
 function WeeklyGoalCard({
   sessions,
