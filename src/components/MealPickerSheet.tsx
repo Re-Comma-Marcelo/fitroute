@@ -16,7 +16,7 @@ export function MealPickerSheet({
 }: {
   open: boolean;
   slot: MealSlot | null;
-  selectedMealId?: string;
+  selectedMealId?: string | undefined;
   onOpenChange: (open: boolean) => void;
   onPick: (mealId: string | null) => void;
 }) {

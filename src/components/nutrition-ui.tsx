@@ -92,7 +92,7 @@ export function MealCard({
   meal: Meal;
   slot: MealSlot;
   selected?: boolean;
-  note?: string;
+  note?: string | undefined;
   onSelect?: () => void;
 }) {
   return (
