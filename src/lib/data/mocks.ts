@@ -123,7 +123,12 @@ export let profile: Profile = {
   sessionLengthMin: 60,
   preferredTime: "evening",
   checkInMode: "card",
+  pesoInicialKg: 79.5,
+  pesoMetaKg: 88,
+  metaIniciadaEm: new Date(Date.now() - 120 * 86400000).toISOString().slice(0, 10),
+  metaPrazo: "2026-11-30",
 };
+
 
 export function setProfile(next: Profile) {
   profile = next;

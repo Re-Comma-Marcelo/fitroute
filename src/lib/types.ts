@@ -28,7 +28,15 @@ export interface Profile {
   sessionLengthMin: number;
   preferredTime: PreferredTime;
   checkInMode: CheckInMode;
+  /** Body goal — target bodyweight and the horizon for it. */
+  pesoInicialKg?: number;
+  pesoMetaKg?: number;
+  /** ISO date when the body goal started (used to infer pace). */
+  metaIniciadaEm?: string;
+  /** ISO date of the goal deadline. */
+  metaPrazo?: string;
 }
+
 
 export interface Exercise {
   id: string;
