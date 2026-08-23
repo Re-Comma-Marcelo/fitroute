@@ -112,30 +112,43 @@ export default function Inicio() {
   const isLoading =
     profileQ.isLoading || routinesQ.isLoading || workoutsQ.isLoading || coachQ.isLoading;
 
+  const trainedToday = thisWeek.some(
+    (w) => new Date(w.iniciadoEm).toDateString() === new Date().toDateString(),
+  );
+  const restDay = !active && (trainedToday || weekSessions >= target);
+
   return (
     <AppShell hideHeader title="Home">
       <div className="space-y-5 pb-28">
         {/* Header */}
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-muted-foreground">
+            <h1 className="font-display text-2xl font-bold tracking-tight">
               {greeting()},{" "}
               {isLoading ? (
-                <Skeleton className="inline-block h-4 w-20 align-middle" />
+                <Skeleton className="inline-block h-6 w-24 align-middle" />
               ) : (
-                profile?.nome.split(" ")[0] ?? "Athlete"
+                (profile?.nome.split(" ")[0] ?? "Athlete")
               )}
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight">
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               {new Intl.DateTimeFormat("en-US", {
                 weekday: "long",
                 month: "long",
                 day: "numeric",
+                year: "numeric",
               }).format(new Date())}
-            </h1>
+            </p>
           </div>
           <CoachChatButton />
         </header>
+
+        {/* Body goal */}
+        {isLoading ? (
+          <Skeleton className="h-40 w-full rounded-2xl" />
+        ) : (
+          <BodyGoalCard profile={profile} />
+        )}
 
         {/* Check-in */}
         {!isLoading && <CheckInPrompt profile={profile} notes={notes} onSaved={() => notesQ.refetch()} />}
@@ -146,10 +159,12 @@ export default function Inicio() {
         ) : (
           <TodayCard
             active={active}
+            restDay={restDay}
             recommendation={coach?.recommendation}
             onStart={startAction}
           />
         )}
+
 
         {/* Weekly goal + segmented progress */}
         {isLoading ? (
