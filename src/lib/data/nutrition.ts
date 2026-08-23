@@ -247,3 +247,19 @@ export function toggleCheckedItem(key: string): string[] {
   writeJson(CHECKED_KEY, next);
   return next;
 }
+
+/** Summed totals across the given dates of the current plan. */
+export function weekTotalsFor(p: WeekPlan, dates: string[]): DayTotals {
+  return dates.reduce<DayTotals>(
+    (acc, d) => {
+      const t = totalsFor(p[d]);
+      return {
+        kcal: acc.kcal + t.kcal,
+        proteinG: acc.proteinG + t.proteinG,
+        carbsG: acc.carbsG + t.carbsG,
+        fatG: acc.fatG + t.fatG,
+      };
+    },
+    { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 },
+  );
+}

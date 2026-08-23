@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
+import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
 import {
   MEAL_SLOTS,
@@ -15,8 +16,10 @@ import {
   setPlannedMeal,
   slotForTime,
   totalsFor,
+  weekDates,
+  weekTotalsFor,
 } from "@/lib/data/nutrition";
-import type { MealSlot } from "@/lib/nutrition-types";
+import type { Meal, MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/dieta/")({
   head: () => ({
@@ -54,6 +57,11 @@ function TodayPage() {
   const day = planQ.data?.[today];
   const totals = useMemo(() => totalsFor(day), [day]);
   const tag = tagsQ.data?.[today];
+  const weekTotals = useMemo(
+    () => weekTotalsFor(planQ.data ?? {}, weekDates()),
+    [planQ.data],
+  );
+  const [detail, setDetail] = useState<Meal | null>(null);
 
   const options = useMemo(() => {
     const list = mealsQ.data ?? [];
@@ -125,10 +133,27 @@ function TodayPage() {
               selected={day?.[slot] === meal.id}
               note={note(meal.tags)}
               onSelect={() => choose(meal.id)}
+              onDetails={() => setDetail(meal)}
             />
           </li>
         ))}
       </ul>
+
+      <MealDetailSheet
+        meal={detail}
+        slot={slot}
+        open={!!detail}
+        onOpenChange={(v) => !v && setDetail(null)}
+        targets={targets}
+        dayTotals={totals}
+        weekTotals={weekTotals}
+        planned={!!detail && day?.[slot] === detail.id}
+        trainingTag={tag}
+        onToggle={async () => {
+          if (detail) await choose(detail.id);
+          setDetail(null);
+        }}
+      />
     </>
   );
 }
