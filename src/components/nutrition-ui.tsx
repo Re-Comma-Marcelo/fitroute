@@ -1,6 +1,6 @@
 import { mealImage } from "@/lib/meal-image";
 import type { Meal, MealSlot, NutritionTargets } from "@/lib/nutrition-types";
-import { Check, Clock, Truck } from "lucide-react";
+import { Check, Clock, Info, Truck } from "lucide-react";
 
 export function Ring({
   pct,
@@ -88,21 +88,22 @@ export function MealCard({
   selected,
   note,
   onSelect,
+  onDetails,
 }: {
   meal: Meal;
   slot: MealSlot;
   selected?: boolean;
   note?: string | undefined;
   onSelect?: () => void;
+  onDetails?: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onSelect}
+    <div
       className={`w-full overflow-hidden rounded-2xl border bg-card text-left transition-colors ${
         selected ? "border-primary" : "border-border"
       }`}
     >
+      <button type="button" onClick={onSelect} className="block w-full text-left">
       <div className="relative h-32 w-full overflow-hidden">
         <img
           src={mealImage(slot)}
@@ -141,8 +142,20 @@ export function MealCard({
             ))}
         </div>
         {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
-      </div>
-    </button>
+        </div>
+      </button>
+      {onDetails ? (
+        <div className="border-t border-border px-3.5">
+          <button
+            type="button"
+            onClick={onDetails}
+            className="tap-target flex w-full items-center gap-1.5 text-xs font-semibold text-primary"
+          >
+            <Info className="size-3.5" /> Macros & nutrition details
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
