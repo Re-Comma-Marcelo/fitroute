@@ -747,3 +747,91 @@ function SetRow({
     </li>
   );
 }
+
+function RestTimerBar({
+  rest,
+  restLeft,
+  onAdd,
+  onSubtract,
+  onSkip,
+}: {
+  rest: { total: number; endsAt: number };
+  restLeft: number;
+  onAdd: () => void;
+  onSubtract: () => void;
+  onSkip: () => void;
+}) {
+  const pct = Math.min(100, (restLeft / rest.total) * 100);
+  const isLow = restLeft <= 10;
+  return (
+    <div className="mb-3 rounded-2xl border border-info/30 bg-info/10 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex size-9 items-center justify-center rounded-full bg-info/20 text-info">
+            <Timer className="size-5" />
+          </span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">Rest</p>
+            <p
+              className={cn(
+                "font-display text-2xl font-bold tabular-nums leading-none",
+                isLow ? "text-warn" : "text-info",
+              )}
+            >
+              {formatDuration(restLeft)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-1.5">
+          <Button
+            variant="secondary"
+            className="tap-target h-10 px-3 text-xs font-bold"
+            onClick={onSubtract}
+          >
+            -15s
+          </Button>
+          <Button
+            variant="secondary"
+            className="tap-target h-10 px-3 text-xs font-bold"
+            onClick={onAdd}
+          >
+            +15s
+          </Button>
+          <Button
+            variant="ghost"
+            className="tap-target h-10 px-3 text-xs font-bold text-muted-foreground"
+            onClick={onSkip}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-1000 ease-linear",
+            isLow ? "bg-warn" : "bg-info",
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
+      <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
+        <Volume2 className="size-12" />
+      </div>
+      <h2 className="mt-6 text-center font-display text-3xl font-bold">Rest done</h2>
+      <p className="mt-2 text-center text-base text-muted-foreground">
+        Time for the next set. Keep the pace up.
+      </p>
+      <Button className="mt-8 h-14 w-full max-w-xs text-base font-bold" onClick={onResume}>
+        Resume workout
+      </Button>
+    </div>
+  );
+}
