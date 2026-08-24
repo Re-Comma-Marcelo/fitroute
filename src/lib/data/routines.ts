@@ -1,43 +1,57 @@
-import { delay, routines, uid, workoutSets, workouts } from "./mocks";
+import { fetchRoutines, persistRoutine, removeRoutine } from "../forja.functions";
 import type { Routine, RoutineExercise } from "../types";
+import { getWorkoutLog } from "./workouts";
+
+let cache: Routine[] | null = null;
+let inflight: Promise<Routine[]> | null = null;
+
+async function all(): Promise<Routine[]> {
+  if (cache) return cache;
+  if (!inflight) {
+    inflight = fetchRoutines().then((list) => {
+      cache = list as Routine[];
+      inflight = null;
+      return cache;
+    });
+  }
+  return inflight;
+}
 
 export async function getRoutines(): Promise<Routine[]> {
-  return delay(routines.map((r) => ({ ...r, exercicios: [...r.exercicios] })));
+  return (await all()).map((r) => ({ ...r, exercicios: [...r.exercicios] }));
 }
 
 export async function getRoutine(id: string): Promise<Routine | null> {
-  const found = routines.find((r) => r.id === id);
-  return delay(found ? { ...found, exercicios: [...found.exercicios] } : null);
+  const found = (await all()).find((r) => r.id === id);
+  return found ? { ...found, exercicios: [...found.exercicios] } : null;
 }
 
 export async function getRoutineLastWorkoutDate(routineId: string): Promise<string | null> {
+  const { workouts } = await getWorkoutLog();
   const done = workouts
     .filter((w) => w.routineId === routineId && w.finalizadoEm)
     .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm));
-  return delay(done[0]?.iniciadoEm ?? null);
+  return done[0]?.iniciadoEm ?? null;
 }
 
 export async function saveRoutine(routine: Routine): Promise<Routine> {
-  const normalized: Routine = {
-    ...routine,
-    id: routine.id || uid("r"),
-    exercicios: routine.exercicios.map((e, i) => ({ ...e, ordem: i })),
-  };
-  const idx = routines.findIndex((r) => r.id === normalized.id);
-  if (idx >= 0) routines[idx] = normalized;
-  else routines.push(normalized);
-  return delay(normalized);
+  const saved = (await persistRoutine({ data: { routine } })) as Routine;
+  const list = [...(cache ?? [])];
+  const idx = list.findIndex((r) => r.id === saved.id);
+  if (idx >= 0) list[idx] = saved;
+  else list.push(saved);
+  cache = list;
+  return saved;
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
-  const idx = routines.findIndex((r) => r.id === id);
-  if (idx >= 0) routines.splice(idx, 1);
-  return delay(undefined);
+  await removeRoutine({ data: { id } });
+  cache = (cache ?? []).filter((r) => r.id !== id);
 }
 
 export function newRoutineExercise(exerciseId: string, ordem: number): RoutineExercise {
   return {
-    id: uid("rex"),
+    id: `rex_${Math.random().toString(36).slice(2, 10)}`,
     exerciseId,
     ordem,
     seriesAlvo: 3,
@@ -49,6 +63,7 @@ export function newRoutineExercise(exerciseId: string, ordem: number): RoutineEx
 }
 
 export async function countRoutineSetsLogged(routineId: string): Promise<number> {
-  const ids = workouts.filter((w) => w.routineId === routineId).map((w) => w.id);
-  return delay(workoutSets.filter((s) => ids.includes(s.workoutId)).length);
+  const { workouts, sets } = await getWorkoutLog();
+  const ids = new Set(workouts.filter((w) => w.routineId === routineId).map((w) => w.id));
+  return sets.filter((s) => ids.has(s.workoutId)).length;
 }
