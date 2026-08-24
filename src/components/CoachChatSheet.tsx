@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -19,27 +19,10 @@ interface Message {
   insights: CoachInsight[];
 }
 
-export function CoachChatButton({
-  children,
-  className,
-}: {
-  children?: React.ReactNode;
-  className?: string;
-}) {
+function CoachSheet({ children }: { children: React.ReactNode }) {
   return (
     <Sheet>
-      <SheetTrigger asChild>
-        <button
-          type="button"
-          className={
-            className ??
-            "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm"
-          }
-          aria-label="Ask your coach"
-        >
-          {children ?? <MessageSquare className="size-5" strokeWidth={2} />}
-        </button>
-      </SheetTrigger>
+      <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="flex flex-col" side="bottom">
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
@@ -50,6 +33,50 @@ export function CoachChatButton({
         <ChatPanel />
       </SheetContent>
     </Sheet>
+  );
+}
+
+export function CoachChatButton({
+  children,
+  className,
+}: {
+  children?: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <CoachSheet>
+      <button
+        type="button"
+        className={
+          className ??
+          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm"
+        }
+        aria-label="Ask your coach"
+      >
+        {children ?? <MessageSquare className="size-5" strokeWidth={2} />}
+      </button>
+    </CoachSheet>
+  );
+}
+
+export function CoachChatRow({ label = "Any questions about today's training?" }: { label?: string }) {
+  return (
+    <CoachSheet>
+      <button
+        type="button"
+        className="tap-target flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left"
+        aria-label="Ask your coach"
+      >
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <MessageSquare className="size-4" strokeWidth={2} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-medium text-foreground">{label}</span>
+          <span className="block text-xs text-muted-foreground">Ask your coach</span>
+        </span>
+        <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
+      </button>
+    </CoachSheet>
   );
 }
 
