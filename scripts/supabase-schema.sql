@@ -1,11 +1,20 @@
-create type public.equipamento_enum as enum (
-  'Barbell', 'Dumbbells', 'Machine', 'Cable', 'Bodyweight', 'Kettlebell', 'Band', 'Smith'
-);
+-- Forja — schema for an external (self-owned) Supabase project.
+-- Run this ONCE in the Supabase SQL editor, then run scripts/supabase-seed.sql.
+--
+-- Notes:
+--  * IDs are text so the app can keep stable, readable ids (e1, r1, w3...).
+--  * user_id is plain text (default 'demo') because the app currently runs with
+--    open access. Switching to real auth later means writing auth.uid()::text
+--    into user_id and adding the owner-scoped policies at the bottom.
+--  * RLS is enabled on every table and NO grants are given to anon /
+--    authenticated: the browser never talks to Supabase directly, every read
+--    and write goes through server functions using the service role.
 
--- Profiles
+-- Profiles -------------------------------------------------------------------
 
-create table public.profiles (
-  id uuid primary key references auth.users (id) on delete cascade,
+create table if not exists public.profiles (
+  id text primary key,
+  user_id text not null unique default 'demo',
   nome text not null default '',
   peso_kg numeric not null default 70,
   altura_cm integer not null default 170,
@@ -14,46 +23,23 @@ create table public.profiles (
   objetivo text not null default 'hipertrofia',
   meta_treinos_semana integer not null default 4,
   equipment text[] not null default '{}',
-  avoided_exercises jsonb not null default '[]',
+  avoid_exercises jsonb not null default '[]',
   session_length_min integer not null default 60,
   preferred_time text not null default 'evening',
   check_in_mode text not null default 'card',
+  peso_inicial_kg numeric,
+  peso_meta_kg numeric,
+  meta_iniciada_em text,
+  meta_prazo text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
+-- Exercises ------------------------------------------------------------------
 
-grant select, insert, update, delete on public.profiles to authenticated;
-grant all on public.profiles to service_role;
-
-alter table public.profiles enable row level security;
-
-create policy "Users can read own profile"
-  on public.profiles for select
-  to authenticated
-  using (auth.uid() = id);
-
-create policy "Users can insert own profile"
-  on public.profiles for insert
-  to authenticated
-  with check (auth.uid() = id);
-
-create policy "Users can update own profile"
-  on public.profiles for update
-  to authenticated
-  using (auth.uid() = id)
-  with check (auth.uid() = id);
-
-create policy "Users can delete own profile"
-  on public.profiles for delete
-  to authenticated
-  using (auth.uid() = id);
-
--- Exercises
-
-create table public.exercises (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references auth.users (id) on delete cascade,
+create table if not exists public.exercises (
+  id text primary key,
+  user_id text,
   nome text not null,
   grupo_primario text not null,
   grupos_secundarios text[] not null default '{}',
@@ -64,60 +50,21 @@ create table public.exercises (
   created_at timestamptz not null default now()
 );
 
-grant select, insert, update, delete on public.exercises to authenticated;
-grant all on public.exercises to service_role;
+-- Routines -------------------------------------------------------------------
 
-alter table public.exercises enable row level security;
-
-create policy "Global exercises are readable by everyone"
-  on public.exercises for select
-  to authenticated
-  using (user_id is null or user_id = auth.uid());
-
-create policy "Users can create own exercises"
-  on public.exercises for insert
-  to authenticated
-  with check (user_id = auth.uid());
-
-create policy "Users can update own exercises"
-  on public.exercises for update
-  to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-
-create policy "Users can delete own exercises"
-  on public.exercises for delete
-  to authenticated
-  using (user_id = auth.uid());
-
--- Routines
-
-create table public.routines (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+create table if not exists public.routines (
+  id text primary key,
+  user_id text not null default 'demo',
   nome text not null,
   descricao text not null default '',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
 
-grant select, insert, update, delete on public.routines to authenticated;
-grant all on public.routines to service_role;
-
-alter table public.routines enable row level security;
-
-create policy "Users can manage own routines"
-  on public.routines for all
-  to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-
--- Routine exercises
-
-create table public.routine_exercises (
-  id uuid primary key default gen_random_uuid(),
-  routine_id uuid not null references public.routines (id) on delete cascade,
-  exercise_id uuid not null references public.exercises (id) on delete cascade,
+create table if not exists public.routine_exercises (
+  id text primary key,
+  routine_id text not null references public.routines (id) on delete cascade,
+  exercise_id text not null,
   ordem integer not null default 0,
   series_alvo integer not null default 3,
   reps_min integer not null default 8,
@@ -126,57 +73,25 @@ create table public.routine_exercises (
   notas text not null default ''
 );
 
-grant select, insert, update, delete on public.routine_exercises to authenticated;
-grant all on public.routine_exercises to service_role;
+-- Workouts -------------------------------------------------------------------
 
-alter table public.routine_exercises enable row level security;
-
-create policy "Users can manage routine exercises of own routines"
-  on public.routine_exercises for all
-  to authenticated
-  using (
-    routine_id in (
-      select id from public.routines where user_id = auth.uid()
-    )
-  )
-  with check (
-    routine_id in (
-      select id from public.routines where user_id = auth.uid()
-    )
-  );
-
--- Workouts
-
-create table public.workouts (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
-  routine_id uuid references public.routines (id) on delete set null,
+create table if not exists public.workouts (
+  id text primary key,
+  user_id text not null default 'demo',
+  routine_id text references public.routines (id) on delete set null,
   iniciado_em timestamptz not null default now(),
   finalizado_em timestamptz,
   duracao_seg integer not null default 0,
   volume_total_kg numeric not null default 0,
   notas text not null default '',
-  origem text not null default 'manual',
+  origem text not null default 'rotina',
   created_at timestamptz not null default now()
 );
 
-grant select, insert, update, delete on public.workouts to authenticated;
-grant all on public.workouts to service_role;
-
-alter table public.workouts enable row level security;
-
-create policy "Users can manage own workouts"
-  on public.workouts for all
-  to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
-
--- Workout sets
-
-create table public.workout_sets (
-  id uuid primary key default gen_random_uuid(),
-  workout_id uuid not null references public.workouts (id) on delete cascade,
-  exercise_id uuid not null references public.exercises (id) on delete cascade,
+create table if not exists public.workout_sets (
+  id text primary key,
+  workout_id text not null references public.workouts (id) on delete cascade,
+  exercise_id text not null,
   ordem_exercicio integer not null default 0,
   serie_num integer not null default 1,
   tipo_serie text not null default 'normal',
@@ -186,62 +101,82 @@ create table public.workout_sets (
   concluida boolean not null default false
 );
 
-grant select, insert, update, delete on public.workout_sets to authenticated;
-grant all on public.workout_sets to service_role;
+-- Coach memory ---------------------------------------------------------------
 
-alter table public.workout_sets enable row level security;
-
-create policy "Users can manage sets of own workouts"
-  on public.workout_sets for all
-  to authenticated
-  using (
-    workout_id in (
-      select id from public.workouts where user_id = auth.uid()
-    )
-  )
-  with check (
-    workout_id in (
-      select id from public.workouts where user_id = auth.uid()
-    )
-);
-
--- Coach notes (long-term coaching memory)
-
-create table public.coach_notes (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid not null references auth.users (id) on delete cascade,
+create table if not exists public.coach_notes (
+  id text primary key,
+  user_id text not null default 'demo',
   kind text not null default 'observation',
   content text not null default '',
   tags text[] not null default '{}',
   created_at timestamptz not null default now()
 );
 
-grant select, insert, update, delete on public.coach_notes to authenticated;
-grant all on public.coach_notes to service_role;
+-- Nutrition ------------------------------------------------------------------
 
-alter table public.coach_notes enable row level security;
+create table if not exists public.meal_plan (
+  user_id text not null default 'demo',
+  plan_date text not null,
+  slot text not null,
+  meal_id text not null,
+  updated_at timestamptz not null default now(),
+  primary key (user_id, plan_date, slot)
+);
 
-create policy "Users can manage own coach notes"
-  on public.coach_notes for all
-  to authenticated
-  using (user_id = auth.uid())
-  with check (user_id = auth.uid());
+create table if not exists public.meal_schedule (
+  user_id text not null default 'demo',
+  slot text not null,
+  slot_time text not null,
+  enabled boolean not null default true,
+  primary key (user_id, slot)
+);
 
--- Indexes
+create table if not exists public.shopping_checked (
+  user_id text not null default 'demo',
+  item_key text not null,
+  primary key (user_id, item_key)
+);
 
+-- Progress -------------------------------------------------------------------
 
-create index exercises_user_id_idx on public.exercises (user_id);
-create index exercises_grupo_idx on public.exercises (grupo_primario);
-create index routines_user_id_idx on public.routines (user_id);
-create index routine_exercises_routine_id_idx on public.routine_exercises (routine_id);
-create index workouts_user_id_idx on public.workouts (user_id);
-create index workouts_finalizado_em_idx on public.workouts (finalizado_em);
-create index workout_sets_workout_id_idx on public.workout_sets (workout_id);
-create index workout_sets_exercise_id_idx on public.workout_sets (exercise_id);
-create index coach_notes_user_id_idx on public.coach_notes (user_id);
+create table if not exists public.tracked_lifts (
+  user_id text not null default 'demo',
+  exercise_id text not null,
+  created_at timestamptz not null default now(),
+  primary key (user_id, exercise_id)
+);
 
+-- Indexes --------------------------------------------------------------------
 
--- Trigger to update profiles.updated_at and routines.updated_at
+create index if not exists exercises_grupo_idx on public.exercises (grupo_primario);
+create index if not exists routine_exercises_routine_id_idx on public.routine_exercises (routine_id);
+create index if not exists workouts_user_id_idx on public.workouts (user_id);
+create index if not exists workouts_iniciado_em_idx on public.workouts (iniciado_em);
+create index if not exists workout_sets_workout_id_idx on public.workout_sets (workout_id);
+create index if not exists workout_sets_exercise_id_idx on public.workout_sets (exercise_id);
+create index if not exists coach_notes_user_id_idx on public.coach_notes (user_id);
+
+-- Grants + RLS ---------------------------------------------------------------
+-- service_role only: the app reaches the database exclusively through server
+-- functions. anon / authenticated intentionally get nothing.
+
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'profiles','exercises','routines','routine_exercises','workouts',
+    'workout_sets','coach_notes','meal_plan','meal_schedule',
+    'shopping_checked','tracked_lifts'
+  ]
+  loop
+    execute format('grant all on public.%I to service_role', t);
+    execute format('revoke all on public.%I from anon, authenticated', t);
+    execute format('alter table public.%I enable row level security', t);
+  end loop;
+end;
+$$;
+
+-- updated_at triggers --------------------------------------------------------
 
 create or replace function public.set_updated_at()
 returns trigger
@@ -253,10 +188,12 @@ begin
 end;
 $$;
 
+drop trigger if exists profiles_updated_at on public.profiles;
 create trigger profiles_updated_at
   before update on public.profiles
   for each row execute function public.set_updated_at();
 
+drop trigger if exists routines_updated_at on public.routines;
 create trigger routines_updated_at
   before update on public.routines
   for each row execute function public.set_updated_at();

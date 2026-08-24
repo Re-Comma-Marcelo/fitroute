@@ -1,4 +1,9 @@
-import { delay } from "./mocks";
+import {
+  fetchNutritionState,
+  persistCheckedItem,
+  persistMealSchedule,
+  persistPlannedMeals,
+} from "../forja.functions";
 import { meals } from "./meals.mock";
 import { getProfile } from "./profile";
 import { getWorkouts } from "./workouts";
@@ -12,10 +17,6 @@ import type {
   TrainingTag,
   WeekPlan,
 } from "../nutrition-types";
-
-const PLAN_KEY = "forja.nutrition.plan.v1";
-const CHECKED_KEY = "forja.nutrition.checked.v1";
-const SCHEDULE_KEY = "forja.nutrition.schedule.v1";
 
 export const MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "snack", "dinner"];
 
@@ -33,30 +34,50 @@ export const DEFAULT_SCHEDULE: MealSchedule = {
   dinner: { time: "20:00", enabled: true },
 };
 
-let scheduleCache: MealSchedule | null = null;
+// ---- state (hydrated from Supabase, cached in memory) ----------------------
 
-/** Meal timing template — user-configurable, persisted locally. */
-export function mealSchedule(): MealSchedule {
-  if (!scheduleCache) {
-    const raw = readJson<Partial<MealSchedule>>(SCHEDULE_KEY, {});
-    scheduleCache = {
-      breakfast: { ...DEFAULT_SCHEDULE.breakfast, ...raw.breakfast },
-      lunch: { ...DEFAULT_SCHEDULE.lunch, ...raw.lunch },
-      snack: { ...DEFAULT_SCHEDULE.snack, ...raw.snack },
-      dinner: { ...DEFAULT_SCHEDULE.dinner, ...raw.dinner },
-    };
+let scheduleCache: MealSchedule = structuredClone(DEFAULT_SCHEDULE);
+let planCache: WeekPlan = {};
+let checkedCache: string[] = [];
+let hydrated = false;
+let hydrating: Promise<void> | null = null;
+
+async function hydrate(): Promise<void> {
+  if (hydrated) return;
+  if (!hydrating) {
+    hydrating = fetchNutritionState().then((state) => {
+      planCache = (state.plan ?? {}) as WeekPlan;
+      checkedCache = state.checked ?? [];
+      const raw = (state.schedule ?? {}) as Partial<
+        Record<MealSlot, { time: string; enabled: boolean }>
+      >;
+      scheduleCache = {
+        breakfast: { ...DEFAULT_SCHEDULE.breakfast, ...raw.breakfast },
+        lunch: { ...DEFAULT_SCHEDULE.lunch, ...raw.lunch },
+        snack: { ...DEFAULT_SCHEDULE.snack, ...raw.snack },
+        dinner: { ...DEFAULT_SCHEDULE.dinner, ...raw.dinner },
+      };
+      hydrated = true;
+      hydrating = null;
+    });
   }
+  return hydrating;
+}
+
+/** Meal timing template — synchronous read of the hydrated cache. */
+export function mealSchedule(): MealSchedule {
   return scheduleCache;
 }
 
 export async function getMealSchedule(): Promise<MealSchedule> {
-  return delay(structuredClone(mealSchedule()), 40);
+  await hydrate();
+  return structuredClone(scheduleCache);
 }
 
 export async function saveMealSchedule(next: MealSchedule): Promise<MealSchedule> {
   scheduleCache = structuredClone(next);
-  writeJson(SCHEDULE_KEY, scheduleCache);
-  return delay(structuredClone(scheduleCache), 40);
+  await persistMealSchedule({ data: { schedule: scheduleCache } });
+  return structuredClone(scheduleCache);
 }
 
 export function hourOf(time: string): number {
@@ -113,43 +134,18 @@ export function weekDates(ref = new Date()): string[] {
   });
 }
 
-function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    return raw ? (JSON.parse(raw) as T) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function writeJson(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(key, JSON.stringify(value));
-  } catch {
-    /* ignore */
-  }
-}
-
-let planCache: WeekPlan | null = null;
-
-function plan(): WeekPlan {
-  if (!planCache) planCache = readJson<WeekPlan>(PLAN_KEY, {});
-  return planCache;
-}
-
 export async function getMeals(slot?: MealSlot): Promise<Meal[]> {
   const list = slot ? meals.filter((m) => m.slots.includes(slot)) : meals;
-  return delay(list.map((m) => ({ ...m })));
+  return list.map((m) => ({ ...m }));
 }
 
 export async function getMeal(id: string): Promise<Meal | undefined> {
-  return delay(meals.find((m) => m.id === id));
+  return meals.find((m) => m.id === id);
 }
 
 export async function getWeekPlan(): Promise<WeekPlan> {
-  return delay(structuredClone(plan()));
+  await hydrate();
+  return structuredClone(planCache);
 }
 
 export async function setPlannedMeal(
@@ -157,43 +153,56 @@ export async function setPlannedMeal(
   slot: MealSlot,
   mealId: string | null,
 ): Promise<WeekPlan> {
-  const p = plan();
-  const day = { ...(p[date] ?? {}) };
+  await hydrate();
+  const day = { ...(planCache[date] ?? {}) };
   if (mealId) day[slot] = mealId;
   else delete day[slot];
-  p[date] = day;
-  planCache = { ...p };
-  writeJson(PLAN_KEY, planCache);
-  return delay(structuredClone(planCache), 60);
+  planCache = { ...planCache, [date]: day };
+  await persistPlannedMeals({
+    data: {
+      set: mealId ? [{ date, slot, mealId }] : [],
+      clear: mealId ? [] : [{ date, slot }],
+    },
+  });
+  return structuredClone(planCache);
 }
 
 /** Auto-fills every empty slot of the week with a target-aware suggestion. */
 export async function autoFillWeek(ref = new Date()): Promise<WeekPlan> {
+  await hydrate();
   const dates = weekDates(ref);
   const tags = await getTrainingTags(dates);
-  const p = plan();
+  const set: { date: string; slot: string; mealId: string }[] = [];
+  const next: WeekPlan = { ...planCache };
   dates.forEach((date, di) => {
-    const day = { ...(p[date] ?? {}) };
+    const day = { ...(next[date] ?? {}) };
     activeSlots().forEach((slot, si) => {
       if (day[slot]) return;
-      const options = pickForTag(meals.filter((m) => m.slots.includes(slot) && !m.orderOut), tags[date]);
+      const options = pickForTag(
+        meals.filter((m) => m.slots.includes(slot) && !m.orderOut),
+        tags[date],
+      );
       const chosen = options[(di * 3 + si) % Math.max(1, options.length)];
-      if (chosen) day[slot] = chosen.id;
+      if (chosen) {
+        day[slot] = chosen.id;
+        set.push({ date, slot, mealId: chosen.id });
+      }
     });
-    p[date] = day;
+    next[date] = day;
   });
-  planCache = { ...p };
-  writeJson(PLAN_KEY, planCache);
-  return delay(structuredClone(planCache), 120);
+  planCache = next;
+  if (set.length) await persistPlannedMeals({ data: { set, clear: [] } });
+  return structuredClone(planCache);
 }
 
 export async function clearWeek(ref = new Date()): Promise<WeekPlan> {
+  await hydrate();
   const dates = weekDates(ref);
-  const p = plan();
-  for (const d of dates) delete p[d];
-  planCache = { ...p };
-  writeJson(PLAN_KEY, planCache);
-  return delay(structuredClone(planCache), 60);
+  const next = { ...planCache };
+  for (const d of dates) delete next[d];
+  planCache = next;
+  await persistPlannedMeals({ data: { set: [], clear: dates.map((date) => ({ date })) } });
+  return structuredClone(planCache);
 }
 
 function pickForTag(list: Meal[], tag: TrainingTag | undefined): Meal[] {
@@ -256,11 +265,11 @@ export async function getShoppingList(dates: string[]): Promise<{
   items: ShoppingItem[];
   orderOut: { date: string; slot: MealSlot; meal: Meal }[];
 }> {
-  const p = plan();
+  await hydrate();
   const map = new Map<string, ShoppingItem>();
   const orderOut: { date: string; slot: MealSlot; meal: Meal }[] = [];
   for (const date of dates) {
-    const day = p[date];
+    const day = planCache[date];
     if (!day) continue;
     for (const slot of MEAL_SLOTS) {
       const meal = meals.find((m) => m.id === day[slot]);
@@ -280,20 +289,21 @@ export async function getShoppingList(dates: string[]): Promise<{
   const items = [...map.values()].sort(
     (a, b) => a.aisle.localeCompare(b.aisle) || a.name.localeCompare(b.name),
   );
-  return delay({ items, orderOut });
+  return { items, orderOut };
 }
 
 export function getCheckedItems(): string[] {
-  return readJson<string[]>(CHECKED_KEY, []);
+  return [...checkedCache];
 }
 
 export function toggleCheckedItem(key: string): string[] {
-  const current = new Set(getCheckedItems());
-  if (current.has(key)) current.delete(key);
-  else current.add(key);
-  const next = [...current];
-  writeJson(CHECKED_KEY, next);
-  return next;
+  const current = new Set(checkedCache);
+  const checked = !current.has(key);
+  if (checked) current.add(key);
+  else current.delete(key);
+  checkedCache = [...current];
+  void persistCheckedItem({ data: { key, checked } });
+  return [...checkedCache];
 }
 
 /** Summed totals across the given dates of the current plan. */
