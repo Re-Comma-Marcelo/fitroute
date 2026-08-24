@@ -20,11 +20,11 @@ export interface SwapContext {
   targets: NutritionTargets;
   /** Totals already planned for the day, including the current meal. */
   dayTotals: DayTotals;
-  currentMeal?: Meal | null;
+  currentMeal?: Meal | null | undefined;
   /** Today's training tag. */
-  tag?: TrainingTag;
+  tag?: TrainingTag | undefined;
   /** Tags of the last few sessions, most recent first. */
-  recentTags?: TrainingTag[];
+  recentTags?: TrainingTag[] | undefined;
 }
 
 export interface RankedMeal {
