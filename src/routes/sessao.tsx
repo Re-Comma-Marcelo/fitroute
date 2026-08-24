@@ -513,42 +513,13 @@ function SessionPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">
           {rest ? (
-            <div className="mb-3">
-              <div className="mb-1 flex items-center justify-between text-sm font-bold">
-                <span className="text-info">Rest {formatDuration(restLeft)}</span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="secondary"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
-                  >
-                    -15s
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() =>
-                      setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))
-                    }
-                  >
-                    +15s
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() => setRest(null)}
-                  >
-                    Skip
-                  </Button>
-                </div>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-info transition-[width] duration-1000 ease-linear"
-                  style={{ width: `${Math.min(100, (restLeft / rest.total) * 100)}%` }}
-                />
-              </div>
-            </div>
+            <RestTimerBar
+              rest={rest}
+              restLeft={restLeft}
+              onAdd={() => setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))}
+              onSubtract={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
+              onSkip={() => setRest(null)}
+            />
           ) : null}
           <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
             Finish workout
@@ -556,6 +527,10 @@ function SessionPage() {
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
+
+      {restFinished ? (
+        <RestFinishedOverlay onResume={() => setRestFinished(false)} />
+      ) : null}
     </div>
   );
 }
