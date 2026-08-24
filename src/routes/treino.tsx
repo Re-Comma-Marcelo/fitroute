@@ -33,7 +33,7 @@ import { getTodayCard } from "@/lib/coach/today-card";
 import { swapCandidates } from "@/lib/coach/swap";
 import { cn } from "@/lib/utils";
 import type { CoachInsight } from "@/lib/coach/types";
-import { CoachChatButton } from "@/components/CoachChatSheet";
+import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
 export const Route = createFileRoute("/treino")({
   head: () => ({
@@ -235,6 +235,10 @@ function TrainPage() {
         >
           Blank
         </Button>
+      </div>
+
+      <div className="mt-4">
+        <CoachChatRow />
       </div>
 
       <h2 className="label-caps mt-8 mb-3">My routines</h2>
