@@ -372,7 +372,12 @@ function ProfilePage() {
           Save profile
         </Button>
       </form>
+
+      <div className="mt-6">
+        <ClaudeBridgeSection profile={profileQuery.data ?? form} />
+      </div>
     </AppShell>
+
   );
 }
 
