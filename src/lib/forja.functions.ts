@@ -26,7 +26,7 @@ export const persistProfile = createServerFn({ method: "POST" })
         })
         .select("*")
         .single(),
-    );
+    ) as Record<string, unknown>;
     return toProfile(row) as unknown as Profile;
   });
 
@@ -57,7 +57,7 @@ export const persistExercise = createServerFn({ method: "POST" })
         })
         .select("*")
         .single(),
-    );
+    ) as Record<string, unknown>;
     return toExercise(row) as unknown as Exercise;
   });
 
@@ -234,7 +234,7 @@ export const persistCoachNote = createServerFn({ method: "POST" })
         })
         .select("*")
         .single(),
-    );
+    ) as Record<string, unknown>;
     return toCoachNote(row) as unknown as CoachNote;
   });
 
