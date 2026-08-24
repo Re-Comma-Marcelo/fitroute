@@ -52,12 +52,11 @@ function remaining(ctx: SwapContext): NutritionTargets {
 function scoreMeal(meal: Meal, ctx: SwapContext, rem: NutritionTargets): number {
   const share = SLOT_SHARE[ctx.slot];
   const ideal = {
-    kcal: Math.max(120, rem.kcal * share * (1 / Math.max(0.2, share)) * share),
+    kcal: Math.max(150, rem.kcal * share),
     proteinG: Math.max(10, rem.proteinG * share),
     carbsG: Math.max(10, rem.carbsG * share),
     fatG: Math.max(4, rem.fatG * share),
   };
-  ideal.kcal = Math.max(150, rem.kcal * share);
 
   const dev =
     2.2 * Math.abs(meal.proteinG - ideal.proteinG) / Math.max(1, ideal.proteinG) +
