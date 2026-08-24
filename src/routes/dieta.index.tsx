@@ -169,19 +169,22 @@ function TodayPage() {
 
       <MealDetailSheet
         meal={detail}
-        slot={slot}
+        slot={currentSlot}
         open={!!detail}
         onOpenChange={(v) => !v && setDetail(null)}
         targets={targets}
         dayTotals={totals}
         weekTotals={weekTotals}
-        planned={!!detail && day?.[slot] === detail.id}
+        planned={!!detail && day?.[currentSlot] === detail.id}
         trainingTag={tag}
         onToggle={async () => {
           if (detail) await choose(detail.id);
           setDetail(null);
         }}
       />
+      {schedule ? (
+        <MealScheduleSheet open={timingOpen} onOpenChange={setTimingOpen} schedule={schedule} />
+      ) : null}
     </>
   );
 }
