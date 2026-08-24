@@ -195,3 +195,11 @@ function Bullet({ children, tone }: { children: React.ReactNode; tone?: "warn" }
     </li>
   );
 }
+
+function previewText(model: TodayCardModel, maxSentences = 3): string {
+  const all = [...model.why, ...model.setup, ...model.cautions].join(" ").trim();
+  if (!all) return "";
+  const sentences = all.match(/[^.!?]+[.!?]+/g) ?? [all];
+  const slice = sentences.slice(0, maxSentences).join(" ").trim();
+  return slice.length < all.length ? `${slice.replace(/\.$/, "")}…` : slice;
+}
