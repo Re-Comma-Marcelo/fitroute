@@ -5,6 +5,8 @@ import { Clock, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
+import { MealSwapCard } from "@/components/MealSwapCard";
+import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
 import {
   SLOT_LABEL,
@@ -22,7 +24,7 @@ import {
   weekDates,
   weekTotalsFor,
 } from "@/lib/data/nutrition";
-import type { Meal, MealSlot } from "@/lib/nutrition-types";
+import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/dieta/")({
   head: () => ({
@@ -47,6 +49,15 @@ export const Route = createFileRoute("/dieta/")({
 
 function TodayPage() {
   const today = isoDate(new Date());
+  const recentDates = useMemo(() => {
+    const out: string[] = [];
+    for (let i = 1; i <= 5; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      out.push(isoDate(d));
+    }
+    return out;
+  }, []);
   const [slot, setSlot] = useState<MealSlot | null>(null);
   const [timingOpen, setTimingOpen] = useState(false);
   const qc = useQueryClient();
@@ -62,26 +73,49 @@ function TodayPage() {
   const mealsQ = useQuery({ queryKey: ["meals", currentSlot], queryFn: () => getMeals(currentSlot) });
   const insightQ = useQuery({ queryKey: ["nutritionInsight"], queryFn: getNutritionInsight });
   const tagsQ = useQuery({ queryKey: ["trainingTags", today], queryFn: () => getTrainingTags([today]) });
+  const recentQ = useQuery({
+    queryKey: ["trainingTags", "recent", today],
+    queryFn: () => getTrainingTags(recentDates),
+  });
 
   const targets = targetsQ.data ?? { kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 };
   const day = planQ.data?.[today];
   const totals = useMemo(() => totalsFor(day), [day]);
   const tag = tagsQ.data?.[today];
+  const recentTags = useMemo(() => {
+    const days = recentQ.data ?? {};
+    return recentDates.map((d) => days[d]).filter(Boolean) as TrainingTag[];
+  }, [recentQ.data]);
   const weekTotals = useMemo(
     () => weekTotalsFor(planQ.data ?? {}, weekDates()),
     [planQ.data],
   );
   const [detail, setDetail] = useState<Meal | null>(null);
 
-  const options = useMemo(() => {
-    const list = mealsQ.data ?? [];
-    const wanted = tag === "Strength" ? "high-protein" : tag === "Cardio" ? "high-carb" : "light";
-    return [...list].sort((a, b) => {
-      const aw = a.tags.includes(wanted as never) ? 0 : 1;
-      const bw = b.tags.includes(wanted as never) ? 0 : 1;
-      return aw - bw;
-    });
-  }, [mealsQ.data, tag]);
+  const plannedMeal = useMemo(
+    () => (mealsQ.data ?? []).find((m) => m.id === day?.[currentSlot]) ?? null,
+    [mealsQ.data, day, currentSlot],
+  );
+
+  const swapCtx = useMemo(
+    () => ({
+      slot: currentSlot,
+      targets,
+      dayTotals: totals,
+      currentMeal: plannedMeal,
+      tag,
+      recentTags,
+    }),
+    [currentSlot, targets, totals, plannedMeal, tag, recentTags],
+  );
+
+  const ranked = useMemo(() => rankMeals(mealsQ.data ?? [], swapCtx), [mealsQ.data, swapCtx]);
+  const options = useMemo(() => ranked.map((r) => r.meal), [ranked]);
+  const reasons = useMemo(
+    () => new Map(ranked.map((r) => [r.meal.id, r.reason])),
+    [ranked],
+  );
+  const swap = useMemo(() => swapSuggestion(mealsQ.data ?? [], swapCtx), [mealsQ.data, swapCtx]);
 
   async function choose(mealId: string) {
     const current = day?.[currentSlot];
@@ -89,12 +123,7 @@ function TodayPage() {
     qc.invalidateQueries({ queryKey: ["weekPlan"] });
   }
 
-  const note = (mealTags: string[]) => {
-    if (tag === "Strength" && mealTags.includes("high-protein"))
-      return "High protein — matches today's strength session.";
-    if (tag === "Rest" && mealTags.includes("light")) return "Lighter option for a rest day.";
-    return undefined;
-  };
+  const note = (meal: Meal) => reasons.get(meal.id);
 
   return (
     <>
@@ -140,6 +169,14 @@ function TodayPage() {
         </button>
       </nav>
 
+      {swap ? (
+        <MealSwapCard
+          suggestion={swap}
+          onSwap={() => choose(swap.meal.id)}
+          onDetails={() => setDetail(swap.meal)}
+        />
+      ) : null}
+
       <div className="mt-3 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold tracking-tight">
           {SLOT_LABEL[currentSlot]}
@@ -159,7 +196,7 @@ function TodayPage() {
               meal={meal}
               slot={currentSlot}
               selected={day?.[currentSlot] === meal.id}
-              note={note(meal.tags)}
+              note={note(meal)}
               onSelect={() => choose(meal.id)}
               onDetails={() => setDetail(meal)}
             />
