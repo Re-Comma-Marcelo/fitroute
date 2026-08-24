@@ -14,7 +14,7 @@ import {
   weeklyAggregate,
 } from "./signals";
 import type { CoachInsight } from "./types";
-import type { Exercise, Profile, Routine } from "@/lib/types";
+import type { Exercise, Profile, Routine, Workout, WorkoutSet } from "@/lib/types";
 
 export interface FlaggedExercise {
   exerciseId: string;
@@ -125,17 +125,17 @@ function flaggedFor(
     .slice(0, 3);
 }
 
-function lastSessionOf(routineId: string, workouts: Parameters<typeof daysSince> extends never ? never : any[]) {
+function lastSessionOf(routineId: string, workouts: Workout[]): Workout | undefined {
   return workouts
-    .filter((w: any) => w.routineId === routineId && w.finalizadoEm)
-    .sort((a: any, b: any) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
+    .filter((w) => w.routineId === routineId && w.finalizadoEm)
+    .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
 }
 
 function collapsedLine(
   routine: Routine,
   flagged: FlaggedExercise[],
-  workouts: any[],
-  sets: any[],
+  workouts: Workout[],
+  sets: WorkoutSet[],
   exercises: Exercise[],
 ): string {
   const stalled = flagged.find((f) => f.insight.plateauType === "single-exercise");
@@ -168,8 +168,8 @@ function switchLine(chosen: Routine, recommended: Routine, grounded: GroundedNot
 
 function whyBullets(
   routine: Routine,
-  workouts: any[],
-  sets: any[],
+  workouts: Workout[],
+  sets: WorkoutSet[],
   exercises: Exercise[],
   flagged: FlaggedExercise[],
 ): string[] {
@@ -210,10 +210,10 @@ function whyBullets(
     );
   }
 
-  const done = workouts.filter((w: any) => w.finalizadoEm).slice(-3);
+  const done = workouts.filter((w) => w.finalizadoEm).slice(-3);
   if (done.length >= 2) {
     const stats = perWorkoutStats(
-      done.flatMap((w: any) => sets.filter((s: any) => s.workoutId === w.id && s.concluida)),
+      done.flatMap((w) => sets.filter((s) => s.workoutId === w.id && s.concluida)),
       done,
     );
     const trend = rpeTrend(stats);
