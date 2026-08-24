@@ -237,6 +237,10 @@ function TrainPage() {
         </Button>
       </div>
 
+      <div className="mt-4">
+        <CoachChatRow />
+      </div>
+
       <h2 className="label-caps mt-8 mb-3">My routines</h2>
 
       {routinesQuery.isLoading ? (
