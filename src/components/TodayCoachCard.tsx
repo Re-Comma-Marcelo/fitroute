@@ -26,6 +26,7 @@ export function TodayCoachCard({
 }) {
   const [open, setOpen] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
+  const preview = previewText(model);
 
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border border-primary/25 bg-primary/[0.06]">
@@ -44,8 +45,15 @@ export function TodayCoachCard({
           </span>
           <span className="mt-1 block text-sm leading-snug text-foreground">{model.line}</span>
           {!open ? (
-            <span className="mt-1.5 block text-xs font-semibold text-muted-foreground">
-              Why this session
+            <span className="mt-2 block">
+              {preview ? (
+                <span className="block text-xs leading-relaxed text-muted-foreground">
+                  {preview}{" "}
+                  <span className="font-semibold text-primary/80">See why</span>
+                </span>
+              ) : (
+                <span className="text-xs font-semibold text-primary/80">See why this session</span>
+              )}
             </span>
           ) : null}
         </span>
