@@ -28,7 +28,7 @@ export const dietPayloadSchema = z.object({
   /** ISO date (yyyy-mm-dd) -> slot -> mealId */
   days: z.record(
     z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-    z.record(z.enum(["breakfast", "lunch", "snack", "dinner"]), z.string().min(1)),
+    z.record(z.string().min(1), z.string().min(1)),
   ),
 });
 
