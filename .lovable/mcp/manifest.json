@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "sdk_version": "0.28.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "none"
+  },
+  "mcp": {
+    "server": {
+      "name": "iron-logger",
+      "version": "0.1.0",
+      "title": "Iron Logger"
+    },
+    "tools": [
+      {
+        "name": "get_training_context",
+        "title": "Get Forja libraries",
+        "description": "Returns Forja's exercise library and meal library, plus how to build plans for this app. Call this first — routines and diets may only use these ids.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_routine",
+        "title": "Create a workout routine",
+        "description": "Builds a Forja workout routine from library exercises and returns an import code plus a readable summary. Call get_training_context first for valid exerciseId values.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "description": "Routine name, e.g. 'Upper A'."
+            },
+            "description": {
+              "default": "",
+              "description": "One line on the intent of the routine.",
+              "type": "string",
+              "maxLength": 200
+            },
+            "exercises": {
+              "minItems": 1,
+              "maxItems": 15,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "exerciseId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "id from get_training_context."
+                  },
+                  "sets": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  },
+                  "repsMin": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "repsMax": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50
+                  },
+                  "restSec": {
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 600
+                  },
+                  "notes": {
+                    "default": "",
+                    "type": "string",
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "exerciseId",
+                  "sets",
+                  "repsMin",
+                  "repsMax",
+                  "restSec"
+                ]
+              },
+              "description": "Exercises in the order they should be performed."
+            }
+          },
+          "required": [
+            "name",
+            "exercises"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_week_diet",
+        "title": "Plan a week of meals",
+        "description": "Fills Forja meal slots for one or more days from the meal library and returns an import code plus a readable summary. Call get_training_context first for valid mealId values.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "days": {
+              "minItems": 1,
+              "maxItems": 14,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "date": {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+                    "description": "ISO date, yyyy-mm-dd."
+                  },
+                  "breakfast": {
+                    "description": "mealId",
+                    "type": "string"
+                  },
+                  "lunch": {
+                    "description": "mealId",
+                    "type": "string"
+                  },
+                  "snack": {
+                    "description": "mealId",
+                    "type": "string"
+                  },
+                  "dinner": {
+                    "description": "mealId",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "date"
+                ]
+              },
+              "description": "One entry per day. Leave a slot out if the user does not eat it."
+            }
+          },
+          "required": [
+            "days"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "log_coach_note",
+        "title": "Log a coach note",
+        "description": "Turns something the user reported (soreness, an injury, how the week went) into a Forja note code they can import. The app's coach then references it when planning sessions.",
+        "annotations": {
+          "readOnlyHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 500,
+              "description": "Plain language, first person, e.g. 'Left shoulder sore after pressing.'"
+            },
+            "noteKind": {
+              "default": "observation",
+              "description": "'checkin' for a weekly review, 'observation' for a one-off.",
+              "type": "string",
+              "enum": [
+                "checkin",
+                "observation"
+              ]
+            },
+            "tags": {
+              "default": [],
+              "description": "Short tags, e.g. ['shoulder', 'soreness'] — used to match exercises.",
+              "maxItems": 8,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "maxLength": 30
+              }
+            }
+          },
+          "required": [
+            "content"
+          ]
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

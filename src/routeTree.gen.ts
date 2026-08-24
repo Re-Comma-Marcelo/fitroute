@@ -13,10 +13,13 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BibliotecaRouteImport } from './routes/biblioteca'
 import { Route as DietaRouteImport } from './routes/dieta'
 import { Route as InicioRouteImport } from './routes/inicio'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as ProgressoRouteImport } from './routes/progresso'
 import { Route as SessaoRouteImport } from './routes/sessao'
 import { Route as TreinoRouteImport } from './routes/treino'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as DietaIndexRouteImport } from './routes/dieta.index'
 import { Route as DietaMarketRouteImport } from './routes/dieta.market'
 import { Route as DietaWeekRouteImport } from './routes/dieta.week'
@@ -24,6 +27,7 @@ import { Route as ProgressoIndexRouteImport } from './routes/progresso.index'
 import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
 import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
 import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -43,6 +47,11 @@ const DietaRoute = DietaRouteImport.update({
 const InicioRoute = InicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -65,6 +74,18 @@ const TreinoRoute = TreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DietaIndexRoute = DietaIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -100,16 +121,25 @@ const RotinaIdRoute = RotinaIdRouteImport.update({
   path: '/rotina/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRouteWithChildren
   '/inicio': typeof InicioRoute
+  '/mcp': typeof McpRoute
   '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dieta/market': typeof DietaMarketRoute
   '/dieta/week': typeof DietaWeekRoute
   '/progresso/$id': typeof ProgressoIdRoute
@@ -117,14 +147,18 @@ export interface FileRoutesByFullPath {
   '/rotina/$id': typeof RotinaIdRoute
   '/dieta/': typeof DietaIndexRoute
   '/progresso/': typeof ProgressoIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/biblioteca': typeof BibliotecaRoute
   '/inicio': typeof InicioRoute
+  '/mcp': typeof McpRoute
   '/perfil': typeof PerfilRoute
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dieta/market': typeof DietaMarketRoute
   '/dieta/week': typeof DietaWeekRoute
   '/progresso/$id': typeof ProgressoIdRoute
@@ -132,6 +166,7 @@ export interface FileRoutesByTo {
   '/rotina/$id': typeof RotinaIdRoute
   '/dieta': typeof DietaIndexRoute
   '/progresso': typeof ProgressoIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -139,10 +174,13 @@ export interface FileRoutesById {
   '/biblioteca': typeof BibliotecaRoute
   '/dieta': typeof DietaRouteWithChildren
   '/inicio': typeof InicioRoute
+  '/mcp': typeof McpRoute
   '/perfil': typeof PerfilRoute
   '/progresso': typeof ProgressoRouteWithChildren
   '/sessao': typeof SessaoRoute
   '/treino': typeof TreinoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dieta/market': typeof DietaMarketRoute
   '/dieta/week': typeof DietaWeekRoute
   '/progresso/$id': typeof ProgressoIdRoute
@@ -150,6 +188,7 @@ export interface FileRoutesById {
   '/rotina/$id': typeof RotinaIdRoute
   '/dieta/': typeof DietaIndexRoute
   '/progresso/': typeof ProgressoIndexRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -158,10 +197,13 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/dieta'
     | '/inicio'
+    | '/mcp'
     | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -169,14 +211,18 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta/'
     | '/progresso/'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/biblioteca'
     | '/inicio'
+    | '/mcp'
     | '/perfil'
     | '/sessao'
     | '/treino'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -184,16 +230,20 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta'
     | '/progresso'
+    | '/.mcp/invoke-tool/$tool'
   id:
     | '__root__'
     | '/'
     | '/biblioteca'
     | '/dieta'
     | '/inicio'
+    | '/mcp'
     | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -201,6 +251,7 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta/'
     | '/progresso/'
+    | '/.mcp/invoke-tool/$tool'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -208,12 +259,16 @@ export interface RootRouteChildren {
   BibliotecaRoute: typeof BibliotecaRoute
   DietaRoute: typeof DietaRouteWithChildren
   InicioRoute: typeof InicioRoute
+  McpRoute: typeof McpRoute
   PerfilRoute: typeof PerfilRoute
   ProgressoRoute: typeof ProgressoRouteWithChildren
   SessaoRoute: typeof SessaoRoute
   TreinoRoute: typeof TreinoRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ResumoIdRoute: typeof ResumoIdRoute
   RotinaIdRoute: typeof RotinaIdRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -246,6 +301,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InicioRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/perfil': {
       id: '/perfil'
       path: '/perfil'
@@ -272,6 +334,20 @@ declare module '@tanstack/react-router' {
       path: '/treino'
       fullPath: '/treino'
       preLoaderRoute: typeof TreinoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dieta/': {
@@ -323,6 +399,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RotinaIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -359,12 +442,17 @@ const rootRouteChildren: RootRouteChildren = {
   BibliotecaRoute: BibliotecaRoute,
   DietaRoute: DietaRouteWithChildren,
   InicioRoute: InicioRoute,
+  McpRoute: McpRoute,
   PerfilRoute: PerfilRoute,
   ProgressoRoute: ProgressoRouteWithChildren,
   SessaoRoute: SessaoRoute,
   TreinoRoute: TreinoRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ResumoIdRoute: ResumoIdRoute,
   RotinaIdRoute: RotinaIdRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

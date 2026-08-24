@@ -17,6 +17,8 @@ import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
 import { CoachChatButton } from "@/components/CoachChatSheet";
+import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
+
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/perfil")({
@@ -372,7 +374,12 @@ function ProfilePage() {
           Save profile
         </Button>
       </form>
+
+      <div className="mt-6">
+        <ClaudeBridgeSection profile={profileQuery.data ?? form} />
+      </div>
     </AppShell>
+
   );
 }
 
