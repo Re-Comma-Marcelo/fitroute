@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
+import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
 import {
-  MEAL_SLOTS,
   SLOT_LABEL,
+  activeSlots,
+  formatSlotTime,
+  getMealSchedule,
   getMeals,
   getTargets,
   getTrainingTags,
@@ -44,12 +47,19 @@ export const Route = createFileRoute("/dieta/")({
 
 function TodayPage() {
   const today = isoDate(new Date());
-  const [slot, setSlot] = useState<MealSlot>(() => slotForTime());
+  const [slot, setSlot] = useState<MealSlot | null>(null);
+  const [timingOpen, setTimingOpen] = useState(false);
   const qc = useQueryClient();
+
+  const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
+  const schedule = scheduleQ.data;
+  const slots = useMemo(() => (schedule ? activeSlots(schedule) : []), [schedule]);
+  const currentSlot: MealSlot =
+    slot && slots.includes(slot) ? slot : schedule ? slotForTime(new Date(), schedule) : "breakfast";
 
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
-  const mealsQ = useQuery({ queryKey: ["meals", slot], queryFn: () => getMeals(slot) });
+  const mealsQ = useQuery({ queryKey: ["meals", currentSlot], queryFn: () => getMeals(currentSlot) });
   const insightQ = useQuery({ queryKey: ["nutritionInsight"], queryFn: getNutritionInsight });
   const tagsQ = useQuery({ queryKey: ["trainingTags", today], queryFn: () => getTrainingTags([today]) });
 
@@ -74,8 +84,8 @@ function TodayPage() {
   }, [mealsQ.data, tag]);
 
   async function choose(mealId: string) {
-    const current = day?.[slot];
-    await setPlannedMeal(today, slot, current === mealId ? null : mealId);
+    const current = day?.[currentSlot];
+    await setPlannedMeal(today, currentSlot, current === mealId ? null : mealId);
     qc.invalidateQueries({ queryKey: ["weekPlan"] });
   }
 
@@ -102,25 +112,43 @@ function TodayPage() {
 
       <MacroRings totals={totals} targets={targets} />
 
-      <nav className="mt-5 flex gap-1.5 overflow-x-auto pb-1">
-        {MEAL_SLOTS.map((s) => (
+      <nav className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
+        {slots.map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => setSlot(s)}
             className={`tap-target shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors ${
-              s === slot
+              s === currentSlot
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border text-muted-foreground"
             }`}
           >
             {SLOT_LABEL[s]}
+            {schedule ? (
+              <span className="ml-1.5 font-normal opacity-60">{formatSlotTime(schedule[s].time)}</span>
+            ) : null}
           </button>
         ))}
+        <button
+          type="button"
+          onClick={() => setTimingOpen(true)}
+          aria-label="Edit meal timing"
+          className="tap-target ml-auto flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground"
+        >
+          <Clock className="size-4" /> Timing
+        </button>
       </nav>
 
       <div className="mt-3 flex items-baseline justify-between">
-        <h2 className="text-lg font-semibold tracking-tight">{SLOT_LABEL[slot]}</h2>
+        <h2 className="text-lg font-semibold tracking-tight">
+          {SLOT_LABEL[currentSlot]}
+          {schedule ? (
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {formatSlotTime(schedule[currentSlot].time)}
+            </span>
+          ) : null}
+        </h2>
         {tag ? <span className="text-xs text-muted-foreground">Today: {tag}</span> : null}
       </div>
 
@@ -129,8 +157,8 @@ function TodayPage() {
           <li key={meal.id}>
             <MealCard
               meal={meal}
-              slot={slot}
-              selected={day?.[slot] === meal.id}
+              slot={currentSlot}
+              selected={day?.[currentSlot] === meal.id}
               note={note(meal.tags)}
               onSelect={() => choose(meal.id)}
               onDetails={() => setDetail(meal)}
@@ -141,19 +169,22 @@ function TodayPage() {
 
       <MealDetailSheet
         meal={detail}
-        slot={slot}
+        slot={currentSlot}
         open={!!detail}
         onOpenChange={(v) => !v && setDetail(null)}
         targets={targets}
         dayTotals={totals}
         weekTotals={weekTotals}
-        planned={!!detail && day?.[slot] === detail.id}
+        planned={!!detail && day?.[currentSlot] === detail.id}
         trainingTag={tag}
         onToggle={async () => {
           if (detail) await choose(detail.id);
           setDetail(null);
         }}
       />
+      {schedule ? (
+        <MealScheduleSheet open={timingOpen} onOpenChange={setTimingOpen} schedule={schedule} />
+      ) : null}
     </>
   );
 }

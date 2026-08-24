@@ -4,8 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import {
-  MEAL_SLOTS,
   SLOT_LABEL,
+  activeSlots,
   autoFillWeek,
   clearWeek,
   getMeals,
@@ -104,7 +104,7 @@ function WeekPage() {
                 </span>
               </div>
               <ul className="mt-2.5 space-y-1.5">
-                {MEAL_SLOTS.map((slot) => {
+                {activeSlots().map((slot) => {
                   const name = mealName(day?.[slot]);
                   return (
                     <li key={slot}>

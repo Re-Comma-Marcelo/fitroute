@@ -5,6 +5,7 @@ import { getWorkouts } from "./workouts";
 import type {
   DayTotals,
   Meal,
+  MealSchedule,
   MealSlot,
   NutritionTargets,
   ShoppingItem,
@@ -14,6 +15,7 @@ import type {
 
 const PLAN_KEY = "forja.nutrition.plan.v1";
 const CHECKED_KEY = "forja.nutrition.checked.v1";
+const SCHEDULE_KEY = "forja.nutrition.schedule.v1";
 
 export const MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "snack", "dinner"];
 
@@ -24,20 +26,66 @@ export const SLOT_LABEL: Record<MealSlot, string> = {
   dinner: "Dinner",
 };
 
-/** Center hour used to pick the slot closest to "now". */
-const SLOT_HOUR: Record<MealSlot, number> = {
-  breakfast: 8,
-  lunch: 12.5,
-  snack: 16,
-  dinner: 20,
+export const DEFAULT_SCHEDULE: MealSchedule = {
+  breakfast: { time: "08:00", enabled: true },
+  lunch: { time: "12:30", enabled: true },
+  snack: { time: "16:00", enabled: true },
+  dinner: { time: "20:00", enabled: true },
 };
 
-export function slotForTime(date = new Date()): MealSlot {
+let scheduleCache: MealSchedule | null = null;
+
+/** Meal timing template — user-configurable, persisted locally. */
+export function mealSchedule(): MealSchedule {
+  if (!scheduleCache) {
+    const raw = readJson<Partial<MealSchedule>>(SCHEDULE_KEY, {});
+    scheduleCache = {
+      breakfast: { ...DEFAULT_SCHEDULE.breakfast, ...raw.breakfast },
+      lunch: { ...DEFAULT_SCHEDULE.lunch, ...raw.lunch },
+      snack: { ...DEFAULT_SCHEDULE.snack, ...raw.snack },
+      dinner: { ...DEFAULT_SCHEDULE.dinner, ...raw.dinner },
+    };
+  }
+  return scheduleCache;
+}
+
+export async function getMealSchedule(): Promise<MealSchedule> {
+  return delay(structuredClone(mealSchedule()), 40);
+}
+
+export async function saveMealSchedule(next: MealSchedule): Promise<MealSchedule> {
+  scheduleCache = structuredClone(next);
+  writeJson(SCHEDULE_KEY, scheduleCache);
+  return delay(structuredClone(scheduleCache), 40);
+}
+
+export function hourOf(time: string): number {
+  const [h, m] = time.split(":");
+  return Number(h ?? 0) + Number(m ?? 0) / 60;
+}
+
+/** Formats "08:00" using the user's locale (e.g. 8:00 AM). */
+export function formatSlotTime(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h ?? 0, m ?? 0, 0, 0);
+  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(d);
+}
+
+/** Slots the user actually eats, ordered by their scheduled time. */
+export function activeSlots(schedule: MealSchedule = mealSchedule()): MealSlot[] {
+  return MEAL_SLOTS.filter((s) => schedule[s].enabled).sort(
+    (a, b) => hourOf(schedule[a].time) - hourOf(schedule[b].time),
+  );
+}
+
+export function slotForTime(date = new Date(), schedule: MealSchedule = mealSchedule()): MealSlot {
   const h = date.getHours() + date.getMinutes() / 60;
-  let best: MealSlot = "breakfast";
+  const slots = activeSlots(schedule);
+  let best: MealSlot = slots[0] ?? "breakfast";
   let bestDiff = Infinity;
-  for (const s of MEAL_SLOTS) {
-    const d = Math.abs(SLOT_HOUR[s] - h);
+  for (const s of slots) {
+    const d = Math.abs(hourOf(schedule[s].time) - h);
     if (d < bestDiff) {
       bestDiff = d;
       best = s;
@@ -126,7 +174,7 @@ export async function autoFillWeek(ref = new Date()): Promise<WeekPlan> {
   const p = plan();
   dates.forEach((date, di) => {
     const day = { ...(p[date] ?? {}) };
-    MEAL_SLOTS.forEach((slot, si) => {
+    activeSlots().forEach((slot, si) => {
       if (day[slot]) return;
       const options = pickForTag(meals.filter((m) => m.slots.includes(slot) && !m.orderOut), tags[date]);
       const chosen = options[(di * 3 + si) % Math.max(1, options.length)];

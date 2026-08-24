@@ -1,5 +1,13 @@
 export type MealSlot = "breakfast" | "lunch" | "snack" | "dinner";
 
+export interface MealSlotSchedule {
+  /** 24h "HH:MM" the user usually eats this meal. */
+  time: string;
+  enabled: boolean;
+}
+
+export type MealSchedule = Record<MealSlot, MealSlotSchedule>;
+
 export type MealTag = "high-protein" | "high-carb" | "light" | "order-out" | "quick";
 
 export type Aisle = "Produce" | "Protein" | "Pantry" | "Dairy" | "Frozen" | "Bakery";
