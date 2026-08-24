@@ -86,16 +86,26 @@ function SessionPage() {
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
+  const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const loadedRef = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useTick(true);
 
-  // Rest timer clears on its own, no modal, no extra tap.
+  // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
     if (!rest) return;
-    const id = setTimeout(() => setRest(null), Math.max(0, rest.endsAt - Date.now()) + 500);
-    return () => clearTimeout(id);
+    const msLeft = Math.max(0, rest.endsAt - Date.now());
+    if (msLeft > 0) {
+      setRestFinished(false);
+      return;
+    }
+    setRestFinished(true);
+    playRestBeep(audioCtxRef);
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([300, 150, 300, 150, 500]);
+    }
   }, [rest]);
 
   useEffect(() => {
