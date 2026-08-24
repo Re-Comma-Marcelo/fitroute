@@ -29,7 +29,7 @@ export function MealSwapCard({
 
       <div className="flex gap-3 p-4">
         <img
-          src={mealImage(meal)}
+          src={mealImage(meal.slots[0])}
           alt={meal.name}
           loading="lazy"
           className="size-20 shrink-0 rounded-xl object-cover"
