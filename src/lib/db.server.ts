@@ -11,13 +11,15 @@ let cached: SupabaseClient | null = null;
 
 export function db(): SupabaseClient {
   if (cached) return cached;
-  const url = process.env["FORJA_SUPABASE_URL"];
+  const raw = process.env["FORJA_SUPABASE_URL"];
   const key = process.env["FORJA_SUPABASE_SERVICE_ROLE_KEY"];
-  if (!url || !key) {
+  if (!raw || !key) {
     throw new Error(
       "Supabase is not configured: FORJA_SUPABASE_URL / FORJA_SUPABASE_SERVICE_ROLE_KEY are missing.",
     );
   }
+  // Accept both https://x.supabase.co and .../rest/v1 pasted by hand.
+  const url = raw.replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
   cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: {
