@@ -225,7 +225,7 @@ function TrainPage() {
           }
         >
           <Play className="mr-1 size-5" />
-          {active ? "Resume" : "Start reccomended workout"}
+          {active ? "Resume" : "Start"}
         </Button>
         <Button
           variant="outline"
