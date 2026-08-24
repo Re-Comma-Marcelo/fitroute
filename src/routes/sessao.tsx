@@ -9,6 +9,8 @@ import {
   Timer,
   Trash2,
   TrendingUp,
+  Volume2,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { formatDuration, formatRest } from "@/lib/format";
 import {
   clearActiveSession,
@@ -70,6 +73,29 @@ const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300
 
 const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
 
+function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = audioCtxRef.current ?? new Ctx();
+    audioCtxRef.current = ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {
+    // ignore
+  }
+}
+
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -84,16 +110,26 @@ function SessionPage() {
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
+  const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const loadedRef = useRef(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
 
   useTick(true);
 
-  // Rest timer clears on its own, no modal, no extra tap.
+  // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
     if (!rest) return;
-    const id = setTimeout(() => setRest(null), Math.max(0, rest.endsAt - Date.now()) + 500);
-    return () => clearTimeout(id);
+    const msLeft = Math.max(0, rest.endsAt - Date.now());
+    if (msLeft > 0) {
+      setRestFinished(false);
+      return;
+    }
+    setRestFinished(true);
+    playRestBeep(audioCtxRef);
+    if (typeof navigator !== "undefined" && navigator.vibrate) {
+      navigator.vibrate([300, 150, 300, 150, 500]);
+    }
   }, [rest]);
 
   useEffect(() => {
@@ -478,42 +514,13 @@ function SessionPage() {
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">
           {rest ? (
-            <div className="mb-3">
-              <div className="mb-1 flex items-center justify-between text-sm font-bold">
-                <span className="text-info">Rest {formatDuration(restLeft)}</span>
-                <div className="flex gap-1">
-                  <Button
-                    variant="secondary"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
-                  >
-                    -15s
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() =>
-                      setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))
-                    }
-                  >
-                    +15s
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="tap-target h-9 px-3 text-xs font-bold"
-                    onClick={() => setRest(null)}
-                  >
-                    Skip
-                  </Button>
-                </div>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-info transition-[width] duration-1000 ease-linear"
-                  style={{ width: `${Math.min(100, (restLeft / rest.total) * 100)}%` }}
-                />
-              </div>
-            </div>
+            <RestTimerBar
+              rest={rest}
+              restLeft={restLeft}
+              onAdd={() => setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))}
+              onSubtract={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
+              onSkip={() => setRest(null)}
+            />
           ) : null}
           <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
             Finish workout
@@ -521,6 +528,10 @@ function SessionPage() {
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
+
+      {restFinished ? (
+        <RestFinishedOverlay onResume={() => setRestFinished(false)} />
+      ) : null}
     </div>
   );
 }
@@ -735,5 +746,93 @@ function SetRow({
         <Check className="size-6" strokeWidth={3} />
       </button>
     </li>
+  );
+}
+
+function RestTimerBar({
+  rest,
+  restLeft,
+  onAdd,
+  onSubtract,
+  onSkip,
+}: {
+  rest: { total: number; endsAt: number };
+  restLeft: number;
+  onAdd: () => void;
+  onSubtract: () => void;
+  onSkip: () => void;
+}) {
+  const pct = Math.min(100, (restLeft / rest.total) * 100);
+  const isLow = restLeft <= 10;
+  return (
+    <div className="mb-3 rounded-2xl border border-info/30 bg-info/10 p-3">
+      <div className="mb-2 flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="flex size-9 items-center justify-center rounded-full bg-info/20 text-info">
+            <Timer className="size-5" />
+          </span>
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">Rest</p>
+            <p
+              className={cn(
+                "font-display text-2xl font-bold tabular-nums leading-none",
+                isLow ? "text-warn" : "text-info",
+              )}
+            >
+              {formatDuration(restLeft)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-1.5">
+          <Button
+            variant="secondary"
+            className="tap-target h-10 px-3 text-xs font-bold"
+            onClick={onSubtract}
+          >
+            -15s
+          </Button>
+          <Button
+            variant="secondary"
+            className="tap-target h-10 px-3 text-xs font-bold"
+            onClick={onAdd}
+          >
+            +15s
+          </Button>
+          <Button
+            variant="ghost"
+            className="tap-target h-10 px-3 text-xs font-bold text-muted-foreground"
+            onClick={onSkip}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      </div>
+      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-1000 ease-linear",
+            isLow ? "bg-warn" : "bg-info",
+          )}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
+      <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
+        <Volume2 className="size-12" />
+      </div>
+      <h2 className="mt-6 text-center font-display text-3xl font-bold">Rest done</h2>
+      <p className="mt-2 text-center text-base text-muted-foreground">
+        Time for the next set. Keep the pace up.
+      </p>
+      <Button className="mt-8 h-14 w-full max-w-xs text-base font-bold" onClick={onResume}>
+        Resume workout
+      </Button>
+    </div>
   );
 }
