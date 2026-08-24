@@ -8,7 +8,7 @@ The chat entry point is currently only a small icon in the header.
 
 Add a second, text-based entry point on the Train screen so users notice it without hunting for the icon.
 
-- Place it right after the **Start / Blank** buttons, before the **My routines** heading.
+- Place it right after the **routine** buttons, before the at the bottom of the page.
 - Render as a quiet, full-width row: coach icon + "Any questions about today's training?" + right chevron.
 - Tapping it opens the same `CoachChatSheet` bottom sheet.
 - Keep it subtle (muted text, border, no fill) so it doesn't compete with the purple Start button.
