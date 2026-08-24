@@ -1,36 +1,34 @@
-# Progress screen: trajectory, not totals
+# Connect the app to your own Supabase (real persistence, no login yet)
 
-A layout and content pass on `/progresso`. Same dark theme, card shapes, and purple accent. History list untouched.
+Answering the question first: that line in the previous plan only described the Progress redesign — it read from the in-memory mock, so it changed no database. This plan replaces the mock with your real Supabase project. The Progress redesign comes after, unchanged in scope.
 
-## New screen order
+## What "connected" means here
 
-1. **Header** — "Progress". The third stat pill's leftover `Média` label becomes `Avg time`.
-2. **Stat pills with deltas** — Sessions / Volume / Avg time, each with a small secondary line comparing the current 30 days to the previous 30 days (e.g. "+2 vs last month", "−4% vs last month"). When there's no prior-period data, the delta line is omitted rather than showing a fake zero.
-3. **Consistency signal** — one distinct full-width line under the pills (not a pill), styled differently from the stat row: "5 of 8 planned sessions this month" plus a current weekly streak when there is one ("3-week streak"). Uses the profile's `metaTreinosSemana` as the planned baseline.
-4. **Trend chart** — compact bar chart of weekly volume for the last 8 weeks (Recharts, ~120px tall, minimal axes, purple bars, tooltip on tap). Hidden when there are fewer than 2 weeks of data.
-5. **Coach plateau card** — same ambient pattern as Train's coach card: preview line, tap to expand into reasoning and a suggested action. Only renders when a tracked lift has actually stalled in logged history (top working weight flat across the last 3+ sessions of that exercise, with average RPE not dropping). Nothing notable ⇒ no card.
-6. **Key lifts** — a card listing the lifts the user chose to track, each with `Bench Press · 60kg → 70kg · 6 weeks` and a tiny sparkline. A `+` in the section header opens a picker sheet to add a lift; each row has a remove action. Empty state invites the user to pick their first lift.
-7. **History list** — unchanged.
+Every screen reads and writes real rows in your Supabase project: profile, exercises, routines, workouts, sets, coach notes, nutrition (meals, week plan, market list, meal schedule) and tracked lifts. Nothing lives in `localStorage` or `mocks.ts` afterwards, except the in-progress session timer state (that stays local by design, then saves to the DB when you finish).
 
-## Data and logic
+Because we're keeping open access (no login), all database access goes through the server, acting as one fixed demo user. Nothing is exposed to the browser: the browser only ever calls our own server functions.
 
-- New `src/lib/data/tracked-lifts.ts`: read/add/remove tracked exercise IDs, persisted to `localStorage` (same pattern as `coach-notes.ts` / `nutrition.ts`). Defaults to a couple of common compounds on first load so the section isn't empty.
-- New `src/lib/progress-stats.ts` (pure functions over `Workout[]` / `WorkoutSet[]`):
-  - `periodStats(workouts, days)` → sessions, volume, avg duration for a window; used twice for current vs previous period.
-  - `weeklyVolume(workouts, weeks)` → chart series.
-  - `consistency(workouts, weeklyTarget)` → planned vs done this month, weekly streak.
-  - `liftTrend(sets, workouts, exerciseId)` → first/last top working weight, span in weeks, sparkline points.
-- Coach card reuses the existing `perWorkoutStats` / `isSameWeightForLastN` / `rpeTrend` signals in `src/lib/coach/signals.ts` via a new `plateauCard(...)` helper in `src/lib/coach/` returning `{ line, reasoning[], action }` or `null`. Deliberately one rule (flat top weight in a tracked lift) — no plateau-type classification this pass.
+## Steps
 
-## Components
+1. **Credentials** — I'll ask you for your Supabase project URL, publishable (anon) key and service-role key, and store the keys as secrets. Nothing goes into the source code.
+2. **Schema** — Finish `scripts/supabase-schema.sql` so it covers everything the app now has (the existing file predates the nutrition module, coach notes, body-goal fields and tracked lifts). Every table gets grants + RLS as already written. You run this file once in your Supabase SQL editor; I'll walk you through it and then verify from the app side.
+3. **Seed** — A second SQL file inserts the demo user row, the 42-exercise library, the starter routines, the 22 meals and the existing sample workout history, so the app opens with the same content it has today instead of empty screens.
+4. **Data layer swap** — Each module in `src/lib/data/` (`profile`, `exercises`, `routines`, `workouts`, `coach-notes`, `nutrition`, and a new `tracked-lifts`) keeps its exact current function signatures but calls server functions instead of mocks. Because screens only ever import from `src/lib/data/`, no route or component logic changes.
+5. **Local → DB migration of what you already have** — Nutrition week plan, market list, meal schedule and coach notes currently live in `localStorage`. On first load the app pushes any existing local data up once, then reads from the DB.
+6. **Verify** — I'll click through Home, Train, a full logged session, Diet (Today/Week/Market) and Profile against the real database, and confirm rows land correctly.
 
-- `src/routes/progresso.index.tsx` — recomposed to the order above; existing `Stat` extended with an optional delta line.
-- `src/components/progress/TrendChart.tsx` — Recharts bar chart.
-- `src/components/progress/KeyLiftsCard.tsx` + `TrackedLiftPickerSheet.tsx` — list, `+` sheet (reuses the exercise library data and existing `sheet` primitive), remove.
-- `src/components/progress/PlateauCoachCard.tsx` — mirrors `TodayCoachCard`'s expandable structure and tokens.
+## Technical notes
 
-All reads go through `src/lib/data/*`; no backend, no Cloud, no schema changes.
+- Reads/writes go through `createServerFn` in `src/lib/*.functions.ts`; the service-role client is imported inside each handler (`await import("@/integrations/supabase/client.server")`), never at module scope, so nothing server-only reaches the browser bundle.
+- A single `DEMO_USER_ID` constant scopes every query, so switching to real auth later is a swap of that constant for `context.userId` plus adding `requireSupabaseAuth` — the queries themselves stay identical.
+- RLS stays enabled on every table with owner-scoped `auth.uid()` policies. `anon` gets no grants: with open access the browser never talks to Supabase directly.
+- `src/integrations/supabase/auth-middleware.ts`, `auth-attacher.ts` and `src/hooks/use-auth.ts` stay in place unused, ready for when you turn login back on.
+- `src/lib/data/mocks.ts` shrinks to the seed source used by step 3 and is no longer imported by the app.
 
-## Out of scope
+## Known trade-off
 
-Theme/accent changes, session logging, the History list itself, and full plateau-type detection (strength vs volume vs fatigue vs adherence).
+Open access + a fixed demo user means anyone with the app URL reads and writes the same data. That's fine for development; re-enabling auth is the fix and the code is structured for it.
+
+## Not in this pass
+
+The Progress screen redesign (trend chart, deltas, consistency line, plateau coach card, key lifts) — that's the next pass, on top of real data.
