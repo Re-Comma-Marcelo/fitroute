@@ -72,6 +72,29 @@ const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300
 
 const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
 
+function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = audioCtxRef.current ?? new Ctx();
+    audioCtxRef.current = ctx;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  } catch {
+    // ignore
+  }
+}
+
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
