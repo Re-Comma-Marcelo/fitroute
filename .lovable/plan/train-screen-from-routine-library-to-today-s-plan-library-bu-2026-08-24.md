@@ -1,6 +1,6 @@
-# Train screen: from routine library to today's plan
+# Train screen: from routine library to today's plan (+ library, but todays plan as a main thing on the page)
 
-Layout and content pass only — same dark theme, card shapes, purple accent. No chat tab, no changes to the session/logging flow.
+Layout and content pass only — same dark theme, card shapes, purple accent. No chat tab, no changes to the session/logging flow. 
 
 ## What the screen becomes
 
@@ -16,13 +16,13 @@ Today the routine cards dump all 7 exercises with sets/reps inline. Every card b
 
 ## Today's coach card
 
-**Collapsed:** one plain line naming the active routine and a reason drawn from real data, e.g. "Upper A today — Bench has room to move and your chest volume is low this week." Treated as commentary, not a metric or CTA: bordered/tinted panel with a small coach icon, no filled purple, chevron to indicate expandability.
+**Collapsed:** one plain line naming the active routine and a reason drawn from real data, e.g. "Upper A today, Bench has room to move and your chest volume is low this week." Treated as commentary, not a metric or CTA: bordered/tinted panel with a small coach icon, no filled purple, chevron to indicate expandability.
 
 **Expanded (inline expand):** three blocks —
 
 - *Why today* — recent volume per muscle group, days since that routine, how the last sessions went (RPE trend, weight movement).
 - *Your setup* — only the profile inputs that actually influenced the pick: preferred time, session length vs. routine size, available equipment, exercises being avoided (with the reason the user typed).
-- *Actions* — "Keep this plan" (starts it), "Swap <flagged exercise>" (picks an alternative for the same muscle group from the library, respecting equipment and avoid-list, applied to this session only), and "Lighter session" (deload — reduced sets/load flag carried into the session).
+- *Actions* — "Keep this plan" (starts it), "Swap &nbsp;" (picks an alternative for the same muscle group from the library, respecting equipment and avoid-list, applied to this session only), and "Lighter session" (deload — reduced sets/load flag carried into the session).
 
 Also inside the expanded card: a compact "Log an issue" row (short free text + soreness/injury tags) so the user can record something the coach can reference later, without waiting for the weekly check-in.
 

@@ -149,3 +149,29 @@ export function currentExerciseName(session: ActiveSession): string {
   const pendente = session.exercicios.find((ex) => !ex.pulado && ex.sets.some((s) => !s.concluida));
   return pendente?.nome ?? atual?.nome ?? "Treino livre";
 }
+const CHOICE_KEY = "forja.todayChoice.v1";
+
+function todayKey(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Routine the user picked for today (defaults to the coach recommendation). */
+export function loadTodayChoice(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(CHOICE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { date: string; routineId: string };
+    return parsed.date === todayKey() ? parsed.routineId : null;
+  } catch {
+    return null;
+  }
+}
+
+export function saveTodayChoice(routineId: string) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    CHOICE_KEY,
+    JSON.stringify({ date: todayKey(), routineId }),
+  );
+}

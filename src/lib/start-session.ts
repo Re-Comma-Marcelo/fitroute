@@ -6,7 +6,15 @@ import { makeSets, saveActiveSession, type ActiveExercise, type ActiveSession } 
 
 export async function buildActiveExercise(
   exerciseId: string,
-  opts: { seriesAlvo?: number; repsMin?: number; repsMax?: number; descansoSeg?: number; notas?: string } = {},
+  opts: {
+    seriesAlvo?: number;
+    repsMin?: number;
+    repsMax?: number;
+    descansoSeg?: number;
+    notas?: string;
+    /** Lighter/deload session: fewer sets and ~10% less load. */
+    deload?: boolean;
+  } = {},
 ): Promise<ActiveExercise | null> {
   const exercise = await getExercise(exerciseId);
   if (!exercise) return null;
@@ -19,13 +27,20 @@ export async function buildActiveExercise(
   }));
   const repsMin = opts.repsMin ?? 8;
   const repsMax = opts.repsMax ?? 12;
-  const seriesAlvo = opts.seriesAlvo ?? Math.max(3, anteriores.length);
+  const baseSeries = opts.seriesAlvo ?? Math.max(3, anteriores.length);
+  const seriesAlvo = opts.deload ? Math.max(2, baseSeries - 1) : baseSeries;
   const sugestao = suggestProgression({
     anteriores,
     repsMin,
     repsMax,
     equipamento: exercise.equipamento,
   });
+  const lastWeight = anteriores.find((a) => a.tipoSerie !== "aquecimento")?.pesoKg ?? null;
+  const pesoSugerido = opts.deload
+    ? lastWeight !== null
+      ? Math.round(lastWeight * 0.9 * 2) / 2
+      : null
+    : (sugestao?.pesoSugerido ?? null);
   return {
     exerciseId,
     nome: exercise.nome,
@@ -36,25 +51,36 @@ export async function buildActiveExercise(
     repsMax,
     notas: opts.notas ?? "",
     pulado: false,
-    sugestao,
+    sugestao: opts.deload ? null : sugestao,
     sets: makeSets(seriesAlvo, anteriores, {
-      pesoSugerido: sugestao?.pesoSugerido ?? null,
+      pesoSugerido,
       repsAlvo: null,
     }),
   };
 }
 
-export async function startRoutineSession(routineId: string): Promise<ActiveSession | null> {
+export interface StartRoutineOptions {
+  /** Per-session exercise substitutions: original exerciseId -> replacement. */
+  swaps?: Record<string, string>;
+  /** Lighter session: fewer sets, ~10% less load. */
+  deload?: boolean;
+}
+
+export async function startRoutineSession(
+  routineId: string,
+  opts: StartRoutineOptions = {},
+): Promise<ActiveSession | null> {
   const routine = await getRoutine(routineId);
   if (!routine) return null;
   const exercicios: ActiveExercise[] = [];
   for (const rex of [...routine.exercicios].sort((a, b) => a.ordem - b.ordem)) {
-    const built = await buildActiveExercise(rex.exerciseId, {
+    const built = await buildActiveExercise(opts.swaps?.[rex.exerciseId] ?? rex.exerciseId, {
       seriesAlvo: rex.seriesAlvo,
       repsMin: rex.repsMin,
       repsMax: rex.repsMax,
       descansoSeg: rex.descansoSeg,
       notas: rex.notas,
+      ...(opts.deload ? { deload: true } : {}),
     });
     if (built) exercicios.push(built);
   }
@@ -82,7 +108,7 @@ export async function startBlankSession(): Promise<ActiveSession> {
   }
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
-    routineNome: "Treino em branco",
+    routineNome: "Blank workout",
     iniciadoEm: new Date().toISOString(),
     notas: "",
     exercicios,
