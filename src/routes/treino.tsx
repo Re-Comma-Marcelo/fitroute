@@ -216,6 +216,10 @@ function TrainPage() {
         />
       )}
 
+      <div className="mt-4">
+        <CoachChatRow />
+      </div>
+
       <div className="mt-5 grid grid-cols-2 gap-3">
         <Button
           className="h-14 w-full text-base font-semibold"
@@ -235,10 +239,6 @@ function TrainPage() {
         >
           Blank
         </Button>
-      </div>
-
-      <div className="mt-4">
-        <CoachChatRow />
       </div>
 
       <h2 className="label-caps mt-8 mb-3">My routines</h2>
