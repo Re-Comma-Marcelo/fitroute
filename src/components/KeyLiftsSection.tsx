@@ -121,8 +121,8 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
     direction === "up"
       ? "rgb(52 211 153)"
       : direction === "down"
-        ? "hsl(var(--destructive))"
-        : "hsl(var(--muted-foreground))";
+        ? "var(--destructive)"
+        : "var(--muted-foreground)";
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0" aria-hidden="true">
       <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" />

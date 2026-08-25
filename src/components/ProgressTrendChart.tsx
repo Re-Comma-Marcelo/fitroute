@@ -49,11 +49,11 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                   tickLine={false}
                   axisLine={false}
                   interval={1}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
                 />
                 <Bar
                   dataKey="volume"
-                  fill="hsl(var(--primary))"
+                  fill="var(--primary)"
                   radius={[4, 4, 2, 2]}
                   maxBarSize={22}
                 />
@@ -65,14 +65,14 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                   tickLine={false}
                   axisLine={false}
                   interval={1}
-                  tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 10 }}
+                  tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
                 />
                 <Line
                   type="monotone"
                   dataKey="sessions"
-                  stroke="hsl(var(--primary))"
+                  stroke="var(--primary)"
                   strokeWidth={2}
-                  dot={{ r: 2.5, fill: "hsl(var(--primary))" }}
+                  dot={{ r: 2.5, fill: "var(--primary)" }}
                 />
               </LineChart>
             )}
