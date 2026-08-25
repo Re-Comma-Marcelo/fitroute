@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { AppShell } from "@/components/AppShell";
 
-export const Route = createFileRoute("/dieta")({
+export const Route = createFileRoute("/_authenticated/dieta")({
   component: DietLayout,
 });
 

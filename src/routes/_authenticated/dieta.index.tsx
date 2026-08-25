@@ -26,7 +26,7 @@ import {
 } from "@/lib/data/nutrition";
 import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
-export const Route = createFileRoute("/dieta/")({
+export const Route = createFileRoute("/_authenticated/dieta/")({
   head: () => ({
     meta: [
       { title: "Today's meals — Forja" },

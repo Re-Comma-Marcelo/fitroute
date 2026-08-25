@@ -10,68 +10,33 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as BibliotecaRouteImport } from './routes/biblioteca'
-import { Route as DietaRouteImport } from './routes/dieta'
-import { Route as InicioRouteImport } from './routes/inicio'
 import { Route as McpRouteImport } from './routes/mcp'
-import { Route as PerfilRouteImport } from './routes/perfil'
-import { Route as ProgressoRouteImport } from './routes/progresso'
-import { Route as SessaoRouteImport } from './routes/sessao'
-import { Route as TreinoRouteImport } from './routes/treino'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
-import { Route as DietaIndexRouteImport } from './routes/dieta.index'
-import { Route as DietaMarketRouteImport } from './routes/dieta.market'
-import { Route as DietaWeekRouteImport } from './routes/dieta.week'
-import { Route as ProgressoIndexRouteImport } from './routes/progresso.index'
-import { Route as ProgressoIdRouteImport } from './routes/progresso.$id'
-import { Route as ResumoIdRouteImport } from './routes/resumo.$id'
-import { Route as RotinaIdRouteImport } from './routes/rotina.$id'
+import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
+import { Route as AuthenticatedDietaRouteImport } from './routes/_authenticated/dieta'
+import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
+import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
+import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated/treino'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
+import { Route as AuthenticatedDietaMarketRouteImport } from './routes/_authenticated/dieta.market'
+import { Route as AuthenticatedDietaWeekRouteImport } from './routes/_authenticated/dieta.week'
+import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
+import { Route as AuthenticatedProgressoIdRouteImport } from './routes/_authenticated/progresso.$id'
+import { Route as AuthenticatedResumoIdRouteImport } from './routes/_authenticated/resumo.$id'
+import { Route as AuthenticatedRotinaIdRouteImport } from './routes/_authenticated/rotina.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BibliotecaRoute = BibliotecaRouteImport.update({
-  id: '/biblioteca',
-  path: '/biblioteca',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DietaRoute = DietaRouteImport.update({
-  id: '/dieta',
-  path: '/dieta',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InicioRoute = InicioRouteImport.update({
-  id: '/inicio',
-  path: '/inicio',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PerfilRoute = PerfilRouteImport.update({
-  id: '/perfil',
-  path: '/perfil',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProgressoRoute = ProgressoRouteImport.update({
-  id: '/progresso',
-  path: '/progresso',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SessaoRoute = SessaoRouteImport.update({
-  id: '/sessao',
-  path: '/sessao',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const TreinoRoute = TreinoRouteImport.update({
-  id: '/treino',
-  path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -86,39 +51,39 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     path: '/.well-known/oauth-protected-resource',
     getParentRoute: () => rootRouteImport,
   } as any)
-const DietaIndexRoute = DietaIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DietaRoute,
-} as any)
-const DietaMarketRoute = DietaMarketRouteImport.update({
-  id: '/market',
-  path: '/market',
-  getParentRoute: () => DietaRoute,
-} as any)
-const DietaWeekRoute = DietaWeekRouteImport.update({
-  id: '/week',
-  path: '/week',
-  getParentRoute: () => DietaRoute,
-} as any)
-const ProgressoIndexRoute = ProgressoIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => ProgressoRoute,
-} as any)
-const ProgressoIdRoute = ProgressoIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => ProgressoRoute,
-} as any)
-const ResumoIdRoute = ResumoIdRouteImport.update({
-  id: '/resumo/$id',
-  path: '/resumo/$id',
+const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
+  id: '/_authenticated/biblioteca',
+  path: '/biblioteca',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RotinaIdRoute = RotinaIdRouteImport.update({
-  id: '/rotina/$id',
-  path: '/rotina/$id',
+const AuthenticatedDietaRoute = AuthenticatedDietaRouteImport.update({
+  id: '/_authenticated/dieta',
+  path: '/dieta',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
+  id: '/_authenticated/inicio',
+  path: '/inicio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
+  id: '/_authenticated/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedProgressoRoute = AuthenticatedProgressoRouteImport.update({
+  id: '/_authenticated/progresso',
+  path: '/progresso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSessaoRoute = AuthenticatedSessaoRouteImport.update({
+  id: '/_authenticated/sessao',
+  path: '/sessao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedTreinoRoute = AuthenticatedTreinoRouteImport.update({
+  id: '/_authenticated/treino',
+  path: '/treino',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
@@ -127,83 +92,122 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedDietaRoute,
+} as any)
+const AuthenticatedDietaMarketRoute =
+  AuthenticatedDietaMarketRouteImport.update({
+    id: '/market',
+    path: '/market',
+    getParentRoute: () => AuthenticatedDietaRoute,
+  } as any)
+const AuthenticatedDietaWeekRoute = AuthenticatedDietaWeekRouteImport.update({
+  id: '/week',
+  path: '/week',
+  getParentRoute: () => AuthenticatedDietaRoute,
+} as any)
+const AuthenticatedProgressoIndexRoute =
+  AuthenticatedProgressoIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedProgressoRoute,
+  } as any)
+const AuthenticatedProgressoIdRoute =
+  AuthenticatedProgressoIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedProgressoRoute,
+  } as any)
+const AuthenticatedResumoIdRoute = AuthenticatedResumoIdRouteImport.update({
+  id: '/_authenticated/resumo/$id',
+  path: '/resumo/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRotinaIdRoute = AuthenticatedRotinaIdRouteImport.update({
+  id: '/_authenticated/rotina/$id',
+  path: '/rotina/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/biblioteca': typeof BibliotecaRoute
-  '/dieta': typeof DietaRouteWithChildren
-  '/inicio': typeof InicioRoute
   '/mcp': typeof McpRoute
-  '/perfil': typeof PerfilRoute
-  '/progresso': typeof ProgressoRouteWithChildren
-  '/sessao': typeof SessaoRoute
-  '/treino': typeof TreinoRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/dieta/market': typeof DietaMarketRoute
-  '/dieta/week': typeof DietaWeekRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
-  '/dieta/': typeof DietaIndexRoute
-  '/progresso/': typeof ProgressoIndexRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/dieta': typeof AuthenticatedDietaRouteWithChildren
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/progresso': typeof AuthenticatedProgressoRouteWithChildren
+  '/sessao': typeof AuthenticatedSessaoRoute
+  '/treino': typeof AuthenticatedTreinoRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/dieta/market': typeof AuthenticatedDietaMarketRoute
+  '/dieta/week': typeof AuthenticatedDietaWeekRoute
+  '/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rotina/$id': typeof AuthenticatedRotinaIdRoute
+  '/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/progresso/': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/biblioteca': typeof BibliotecaRoute
-  '/inicio': typeof InicioRoute
   '/mcp': typeof McpRoute
-  '/perfil': typeof PerfilRoute
-  '/sessao': typeof SessaoRoute
-  '/treino': typeof TreinoRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/dieta/market': typeof DietaMarketRoute
-  '/dieta/week': typeof DietaWeekRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
-  '/dieta': typeof DietaIndexRoute
-  '/progresso': typeof ProgressoIndexRoute
+  '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/inicio': typeof AuthenticatedInicioRoute
+  '/perfil': typeof AuthenticatedPerfilRoute
+  '/sessao': typeof AuthenticatedSessaoRoute
+  '/treino': typeof AuthenticatedTreinoRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/dieta/market': typeof AuthenticatedDietaMarketRoute
+  '/dieta/week': typeof AuthenticatedDietaWeekRoute
+  '/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rotina/$id': typeof AuthenticatedRotinaIdRoute
+  '/dieta': typeof AuthenticatedDietaIndexRoute
+  '/progresso': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/biblioteca': typeof BibliotecaRoute
-  '/dieta': typeof DietaRouteWithChildren
-  '/inicio': typeof InicioRoute
   '/mcp': typeof McpRoute
-  '/perfil': typeof PerfilRoute
-  '/progresso': typeof ProgressoRouteWithChildren
-  '/sessao': typeof SessaoRoute
-  '/treino': typeof TreinoRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  '/dieta/market': typeof DietaMarketRoute
-  '/dieta/week': typeof DietaWeekRoute
-  '/progresso/$id': typeof ProgressoIdRoute
-  '/resumo/$id': typeof ResumoIdRoute
-  '/rotina/$id': typeof RotinaIdRoute
-  '/dieta/': typeof DietaIndexRoute
-  '/progresso/': typeof ProgressoIndexRoute
+  '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/_authenticated/dieta': typeof AuthenticatedDietaRouteWithChildren
+  '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
+  '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
+  '/_authenticated/treino': typeof AuthenticatedTreinoRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/dieta/market': typeof AuthenticatedDietaMarketRoute
+  '/_authenticated/dieta/week': typeof AuthenticatedDietaWeekRoute
+  '/_authenticated/progresso/$id': typeof AuthenticatedProgressoIdRoute
+  '/_authenticated/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/_authenticated/rotina/$id': typeof AuthenticatedRotinaIdRoute
+  '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
+  '/_authenticated/progresso/': typeof AuthenticatedProgressoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/biblioteca'
     | '/dieta'
     | '/inicio'
-    | '/mcp'
     | '/perfil'
     | '/progresso'
     | '/sessao'
     | '/treino'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
+    | '/.mcp/invoke-tool/$tool'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -211,18 +215,18 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta/'
     | '/progresso/'
-    | '/.mcp/invoke-tool/$tool'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/biblioteca'
     | '/inicio'
-    | '/mcp'
     | '/perfil'
     | '/sessao'
     | '/treino'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
+    | '/.mcp/invoke-tool/$tool'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -230,45 +234,44 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta'
     | '/progresso'
-    | '/.mcp/invoke-tool/$tool'
   id:
     | '__root__'
     | '/'
-    | '/biblioteca'
-    | '/dieta'
-    | '/inicio'
     | '/mcp'
-    | '/perfil'
-    | '/progresso'
-    | '/sessao'
-    | '/treino'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
-    | '/dieta/market'
-    | '/dieta/week'
-    | '/progresso/$id'
-    | '/resumo/$id'
-    | '/rotina/$id'
-    | '/dieta/'
-    | '/progresso/'
+    | '/_authenticated/biblioteca'
+    | '/_authenticated/dieta'
+    | '/_authenticated/inicio'
+    | '/_authenticated/perfil'
+    | '/_authenticated/progresso'
+    | '/_authenticated/sessao'
+    | '/_authenticated/treino'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/dieta/market'
+    | '/_authenticated/dieta/week'
+    | '/_authenticated/progresso/$id'
+    | '/_authenticated/resumo/$id'
+    | '/_authenticated/rotina/$id'
+    | '/_authenticated/dieta/'
+    | '/_authenticated/progresso/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  BibliotecaRoute: typeof BibliotecaRoute
-  DietaRoute: typeof DietaRouteWithChildren
-  InicioRoute: typeof InicioRoute
   McpRoute: typeof McpRoute
-  PerfilRoute: typeof PerfilRoute
-  ProgressoRoute: typeof ProgressoRouteWithChildren
-  SessaoRoute: typeof SessaoRoute
-  TreinoRoute: typeof TreinoRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  ResumoIdRoute: typeof ResumoIdRoute
-  RotinaIdRoute: typeof RotinaIdRoute
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
+  AuthenticatedDietaRoute: typeof AuthenticatedDietaRouteWithChildren
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
+  AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
+  AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
+  AuthenticatedRotinaIdRoute: typeof AuthenticatedRotinaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -280,60 +283,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/biblioteca': {
-      id: '/biblioteca'
-      path: '/biblioteca'
-      fullPath: '/biblioteca'
-      preLoaderRoute: typeof BibliotecaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dieta': {
-      id: '/dieta'
-      path: '/dieta'
-      fullPath: '/dieta'
-      preLoaderRoute: typeof DietaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inicio': {
-      id: '/inicio'
-      path: '/inicio'
-      fullPath: '/inicio'
-      preLoaderRoute: typeof InicioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/perfil': {
-      id: '/perfil'
-      path: '/perfil'
-      fullPath: '/perfil'
-      preLoaderRoute: typeof PerfilRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/progresso': {
-      id: '/progresso'
-      path: '/progresso'
-      fullPath: '/progresso'
-      preLoaderRoute: typeof ProgressoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sessao': {
-      id: '/sessao'
-      path: '/sessao'
-      fullPath: '/sessao'
-      preLoaderRoute: typeof SessaoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/treino': {
-      id: '/treino'
-      path: '/treino'
-      fullPath: '/treino'
-      preLoaderRoute: typeof TreinoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -350,53 +304,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/dieta/': {
-      id: '/dieta/'
-      path: '/'
-      fullPath: '/dieta/'
-      preLoaderRoute: typeof DietaIndexRouteImport
-      parentRoute: typeof DietaRoute
-    }
-    '/dieta/market': {
-      id: '/dieta/market'
-      path: '/market'
-      fullPath: '/dieta/market'
-      preLoaderRoute: typeof DietaMarketRouteImport
-      parentRoute: typeof DietaRoute
-    }
-    '/dieta/week': {
-      id: '/dieta/week'
-      path: '/week'
-      fullPath: '/dieta/week'
-      preLoaderRoute: typeof DietaWeekRouteImport
-      parentRoute: typeof DietaRoute
-    }
-    '/progresso/': {
-      id: '/progresso/'
-      path: '/'
-      fullPath: '/progresso/'
-      preLoaderRoute: typeof ProgressoIndexRouteImport
-      parentRoute: typeof ProgressoRoute
-    }
-    '/progresso/$id': {
-      id: '/progresso/$id'
-      path: '/$id'
-      fullPath: '/progresso/$id'
-      preLoaderRoute: typeof ProgressoIdRouteImport
-      parentRoute: typeof ProgressoRoute
-    }
-    '/resumo/$id': {
-      id: '/resumo/$id'
-      path: '/resumo/$id'
-      fullPath: '/resumo/$id'
-      preLoaderRoute: typeof ResumoIdRouteImport
+    '/_authenticated/biblioteca': {
+      id: '/_authenticated/biblioteca'
+      path: '/biblioteca'
+      fullPath: '/biblioteca'
+      preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/rotina/$id': {
-      id: '/rotina/$id'
-      path: '/rotina/$id'
-      fullPath: '/rotina/$id'
-      preLoaderRoute: typeof RotinaIdRouteImport
+    '/_authenticated/dieta': {
+      id: '/_authenticated/dieta'
+      path: '/dieta'
+      fullPath: '/dieta'
+      preLoaderRoute: typeof AuthenticatedDietaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/inicio': {
+      id: '/_authenticated/inicio'
+      path: '/inicio'
+      fullPath: '/inicio'
+      preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/perfil': {
+      id: '/_authenticated/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/progresso': {
+      id: '/_authenticated/progresso'
+      path: '/progresso'
+      fullPath: '/progresso'
+      preLoaderRoute: typeof AuthenticatedProgressoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/sessao': {
+      id: '/_authenticated/sessao'
+      path: '/sessao'
+      fullPath: '/sessao'
+      preLoaderRoute: typeof AuthenticatedSessaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/treino': {
+      id: '/_authenticated/treino'
+      path: '/treino'
+      fullPath: '/treino'
+      preLoaderRoute: typeof AuthenticatedTreinoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/invoke-tool/$tool': {
@@ -406,53 +360,105 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dieta/': {
+      id: '/_authenticated/dieta/'
+      path: '/'
+      fullPath: '/dieta/'
+      preLoaderRoute: typeof AuthenticatedDietaIndexRouteImport
+      parentRoute: typeof AuthenticatedDietaRoute
+    }
+    '/_authenticated/dieta/market': {
+      id: '/_authenticated/dieta/market'
+      path: '/market'
+      fullPath: '/dieta/market'
+      preLoaderRoute: typeof AuthenticatedDietaMarketRouteImport
+      parentRoute: typeof AuthenticatedDietaRoute
+    }
+    '/_authenticated/dieta/week': {
+      id: '/_authenticated/dieta/week'
+      path: '/week'
+      fullPath: '/dieta/week'
+      preLoaderRoute: typeof AuthenticatedDietaWeekRouteImport
+      parentRoute: typeof AuthenticatedDietaRoute
+    }
+    '/_authenticated/progresso/': {
+      id: '/_authenticated/progresso/'
+      path: '/'
+      fullPath: '/progresso/'
+      preLoaderRoute: typeof AuthenticatedProgressoIndexRouteImport
+      parentRoute: typeof AuthenticatedProgressoRoute
+    }
+    '/_authenticated/progresso/$id': {
+      id: '/_authenticated/progresso/$id'
+      path: '/$id'
+      fullPath: '/progresso/$id'
+      preLoaderRoute: typeof AuthenticatedProgressoIdRouteImport
+      parentRoute: typeof AuthenticatedProgressoRoute
+    }
+    '/_authenticated/resumo/$id': {
+      id: '/_authenticated/resumo/$id'
+      path: '/resumo/$id'
+      fullPath: '/resumo/$id'
+      preLoaderRoute: typeof AuthenticatedResumoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/rotina/$id': {
+      id: '/_authenticated/rotina/$id'
+      path: '/rotina/$id'
+      fullPath: '/rotina/$id'
+      preLoaderRoute: typeof AuthenticatedRotinaIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
-interface DietaRouteChildren {
-  DietaMarketRoute: typeof DietaMarketRoute
-  DietaWeekRoute: typeof DietaWeekRoute
-  DietaIndexRoute: typeof DietaIndexRoute
+interface AuthenticatedDietaRouteChildren {
+  AuthenticatedDietaMarketRoute: typeof AuthenticatedDietaMarketRoute
+  AuthenticatedDietaWeekRoute: typeof AuthenticatedDietaWeekRoute
+  AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
 }
 
-const DietaRouteChildren: DietaRouteChildren = {
-  DietaMarketRoute: DietaMarketRoute,
-  DietaWeekRoute: DietaWeekRoute,
-  DietaIndexRoute: DietaIndexRoute,
+const AuthenticatedDietaRouteChildren: AuthenticatedDietaRouteChildren = {
+  AuthenticatedDietaMarketRoute: AuthenticatedDietaMarketRoute,
+  AuthenticatedDietaWeekRoute: AuthenticatedDietaWeekRoute,
+  AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
 }
 
-const DietaRouteWithChildren = DietaRoute._addFileChildren(DietaRouteChildren)
+const AuthenticatedDietaRouteWithChildren =
+  AuthenticatedDietaRoute._addFileChildren(AuthenticatedDietaRouteChildren)
 
-interface ProgressoRouteChildren {
-  ProgressoIdRoute: typeof ProgressoIdRoute
-  ProgressoIndexRoute: typeof ProgressoIndexRoute
+interface AuthenticatedProgressoRouteChildren {
+  AuthenticatedProgressoIdRoute: typeof AuthenticatedProgressoIdRoute
+  AuthenticatedProgressoIndexRoute: typeof AuthenticatedProgressoIndexRoute
 }
 
-const ProgressoRouteChildren: ProgressoRouteChildren = {
-  ProgressoIdRoute: ProgressoIdRoute,
-  ProgressoIndexRoute: ProgressoIndexRoute,
-}
+const AuthenticatedProgressoRouteChildren: AuthenticatedProgressoRouteChildren =
+  {
+    AuthenticatedProgressoIdRoute: AuthenticatedProgressoIdRoute,
+    AuthenticatedProgressoIndexRoute: AuthenticatedProgressoIndexRoute,
+  }
 
-const ProgressoRouteWithChildren = ProgressoRoute._addFileChildren(
-  ProgressoRouteChildren,
-)
+const AuthenticatedProgressoRouteWithChildren =
+  AuthenticatedProgressoRoute._addFileChildren(
+    AuthenticatedProgressoRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  BibliotecaRoute: BibliotecaRoute,
-  DietaRoute: DietaRouteWithChildren,
-  InicioRoute: InicioRoute,
   McpRoute: McpRoute,
-  PerfilRoute: PerfilRoute,
-  ProgressoRoute: ProgressoRouteWithChildren,
-  SessaoRoute: SessaoRoute,
-  TreinoRoute: TreinoRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  ResumoIdRoute: ResumoIdRoute,
-  RotinaIdRoute: RotinaIdRoute,
+  AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
+  AuthenticatedDietaRoute: AuthenticatedDietaRouteWithChildren,
+  AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
+  AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
+  AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  AuthenticatedResumoIdRoute: AuthenticatedResumoIdRoute,
+  AuthenticatedRotinaIdRoute: AuthenticatedRotinaIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -38,7 +38,7 @@ import { CoachChatButton } from "@/components/CoachChatSheet";
 import type { CoachNote, Profile } from "@/lib/types";
 import type { TodayPlan } from "@/lib/coach/types";
 
-export const Route = createFileRoute("/inicio")({
+export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
   head: () => ({
     meta: [

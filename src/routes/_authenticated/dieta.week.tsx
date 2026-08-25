@@ -19,7 +19,7 @@ import {
 } from "@/lib/data/nutrition";
 import type { MealSlot } from "@/lib/nutrition-types";
 
-export const Route = createFileRoute("/dieta/week")({
+export const Route = createFileRoute("/_authenticated/dieta/week")({
   head: () => ({
     meta: [
       { title: "Week meal plan — Forja" },
