@@ -74,6 +74,10 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async () => {
+    const cfg = await getSupabaseBrowserConfig();
+    configureSupabase({ url: cfg.url ?? "", key: cfg.key ?? "" });
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
