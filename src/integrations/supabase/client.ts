@@ -1,32 +1,49 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/lib/database.types";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-const url = import.meta.env["VITE_SUPABASE_URL"] ?? process.env["SUPABASE_URL"];
-const key =
-  import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"] ??
-  process.env["SUPABASE_PUBLISHABLE_KEY"];
+/**
+ * The browser client is configured at runtime: the project's Supabase URL and
+ * publishable key live in server-side env, and the root route hands them to
+ * configureSupabase() before any route renders. `supabase` is a lazy proxy so
+ * existing `supabase.auth.*` imports keep working.
+ */
+let client: SupabaseClient | null = null;
+let config: { url: string; key: string } | null = null;
 
-// Fallback placeholders keep module evaluation from throwing before Supabase is
-// connected — assertSupabaseConfigured() reports the real problem at call time.
-export const supabase = createClient<Database>(
-  url ?? "https://placeholder.supabase.co",
-  key ?? "placeholder-key",
-  {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-  },
-  },
-);
-
-export const isSupabaseConfigured = Boolean(url && key);
-
-export function assertSupabaseConfigured() {
-  if (!url || !key) {
-    throw new Error(
-      "Supabase URL and publishable key are missing. Connect Supabase in Project Settings → Integrations.",
-    );
-  }
+export function configureSupabase(next: { url: string; key: string } | null) {
+  if (!next?.url || !next?.key) return;
+  if (config && config.url === next.url && config.key === next.key) return;
+  config = next;
+  client = null;
 }
 
+export const isSupabaseConfigured = () => Boolean(config);
+
+export function getSupabase(): SupabaseClient {
+  if (!config) {
+    throw new Error(
+      "Supabase is not configured: FORJA_SUPABASE_URL / FORJA_SUPABASE_PUBLISHABLE_KEY are missing.",
+    );
+  }
+  if (!client) {
+    client = createClient(config.url, config.key, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        storageKey: "forja-auth",
+      },
+    });
+  }
+  return client;
+}
+
+export function assertSupabaseConfigured() {
+  getSupabase();
+}
+
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(_target, prop) {
+    const value = getSupabase()[prop as keyof SupabaseClient];
+    return typeof value === "function" ? (value as Function).bind(getSupabase()) : value;
+  },
+}) as SupabaseClient;
