@@ -51,7 +51,7 @@ export function KeyLiftsSection({
               key={exercise.id}
               className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
             >
-              <ExerciseThumb exercise={exercise} className="size-11 shrink-0 rounded-xl" />
+              <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-sm font-semibold leading-tight">
                   {exercise.nome}
