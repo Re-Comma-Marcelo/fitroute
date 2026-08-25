@@ -18,13 +18,18 @@ export const fetchProfile = createServerFn({ method: "GET" }).handler(async () =
 export const persistProfile = createServerFn({ method: "POST" })
   .inputValidator((data: { profile: Profile }) => data)
   .handler(async ({ data }) => {
-    const { db, fromProfile, toProfile, unwrap } = await import("./db.server");
+    const { db, fromProfile, requireUserId, toProfile, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
     const row = unwrap(
       await db()
         .from("profiles")
-        .upsert(fromProfile(data.profile as unknown as Record<string, unknown>), {
-          onConflict: "id",
-        })
+        .upsert(
+          fromProfile(
+            { ...(data.profile as unknown as Record<string, unknown>), id: userId },
+            userId,
+          ),
+          { onConflict: "id" },
+        )
         .select("*")
         .single(),
     ) as Record<string, unknown>;
@@ -32,8 +37,15 @@ export const persistProfile = createServerFn({ method: "POST" })
   });
 
 export const fetchExercises = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, toExercise, unwrap } = await import("./db.server");
-  const rows = unwrap(await db().from("exercises").select("*").order("nome"));
+  const { db, requireUserId, toExercise, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("exercises")
+      .select("*")
+      .or(`user_id.is.null,user_id.eq.${userId}`)
+      .order("nome"),
+  );
   return rows.map(toExercise) as unknown as Exercise[];
 });
 
@@ -126,8 +138,16 @@ export const persistRoutine = createServerFn({ method: "POST" })
 export const removeRoutine = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-    const { db, unwrap } = await import("./db.server");
-    unwrap(await db().from("routines").delete().eq("id", data.id).select("id"));
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("routines")
+        .delete()
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .select("id"),
+    );
     return { ok: true };
   });
 
@@ -207,8 +227,16 @@ export const persistWorkout = createServerFn({ method: "POST" })
 export const removeWorkout = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-    const { db, unwrap } = await import("./db.server");
-    unwrap(await db().from("workouts").delete().eq("id", data.id).select("id"));
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("workouts")
+        .delete()
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .select("id"),
+    );
     return { ok: true };
   });
 
