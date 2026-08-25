@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -34,6 +35,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
@@ -52,39 +57,39 @@ const Char91DotwellKnownChar93OauthProtectedResourceRoute =
     getParentRoute: () => rootRouteImport,
   } as any)
 const AuthenticatedBibliotecaRoute = AuthenticatedBibliotecaRouteImport.update({
-  id: '/_authenticated/biblioteca',
+  id: '/biblioteca',
   path: '/biblioteca',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDietaRoute = AuthenticatedDietaRouteImport.update({
-  id: '/_authenticated/dieta',
+  id: '/dieta',
   path: '/dieta',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
-  id: '/_authenticated/inicio',
+  id: '/inicio',
   path: '/inicio',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
-  id: '/_authenticated/perfil',
+  id: '/perfil',
   path: '/perfil',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProgressoRoute = AuthenticatedProgressoRouteImport.update({
-  id: '/_authenticated/progresso',
+  id: '/progresso',
   path: '/progresso',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedSessaoRoute = AuthenticatedSessaoRouteImport.update({
-  id: '/_authenticated/sessao',
+  id: '/sessao',
   path: '/sessao',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTreinoRoute = AuthenticatedTreinoRouteImport.update({
-  id: '/_authenticated/treino',
+  id: '/treino',
   path: '/treino',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
@@ -121,14 +126,14 @@ const AuthenticatedProgressoIdRoute =
     getParentRoute: () => AuthenticatedProgressoRoute,
   } as any)
 const AuthenticatedResumoIdRoute = AuthenticatedResumoIdRouteImport.update({
-  id: '/_authenticated/resumo/$id',
+  id: '/resumo/$id',
   path: '/resumo/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRotinaIdRoute = AuthenticatedRotinaIdRouteImport.update({
-  id: '/_authenticated/rotina/$id',
+  id: '/rotina/$id',
   path: '/rotina/$id',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -174,6 +179,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/mcp': typeof McpRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
@@ -237,6 +243,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_authenticated'
     | '/mcp'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
@@ -259,19 +266,11 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
-  AuthenticatedDietaRoute: typeof AuthenticatedDietaRouteWithChildren
-  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
-  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
-  AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
-  AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
-  AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
-  AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
-  AuthenticatedRotinaIdRoute: typeof AuthenticatedRotinaIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -281,6 +280,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -309,49 +315,49 @@ declare module '@tanstack/react-router' {
       path: '/biblioteca'
       fullPath: '/biblioteca'
       preLoaderRoute: typeof AuthenticatedBibliotecaRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dieta': {
       id: '/_authenticated/dieta'
       path: '/dieta'
       fullPath: '/dieta'
       preLoaderRoute: typeof AuthenticatedDietaRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
       id: '/_authenticated/perfil'
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/progresso': {
       id: '/_authenticated/progresso'
       path: '/progresso'
       fullPath: '/progresso'
       preLoaderRoute: typeof AuthenticatedProgressoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/sessao': {
       id: '/_authenticated/sessao'
       path: '/sessao'
       fullPath: '/sessao'
       preLoaderRoute: typeof AuthenticatedSessaoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/treino': {
       id: '/_authenticated/treino'
       path: '/treino'
       fullPath: '/treino'
       preLoaderRoute: typeof AuthenticatedTreinoRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
@@ -400,14 +406,14 @@ declare module '@tanstack/react-router' {
       path: '/resumo/$id'
       fullPath: '/resumo/$id'
       preLoaderRoute: typeof AuthenticatedResumoIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/rotina/$id': {
       id: '/_authenticated/rotina/$id'
       path: '/rotina/$id'
       fullPath: '/rotina/$id'
       preLoaderRoute: typeof AuthenticatedRotinaIdRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
@@ -443,12 +449,19 @@ const AuthenticatedProgressoRouteWithChildren =
     AuthenticatedProgressoRouteChildren,
   )
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  McpRoute: McpRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
+  AuthenticatedDietaRoute: typeof AuthenticatedDietaRouteWithChildren
+  AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
+  AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
+  AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
+  AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
+  AuthenticatedRotinaIdRoute: typeof AuthenticatedRotinaIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedDietaRoute: AuthenticatedDietaRouteWithChildren,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
@@ -456,9 +469,21 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
   AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   AuthenticatedResumoIdRoute: AuthenticatedResumoIdRoute,
   AuthenticatedRotinaIdRoute: AuthenticatedRotinaIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  McpRoute: McpRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
