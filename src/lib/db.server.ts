@@ -81,9 +81,9 @@ export const toProfile = (r: Row) => ({
   metaPrazo: (r["meta_prazo"] ?? undefined) as string | undefined,
 });
 
-export const fromProfile = (p: Row) => ({
-  id: p["id"],
-  user_id: DEMO_USER_ID,
+export const fromProfile = (p: Row, userId: string) => ({
+  id: p["id"] ?? userId,
+  user_id: userId,
   nome: p["nome"],
   peso_kg: p["pesoKg"],
   altura_cm: p["alturaCm"],
