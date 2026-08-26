@@ -14,6 +14,7 @@ import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { configureSupabase, supabase } from "../integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
+import { LanguageProvider } from "../lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -162,9 +163,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="top-center" />
+      <LanguageProvider>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-center" />
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }

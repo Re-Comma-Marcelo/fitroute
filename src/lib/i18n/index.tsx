@@ -96,10 +96,10 @@ export function registerLanguagePersister(fn: ((lang: Lang) => void) | null) {
 export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(() => readStoredLang());
 
-  setFormatLocale(localeFor(lang));
+  setFormatLocale(localeFor(lang), (source, vars) => translate(lang, source, vars));
 
   useEffect(() => {
-    setFormatLocale(localeFor(lang));
+    setFormatLocale(localeFor(lang), (source, vars) => translate(lang, source, vars));
     if (typeof document !== "undefined") document.documentElement.lang = lang;
   }, [lang]);
 
