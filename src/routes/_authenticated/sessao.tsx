@@ -41,6 +41,8 @@ import { formatDuration, formatRest } from "@/lib/format";
 import { toast } from "sonner";
 import {
   clearActiveSession,
+  currentExerciseIndex,
+  filledUncheckedSets,
   loadActiveSession,
   makeSets,
   restSecondsLeft,
@@ -136,6 +138,10 @@ function SessionPage() {
   const [ready, setReady] = useState(false);
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
+  const [pendingSets, setPendingSets] = useState(0);
+  const [scrollTo, setScrollTo] = useState<number | null>(null);
+  const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const rest = session?.rest ?? null;
@@ -211,6 +217,51 @@ function SessionPage() {
     });
   }, []);
 
+  const hasSession = !!session;
+
+  /** Keep the screen awake while training; silently ignored where unsupported. */
+  useEffect(() => {
+    if (!hasSession || typeof navigator === "undefined") return;
+    const nav = navigator as Navigator & {
+      wakeLock?: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> };
+    };
+    if (!nav.wakeLock) return;
+    let sentinel: { release: () => Promise<void> } | null = null;
+    let cancelled = false;
+    const acquire = () => {
+      if (document.visibilityState !== "visible") return;
+      nav
+        .wakeLock!.request("screen")
+        .then((s) => {
+          if (cancelled) void s.release().catch(() => {});
+          else sentinel = s;
+        })
+        .catch(() => {});
+    };
+    acquire();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") acquire();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      void sentinel?.release().catch(() => {});
+    };
+  }, [hasSession]);
+
+  /** Bring the newly opened exercise into view when a card auto-advances. */
+  useEffect(() => {
+    if (scrollTo === null) return;
+    const node = cardRefs.current[scrollTo];
+    setScrollTo(null);
+    if (!node) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    node.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  }, [scrollTo]);
+
   if (!ready) return <div className="min-h-screen bg-background" />;
 
   if (!session) {
@@ -239,6 +290,7 @@ function SessionPage() {
   function toggleSet(exIdx: number, setIdx: number) {
     unlockAudio();
     let descanso = 0;
+    let proximo: number | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -254,10 +306,12 @@ function SessionPage() {
       const todasFeitas = ex.sets.every((x) => x.concluida);
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
         s.atual = exIdx + 1;
+        proximo = s.atual;
       }
       return s;
     });
     if (descanso > 0) startRest(descanso);
+    if (proximo !== null) setScrollTo(proximo);
   }
 
   function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
@@ -299,6 +353,25 @@ function SessionPage() {
     });
   }
 
+  /** One tap: copy weight/reps from the last completed set into the next pending one. */
+  function repeatLastSet(exIdx: number) {
+    unlockAudio();
+    let descanso = 0;
+    update((s) => {
+      const ex = s.exercicios[exIdx]!;
+      const feitas = ex.sets.filter((x) => x.concluida);
+      const ultima = feitas[feitas.length - 1];
+      const proxima = ex.sets.find((x) => !x.concluida);
+      if (!ultima || !proxima) return s;
+      proxima.pesoKg = ultima.pesoKg;
+      proxima.reps = ultima.reps;
+      proxima.concluida = true;
+      descanso = ex.descansoSeg;
+      return s;
+    });
+    if (descanso > 0) startRest(descanso);
+  }
+
   function removeSet(exIdx: number, setIdx: number) {
     update((s) => {
       const ex = s.exercicios[exIdx]!;
@@ -324,7 +397,36 @@ function SessionPage() {
     });
   }
 
-  async function finalizar() {
+  /** Finish flow: warn about filled-but-unchecked sets before building the payload. */
+  function requestFinish() {
+    if (!session) return;
+    const pend = filledUncheckedSets(session);
+    if (pend > 0) {
+      setPendingSets(pend);
+      return;
+    }
+    void finalizar();
+  }
+
+  function finishIncludingPending() {
+    setPendingSets(0);
+    let target: ActiveSession | null = null;
+    update((s) => {
+      s.exercicios.forEach((ex) =>
+        ex.sets.forEach((set) => {
+          if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+            set.concluida = true;
+          }
+        }),
+      );
+      target = s;
+      return s;
+    });
+    void finalizar(target ?? undefined);
+  }
+
+  async function finalizar(override?: ActiveSession) {
+    const session = override ?? sessionRef.current;
     if (!session) return;
     setFinishing(true);
     try {
@@ -397,7 +499,7 @@ function SessionPage() {
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
-  const currentRest = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
+  const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
 
   return (
     <div className="min-h-screen bg-background pb-44">
