@@ -67,7 +67,7 @@ export function SessionMiniPlayer() {
             <span className="block truncate text-xs text-muted-foreground/80">
               {restLeft > 0 ? (
                 <>
-                  <span className="font-mono font-semibold tabular-nums text-warning">
+                  <span className="font-mono font-semibold tabular-nums text-primary">
                     {t("Rest")} {formatDuration(restLeft)}
                   </span>
                   {" · "}
