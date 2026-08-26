@@ -30,14 +30,15 @@ export const Route = createFileRoute("/_authenticated/rotina/$id")({
 
 const DRAFT_KEY = "forja.draftRoutine.v1";
 
-  const t = useT();
 function RoutineEditor() {
+  const t = useT();
   const { id } = useParams({ from: "/_authenticated/rotina/$id" });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [routine, setRoutine] = useState<Routine | null>(null);
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [saving, setSaving] = useState(false);
   const loaded = useRef(false);
 
   useEffect(() => {
