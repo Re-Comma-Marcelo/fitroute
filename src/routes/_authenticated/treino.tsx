@@ -249,7 +249,7 @@ function TrainPage() {
           disabled={active !== null || loading !== null}
           onClick={startBlank}
         >
-          Blank
+          {t("Blank")}
         </Button>
       </div>
 

@@ -67,7 +67,6 @@ function RoutineEditor() {
         };
       }
       setRoutine(base);
-      window.localStorage.removeItem(DRAFT_KEY);
     }
     init();
   }, [id]);
@@ -107,6 +106,7 @@ function RoutineEditor() {
     try {
       await saveRoutine({ ...routine!, nome: routine!.nome.trim() || t("New routine") });
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
     } catch {
       toast.error(t("Could not save the routine. Check your connection and try again."));
@@ -123,6 +123,7 @@ function RoutineEditor() {
         await deleteRoutine(routine!.id);
         await queryClient.invalidateQueries({ queryKey: ["routines"] });
       }
+      window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
     } catch {
       toast.error(t("Could not delete the routine. Check your connection and try again."));
