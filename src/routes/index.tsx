@@ -63,7 +63,15 @@ function AuthPage() {
       if (error) throw error;
     } catch (error) {
       setBusy(false);
-      toast.error(error instanceof Error ? error.message : t("Google sign-in failed"));
+      const raw = error instanceof Error ? error.message : "";
+      const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(raw);
+      toast.error(
+        notEnabled
+          ? t(
+              "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.",
+            )
+          : raw || t("Google sign-in failed"),
+      );
     }
   }
 
