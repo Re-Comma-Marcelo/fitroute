@@ -1,6 +1,7 @@
 import js from "@eslint/js";
 import eslintPluginPrettier from "eslint-plugin-prettier/recommended";
 import globals from "globals";
+import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
@@ -15,6 +16,7 @@ export default tseslint.config(
       globals: globals.browser,
     },
     plugins: {
+      react,
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
     },
@@ -34,6 +36,41 @@ export default tseslint.config(
       ],
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
       "@typescript-eslint/no-unused-vars": "off",
+      // Guard rail: user-visible text must go through t()/tx() so all three
+      // languages stay in sync. Warning only — it must not break the build.
+      "react/jsx-no-literals": [
+        "warn",
+        {
+          noStrings: true,
+          ignoreProps: true,
+          allowedStrings: [
+            "·",
+            "—",
+            "–",
+            "-",
+            "/",
+            "|",
+            ":",
+            "%",
+            "+",
+            "×",
+            "@",
+            ",",
+            ".",
+            "…",
+            "(",
+            ")",
+            "kg",
+            "g",
+            "kcal",
+            "min",
+            "s",
+            "RPE",
+            "PR",
+            "0",
+          ],
+        },
+      ],
     },
   },
   eslintPluginPrettier,
