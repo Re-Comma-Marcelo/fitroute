@@ -108,7 +108,8 @@ export async function startBlankSession(): Promise<ActiveSession> {
   }
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
-    routineNome: "Blank workout",
+    // Empty marker: the label is translated at render time.
+    routineNome: "",
     iniciadoEm: new Date().toISOString(),
     notas: "",
     exercicios,

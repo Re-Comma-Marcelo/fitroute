@@ -90,7 +90,7 @@ export function formatSlotTime(time: string): string {
   const [h, m] = time.split(":").map(Number);
   const d = new Date();
   d.setHours(h ?? 0, m ?? 0, 0, 0);
-  return new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(d);
+  return formatTimeOfDay(time);
 }
 
 /** Slots the user actually eats, ordered by their scheduled time. */
