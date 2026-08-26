@@ -155,13 +155,32 @@ export function sessionElapsed(session: ActiveSession): number {
   return Math.max(0, Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000));
 }
 
+/** Index of the exercise being executed: current one if pending, else first pending. */
+export function currentExerciseIndex(session: ActiveSession): number {
+  const atual = session.exercicios[session.atual];
+  if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return session.atual;
+  const idx = session.exercicios.findIndex(
+    (ex) => !ex.pulado && ex.sets.some((s) => !s.concluida),
+  );
+  if (idx >= 0) return idx;
+  return Math.max(0, Math.min(session.atual, session.exercicios.length - 1));
+}
+
 /** Exercício atual do mini-player: o primeiro com série pendente. */
 export function currentExerciseName(session: ActiveSession): string {
-  const atual = session.exercicios[session.atual];
-  if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return atual.nome;
-  const pendente = session.exercicios.find((ex) => !ex.pulado && ex.sets.some((s) => !s.concluida));
-  return pendente?.nome ?? atual?.nome ?? "Treino livre";
+  return session.exercicios[currentExerciseIndex(session)]?.nome ?? "Treino livre";
 }
+
+/** Sets with weight and reps typed in but never checked — easy to lose on finish. */
+export function filledUncheckedSets(session: ActiveSession): number {
+  return session.exercicios.reduce(
+    (total, ex) =>
+      total +
+      ex.sets.filter((s) => !s.concluida && s.pesoKg.trim() !== "" && s.reps.trim() !== "").length,
+    0,
+  );
+}
+
 const CHOICE_KEY = "forja.todayChoice.v1";
 
 function todayKey(): string {
