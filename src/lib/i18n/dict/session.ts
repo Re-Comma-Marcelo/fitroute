@@ -1,4 +1,4 @@
-import type { DictFragment } from "../index";
+import type { DictFragment } from "../types";
 
 export const dict: DictFragment = {
   pt: {
