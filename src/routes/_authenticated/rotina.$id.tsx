@@ -71,6 +71,13 @@ function RoutineEditor() {
     init();
   }, [id]);
 
+  // Keep an in-progress draft so leaving the screen (or bouncing through the
+  // library) never loses edits. Cleared on a successful save or delete.
+  useEffect(() => {
+    if (!routine || !loaded.current) return;
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
+  }, [routine]);
+
   if (!routine) return <div className="min-h-screen bg-background" />;
 
   function patch(next: Partial<Routine>) {
