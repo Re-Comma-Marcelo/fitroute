@@ -522,13 +522,36 @@ function SessionPage() {
           >
             <Timer className="size-6" />
           </Button>
-          <Button
-            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
-            disabled={finishing}
-            onClick={finalizar}
-          >
-            Finish
-          </Button>
+          <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+                disabled={finishing}
+              >
+                {t("Finish")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("Finish this workout?")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("{count} completed sets will be saved.", { count: setsDone })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="tap-target"
+                  onClick={() => {
+                    setConfirmFinish(false);
+                    requestFinish();
+                  }}
+                >
+                  {t("Finish")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
@@ -545,6 +568,10 @@ function SessionPage() {
           return (
             <section
               key={ex.exerciseId + exIdx}
+              ref={(node) => {
+                cardRefs.current[exIdx] = node;
+              }}
+              style={{ scrollMarginTop: "7rem" }}
               className={`rounded-xl border bg-card ${
                 aberto ? "border-primary/50" : "border-border"
               } ${ex.pulado ? "opacity-50" : ""}`}
@@ -553,6 +580,7 @@ function SessionPage() {
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
+                    aria-expanded={aberto}
                     className="flex w-full items-start gap-2 text-left"
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
@@ -631,13 +659,25 @@ function SessionPage() {
                       />
                     ))}
                   </ul>
-                  <Button
-                    variant="ghost"
-                    className="mt-2 h-11 w-full justify-start text-sm font-semibold text-muted-foreground"
-                    onClick={() => addSet(exIdx)}
-                  >
-                    <Plus className="mr-1 size-4" /> {t("Add set")}
-                  </Button>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="ghost"
+                      className="h-11 justify-center text-sm font-semibold text-muted-foreground"
+                      onClick={() => addSet(exIdx)}
+                    >
+                      <Plus className="mr-1 size-4" /> {t("Add set")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-11 justify-center text-sm font-semibold text-info"
+                      disabled={
+                        !ex.sets.some((s) => s.concluida) || !ex.sets.some((s) => !s.concluida)
+                      }
+                      onClick={() => repeatLastSet(exIdx)}
+                    >
+                      <RotateCcw className="mr-1 size-4" /> {t("Repeat set")}
+                    </Button>
+                  </div>
                   <Textarea
                     value={ex.notas}
                     onChange={(e) =>
@@ -685,12 +725,43 @@ function SessionPage() {
               t={t}
             />
           ) : null}
-          <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
-            Finish workout
+          <Button
+            className="h-14 w-full text-base font-bold"
+            disabled={finishing}
+            onClick={requestFinish}
+          >
+            {t("Finish workout")}
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
+
+      <AlertDialog open={pendingSets > 0} onOpenChange={(open) => !open && setPendingSets(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("{count} sets filled in but not checked — include them?", { count: pendingSets })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Unchecked sets are discarded when the workout is saved.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="tap-target"
+              onClick={() => {
+                setPendingSets(0);
+                void finalizar();
+              }}
+            >
+              {t("Discard")}
+            </AlertDialogCancel>
+            <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
+              {t("Include")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {restFinished ? (
         <RestFinishedOverlay onResume={() => setRestFinished(false)} />
