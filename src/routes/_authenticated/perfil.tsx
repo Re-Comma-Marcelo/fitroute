@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
 import { CoachChatButton } from "@/components/CoachChatSheet";
+import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 
@@ -32,7 +35,10 @@ export const Route = createFileRoute("/_authenticated/perfil")({
         content: "Your body data, training model, equipment and weekly goal.",
       },
       { property: "og:title", content: "Profile — Forja" },
-      { property: "og:description", content: "Your body data, training model, equipment and weekly goal." },
+      {
+        property: "og:description",
+        content: "Your body data, training model, equipment and weekly goal.",
+      },
     ],
   }),
   component: ProfilePage,
@@ -66,6 +72,15 @@ const times: { value: PreferredTime; label: string }[] = [
 ];
 
 const EQUIPMENT_OPTIONS = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight"];
+const REASON_SUGGESTIONS = ["Shoulder pain", "Knee pain", "Lower back", "No equipment"];
+
+function useAccountEmail() {
+  const [email, setEmail] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, []);
+  return email;
+}
 
 function ProfilePage() {
   const t = useT();
@@ -74,33 +89,58 @@ function ProfilePage() {
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const [form, setForm] = useState<Profile | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [avoidOpen, setAvoidOpen] = useState(false);
+  const email = useAccountEmail();
 
   useEffect(() => {
     if (profileQuery.data && !form) setForm(profileQuery.data);
   }, [profileQuery.data, form]);
 
+  const dirty = useMemo(
+    () =>
+      Boolean(form && profileQuery.data) &&
+      JSON.stringify(form) !== JSON.stringify(profileQuery.data),
+    [form, profileQuery.data],
+  );
+
   if (!form) {
     return (
       <AppShell title={t("Profile")}>
-        <div className="h-64 animate-pulse rounded-xl bg-card" />
+        <div className="space-y-3">
+          <div className="h-28 animate-pulse rounded-2xl bg-card" />
+          <div className="h-16 animate-pulse rounded-2xl bg-card" />
+          <div className="h-16 animate-pulse rounded-2xl bg-card" />
+        </div>
       </AppShell>
     );
   }
 
   async function save() {
-    await saveProfile(form!);
-    await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    toast.success(t("Profile saved"));
+    setSaving(true);
+    try {
+      await saveProfile(form!);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      toast.success(t("Profile saved"));
+    } finally {
+      setSaving(false);
+    }
   }
 
   const exercises = exercisesQuery.data ?? [];
+
+  function patch(next: Partial<Profile>) {
+    setForm((prev) => (prev ? { ...prev, ...next } : prev));
+  }
 
   function toggleEquipment(item: string) {
     setForm((prev) => {
       if (!prev) return prev;
       const has = prev.equipment.includes(item);
-      const next = has ? prev.equipment.filter((e) => e !== item) : [...prev.equipment, item];
-      return { ...prev, equipment: next };
+      return {
+        ...prev,
+        equipment: has ? prev.equipment.filter((e) => e !== item) : [...prev.equipment, item],
+      };
     });
   }
 
@@ -108,24 +148,30 @@ function ProfilePage() {
     setForm((prev) => {
       if (!prev) return prev;
       const has = prev.avoidExercises.find((a) => a.exerciseId === exerciseId);
-      const next = has
-        ? prev.avoidExercises.filter((a) => a.exerciseId !== exerciseId)
-        : [...prev.avoidExercises, { exerciseId, reason: "" }];
-      return { ...prev, avoidExercises: next };
+      return {
+        ...prev,
+        avoidExercises: has
+          ? prev.avoidExercises.filter((a) => a.exerciseId !== exerciseId)
+          : [...prev.avoidExercises, { exerciseId, reason: "" }],
+      };
     });
   }
 
   function setAvoidReason(exerciseId: string, reason: string) {
-    setForm((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        avoidExercises: prev.avoidExercises.map((a) =>
-          a.exerciseId === exerciseId ? { ...a, reason } : a,
-        ),
-      };
-    });
+    setForm((prev) =>
+      prev
+        ? {
+            ...prev,
+            avoidExercises: prev.avoidExercises.map((a) =>
+              a.exerciseId === exerciseId ? { ...a, reason } : a,
+            ),
+          }
+        : prev,
+    );
   }
+
+  const goalLabel = goals.find((g) => g.value === form.objetivo)?.label ?? "";
+  const timeLabel = times.find((x) => x.value === form.preferredTime)?.label ?? "";
 
   return (
     <AppShell
@@ -134,302 +180,431 @@ function ProfilePage() {
         <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
       }
     >
+      {/* Identity header */}
+      <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
+        <div className="flex items-center gap-3">
+          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/15 font-display text-xl font-semibold text-primary">
+            {(form.nome || "?").trim().charAt(0).toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate font-display text-lg font-semibold leading-tight">
+              {form.nome || t("Your name")}
+            </p>
+            <p className="truncate text-xs text-muted-foreground">{email ?? t("Signed in")}</p>
+          </div>
+        </div>
+
+        <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+          <Stat label={t("Weight")} value={`${form.pesoKg} kg`} />
+          <Stat label={t("Height")} value={`${form.alturaCm} cm`} />
+          <Stat label={t("Goal")} value={t(goalLabel)} />
+        </dl>
+
+        <div className="mt-3 flex flex-wrap gap-1.5">
+          <Tag>{t("{n}x / week", { n: String(form.metaTreinosSemana) })}</Tag>
+          <Tag>{t("{n} min", { n: String(form.sessionLengthMin) })}</Tag>
+          <Tag>{t(timeLabel)}</Tag>
+          {form.equipment.length > 0 ? (
+            <Tag>{t("{n} equipment", { n: String(form.equipment.length) })}</Tag>
+          ) : null}
+        </div>
+      </section>
+
       <form
-        className="space-y-5"
+        className="mt-4 space-y-3"
         onSubmit={(e) => {
           e.preventDefault();
           save();
         }}
       >
-        <Field label={t("Language")}>
-          <div className="grid grid-cols-3 gap-2">
-            {LANGS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  setLang(option.value);
-                  setForm({ ...form!, idioma: option.value });
-                }}
-                className={cn(
-                  "tap-target rounded-lg border px-2 py-3 text-sm font-bold transition-colors",
-                  lang === option.value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {option.label}
-              </button>
-            ))}
+        <Section
+          title={t("Body & goal")}
+          subtitle={t("Used for macros and load suggestions")}
+          defaultOpen
+        >
+          <div className="space-y-2">
+            <Label htmlFor="name">{t("Name")}</Label>
+            <Input
+              id="name"
+              value={form.nome}
+              onChange={(e) => patch({ nome: e.target.value })}
+              className="tap-target h-12 text-base"
+            />
           </div>
-        </Field>
 
-        <div className="space-y-2">
-          <Label htmlFor="name">{t("Name")}</Label>
-          <Input
-            id="name"
-            value={form.nome}
-            onChange={(e) => setForm({ ...form, nome: e.target.value })}
-            className="tap-target h-12 text-base"
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="weight">{t("Weight (kg)")}</Label>
+              <Input
+                id="weight"
+                inputMode="decimal"
+                value={String(form.pesoKg)}
+                onChange={(e) =>
+                  patch({ pesoKg: Number(e.target.value.replace(",", ".")) || 0 })
+                }
+                className="numeric-field tap-target h-12 text-base"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="height">{t("Height (cm)")}</Label>
+              <Input
+                id="height"
+                inputMode="numeric"
+                value={String(form.alturaCm)}
+                onChange={(e) =>
+                  patch({ alturaCm: Number(e.target.value.replace(/\D/g, "")) || 0 })
+                }
+                className="numeric-field tap-target h-12 text-base"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label>{t("Sex")}</Label>
+              <Select value={form.sexo} onValueChange={(v) => patch({ sexo: v as Sexo })}>
+                <SelectTrigger className="tap-target h-12 w-full text-base">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sexes.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {t(s.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>{t("Activity level")}</Label>
+              <Select
+                value={form.nivelAtividade}
+                onValueChange={(v) => patch({ nivelAtividade: v as NivelAtividade })}
+              >
+                <SelectTrigger className="tap-target h-12 w-full text-base">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {activityLevels.map((n) => (
+                    <SelectItem key={n.value} value={n.value}>
+                      {t(n.label)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Segmented
+            label={t("Goal")}
+            columns={3}
+            options={goals.map((g) => ({ value: g.value, label: t(g.label) }))}
+            value={form.objetivo}
+            onChange={(v) => patch({ objetivo: v as Objetivo })}
           />
-        </div>
+        </Section>
 
-        <div className="grid grid-cols-2 gap-3">
+        <Section title={t("Training model")} subtitle={t("How the coach plans your week")}>
+          <Segmented
+            label={t("Weekly training target")}
+            columns={6}
+            options={[2, 3, 4, 5, 6, 7].map((n) => ({ value: String(n), label: String(n) }))}
+            value={String(form.metaTreinosSemana)}
+            onChange={(v) => patch({ metaTreinosSemana: Number(v) })}
+          />
+
+          <Segmented
+            label={t("Preferred session length (minutes)")}
+            columns={4}
+            options={[30, 45, 60, 75, 90, 105, 120].map((n) => ({
+              value: String(n),
+              label: String(n),
+            }))}
+            value={String(form.sessionLengthMin)}
+            onChange={(v) => patch({ sessionLengthMin: Number(v) })}
+          />
+
+          <Segmented
+            label={t("Preferred training time")}
+            columns={4}
+            options={times.map((x) => ({ value: x.value, label: t(x.label) }))}
+            value={form.preferredTime}
+            onChange={(v) => patch({ preferredTime: v as PreferredTime })}
+          />
+
           <div className="space-y-2">
-            <Label htmlFor="weight">{t("Weight (kg)")}</Label>
-            <Input
-              id="weight"
-              inputMode="decimal"
-              value={String(form.pesoKg)}
-              onChange={(e) =>
-                setForm({ ...form, pesoKg: Number(e.target.value.replace(",", ".")) || 0 })
-              }
-              className="numeric-field tap-target h-12 text-base"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="height">{t("Height (cm)")}</Label>
-            <Input
-              id="height"
-              inputMode="numeric"
-              value={String(form.alturaCm)}
-              onChange={(e) =>
-                setForm({ ...form, alturaCm: Number(e.target.value.replace(/\D/g, "")) || 0 })
-              }
-              className="numeric-field tap-target h-12 text-base"
-            />
-          </div>
-        </div>
-
-        <Field label={t("Sex")}>
-          <Select value={form.sexo} onValueChange={(v) => setForm({ ...form, sexo: v as Sexo })}>
-            <SelectTrigger className="tap-target h-12 w-full text-base">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {sexes.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {t(s.label)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label={t("Activity level")}>
-          <Select
-            value={form.nivelAtividade}
-            onValueChange={(v) => setForm({ ...form, nivelAtividade: v as NivelAtividade })}
-          >
-            <SelectTrigger className="tap-target h-12 w-full text-base">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {activityLevels.map((n) => (
-                <SelectItem key={n.value} value={n.value}>
-                  {t(n.label)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-
-        <Field label={t("Goal")}>
-          <div className="grid grid-cols-3 gap-2">
-            {goals.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => setForm({ ...form, objetivo: o.value })}
-                className={cn(
-                  "tap-target rounded-lg border px-2 py-3 text-sm font-bold transition-colors",
-                  form.objetivo === o.value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {t(o.label)}
-              </button>
-            ))}
-          </div>
-        </Field>
-
-        <Field label={t("Weekly training target")}>
-          <div className="grid grid-cols-6 gap-2">
-            {[2, 3, 4, 5, 6, 7].map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => setForm({ ...form, metaTreinosSemana: n })}
-                className={cn(
-                  "tap-target rounded-lg border py-3 text-sm font-bold tabular-nums transition-colors",
-                  form.metaTreinosSemana === n
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        </Field>
-
-        <Field label={t("Equipment available")}>
-          <div className="flex flex-wrap gap-2">
-            {EQUIPMENT_OPTIONS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                onClick={() => toggleEquipment(item)}
-                className={cn(
-                  "tap-target rounded-full border px-3 py-2 text-xs font-bold transition-colors",
-                  form.equipment.includes(item)
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {t(item)}
-              </button>
-            ))}
-          </div>
-        </Field>
-
-        <Field label={t("Preferred session length (minutes)")}>
-          <div className="grid grid-cols-5 gap-2">
-            {[30, 45, 60, 75, 90, 105, 120].map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => setForm({ ...form, sessionLengthMin: n })}
-                className={cn(
-                  "tap-target rounded-lg border py-2.5 text-xs font-bold tabular-nums transition-colors",
-                  form.sessionLengthMin === n
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
-        </Field>
-
-        <Field label={t("Preferred training time")}>
-          <div className="grid grid-cols-4 gap-2">
-            {times.map((time) => (
-              <button
-                key={time.value}
-                type="button"
-                onClick={() => setForm({ ...form, preferredTime: time.value })}
-                className={cn(
-                  "tap-target rounded-lg border py-3 text-xs font-bold transition-colors",
-                  form.preferredTime === time.value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
-              >
-                {t(time.label)}
-              </button>
-            ))}
-          </div>
-        </Field>
-
-        <Field label={t("Exercises to avoid")}>
-          <div className="space-y-2">
+            <Label>{t("Equipment available")}</Label>
             <div className="flex flex-wrap gap-2">
-              {exercises.map((ex) => {
-                const avoided = form.avoidExercises.find((a) => a.exerciseId === ex.id);
+              {EQUIPMENT_OPTIONS.map((item) => {
+                const on = form.equipment.includes(item);
                 return (
                   <button
-                    key={ex.id}
+                    key={item}
                     type="button"
-                    onClick={() => toggleAvoid(ex.id)}
+                    onClick={() => toggleEquipment(item)}
                     className={cn(
-                      "tap-target rounded-full border px-3 py-2 text-xs font-bold transition-colors",
-                      avoided
-                        ? "border-destructive bg-destructive text-destructive-foreground"
-                        : "border-border bg-card",
+                      "tap-target rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors",
+                      on
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-card text-muted-foreground",
                     )}
                   >
-                    {ex.nome}
+                    {t(item)}
                   </button>
                 );
               })}
             </div>
-            {form.avoidExercises.map((a) => {
-              const ex = exercises.find((e) => e.id === a.exerciseId);
-              if (!ex) return null;
-              return (
-                <div key={a.exerciseId} className="space-y-1">
-                  <p className="text-xs font-semibold text-muted-foreground">{ex.nome}</p>
-                  <Input
-                    value={a.reason}
-                    onChange={(e) => setAvoidReason(a.exerciseId, e.target.value)}
-                    placeholder={t("Reason (e.g., shoulder pain)")}
-                    className="h-10 text-sm"
-                  />
-                </div>
-              );
-            })}
           </div>
-        </Field>
+        </Section>
 
-        <Field label={t("Weekly check-in prompt")}>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: "card" as const, label: "Card on Home" },
-              { value: "prompt" as const, label: "Modal prompt" },
-            ].map((m) => (
+        <Section title={t("Limits & check-in")} subtitle={t("What the coach should work around")}>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label>{t("Exercises to avoid")}</Label>
               <button
-                key={m.value}
                 type="button"
-                onClick={() => setForm({ ...form, checkInMode: m.value })}
-                className={cn(
-                  "tap-target rounded-lg border py-3 text-sm font-bold transition-colors",
-                  form.checkInMode === m.value
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "border-border bg-card",
-                )}
+                onClick={() => setAvoidOpen(true)}
+                className="tap-target inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-primary"
               >
-                {t(m.label)}
+                <Plus className="size-3.5" />
+                {t("Add exercise")}
               </button>
-            ))}
-          </div>
-        </Field>
+            </div>
 
-        <Button type="submit" className="h-14 w-full text-base font-bold">
-          {t("Save profile")}
-        </Button>
+            {form.avoidExercises.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-border/70 p-3 text-xs text-muted-foreground">
+                {t("Nothing flagged. Add an exercise if pain or equipment blocks it.")}
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {form.avoidExercises.map((a) => {
+                  const ex = exercises.find((e) => e.id === a.exerciseId);
+                  return (
+                    <li
+                      key={a.exerciseId}
+                      className="rounded-xl border border-border/60 bg-card/70 p-2.5"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <ExerciseThumb
+                          grupo={ex?.grupoPrimario}
+                          nome={ex?.nome}
+                          className="size-10"
+                        />
+                        <p className="min-w-0 flex-1 truncate text-sm font-semibold">
+                          {ex?.nome ?? a.exerciseId}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => toggleAvoid(a.exerciseId)}
+                          aria-label={t("Remove")}
+                          className="tap-target grid size-9 place-items-center rounded-full text-muted-foreground"
+                        >
+                          <X className="size-4" />
+                        </button>
+                      </div>
+                      <Input
+                        value={a.reason}
+                        onChange={(e) => setAvoidReason(a.exerciseId, e.target.value)}
+                        placeholder={t("Reason (e.g., shoulder pain)")}
+                        className="mt-2 h-10 text-sm"
+                      />
+                      <div className="mt-1.5 flex flex-wrap gap-1.5">
+                        {REASON_SUGGESTIONS.map((s) => (
+                          <button
+                            key={s}
+                            type="button"
+                            onClick={() => setAvoidReason(a.exerciseId, t(s))}
+                            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                          >
+                            {t(s)}
+                          </button>
+                        ))}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <Segmented
+            label={t("Weekly check-in prompt")}
+            columns={2}
+            options={[
+              { value: "card", label: t("Card on Home") },
+              { value: "prompt", label: t("Modal prompt") },
+            ]}
+            value={form.checkInMode}
+            onChange={(v) => patch({ checkInMode: v as Profile["checkInMode"] })}
+          />
+        </Section>
+
+        <Section title={t("App")} subtitle={t("Language, integrations and account")}>
+          <div className="space-y-2">
+            <Label>{t("Language")}</Label>
+            <div className="grid grid-cols-3 gap-2">
+              {LANGS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    setLang(option.value);
+                    patch({ idioma: option.value });
+                  }}
+                  className={cn(
+                    "tap-target rounded-xl border px-2 py-3 text-sm font-semibold transition-colors",
+                    lang === option.value
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-card text-muted-foreground",
+                  )}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <ClaudeBridgeSection profile={profileQuery.data ?? form} />
+          <AccountSection email={email} />
+        </Section>
       </form>
 
-      <div className="mt-6">
-        <ClaudeBridgeSection profile={profileQuery.data ?? form} />
-      </div>
+      <AvoidExerciseSheet
+        open={avoidOpen}
+        exercises={exercises}
+        selectedIds={form.avoidExercises.map((a) => a.exerciseId)}
+        onOpenChange={setAvoidOpen}
+        onToggle={toggleAvoid}
+      />
 
-      <AccountSection />
+      {dirty ? (
+        <div className="fixed inset-x-0 bottom-24 z-40 px-4">
+          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 shadow-lg backdrop-blur">
+            <p className="min-w-0 flex-1 pl-1 text-xs font-semibold text-muted-foreground">
+              {t("Unsaved changes")}
+            </p>
+            <Button
+              type="button"
+              variant="ghost"
+              className="tap-target h-10 px-3 text-xs"
+              onClick={() => setForm(profileQuery.data ?? form)}
+            >
+              {t("Discard")}
+            </Button>
+            <Button
+              type="button"
+              disabled={saving}
+              className="tap-target h-10 px-4 text-sm font-bold"
+              onClick={save}
+            >
+              {saving ? t("Saving…") : t("Save")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </AppShell>
-
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      {children}
+    <div className="rounded-xl bg-muted/40 py-2">
+      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
+      <dd className="mt-0.5 truncate px-1 text-sm font-semibold tabular-nums">{value}</dd>
     </div>
   );
 }
 
-function AccountSection() {
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+function Section({
+  title,
+  subtitle,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/40">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="tap-target flex w-full items-center gap-3 px-4 py-3.5 text-left"
+      >
+        <span className="min-w-0 flex-1">
+          <span className="block font-display text-sm font-semibold">{title}</span>
+          <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
+        </span>
+        <ChevronDown
+          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+        />
+      </button>
+      {open ? <div className="space-y-4 border-t border-border/50 px-4 py-4">{children}</div> : null}
+    </section>
+  );
+}
+
+function Segmented({
+  label,
+  options,
+  value,
+  columns,
+  onChange,
+}: {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  columns: number;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      <div
+        className="grid gap-2"
+        style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}
+      >
+        {options.map((o) => {
+          const on = o.value === value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => onChange(o.value)}
+              className={cn(
+                "tap-target rounded-xl border px-1 py-2.5 text-xs font-semibold tabular-nums transition-colors",
+                on
+                  ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/40"
+                  : "border-border bg-card text-muted-foreground",
+              )}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function AccountSection({ email }: { email: string | null }) {
   const t = useT();
   const queryClient = useQueryClient();
-  const [email, setEmail] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
-  }, []);
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -441,10 +616,13 @@ function AccountSection() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-border/60 bg-card/70 p-4">
-      <h2 className="font-display text-sm font-semibold text-foreground">{t("Account")}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{email ?? t("Signed in")}</p>
+    <div className="rounded-xl border border-border/60 bg-card/70 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("Account")}
+      </p>
+      <p className="mt-1 truncate text-sm">{email ?? t("Signed in")}</p>
       <Button
+        type="button"
         variant="outline"
         disabled={signingOut}
         onClick={handleSignOut}
@@ -452,6 +630,6 @@ function AccountSection() {
       >
         {signingOut ? t("Signing out…") : t("Sign out")}
       </Button>
-    </section>
+    </div>
   );
 }
