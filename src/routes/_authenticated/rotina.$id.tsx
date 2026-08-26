@@ -104,17 +104,33 @@ function RoutineEditor() {
   }
 
   async function handleSave() {
-    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || t("New routine") });
-    await queryClient.invalidateQueries({ queryKey: ["routines"] });
-    navigate({ to: "/treino" });
+    if (saving) return;
+    setSaving(true);
+    try {
+      await saveRoutine({ ...routine!, nome: routine!.nome.trim() || t("New routine") });
+      await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      navigate({ to: "/treino" });
+    } catch {
+      toast.error(t("Could not save the routine. Check your connection and try again."));
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function handleDelete() {
-    if (routine!.id) {
-      await deleteRoutine(routine!.id);
-      await queryClient.invalidateQueries({ queryKey: ["routines"] });
+    if (saving) return;
+    setSaving(true);
+    try {
+      if (routine!.id) {
+        await deleteRoutine(routine!.id);
+        await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      }
+      navigate({ to: "/treino" });
+    } catch {
+      toast.error(t("Could not delete the routine. Check your connection and try again."));
+    } finally {
+      setSaving(false);
     }
-    navigate({ to: "/treino" });
   }
 
   return (
