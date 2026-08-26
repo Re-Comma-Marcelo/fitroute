@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
+import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
