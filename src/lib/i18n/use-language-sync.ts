@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { getProfile, saveProfile } from "@/lib/data/profile";
 import type { Profile } from "@/lib/types";
@@ -32,7 +32,8 @@ export function useLanguageSync() {
     return () => registerLanguagePersister(null);
   }, [queryClient]);
 
-  const profileLang = queryClient.getQueryData<Profile>(["profile"])?.idioma;
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const profileLang = profileQuery.data?.idioma;
 
   useEffect(() => {
     if (isLang(profileLang) && profileLang !== lang) setLang(profileLang, false);
