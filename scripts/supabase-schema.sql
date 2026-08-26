@@ -27,6 +27,7 @@ create table if not exists public.profiles (
   session_length_min integer not null default 60,
   preferred_time text not null default 'evening',
   check_in_mode text not null default 'card',
+  idioma text not null default 'en',
   peso_inicial_kg numeric,
   peso_meta_kg numeric,
   meta_iniciada_em text,

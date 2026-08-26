@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { getExercises } from "@/lib/data/exercises";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function TrackedLiftPickerSheet({
@@ -18,6 +19,7 @@ export function TrackedLiftPickerSheet({
   onOpenChange: (open: boolean) => void;
   onToggle: (exerciseId: string, tracked: boolean) => void;
 }) {
+  const t = useT();
   const [term, setTerm] = useState("");
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises, enabled: open });
   const q = term.trim().toLowerCase();
@@ -29,13 +31,13 @@ export function TrackedLiftPickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         <SheetHeader className="text-left">
-          <SheetTitle>Track a lift</SheetTitle>
+          <SheetTitle>{t("Track a lift")}</SheetTitle>
         </SheetHeader>
 
         <Input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search exercises"
+          placeholder={t("Search exercises")}
           className="mt-3 h-11"
         />
 
@@ -67,7 +69,7 @@ export function TrackedLiftPickerSheet({
             );
           })}
           {list.length === 0 ? (
-            <li className="py-6 text-center text-sm text-muted-foreground">No exercises found.</li>
+            <li className="py-6 text-center text-sm text-muted-foreground">{t("No exercises found.")}</li>
           ) : null}
         </ul>
       </SheetContent>

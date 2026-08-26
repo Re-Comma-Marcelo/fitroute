@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useT } from "@/lib/i18n";
 import { ArrowLeft, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,6 +36,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 });
 
 function LibraryPage() {
+  const t = useT();
   const navigate = useNavigate();
   const { para, rotinaId } = useSearch({ from: "/_authenticated/biblioteca" });
   const [q, setQ] = useState("");
@@ -75,9 +77,9 @@ function LibraryPage() {
   return (
     <div className="min-h-screen bg-background pb-8">
       <PageHeader
-        title={para ? "Choose exercise" : "Library"}
+        title={para ? t("Choose exercise") : t("Library")}
         left={
-          <Button variant="ghost" size="icon" className="tap-target" aria-label="Back" onClick={goBack}>
+          <Button variant="ghost" size="icon" className="tap-target" aria-label={t("Back")} onClick={goBack}>
             <ArrowLeft className="size-6" />
           </Button>
         }
@@ -89,26 +91,26 @@ function LibraryPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Search exercise"
-            aria-label="Search exercise"
+            placeholder={t("Search exercise")}
+            aria-label={t("Search exercise")}
             className="tap-target h-12 pl-11 text-base"
           />
         </div>
 
         <FilterRow
-          label="Muscle"
+          label={t("Muscle")}
           options={gruposQuery.data ?? []}
           value={grupo}
           onChange={setGrupo}
         />
         <FilterRow
-          label="Equipment"
+          label={t("Equipment")}
           options={equipQuery.data ?? []}
           value={equip}
           onChange={setEquip}
         />
 
-        <p className="label-caps mt-5">{lista.length} exercises</p>
+        <p className="label-caps mt-5">{t("{count} exercises", { count: lista.length })}</p>
 
         <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
           {lista.map((e) => (
@@ -132,7 +134,7 @@ function LibraryPage() {
                 variant="ghost"
                 size="icon"
                 className="tap-target mr-2"
-                aria-label={`Details for ${e.nome}`}
+                aria-label={t("Details for {name}", { name: e.nome })}
                 onClick={() => setDetail(e)}
               >
                 <Info className="size-5 text-muted-foreground" />
@@ -141,7 +143,7 @@ function LibraryPage() {
           ))}
           {!lista.length && !exercisesQuery.isLoading ? (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No exercises found.{" "}
+              {t("No exercises found.")}{" "}
               <button
                 type="button"
                 className="font-semibold text-primary"
@@ -151,7 +153,7 @@ function LibraryPage() {
                   setEquip(null);
                 }}
               >
-                Clear filters
+                {t("Clear filters")}
               </button>
             </li>
           ) : null}
@@ -180,7 +182,7 @@ function LibraryPage() {
               </div>
               <div>
                 <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
-                  Execution
+                  {t("Execution")}
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
@@ -192,7 +194,7 @@ function LibraryPage() {
                     goBack();
                   }}
                 >
-                  Add {detail.nome}
+                  {t("Add {name}", { name: detail.nome })}
                 </Button>
               ) : null}
             </div>
@@ -214,12 +216,13 @@ function FilterRow({
   value: string | null;
   onChange: (value: string | null) => void;
 }) {
+  const t = useT();
   return (
       <div className="mt-4">
       <p className="label-caps mb-1.5">{label}</p>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <FilterChip active={value === null} onClick={() => onChange(null)}>
-          All
+          {t("All")}
         </FilterChip>
         {options.map((option) => (
           <FilterChip key={option} active={value === option} onClick={() => onChange(option)}>

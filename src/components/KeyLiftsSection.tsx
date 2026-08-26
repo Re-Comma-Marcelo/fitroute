@@ -1,4 +1,5 @@
 import { Minus, Plus, TrendingDown, TrendingUp, X } from "lucide-react";
+import { useT } from "@/lib/i18n";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import type { LiftTrend } from "@/lib/progress-analytics";
 import type { Exercise } from "@/lib/types";
@@ -19,17 +20,18 @@ export function KeyLiftsSection({
   onAdd: () => void;
   onRemove: (exerciseId: string) => void;
 }) {
+  const t = useT();
   return (
     <section className="mt-8">
       <header className="mb-3 flex items-center justify-between">
-        <h2 className="label-caps">Key lifts</h2>
+        <h2 className="label-caps">{t("Key lifts")}</h2>
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Add tracked lift"
+          aria-label={t("Track a lift")}
           className="tap-target flex items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
-          <Plus className="size-4" /> Track a lift
+          <Plus className="size-4" /> {t("Track a lift")}
         </button>
       </header>
 
@@ -39,9 +41,13 @@ export function KeyLiftsSection({
           onClick={onAdd}
           className="w-full rounded-2xl border border-dashed border-border p-5 text-left"
         >
-          <p className="font-display text-sm font-semibold">Pick the lifts you care about</p>
+          <p className="font-display text-sm font-semibold">
+            {t("Pick the lifts you care about")}
+          </p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
-            Track bench, squat or anything else and see whether the load is actually going up.
+            {t(
+              "Track bench, squat or anything else and see whether the load is actually going up.",
+            )}
           </p>
         </button>
       ) : (
@@ -58,21 +64,42 @@ export function KeyLiftsSection({
                 </p>
                 {trend ? (
                   <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
-                    {trend.firstWeight}kg → {trend.lastWeight}kg · {trend.spanWeeks} week
-                    {trend.spanWeeks === 1 ? "" : "s"} · {relativeDays(trend.lastDate)}
+                    {trend.spanWeeks === 1
+                      ? t(
+                          "{firstWeight}kg → {lastWeight}kg · {spanWeeks} week · {date}",
+                          {
+                            firstWeight: trend.firstWeight,
+                            lastWeight: trend.lastWeight,
+                            spanWeeks: trend.spanWeeks,
+                            date: relativeDays(trend.lastDate),
+                          },
+                        )
+                      : t(
+                          "{firstWeight}kg → {lastWeight}kg · {spanWeeks} weeks · {date}",
+                          {
+                            firstWeight: trend.firstWeight,
+                            lastWeight: trend.lastWeight,
+                            spanWeeks: trend.spanWeeks,
+                            date: relativeDays(trend.lastDate),
+                          },
+                        )}
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-xs text-muted-foreground">No sets logged yet</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t("No sets logged yet")}
+                  </p>
                 )}
               </div>
 
-              {trend ? <Sparkline points={trend.points} direction={trend.direction} /> : null}
+              {trend ? (
+                <Sparkline points={trend.points} direction={trend.direction} />
+              ) : null}
               {trend ? <DirectionChip trend={trend} /> : null}
 
               <button
                 type="button"
                 onClick={() => onRemove(exercise.id)}
-                aria-label={`Stop tracking ${exercise.nome}`}
+                aria-label={t("Stop tracking {name}", { name: exercise.nome })}
                 className="tap-target -mr-1 flex w-8 items-center justify-center text-muted-foreground/60 transition-colors hover:text-foreground"
               >
                 <X className="size-4" />
@@ -87,7 +114,12 @@ export function KeyLiftsSection({
 
 function DirectionChip({ trend }: { trend: LiftTrend }) {
   const diff = Math.round((trend.lastWeight - trend.firstWeight) * 10) / 10;
-  const Icon = trend.direction === "up" ? TrendingUp : trend.direction === "down" ? TrendingDown : Minus;
+  const Icon =
+    trend.direction === "up"
+      ? TrendingUp
+      : trend.direction === "down"
+        ? TrendingDown
+        : Minus;
   return (
     <span
       className={cn(
@@ -103,7 +135,13 @@ function DirectionChip({ trend }: { trend: LiftTrend }) {
   );
 }
 
-function Sparkline({ points, direction }: { points: number[]; direction: LiftTrend["direction"] }) {
+function Sparkline({
+  points,
+  direction,
+}: {
+  points: number[];
+  direction: LiftTrend["direction"];
+}) {
   if (points.length < 2) return null;
   const w = 44;
   const h = 20;
@@ -124,8 +162,20 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
         ? "var(--destructive)"
         : "var(--muted-foreground)";
   return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0" aria-hidden="true">
-      <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" />
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      className="shrink-0"
+      aria-hidden="true"
+    >
+      <path
+        d={d}
+        fill="none"
+        stroke={stroke}
+        strokeWidth={1.75}
+        strokeLinecap="round"
+      />
     </svg>
   );
 }

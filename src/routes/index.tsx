@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -35,6 +36,7 @@ type Mode = "signin" | "signup";
 
 function AuthPage() {
   const navigate = useNavigate();
+  const t = useT();
   const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -61,7 +63,7 @@ function AuthPage() {
       if (error) throw error;
     } catch (error) {
       setBusy(false);
-      toast.error(error instanceof Error ? error.message : "Google sign-in failed");
+      toast.error(error instanceof Error ? error.message : t("Google sign-in failed"));
     }
   }
 
@@ -86,7 +88,7 @@ function AuthPage() {
       }
       navigate({ to: "/inicio", replace: true });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not sign in");
+      toast.error(error instanceof Error ? error.message : t("Could not sign in"));
     } finally {
       setBusy(false);
     }
@@ -105,21 +107,22 @@ function AuthPage() {
       <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-10 pt-24">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Forja</p>
         <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground">
-          An AI trainer that adapts to your actual life
+          {t("An AI trainer that adapts to your actual life")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Log sets in two taps. Get routines, diet and coaching grounded in your own history.
+          {t("Log sets in two taps. Get routines, diet and coaching grounded in your own history.")}
         </p>
 
         <div className="mt-8 rounded-2xl border border-border/60 bg-card/80 p-5 backdrop-blur">
           {checkEmail ? (
             <div className="space-y-3 text-center">
               <h2 className="font-display text-lg font-semibold text-foreground">
-                Check your email
+                {t("Check your email")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                We sent a confirmation link to <span className="text-foreground">{email}</span>.
-                Confirm it, then sign in.
+                {t("We sent a confirmation link to {email}. Confirm it, then sign in.", {
+                  email,
+                })}
               </p>
               <Button
                 variant="outline"
@@ -129,7 +132,7 @@ function AuthPage() {
                   setMode("signin");
                 }}
               >
-                Back to sign in
+                {t("Back to sign in")}
               </Button>
             </div>
           ) : (
@@ -142,13 +145,13 @@ function AuthPage() {
                 className="tap-target w-full gap-2 text-sm font-semibold"
               >
                 <GoogleMark />
-                Continue with Google
+                {t("Continue with Google")}
               </Button>
 
               <div className="my-5 flex items-center gap-3">
                 <span className="h-px flex-1 bg-border" />
                 <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  or
+                  {t("or")}
                 </span>
                 <span className="h-px flex-1 bg-border" />
               </div>
@@ -166,14 +169,14 @@ function AuthPage() {
                         : "text-muted-foreground",
                     )}
                   >
-                    {value === "signin" ? "Sign in" : "Create account"}
+                    {t(value === "signin" ? "Sign in" : "Create account")}
                   </button>
                 ))}
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -181,11 +184,11 @@ function AuthPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@email.com"
+                    placeholder={t("you@email.com")}
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{t("Password")}</Label>
                   <Input
                     id="password"
                     type="password"
@@ -194,15 +197,15 @@ function AuthPage() {
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="At least 6 characters"
+                    placeholder={t("At least 6 characters")}
                   />
                 </div>
                 <Button type="submit" disabled={busy} className="tap-target w-full font-semibold">
                   {busy
-                    ? "Please wait…"
+                    ? t("Please wait…")
                     : mode === "signup"
-                      ? "Create account"
-                      : "Sign in"}
+                      ? t("Create account")
+                      : t("Sign in")}
                 </Button>
               </form>
             </>

@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useT } from "@/lib/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Check,
@@ -61,12 +62,7 @@ export const Route = createFileRoute("/_authenticated/sessao")({
   component: SessionPage,
 });
 
-const typeName: Record<TipoSerie, string> = {
-  aquecimento: "Warm-up",
-  normal: "Normal",
-  falha: "Failure",
-  drop: "Drop set",
-};
+
 
 const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
@@ -106,6 +102,13 @@ function useTick(active: boolean) {
 }
 
 function SessionPage() {
+  const t = useT();
+  const typeName: Record<TipoSerie, string> = {
+    aquecimento: t("Warm-up"),
+    normal: t("Normal"),
+    falha: t("Failure"),
+    drop: t("Drop set"),
+  };
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
@@ -169,7 +172,7 @@ function SessionPage() {
   if (!session) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
-        <p className="text-lg font-semibold">No workout in progress</p>
+        <p className="text-lg font-semibold">{t("No workout in progress")}</p>
         <Button className="h-12 w-full max-w-xs" onClick={() => navigate({ to: "/treino" })}>
           Back to training
         </Button>
@@ -345,7 +348,7 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Collapse session"
+            aria-label={t("Collapse session")}
             onClick={() => navigate({ to: "/treino" })}
           >
             <ChevronDown className="size-6" />
@@ -355,7 +358,7 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target text-info"
-            aria-label="Open rest timer"
+            aria-label={t("Open rest timer")}
             onClick={() => startRest(currentRest)}
           >
             <Timer className="size-6" />
@@ -369,9 +372,9 @@ function SessionPage() {
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <HeaderStat label="Duration" value={formatDuration(elapsed)} mono />
-          <HeaderStat label="Volume" value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
-          <HeaderStat label="Sets" value={String(setsDone)} />
+          <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
+          <HeaderStat label={t("Volume")} value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
+          <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
       </header>
 
@@ -397,7 +400,7 @@ function SessionPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-bold leading-tight">{ex.nome}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {feitas}/{validas} sets · target {ex.repsMin}-{ex.repsMax} reps
+                        {t("{count}/{total} sets · target {min}-{max} reps", { count: feitas, total: validas, min: ex.repsMin, max: ex.repsMax })}
                       </p>
                     </div>
                     <ChevronDown
@@ -420,7 +423,7 @@ function SessionPage() {
                       variant="ghost"
                       size="icon"
                       className="tap-target"
-                      aria-label="Exercise options"
+                      aria-label={t("Exercise options")}
                     >
                       <MoreVertical className="size-5" />
                     </Button>
@@ -428,16 +431,16 @@ function SessionPage() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => skipExercise(exIdx)}>
                       <SkipForward className="mr-2 size-4" />
-                      {ex.pulado ? "Resume exercise" : "Skip exercise"}
+                      {ex.pulado ? t("Resume exercise") : t("Skip exercise")}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
-                      <Plus className="mr-2 size-4" /> Add set
+                      <Plus className="mr-2 size-4" /> {t("Add set")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
                       onClick={() => removeExercise(exIdx)}
                     >
-                      <Trash2 className="mr-2 size-4" /> Remove exercise
+                      <Trash2 className="mr-2 size-4" /> {t("Remove exercise")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -448,11 +451,11 @@ function SessionPage() {
                   <div
                     className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
-                    <span>Set</span>
-                    <span className="text-center">Previous</span>
-                    <span className="text-center">kg</span>
-                    <span className="text-center">reps</span>
-                    <span className="text-center">RPE</span>
+                    <span>{t("Set")}</span>
+                    <span className="text-center">{t("Previous")}</span>
+                    <span className="text-center">{t("kg")}</span>
+                    <span className="text-center">{t("reps")}</span>
+                    <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
                   <ul className="space-y-2">
@@ -466,6 +469,8 @@ function SessionPage() {
                         onRemove={() => removeSet(exIdx, setIdx)}
                         onField={(field, value) => setField(exIdx, setIdx, field, value)}
                         onCheck={() => toggleSet(exIdx, setIdx)}
+                        typeName={typeName}
+                        t={t}
                       />
                     ))}
                   </ul>
@@ -474,7 +479,7 @@ function SessionPage() {
                     className="mt-2 h-11 w-full justify-start text-sm font-semibold text-muted-foreground"
                     onClick={() => addSet(exIdx)}
                   >
-                    <Plus className="mr-1 size-4" /> Add set
+                    <Plus className="mr-1 size-4" /> {t("Add set")}
                   </Button>
                   <Textarea
                     value={ex.notas}
@@ -484,7 +489,7 @@ function SessionPage() {
                         return s;
                       })
                     }
-                    placeholder="Exercise note (e.g., closer grip)"
+                    placeholder={t("Exercise note (e.g., closer grip)")}
                     className="mt-2 min-h-11 text-sm"
                   />
                 </div>
@@ -500,13 +505,13 @@ function SessionPage() {
             navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
           }
         >
-          <Plus className="mr-1 size-5" /> Add exercise
+          <Plus className="mr-1 size-5" /> {t("Add exercise")}
         </Button>
 
         <Textarea
           value={session.notas}
           onChange={(e) => update((s) => ({ ...s, notas: e.target.value }))}
-          placeholder="Session note"
+          placeholder={t("Session note")}
           className="min-h-16 text-sm"
         />
       </main>
@@ -520,6 +525,7 @@ function SessionPage() {
               onAdd={() => setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))}
               onSubtract={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
               onSkip={() => setRest(null)}
+              t={t}
             />
           ) : null}
           <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
@@ -537,6 +543,7 @@ function SessionPage() {
 }
 
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  const t = useT();
   return (
     <div className="px-3 py-2">
       <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
@@ -546,6 +553,7 @@ function HeaderStat({ label, value, mono }: { label: string; value: string; mono
 }
 
 function ProgressBadge({ motivo }: { motivo: string }) {
+  const t = useT();
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -554,7 +562,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
           className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
-          Weight increased
+          {t("Weight increased")}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
@@ -565,6 +573,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
 }
 
 function RestPicker({ value, onChange }: { value: number; onChange: (segundos: number) => void }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -574,12 +583,12 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
           className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
-          Rest: {formatRest(value)}
+          {t("Rest: {time}", { time: formatRest(value) })}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Rest for this exercise
+          {t("Rest for this exercise")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
           {REST_OPTIONS.map((op) => (
@@ -604,23 +613,24 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
 }
 
 function PsePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={value ? `RPE ${value}` : "Set RPE (optional)"}
+          aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
           className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
             value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
           }`}
         >
-          {value || "RPE"}
+          {value || t("RPE")}
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          RPE (optional)
+          {t("RPE (optional)")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
           {RPE_OPTIONS.map((op) => (
@@ -664,6 +674,8 @@ function SetRow({
   onCheck,
   onTipo,
   onRemove,
+  typeName,
+  t,
 }: {
   set: ActiveSet;
   label: string;
@@ -672,6 +684,8 @@ function SetRow({
   onCheck: () => void;
   onTipo: (tipo: TipoSerie) => void;
   onRemove: () => void;
+  typeName: Record<TipoSerie, string>;
+  t: any;
 }) {
   const aquecimento = !isSerieValida(set);
   return (
@@ -683,7 +697,7 @@ function SetRow({
             className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
               aquecimento ? "text-warn" : ""
             }`}
-            aria-label={`Série ${label} — tipo ${typeName[set.tipoSerie]}`}
+            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
           >
             {label}
           </button>
@@ -695,7 +709,7 @@ function SetRow({
             </DropdownMenuItem>
           ))}
           <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> Remove set
+            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -719,8 +733,8 @@ function SetRow({
         value={set.pesoKg}
         onChange={(e) => onField("pesoKg", e.target.value)}
         inputMode="decimal"
-        placeholder="kg"
-        aria-label="Weight in kg"
+        placeholder={t("kg")}
+        aria-label={t("Weight in kg")}
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <Input
@@ -728,14 +742,14 @@ function SetRow({
         onChange={(e) => onField("reps", e.target.value)}
         inputMode="numeric"
         placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-        aria-label="Reps"
+        aria-label={t("Reps")}
         className="numeric-field tap-target h-11 px-1 text-base"
       />
       <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
       <button
         type="button"
         onClick={onCheck}
-        aria-label={set.concluida ? "Uncheck set" : "Complete set"}
+        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
         aria-pressed={set.concluida}
         className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
           set.concluida
@@ -750,6 +764,7 @@ function SetRow({
 }
 
 function RestTimerBar({
+  t,
   rest,
   restLeft,
   onAdd,
@@ -761,6 +776,7 @@ function RestTimerBar({
   onAdd: () => void;
   onSubtract: () => void;
   onSkip: () => void;
+  t: any;
 }) {
   const pct = Math.min(100, (restLeft / rest.total) * 100);
   const isLow = restLeft <= 10;
@@ -772,7 +788,7 @@ function RestTimerBar({
             <Timer className="size-5" />
           </span>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">Rest</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">{t("Rest")}</p>
             <p
               className={cn(
                 "font-display text-2xl font-bold tabular-nums leading-none",
@@ -821,14 +837,15 @@ function RestTimerBar({
 }
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
       <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
-      <h2 className="mt-6 text-center font-display text-3xl font-bold">Rest done</h2>
+      <h2 className="mt-6 text-center font-display text-3xl font-bold">{t("Rest done")}</h2>
       <p className="mt-2 text-center text-base text-muted-foreground">
-        Time for the next set. Keep the pace up.
+        {t("Time for the next set. Keep the pace up.")}
       </p>
       <Button className="mt-8 h-14 w-full max-w-xs text-base font-bold" onClick={onResume}>
         Resume workout

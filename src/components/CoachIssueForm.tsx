@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,7 @@ const TAGS = [
  * Same shape as the weekly check-in note.
  */
 export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -38,7 +40,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
     setText("");
     setTags([]);
     setOpen(false);
-    toast.success("Noted — I'll factor that into your next sessions.");
+    toast.success(t("Noted — I'll factor that into your next sessions."));
     onSaved?.();
   }
 
@@ -49,7 +51,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
         onClick={() => setOpen(true)}
         className="tap-target w-full rounded-xl border border-dashed border-border px-3 py-3 text-left text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
-        Log an issue (soreness, injury, low energy)
+        {t("Log an issue (soreness, injury, low energy)")}
       </button>
     );
   }
@@ -59,32 +61,32 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Left shoulder sore since Monday's presses…"
+        placeholder={t("Left shoulder sore since Monday's presses…")}
         className="min-h-[72px] text-sm"
       />
       <div className="flex flex-wrap gap-2">
-        {TAGS.map((t) => (
+        {TAGS.map((tagItem) => (
           <button
-            key={t.value}
+            key={tagItem.value}
             type="button"
-            onClick={() => toggle(t.value)}
+            onClick={() => toggle(tagItem.value)}
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
-              tags.includes(t.value)
+              tags.includes(tagItem.value)
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-muted-foreground",
             )}
           >
-            {t.label}
+            {t(tagItem.label)}
           </button>
         ))}
       </div>
       <div className="flex gap-2">
         <Button size="sm" className="flex-1 font-semibold" disabled={saving} onClick={submit}>
-          Save note
+          {t("Save note")}
         </Button>
         <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-          Cancel
+          {t("Cancel")}
         </Button>
       </div>
     </div>

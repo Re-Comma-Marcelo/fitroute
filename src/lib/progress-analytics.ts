@@ -146,7 +146,7 @@ export function weeklySeries(
     const entry = buckets.get(key) ?? { volume: 0, sessions: 0 };
     out.push({
       weekStart: key,
-      label: new Intl.DateTimeFormat("en-US", { day: "2-digit", month: "short" }).format(
+      label: new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "short" }).format(
         new Date(key),
       ),
       volume: Math.round(entry.volume),

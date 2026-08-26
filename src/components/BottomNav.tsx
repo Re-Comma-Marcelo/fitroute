@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 const tabs = [
   { to: "/inicio", label: "Home", icon: Home },
@@ -11,6 +12,8 @@ const tabs = [
 
 
 export function BottomNav() {
+  const t = useT();
+
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl">
       <ul className="mx-auto flex max-w-md">
@@ -22,7 +25,7 @@ export function BottomNav() {
               activeProps={{ className: "text-primary" }}
             >
               <Icon className="size-5" strokeWidth={1.9} />
-              {label}
+              {t(label)}
             </Link>
           </li>
         ))}

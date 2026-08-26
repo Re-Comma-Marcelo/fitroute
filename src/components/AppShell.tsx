@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { BottomNav } from "./BottomNav";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
+import { useLanguageSync } from "@/lib/i18n/use-language-sync";
 
 export function AppShell({
   title,
@@ -13,6 +14,7 @@ export function AppShell({
   hideHeader?: boolean;
   children: ReactNode;
 }) {
+  useLanguageSync();
   return (
     <div className="min-h-screen bg-background pb-40">
       {hideHeader ? null : (

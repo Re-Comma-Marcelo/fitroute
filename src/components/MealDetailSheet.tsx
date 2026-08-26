@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/sheet";
 import { mealImage } from "@/lib/meal-image";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
+import { useT } from "@/lib/i18n";
 import type {
   DayTotals,
   Meal,
@@ -23,40 +24,40 @@ function pct(n: number, d: number) {
 }
 
 /** Plain-language reason this meal fits (or not) today. */
-function explanation(meal: Meal, targets: NutritionTargets, tag: TrainingTag | undefined) {
+function explanation(meal: Meal, targets: NutritionTargets, tag: TrainingTag | undefined, t: (s: string, v?: any) => string) {
   const proteinShare = pct(meal.proteinG, targets.proteinG);
   const kcalShare = pct(meal.kcal, targets.kcal);
   const parts: string[] = [];
 
   parts.push(
-    `This meal covers ${kcalShare}% of your daily calories and ${proteinShare}% of your protein target.`,
+    t("This meal covers {kcalShare}% of your daily calories and {proteinShare}% of your protein target.", { kcalShare, proteinShare }),
   );
 
   if (tag === "Strength") {
     parts.push(
       meal.proteinG >= 30
-        ? "On a strength day that protein load supports muscle repair after training."
-        : "On a strength day this is light on protein — pair it with a protein-rich snack.",
+        ? t("On a strength day that protein load supports muscle repair after training.")
+        : t("On a strength day this is light on protein — pair it with a protein-rich snack."),
     );
   } else if (tag === "Cardio") {
     parts.push(
       meal.carbsG >= 60
-        ? "Carbs are high enough to refill glycogen for cardio work."
-        : "Carbs are modest here, so keep it away from your run window or add a carb side.",
+        ? t("Carbs are high enough to refill glycogen for cardio work.")
+        : t("Carbs are modest here, so keep it away from your run window or add a carb side."),
     );
   } else {
     parts.push(
       meal.kcal <= Math.round(targets.kcal / 4)
-        ? "Calories stay inside a rest-day portion, so recovery days don't drift over target."
-        : "It is a bigger portion for a rest day — keep the other meals lighter.",
+        ? t("Calories stay inside a rest-day portion, so recovery days don't drift over target.")
+        : t("It is a bigger portion for a rest day — keep the other meals lighter."),
     );
   }
 
   const fatShare = pct(meal.fatG * MACRO_KCAL.fatG, meal.kcal);
-  if (fatShare > 40) parts.push("Fat carries most of the calories, so digestion is slower — good further from training.");
-  else if (fatShare < 15) parts.push("Very low fat, which keeps it easy to digest close to a session.");
+  if (fatShare > 40) parts.push(t("Fat carries most of the calories, so digestion is slower — good further from training."));
+  else if (fatShare < 15) parts.push(t("Very low fat, which keeps it easy to digest close to a session."));
 
-  if (meal.orderOut) parts.push("Ordered out — it does not add anything to your shopping list.");
+  if (meal.orderOut) parts.push(t("Ordered out — it does not add anything to your shopping list."));
 
   return parts.join(" ");
 }
@@ -84,25 +85,26 @@ export function MealDetailSheet({
   trainingTag?: TrainingTag | undefined;
   onToggle: () => void;
 }) {
+  const t = useT();
   if (!meal) return null;
 
   const macros = [
     {
-      label: "Protein",
+      label: t("Protein"),
       grams: meal.proteinG,
       kcal: meal.proteinG * MACRO_KCAL.proteinG,
       target: targets.proteinG,
       color: "var(--chart-1)",
     },
     {
-      label: "Carbs",
+      label: t("Carbs"),
       grams: meal.carbsG,
       kcal: meal.carbsG * MACRO_KCAL.carbsG,
       target: targets.carbsG,
       color: "var(--chart-2)",
     },
     {
-      label: "Fat",
+      label: t("Fat"),
       grams: meal.fatG,
       kcal: meal.fatG * MACRO_KCAL.fatG,
       target: targets.fatG,
@@ -140,7 +142,7 @@ export function MealDetailSheet({
           />
           <div className="absolute inset-0" style={{ background: "var(--gradient-veil)" }} />
           <div className="absolute bottom-3 left-4 right-4">
-            <p className="label-caps text-xs text-muted-foreground">{SLOT_LABEL[slot]}</p>
+            <p className="label-caps text-xs text-muted-foreground">{t(SLOT_LABEL[slot])}</p>
             <h2 className="font-display text-xl font-bold leading-tight">{meal.name}</h2>
           </div>
         </div>
@@ -153,16 +155,16 @@ export function MealDetailSheet({
             </span>
             <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
               {meal.orderOut ? <Truck className="size-3" /> : <Clock className="size-3" />}
-              {meal.orderOut ? "Order out" : `${meal.prepMin} min prep`}
+              {meal.orderOut ? t("Order out") : t("{prepMin} min prep", { prepMin: meal.prepMin })}
             </span>
             {meal.tags
-              .filter((t) => t !== "order-out")
-              .map((t) => (
+              .filter((t_tag) => t_tag !== "order-out")
+              .map((t_tag) => (
                 <span
-                  key={t}
+                  key={t_tag}
                   className="rounded-full border border-border px-2 py-0.5 capitalize"
                 >
-                  {t.replace("-", " ")}
+                  {t(t_tag.replace("-", " "))}
                 </span>
               ))}
           </div>
@@ -171,7 +173,7 @@ export function MealDetailSheet({
         <div className="space-y-5 p-4 pb-8">
           {/* Macro breakdown */}
           <section>
-            <h3 className="label-caps text-xs text-muted-foreground">Macro breakdown</h3>
+            <h3 className="label-caps text-xs text-muted-foreground">{t("Macro breakdown")}</h3>
             <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
               {macros.map((m) => (
                 <div
@@ -195,8 +197,12 @@ export function MealDetailSheet({
                     <span className="font-medium">{m.label}</span>
                   </span>
                   <span className="tabular-nums text-muted-foreground">
-                    {m.grams}g · {m.kcal} kcal · {pct(m.kcal, macroKcal)}% of meal ·{" "}
-                    <span className="text-foreground">{pct(m.grams, m.target)}% of daily</span>
+                    {t("{grams}g · {kcal} kcal · {pct}% of meal · {dailyPct}% of daily", {
+                      grams: m.grams,
+                      kcal: m.kcal,
+                      pct: pct(m.kcal, macroKcal),
+                      dailyPct: pct(m.grams, m.target)
+                    })}
                   </span>
                 </li>
               ))}
@@ -205,33 +211,36 @@ export function MealDetailSheet({
 
           {/* Why it fits */}
           <section className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
-            <h3 className="text-sm font-semibold">Why this meal</h3>
+            <h3 className="text-sm font-semibold">{t("Why this meal")}</h3>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {explanation(meal, targets, trainingTag)}
+              {explanation(meal, targets, trainingTag, t)}
             </p>
           </section>
 
           {/* Daily impact */}
           <section>
             <h3 className="label-caps text-xs text-muted-foreground">
-              Impact on today {planned ? "(already planned)" : ""}
+              {t("Impact on today {planned}", { planned: planned ? t("(already planned)") : "" })}
             </h3>
             <ul className="mt-2 space-y-2.5">
               {(
                 [
-                  ["Calories", dayTotals.kcal, dayAfter.kcal, targets.kcal, "kcal"],
-                  ["Protein", dayTotals.proteinG, dayAfter.proteinG, targets.proteinG, "g"],
-                  ["Carbs", dayTotals.carbsG, dayAfter.carbsG, targets.carbsG, "g"],
-                  ["Fat", dayTotals.fatG, dayAfter.fatG, targets.fatG, "g"],
+                  [t("Calories"), dayTotals.kcal, dayAfter.kcal, targets.kcal, "kcal"],
+                  [t("Protein"), dayTotals.proteinG, dayAfter.proteinG, targets.proteinG, "g"],
+                  [t("Carbs"), dayTotals.carbsG, dayAfter.carbsG, targets.carbsG, "g"],
+                  [t("Fat"), dayTotals.fatG, dayAfter.fatG, targets.fatG, "g"],
                 ] as const
               ).map(([label, before, after, target, unit]) => (
                 <li key={label}>
                   <div className="flex items-baseline justify-between text-xs">
                     <span className="font-medium">{label}</span>
                     <span className="tabular-nums text-muted-foreground">
-                      {after}/{target}
-                      {unit} · {Math.max(0, target - after)}
-                      {unit} left
+                      {t("{after}/{target}{unit} · {left}{unit} left", {
+                        after,
+                        target,
+                        unit,
+                        left: Math.max(0, target - after)
+                      })}
                     </span>
                   </div>
                   <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-muted">
@@ -250,21 +259,21 @@ export function MealDetailSheet({
               ))}
             </ul>
             <p className="mt-2 text-xs text-muted-foreground">
-              Grey is what is already planned today, purple is what this meal adds.
+              {t("Grey is what is already planned today, purple is what this meal adds.")}
             </p>
           </section>
 
           {/* Weekly impact */}
           <section>
-            <h3 className="label-caps text-xs text-muted-foreground">Impact on the week</h3>
+            <h3 className="label-caps text-xs text-muted-foreground">{t("Impact on the week")}</h3>
             <p className="mt-2 text-sm leading-snug text-muted-foreground">
-              Your planned week sits at{" "}
-              <span className="font-semibold text-foreground tabular-nums">
-                {weekAfter.kcal} kcal
-              </span>{" "}
-              of {weeklyTargets.kcal} ({pct(weekAfter.kcal, weeklyTargets.kcal)}% of the weekly
-              budget). This meal alone is {pct(meal.kcal, weeklyTargets.kcal)}% of the week and{" "}
-              {pct(meal.proteinG, weeklyTargets.proteinG)}% of weekly protein.
+              {t("Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.", {
+                kcal: weekAfter.kcal,
+                totalKcal: weeklyTargets.kcal,
+                pct: pct(weekAfter.kcal, weeklyTargets.kcal),
+                mealPct: pct(meal.kcal, weeklyTargets.kcal),
+                proteinPct: pct(meal.proteinG, weeklyTargets.proteinG)
+              })}
             </p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div
@@ -277,7 +286,7 @@ export function MealDetailSheet({
           {/* Ingredients */}
           {meal.ingredients.length > 0 && (
             <section>
-              <h3 className="label-caps text-xs text-muted-foreground">Ingredients</h3>
+              <h3 className="label-caps text-xs text-muted-foreground">{t("Ingredients")}</h3>
               <ul className="mt-2 space-y-1.5 text-sm">
                 {meal.ingredients.map((ing) => (
                   <li key={ing.name} className="flex justify-between gap-3">
@@ -293,10 +302,10 @@ export function MealDetailSheet({
 
           <Button onClick={onToggle} className="w-full font-bold" variant={planned ? "outline" : "default"}>
             {planned ? (
-              "Remove from today"
+              t("Remove from today")
             ) : (
               <>
-                <Check className="mr-2 size-4" /> Plan for {SLOT_LABEL[slot].toLowerCase()}
+                <Check className="mr-2 size-4" /> {t("Plan for {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() })}
               </>
             )}
           </Button>

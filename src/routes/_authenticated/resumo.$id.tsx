@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/resumo/$id")({
 });
 
 function SummaryPage() {
+  const t = useT();
   const { id } = useParams({ from: "/_authenticated/resumo/$id" });
   const [prs, setPrs] = useState<{ nome: string; pesoKg: number }[]>([]);
 
@@ -55,20 +57,20 @@ function SummaryPage() {
         <div className="veil absolute inset-0" />
       </div>
       <div className="relative mx-auto max-w-md">
-        <p className="label-caps">Session finished</p>
-        <h1 className="mt-2 text-4xl font-semibold tracking-tight">Workout done</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Good work. Here is the summary.</p>
+        <p className="label-caps">{t("Session finished")}</p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
 
         <dl className="mt-6 grid grid-cols-2 gap-3">
-          <Stat label="Duration" value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
-          <Stat label="Total volume" value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
-          <Stat label="Sets" value={String(sets.length)} />
-          <Stat label="Exercises" value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
+          <Stat label={t("Duration")} value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
+          <Stat label={t("Total volume")} value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
+          <Stat label={t("Sets")} value={String(sets.length)} />
+          <Stat label={t("Exercises")} value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
         </dl>
 
         <section className="mt-6 rounded-2xl border border-border bg-card p-4">
           <h2 className="label-caps flex items-center gap-2">
-            <Trophy className="size-4 text-primary" /> PRs hit
+            <Trophy className="size-4 text-primary" /> {t("PRs hit")}
           </h2>
           {prs.length ? (
             <ul className="mt-3 space-y-2">
@@ -80,9 +82,7 @@ function SummaryPage() {
               ))}
             </ul>
           ) : (
-            <p className="mt-2 text-sm text-muted-foreground">
-              No records today — consistency also counts.
-            </p>
+            <p className="mt-2 text-sm text-muted-foreground">{t("No records today — consistency also counts.")}</p>
           )}
         </section>
 
@@ -93,11 +93,11 @@ function SummaryPage() {
         <div className="mt-8 space-y-3">
           <Button asChild className="shadow-elegant h-14 w-full text-base font-semibold">
             <Link to="/progresso/$id" params={{ id }}>
-              View session details
+              {t("View session details")}
             </Link>
           </Button>
           <Button asChild variant="ghost" className="h-12 w-full text-sm font-medium text-muted-foreground">
-            <Link to="/treino">Back to start</Link>
+            <Link to="/treino">{t("Back to start")}</Link>
           </Button>
         </div>
       </div>

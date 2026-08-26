@@ -1,25 +1,27 @@
 import { useState } from "react";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis } from "recharts";
 import type { WeekPoint } from "@/lib/progress-analytics";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Mode = "volume" | "sessions";
 
 export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
+  const t = useT();
   const [mode, setMode] = useState<Mode>("volume");
   const hasData = data.some((d) => d.volume > 0 || d.sessions > 0);
 
   const latest = data[data.length - 1];
   const headline =
     mode === "volume"
-      ? `${Math.round((latest?.volume ?? 0) / 1000)}t this week`
-      : `${latest?.sessions ?? 0} sessions this week`;
+      ? t("{val}t this week", { val: Math.round((latest?.volume ?? 0) / 1000) })
+      : t("{count} sessions this week", { count: latest?.sessions ?? 0 });
 
   return (
     <section className="mt-4 rounded-2xl border border-border bg-card p-4">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="label-caps">Last 8 weeks</h2>
+          <h2 className="label-caps">{t("Last 8 weeks")}</h2>
           <p className="font-display mt-0.5 text-base font-semibold tabular-nums">{headline}</p>
         </div>
         <div className="flex rounded-full border border-border p-0.5">
@@ -33,7 +35,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
-              {m}
+              {t(m)}
             </button>
           ))}
         </div>
@@ -79,7 +81,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
           </ResponsiveContainer>
         ) : (
           <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
-            Log a few sessions to see your trend here.
+            {t("Log a few sessions to see your trend here.")}
           </p>
         )}
       </div>

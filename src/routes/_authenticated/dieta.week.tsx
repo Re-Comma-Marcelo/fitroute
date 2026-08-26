@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
+import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
   activeSlots,
@@ -40,6 +41,7 @@ export const Route = createFileRoute("/_authenticated/dieta/week")({
 });
 
 function WeekPage() {
+  const t = useT();
   const dates = useMemo(() => weekDates(), []);
   const today = isoDate(new Date());
   const qc = useQueryClient();
@@ -66,7 +68,7 @@ function WeekPage() {
           }}
           className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
         >
-          <Wand2 className="size-4" /> Fill the week
+          <Wand2 className="size-4" /> {t("Fill the week")}
         </button>
         <button
           type="button"
@@ -74,7 +76,7 @@ function WeekPage() {
             await clearWeek();
             refresh();
           }}
-          aria-label="Clear week"
+          aria-label={t("Clear week")}
           className="tap-target flex w-12 items-center justify-center rounded-xl border border-border text-muted-foreground"
         >
           <Trash2 className="size-4" />
@@ -83,7 +85,7 @@ function WeekPage() {
 
       <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
         <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
-        Suggestions lean high-protein on strength days and lighter on rest days.
+        {t("Suggestions lean high-protein on strength days and lighter on rest days.")}
       </p>
 
       <ul className="mt-4 space-y-3">
@@ -96,10 +98,10 @@ function WeekPage() {
               <div className="flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold">
                   {d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "short" })}
-                  {date === today ? <span className="ml-2 text-xs text-primary">Today</span> : null}
+                  {date === today ? <span className="ml-2 text-xs text-primary">{t("Today")}</span> : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {tagsQ.data?.[date] ?? "Rest"} · {totals.kcal}
+                  {t(tagsQ.data?.[date] ?? "Rest")} · {totals.kcal}
                   {targets ? `/${targets.kcal}` : ""} kcal · P {totals.proteinG}g
                 </span>
               </div>
@@ -114,12 +116,12 @@ function WeekPage() {
                         className="tap-target flex w-full items-center gap-3 rounded-lg border border-border/60 px-3 text-left"
                       >
                         <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                          {SLOT_LABEL[slot]}
+                          {t(SLOT_LABEL[slot])}
                         </span>
                         <span
                           className={`flex-1 truncate text-xs ${name ? "font-medium" : "text-muted-foreground"}`}
                         >
-                          {name ?? "Add a meal"}
+                          {name ?? t("Add a meal")}
                         </span>
                         {name ? null : <Plus className="size-3.5 shrink-0 text-muted-foreground" />}
                       </button>

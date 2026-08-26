@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { ChevronDown, Sparkles } from "lucide-react";
 import type { PlateauFlag } from "@/lib/coach/plateau";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
 
   return (
@@ -18,7 +20,7 @@ export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {
           <Sparkles className="size-4" />
         </span>
         <span className="flex-1">
-          <span className="label-caps text-primary/80">Coach</span>
+          <span className="label-caps text-primary/80">{t("Coach")}</span>
           <span className="font-display mt-0.5 block text-base font-semibold leading-tight">
             {flag.insight.title}
           </span>
@@ -26,7 +28,7 @@ export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {
             {flag.insight.body}
           </span>
           <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-primary">
-            {open ? "Hide reasoning" : "See why"}
+            {open ? t("Hide reasoning") : t("See why")}
             <ChevronDown className={cn("size-3.5 transition-transform", open && "rotate-180")} />
           </span>
         </span>

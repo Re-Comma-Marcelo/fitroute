@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { useT } from "@/lib/i18n";
 import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/rotina/$id")({
 
 const DRAFT_KEY = "forja.draftRoutine.v1";
 
+  const t = useT();
 function RoutineEditor() {
   const { id } = useParams({ from: "/_authenticated/rotina/$id" });
   const navigate = useNavigate();
@@ -101,7 +103,7 @@ function RoutineEditor() {
   }
 
   async function handleSave() {
-    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || "New routine" });
+    await saveRoutine({ ...routine!, nome: routine!.nome.trim() || t("New routine") });
     await queryClient.invalidateQueries({ queryKey: ["routines"] });
     navigate({ to: "/treino" });
   }
@@ -117,13 +119,13 @@ function RoutineEditor() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <PageHeader
-        title={id === "nova" ? "New routine" : "Edit routine"}
+        title={id === "nova" ? t("New routine") : t("Edit routine")}
         left={
           <Button
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Back"
+            aria-label={t("Back")}
             onClick={() => navigate({ to: "/treino" })}
           >
             <ArrowLeft className="size-6" />
@@ -135,7 +137,7 @@ function RoutineEditor() {
               variant="ghost"
               size="icon"
               className="tap-target text-destructive"
-              aria-label="Delete routine"
+              aria-label={t("Delete routine")}
               onClick={handleDelete}
             >
               <Trash2 className="size-5" />
@@ -146,37 +148,37 @@ function RoutineEditor() {
 
       <div className="mx-auto max-w-md space-y-4 px-4 py-4">
         <div className="space-y-2">
-          <Label htmlFor="nome">Routine name</Label>
+          <Label htmlFor="nome">{t("Routine name")}</Label>
           <Input
             id="nome"
             value={routine.nome}
             onChange={(e) => patch({ nome: e.target.value })}
-            placeholder="e.g. Upper A"
+            placeholder={t("e.g. Upper A")}
             className="tap-target h-12 text-base"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="descricao">Description</Label>
+          <Label htmlFor="descricao">{t("Description")}</Label>
           <Textarea
             id="descricao"
             value={routine.descricao}
             onChange={(e) => patch({ descricao: e.target.value })}
-            placeholder="Focus, days of the week, notes"
+            placeholder={t("Focus, days of the week, notes")}
             className="min-h-16 text-base"
           />
         </div>
 
         <h2 className="pt-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
-          Exercises ({routine.exercicios.length})
+          {t("Exercises ({count})", { count: routine.exercicios.length })}
         </h2>
 
         {routine.exercicios.length === 0 ? (
           <div className="rounded-xl border border-dashed border-border p-6 text-center">
             <p className="text-sm text-muted-foreground">
-              No exercises yet. Add the first one from the library.
+              {t("No exercises yet. Add the first one from the library.")}
             </p>
             <Button className="mt-4 h-12 w-full font-bold" onClick={openLibrary}>
-              <Plus className="mr-1 size-5" /> Add exercise
+              <Plus className="mr-1 size-5" /> {t("Add exercise")}
             </Button>
           </div>
         ) : (
@@ -200,13 +202,13 @@ function RoutineEditor() {
                     <GripVertical className="size-5" />
                   </span>
                   <p className="flex-1 text-base font-bold leading-tight">
-                    {nomes[rex.exerciseId] ?? "Exercise"}
+                    {nomes[rex.exerciseId] ?? t("Exercise")}
                   </p>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="tap-target"
-                    aria-label="Move up"
+                    aria-label={t("Move up")}
                     onClick={() => move(idx, idx - 1)}
                   >
                     ↑
@@ -215,7 +217,7 @@ function RoutineEditor() {
                     variant="ghost"
                     size="icon"
                     className="tap-target"
-                    aria-label="Move down"
+                    aria-label={t("Move down")}
                     onClick={() => move(idx, idx + 1)}
                   >
                     ↓
@@ -224,7 +226,7 @@ function RoutineEditor() {
                     variant="ghost"
                     size="icon"
                     className="tap-target text-destructive"
-                    aria-label="Remove exercise"
+                    aria-label={t("Remove exercise")}
                     onClick={() =>
                       setRoutine((prev) =>
                         prev
@@ -244,22 +246,22 @@ function RoutineEditor() {
 
                 <div className="mt-3 grid grid-cols-4 gap-2">
                   <NumField
-                    label="Sets"
+                    label={t("Sets")}
                     value={rex.seriesAlvo}
                     onChange={(v) => patchExercise(idx, { seriesAlvo: v })}
                   />
                   <NumField
-                    label="Min reps"
+                    label={t("Min reps")}
                     value={rex.repsMin}
                     onChange={(v) => patchExercise(idx, { repsMin: v })}
                   />
                   <NumField
-                    label="Max reps"
+                    label={t("Max reps")}
                     value={rex.repsMax}
                     onChange={(v) => patchExercise(idx, { repsMax: v })}
                   />
                   <NumField
-                    label="Rest (s)"
+                    label={t("Rest (s)")}
                     value={rex.descansoSeg}
                     onChange={(v) => patchExercise(idx, { descansoSeg: v })}
                   />
@@ -267,7 +269,7 @@ function RoutineEditor() {
                 <Input
                   value={rex.notas}
                   onChange={(e) => patchExercise(idx, { notas: e.target.value })}
-                  placeholder="Exercise notes"
+                  placeholder={t("Exercise notes")}
                   className="mt-2 h-11 text-sm"
                 />
               </li>
@@ -277,7 +279,7 @@ function RoutineEditor() {
 
         {routine.exercicios.length > 0 ? (
           <Button variant="secondary" className="h-12 w-full font-semibold" onClick={openLibrary}>
-            <Plus className="mr-1 size-5" /> Add exercise
+            <Plus className="mr-1 size-5" /> {t("Add exercise")}
           </Button>
         ) : null}
       </div>
@@ -285,7 +287,7 @@ function RoutineEditor() {
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto max-w-md">
           <Button className="h-14 w-full text-base font-bold" onClick={handleSave}>
-            Save routine
+            {t("Save routine")}
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
@@ -303,10 +305,11 @@ function NumField({
   value: number;
   onChange: (value: number) => void;
 }) {
+  const t = useT();
   return (
     <label className="block">
       <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        {label}
+        {t(label)}
       </span>
       <Input
         value={String(value)}
