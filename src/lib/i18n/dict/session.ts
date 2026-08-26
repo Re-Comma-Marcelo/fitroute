@@ -4,6 +4,18 @@ export const dict: DictFragment = {
   pt: {
     "Could not save the workout. It is still stored on this device — try again in a moment.":
       "Não foi possível salvar o treino. Ele continua guardado neste aparelho — tente novamente em instantes.",
+    "Repeat set": "Repetir série",
+    "Decrease weight": "Diminuir carga",
+    "Increase weight": "Aumentar carga",
+    "Decrease reps": "Diminuir repetições",
+    "Increase reps": "Aumentar repetições",
+    "Finish this workout?": "Finalizar este treino?",
+    "{count} completed sets will be saved.": "{count} séries concluídas serão salvas.",
+    "{count} sets filled in but not checked — include them?":
+      "{count} séries preenchidas sem marcar — incluir no treino?",
+    "Unchecked sets are discarded when the workout is saved.":
+      "Séries não marcadas são descartadas ao salvar o treino.",
+    "Include": "Incluir",
     "Warm-up": "Aquecimento",
     "Normal": "Normal",
     "Failure": "Falha",
@@ -59,6 +71,18 @@ export const dict: DictFragment = {
     "Back to start": "Voltar ao início",
   },
   nl: {
+    "Repeat set": "Set herhalen",
+    "Decrease weight": "Gewicht verlagen",
+    "Increase weight": "Gewicht verhogen",
+    "Decrease reps": "Reps verlagen",
+    "Increase reps": "Reps verhogen",
+    "Finish this workout?": "Deze training afronden?",
+    "{count} completed sets will be saved.": "{count} voltooide sets worden opgeslagen.",
+    "{count} sets filled in but not checked — include them?":
+      "{count} sets ingevuld maar niet afgevinkt — toevoegen?",
+    "Unchecked sets are discarded when the workout is saved.":
+      "Niet-afgevinkte sets worden bij het opslaan weggegooid.",
+    "Include": "Toevoegen",
     "Warm-up": "Warming-up",
     "Normal": "Normaal",
     "Failure": "Falen",

@@ -5,7 +5,9 @@ import {
   Check,
   ChevronDown,
   MoreVertical,
+  Minus,
   Plus,
+  RotateCcw,
   SkipForward,
   Timer,
   Trash2,
@@ -23,11 +25,24 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatRest } from "@/lib/format";
 import { toast } from "sonner";
 import {
   clearActiveSession,
+  currentExerciseIndex,
+  filledUncheckedSets,
   loadActiveSession,
   makeSets,
   restSecondsLeft,
@@ -41,7 +56,7 @@ import {
   type ActiveSet,
   type RestState,
 } from "@/lib/session-state";
-import { isSerieValida } from "@/lib/progression";
+import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
 import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
@@ -70,7 +85,13 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
-const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
+/**
+ * Row 1: set type | previous | RPE | check. Row 2: -/kg/+ and -/reps/+ steppers.
+ * Every tap target is 44px and the tracks fit 320-430px with no horizontal scroll.
+ */
+const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
+const ROW_STEP =
+  "grid grid-cols-[44px_minmax(0,1fr)_44px_44px_minmax(0,1fr)_44px] items-center gap-1";
 
 function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
   if (typeof window === "undefined") return;
@@ -117,6 +138,10 @@ function SessionPage() {
   const [ready, setReady] = useState(false);
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
+  const [pendingSets, setPendingSets] = useState(0);
+  const [scrollTo, setScrollTo] = useState<number | null>(null);
+  const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const rest = session?.rest ?? null;
@@ -192,6 +217,51 @@ function SessionPage() {
     });
   }, []);
 
+  const hasSession = !!session;
+
+  /** Keep the screen awake while training; silently ignored where unsupported. */
+  useEffect(() => {
+    if (!hasSession || typeof navigator === "undefined") return;
+    const nav = navigator as Navigator & {
+      wakeLock?: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> };
+    };
+    if (!nav.wakeLock) return;
+    let sentinel: { release: () => Promise<void> } | null = null;
+    let cancelled = false;
+    const acquire = () => {
+      if (document.visibilityState !== "visible") return;
+      nav
+        .wakeLock!.request("screen")
+        .then((s) => {
+          if (cancelled) void s.release().catch(() => {});
+          else sentinel = s;
+        })
+        .catch(() => {});
+    };
+    acquire();
+    const onVisible = () => {
+      if (document.visibilityState === "visible") acquire();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
+      void sentinel?.release().catch(() => {});
+    };
+  }, [hasSession]);
+
+  /** Bring the newly opened exercise into view when a card auto-advances. */
+  useEffect(() => {
+    if (scrollTo === null) return;
+    const node = cardRefs.current[scrollTo];
+    setScrollTo(null);
+    if (!node) return;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    node.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  }, [scrollTo]);
+
   if (!ready) return <div className="min-h-screen bg-background" />;
 
   if (!session) {
@@ -199,7 +269,7 @@ function SessionPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
         <p className="text-lg font-semibold">{t("No workout in progress")}</p>
         <Button className="h-12 w-full max-w-xs" onClick={() => navigate({ to: "/treino" })}>
-          Back to training
+          {t("Back to training")}
         </Button>
       </div>
     );
@@ -220,6 +290,7 @@ function SessionPage() {
   function toggleSet(exIdx: number, setIdx: number) {
     unlockAudio();
     let descanso = 0;
+    let proximo: number | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -235,10 +306,12 @@ function SessionPage() {
       const todasFeitas = ex.sets.every((x) => x.concluida);
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
         s.atual = exIdx + 1;
+        proximo = s.atual;
       }
       return s;
     });
     if (descanso > 0) startRest(descanso);
+    if (proximo !== null) setScrollTo(proximo);
   }
 
   function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
@@ -280,6 +353,25 @@ function SessionPage() {
     });
   }
 
+  /** One tap: copy weight/reps from the last completed set into the next pending one. */
+  function repeatLastSet(exIdx: number) {
+    unlockAudio();
+    let descanso = 0;
+    update((s) => {
+      const ex = s.exercicios[exIdx]!;
+      const feitas = ex.sets.filter((x) => x.concluida);
+      const ultima = feitas[feitas.length - 1];
+      const proxima = ex.sets.find((x) => !x.concluida);
+      if (!ultima || !proxima) return s;
+      proxima.pesoKg = ultima.pesoKg;
+      proxima.reps = ultima.reps;
+      proxima.concluida = true;
+      descanso = ex.descansoSeg;
+      return s;
+    });
+    if (descanso > 0) startRest(descanso);
+  }
+
   function removeSet(exIdx: number, setIdx: number) {
     update((s) => {
       const ex = s.exercicios[exIdx]!;
@@ -305,8 +397,35 @@ function SessionPage() {
     });
   }
 
-  async function finalizar() {
+  /** Finish flow: warn about filled-but-unchecked sets before building the payload. */
+  function requestFinish() {
     if (!session) return;
+    const pend = filledUncheckedSets(session);
+    if (pend > 0) {
+      setPendingSets(pend);
+      return;
+    }
+    void finalizar();
+  }
+
+  function finishIncludingPending() {
+    setPendingSets(0);
+    const target = structuredClone(session!);
+    target.exercicios.forEach((ex) =>
+      ex.sets.forEach((set) => {
+        if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+          set.concluida = true;
+        }
+      }),
+    );
+    setSession(target);
+    saveActiveSession(target);
+    void finalizar(target);
+  }
+
+  async function finalizar(override?: ActiveSession) {
+    const target = override ?? session;
+    if (!target) return;
     setFinishing(true);
     try {
       const duracaoSeg = elapsed;
@@ -314,8 +433,8 @@ function SessionPage() {
       let volume = 0;
       const prs: { nome: string; pesoKg: number }[] = [];
 
-      for (let i = 0; i < session.exercicios.length; i++) {
-        const ex = session.exercicios[i]!;
+      for (let i = 0; i < target.exercicios.length; i++) {
+        const ex = target.exercicios[i]!;
         const pr = await getPersonalRecord(ex.exerciseId);
         let melhor = 0;
         ex.sets.forEach((s) => {
@@ -328,8 +447,8 @@ function SessionPage() {
             melhor = Math.max(melhor, peso);
           }
           sets.push({
-            id: `${session.id}_${i}_${s.serieNum}`,
-            workoutId: session.id,
+            id: `${target.id}_${i}_${s.serieNum}`,
+            workoutId: target.id,
             exerciseId: ex.exerciseId,
             ordemExercicio: i,
             serieNum: s.serieNum,
@@ -345,26 +464,26 @@ function SessionPage() {
 
       await saveWorkout(
         {
-          id: session.id,
-          ...(session.routineId ? { routineId: session.routineId } : {}),
-          iniciadoEm: session.iniciadoEm,
+          id: target.id,
+          ...(target.routineId ? { routineId: target.routineId } : {}),
+          iniciadoEm: target.iniciadoEm,
           finalizadoEm: new Date().toISOString(),
           duracaoSeg,
           volumeTotalKg: Math.round(volume),
-          notas: session.notas,
-          origem: session.routineId ? "rotina" : "branco",
+          notas: target.notas,
+          origem: target.routineId ? "rotina" : "branco",
         },
         sets,
       );
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
-          `forja.resumo.${session.id}`,
+          `forja.resumo.${target.id}`,
           JSON.stringify({ prs, series: sets.length }),
         );
       }
       clearActiveSession();
-      navigate({ to: "/resumo/$id", params: { id: session.id } });
+      navigate({ to: "/resumo/$id", params: { id: target.id } });
     } catch {
       // Keep the session in localStorage so nothing is lost.
       toast.error(
@@ -378,7 +497,7 @@ function SessionPage() {
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
-  const currentRest = session.exercicios[Math.max(0, session.atual)]?.descansoSeg ?? 90;
+  const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
 
   return (
     <div className="min-h-screen bg-background pb-44">
@@ -403,13 +522,36 @@ function SessionPage() {
           >
             <Timer className="size-6" />
           </Button>
-          <Button
-            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
-            disabled={finishing}
-            onClick={finalizar}
-          >
-            Finish
-          </Button>
+          <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
+            <AlertDialogTrigger asChild>
+              <Button
+                className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+                disabled={finishing}
+              >
+                {t("Finish")}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>{t("Finish this workout?")}</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t("{count} completed sets will be saved.", { count: setsDone })}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
+                <AlertDialogAction
+                  className="tap-target"
+                  onClick={() => {
+                    setConfirmFinish(false);
+                    requestFinish();
+                  }}
+                >
+                  {t("Finish")}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
@@ -426,6 +568,10 @@ function SessionPage() {
           return (
             <section
               key={ex.exerciseId + exIdx}
+              ref={(node) => {
+                cardRefs.current[exIdx] = node;
+              }}
+              style={{ scrollMarginTop: "7rem" }}
               className={`rounded-xl border bg-card ${
                 aberto ? "border-primary/50" : "border-border"
               } ${ex.pulado ? "opacity-50" : ""}`}
@@ -434,6 +580,7 @@ function SessionPage() {
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
+                    aria-expanded={aberto}
                     className="flex w-full items-start gap-2 text-left"
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
@@ -489,12 +636,10 @@ function SessionPage() {
               {aberto ? (
                 <div className="px-3 pb-3">
                   <div
-                    className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_TOP} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
-                    <span>{t("Set")}</span>
-                    <span className="text-center">{t("Previous")}</span>
-                    <span className="text-center">{t("kg")}</span>
-                    <span className="text-center">{t("reps")}</span>
+                    <span className="text-center">{t("Set")}</span>
+                    <span>{t("Previous")}</span>
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
@@ -514,13 +659,25 @@ function SessionPage() {
                       />
                     ))}
                   </ul>
-                  <Button
-                    variant="ghost"
-                    className="mt-2 h-11 w-full justify-start text-sm font-semibold text-muted-foreground"
-                    onClick={() => addSet(exIdx)}
-                  >
-                    <Plus className="mr-1 size-4" /> {t("Add set")}
-                  </Button>
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <Button
+                      variant="ghost"
+                      className="h-11 justify-center text-sm font-semibold text-muted-foreground"
+                      onClick={() => addSet(exIdx)}
+                    >
+                      <Plus className="mr-1 size-4" /> {t("Add set")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="h-11 justify-center text-sm font-semibold text-info"
+                      disabled={
+                        !ex.sets.some((s) => s.concluida) || !ex.sets.some((s) => !s.concluida)
+                      }
+                      onClick={() => repeatLastSet(exIdx)}
+                    >
+                      <RotateCcw className="mr-1 size-4" /> {t("Repeat set")}
+                    </Button>
+                  </div>
                   <Textarea
                     value={ex.notas}
                     onChange={(e) =>
@@ -568,12 +725,43 @@ function SessionPage() {
               t={t}
             />
           ) : null}
-          <Button className="h-14 w-full text-base font-bold" disabled={finishing} onClick={finalizar}>
-            Finish workout
+          <Button
+            className="h-14 w-full text-base font-bold"
+            disabled={finishing}
+            onClick={requestFinish}
+          >
+            {t("Finish workout")}
           </Button>
         </div>
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
+
+      <AlertDialog open={pendingSets > 0} onOpenChange={(open) => !open && setPendingSets(0)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("{count} sets filled in but not checked — include them?", { count: pendingSets })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("Unchecked sets are discarded when the workout is saved.")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              className="tap-target"
+              onClick={() => {
+                setPendingSets(0);
+                void finalizar();
+              }}
+            >
+              {t("Discard")}
+            </AlertDialogCancel>
+            <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
+              {t("Include")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {restFinished ? (
         <RestFinishedOverlay onResume={() => setRestFinished(false)} />
@@ -599,7 +787,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-bold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
           {t("Weight increased")}
@@ -620,7 +808,7 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-bold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
           {t("Rest: {time}", { time: formatRest(value) })}
@@ -699,10 +887,35 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
             setOpen(false);
           }}
         >
-          Clear
+          {t("Clear")}
         </Button>
       </PopoverContent>
     </Popover>
+  );
+}
+
+function StepButton({
+  onClick,
+  label,
+  dir,
+}: {
+  onClick: () => void;
+  label: string;
+  dir: "up" | "down";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground active:bg-accent"
+    >
+      {dir === "up" ? (
+        <Plus className="size-5" strokeWidth={2.8} />
+      ) : (
+        <Minus className="size-5" strokeWidth={2.8} />
+      )}
+    </button>
   );
 }
 
@@ -728,80 +941,111 @@ function SetRow({
   t: any;
 }) {
   const aquecimento = !isSerieValida(set);
-  return (
-    <li className={`${GRID} rounded-lg py-1 ${set.concluida ? "bg-primary/10" : ""}`}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
-              aquecimento ? "text-warn" : ""
-            }`}
-            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
-          >
-            {label}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
-            <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-              {typeName[tipo]}
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+  const passoKg = incrementoPara(exercise.equipamento);
 
-      <div className="text-center text-[11px] font-semibold leading-tight text-muted-foreground">
-        {set.antPeso !== null && set.antReps !== null ? (
-          <>
-            <span className="block tabular-nums">
-              {set.antPeso}kg x {set.antReps}
-            </span>
-            <span className="block tabular-nums">
-              {set.antRpe ? `@ ${set.antRpe} rpe` : "—"}
-            </span>
-          </>
-        ) : (
-          <span>—</span>
-        )}
+  function stepKg(delta: number) {
+    const atual = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
+    const next = Math.max(0, Math.round((atual + delta) * 100) / 100);
+    onField("pesoKg", String(next));
+  }
+
+  function stepReps(delta: number) {
+    const atual = Number(set.reps) || set.sugReps || 0;
+    const next = Math.max(0, Math.round(atual + delta));
+    onField("reps", String(next));
+  }
+
+  return (
+    <li
+      className={`space-y-1 rounded-lg p-1 ${set.concluida ? "bg-primary/10" : "bg-muted/20"}`}
+    >
+      <div className={ROW_TOP}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-bold ${
+                aquecimento ? "text-warn" : ""
+              }`}
+              aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
+            >
+              {label}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
+              <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
+                {typeName[tipo]}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
+              <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="min-w-0 text-[11px] font-semibold leading-tight text-muted-foreground">
+          {set.antPeso !== null && set.antReps !== null ? (
+            <>
+              <span className="block truncate tabular-nums">
+                {set.antPeso}kg x {set.antReps}
+              </span>
+              <span className="block truncate tabular-nums">
+                {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
+              </span>
+            </>
+          ) : (
+            <span>—</span>
+          )}
+        </div>
+
+        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+
+        <button
+          type="button"
+          onClick={onCheck}
+          aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
+          aria-pressed={set.concluida}
+          className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
+            set.concluida
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-muted text-muted-foreground"
+          }`}
+        >
+          <Check className="size-6" strokeWidth={3} />
+        </button>
       </div>
 
-      <Input
-        value={set.pesoKg}
-        onChange={(e) => onField("pesoKg", e.target.value)}
-        inputMode="decimal"
-        placeholder={t("kg")}
-        aria-label={t("Weight in kg")}
-        className="numeric-field tap-target h-11 px-1 text-base"
-      />
-      <Input
-        value={set.reps}
-        onChange={(e) => onField("reps", e.target.value)}
-        inputMode="numeric"
-        placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-        aria-label={t("Reps")}
-        className="numeric-field tap-target h-11 px-1 text-base"
-      />
-      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
-      <button
-        type="button"
-        onClick={onCheck}
-        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
-        aria-pressed={set.concluida}
-        className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
-          set.concluida
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-muted text-muted-foreground"
-        }`}
-      >
-        <Check className="size-6" strokeWidth={3} />
-      </button>
+      <div className={ROW_STEP}>
+        <StepButton
+          dir="down"
+          label={t("Decrease weight")}
+          onClick={() => stepKg(-passoKg)}
+        />
+        <Input
+          value={set.pesoKg}
+          onChange={(e) => onField("pesoKg", e.target.value)}
+          inputMode="decimal"
+          placeholder={t("kg")}
+          aria-label={t("Weight in kg")}
+          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+        />
+        <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
+        <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
+        <Input
+          value={set.reps}
+          onChange={(e) => onField("reps", e.target.value)}
+          inputMode="numeric"
+          placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
+          aria-label={t("Reps")}
+          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+        />
+        <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
+      </div>
     </li>
   );
 }
+
 
 function RestTimerBar({
   t,
@@ -830,6 +1074,8 @@ function RestTimerBar({
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">{t("Rest")}</p>
             <p
+              role="timer"
+              aria-live="off"
               className={cn(
                 "font-display text-2xl font-bold tabular-nums leading-none",
                 isLow ? "text-warn" : "text-info",
@@ -838,6 +1084,7 @@ function RestTimerBar({
               {formatDuration(restLeft)}
             </p>
           </div>
+
         </div>
         <div className="flex gap-1.5">
           <Button
@@ -878,18 +1125,34 @@ function RestTimerBar({
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();
+  const resumeRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    resumeRef.current?.focus();
+  }, []);
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("Rest done")}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm"
+    >
       <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
-      <h2 className="mt-6 text-center font-display text-3xl font-bold">{t("Rest done")}</h2>
+      <h2 className="mt-6 text-center font-display text-3xl font-bold" aria-live="assertive">
+        {t("Rest done")}
+      </h2>
       <p className="mt-2 text-center text-base text-muted-foreground">
         {t("Time for the next set. Keep the pace up.")}
       </p>
-      <Button className="mt-8 h-14 w-full max-w-xs text-base font-bold" onClick={onResume}>
-        Resume workout
+      <Button
+        ref={resumeRef}
+        className="mt-8 h-14 w-full max-w-xs text-base font-bold"
+        onClick={onResume}
+      >
+        {t("Resume workout")}
       </Button>
     </div>
   );
 }
+
