@@ -305,63 +305,73 @@ function SessionPage() {
   async function finalizar() {
     if (!session) return;
     setFinishing(true);
-    const duracaoSeg = elapsed;
-    const sets: WorkoutSet[] = [];
-    let volume = 0;
-    const prs: { nome: string; pesoKg: number }[] = [];
+    try {
+      const duracaoSeg = elapsed;
+      const sets: WorkoutSet[] = [];
+      let volume = 0;
+      const prs: { nome: string; pesoKg: number }[] = [];
 
-    for (let i = 0; i < session.exercicios.length; i++) {
-      const ex = session.exercicios[i]!;
-      const pr = await getPersonalRecord(ex.exerciseId);
-      let melhor = 0;
-      ex.sets.forEach((s) => {
-        if (!s.concluida) return;
-        const peso = Number(s.pesoKg) || 0;
-        const reps = Number(s.reps) || 0;
-        // Warm-up is logged but does not count toward volume.
-        if (isSerieValida(s)) {
-          volume += peso * reps;
-          melhor = Math.max(melhor, peso);
-        }
-        sets.push({
-          id: `${session.id}_${i}_${s.serieNum}`,
-          workoutId: session.id,
-          exerciseId: ex.exerciseId,
-          ordemExercicio: i,
-          serieNum: s.serieNum,
-          tipoSerie: s.tipoSerie,
-          pesoKg: peso,
-          reps,
-          concluida: true,
-          ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+      for (let i = 0; i < session.exercicios.length; i++) {
+        const ex = session.exercicios[i]!;
+        const pr = await getPersonalRecord(ex.exerciseId);
+        let melhor = 0;
+        ex.sets.forEach((s) => {
+          if (!s.concluida) return;
+          const peso = Number(s.pesoKg) || 0;
+          const reps = Number(s.reps) || 0;
+          // Warm-up is logged but does not count toward volume.
+          if (isSerieValida(s)) {
+            volume += peso * reps;
+            melhor = Math.max(melhor, peso);
+          }
+          sets.push({
+            id: `${session.id}_${i}_${s.serieNum}`,
+            workoutId: session.id,
+            exerciseId: ex.exerciseId,
+            ordemExercicio: i,
+            serieNum: s.serieNum,
+            tipoSerie: s.tipoSerie,
+            pesoKg: peso,
+            reps,
+            concluida: true,
+            ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+          });
         });
-      });
-      if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
-    }
+        if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
+      }
 
-    await saveWorkout(
-      {
-        id: session.id,
-        ...(session.routineId ? { routineId: session.routineId } : {}),
-        iniciadoEm: session.iniciadoEm,
-        finalizadoEm: new Date().toISOString(),
-        duracaoSeg,
-        volumeTotalKg: Math.round(volume),
-        notas: session.notas,
-        origem: session.routineId ? "rotina" : "branco",
-      },
-      sets,
-    );
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        `forja.resumo.${session.id}`,
-        JSON.stringify({ prs, series: sets.length }),
+      await saveWorkout(
+        {
+          id: session.id,
+          ...(session.routineId ? { routineId: session.routineId } : {}),
+          iniciadoEm: session.iniciadoEm,
+          finalizadoEm: new Date().toISOString(),
+          duracaoSeg,
+          volumeTotalKg: Math.round(volume),
+          notas: session.notas,
+          origem: session.routineId ? "rotina" : "branco",
+        },
+        sets,
       );
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          `forja.resumo.${session.id}`,
+          JSON.stringify({ prs, series: sets.length }),
+        );
+      }
+      clearActiveSession();
+      navigate({ to: "/resumo/$id", params: { id: session.id } });
+    } catch {
+      // Keep the session in localStorage so nothing is lost.
+      toast.error(
+        t("Could not save the workout. It is still stored on this device — try again in a moment."),
+      );
+    } finally {
+      setFinishing(false);
     }
-    clearActiveSession();
-    navigate({ to: "/resumo/$id", params: { id: session.id } });
   }
+
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
