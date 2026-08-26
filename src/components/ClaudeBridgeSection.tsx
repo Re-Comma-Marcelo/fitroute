@@ -21,8 +21,8 @@ const TIME_LABEL: Record<Profile["preferredTime"], string> = {
   evening: "evenings",
 };
 
-  const t = useT();
 export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
+  const t = useT();
   const queryClient = useQueryClient();
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: () => getRecentCoachNotes(5) });
