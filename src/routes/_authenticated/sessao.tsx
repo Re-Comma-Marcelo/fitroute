@@ -410,24 +410,22 @@ function SessionPage() {
 
   function finishIncludingPending() {
     setPendingSets(0);
-    let target: ActiveSession | null = null;
-    update((s) => {
-      s.exercicios.forEach((ex) =>
-        ex.sets.forEach((set) => {
-          if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
-            set.concluida = true;
-          }
-        }),
-      );
-      target = s;
-      return s;
-    });
-    void finalizar(target ?? undefined);
+    const target = structuredClone(session!);
+    target.exercicios.forEach((ex) =>
+      ex.sets.forEach((set) => {
+        if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+          set.concluida = true;
+        }
+      }),
+    );
+    setSession(target);
+    saveActiveSession(target);
+    void finalizar(target);
   }
 
   async function finalizar(override?: ActiveSession) {
-    const session = override ?? sessionRef.current;
-    if (!session) return;
+    const target = override ?? session;
+    if (!target) return;
     setFinishing(true);
     try {
       const duracaoSeg = elapsed;
@@ -435,8 +433,8 @@ function SessionPage() {
       let volume = 0;
       const prs: { nome: string; pesoKg: number }[] = [];
 
-      for (let i = 0; i < session.exercicios.length; i++) {
-        const ex = session.exercicios[i]!;
+      for (let i = 0; i < target.exercicios.length; i++) {
+        const ex = target.exercicios[i]!;
         const pr = await getPersonalRecord(ex.exerciseId);
         let melhor = 0;
         ex.sets.forEach((s) => {
@@ -449,8 +447,8 @@ function SessionPage() {
             melhor = Math.max(melhor, peso);
           }
           sets.push({
-            id: `${session.id}_${i}_${s.serieNum}`,
-            workoutId: session.id,
+            id: `${target.id}_${i}_${s.serieNum}`,
+            workoutId: target.id,
             exerciseId: ex.exerciseId,
             ordemExercicio: i,
             serieNum: s.serieNum,
@@ -466,26 +464,26 @@ function SessionPage() {
 
       await saveWorkout(
         {
-          id: session.id,
-          ...(session.routineId ? { routineId: session.routineId } : {}),
-          iniciadoEm: session.iniciadoEm,
+          id: target.id,
+          ...(target.routineId ? { routineId: target.routineId } : {}),
+          iniciadoEm: target.iniciadoEm,
           finalizadoEm: new Date().toISOString(),
           duracaoSeg,
           volumeTotalKg: Math.round(volume),
-          notas: session.notas,
-          origem: session.routineId ? "rotina" : "branco",
+          notas: target.notas,
+          origem: target.routineId ? "rotina" : "branco",
         },
         sets,
       );
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
-          `forja.resumo.${session.id}`,
+          `forja.resumo.${target.id}`,
           JSON.stringify({ prs, series: sets.length }),
         );
       }
       clearActiveSession();
-      navigate({ to: "/resumo/$id", params: { id: session.id } });
+      navigate({ to: "/resumo/$id", params: { id: target.id } });
     } catch {
       // Keep the session in localStorage so nothing is lost.
       toast.error(
