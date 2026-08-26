@@ -20,6 +20,7 @@ import {
   restSecondsLeft,
   sessionElapsed,
   type ActiveSession,
+  sessionLabel,
 } from "@/lib/session-state";
 import { useT } from "@/lib/i18n";
 

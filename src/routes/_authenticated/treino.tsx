@@ -29,6 +29,7 @@ import {
   loadTodayChoice,
   saveTodayChoice,
   type ActiveSession,
+  sessionLabel,
 } from "@/lib/session-state";
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";

@@ -37,7 +37,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatRest } from "@/lib/format";
+import { formatDuration, formatKg, formatRest } from "@/lib/format";
 import { toast } from "sonner";
 import {
   clearActiveSession,
@@ -55,6 +55,7 @@ import {
   type ActiveSession,
   type ActiveSet,
   type RestState,
+  sessionLabel,
 } from "@/lib/session-state";
 import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
