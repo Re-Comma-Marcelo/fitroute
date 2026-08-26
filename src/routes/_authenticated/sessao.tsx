@@ -706,6 +706,31 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
   );
 }
 
+function StepButton({
+  onClick,
+  label,
+  dir,
+}: {
+  onClick: () => void;
+  label: string;
+  dir: "up" | "down";
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground active:bg-accent"
+    >
+      {dir === "up" ? (
+        <Plus className="size-5" strokeWidth={2.8} />
+      ) : (
+        <Minus className="size-5" strokeWidth={2.8} />
+      )}
+    </button>
+  );
+}
+
 function SetRow({
   set,
   label,
@@ -728,80 +753,111 @@ function SetRow({
   t: any;
 }) {
   const aquecimento = !isSerieValida(set);
-  return (
-    <li className={`${GRID} rounded-lg py-1 ${set.concluida ? "bg-primary/10" : ""}`}>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={`tap-target flex h-9 w-full items-center justify-center rounded-md bg-muted text-sm font-bold ${
-              aquecimento ? "text-warn" : ""
-            }`}
-            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
-          >
-            {label}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
-            <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-              {typeName[tipo]}
-            </DropdownMenuItem>
-          ))}
-          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+  const passoKg = incrementoPara(exercise.equipamento);
 
-      <div className="text-center text-[11px] font-semibold leading-tight text-muted-foreground">
-        {set.antPeso !== null && set.antReps !== null ? (
-          <>
-            <span className="block tabular-nums">
-              {set.antPeso}kg x {set.antReps}
-            </span>
-            <span className="block tabular-nums">
-              {set.antRpe ? `@ ${set.antRpe} rpe` : "—"}
-            </span>
-          </>
-        ) : (
-          <span>—</span>
-        )}
+  function stepKg(delta: number) {
+    const atual = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
+    const next = Math.max(0, Math.round((atual + delta) * 100) / 100);
+    onField("pesoKg", String(next));
+  }
+
+  function stepReps(delta: number) {
+    const atual = Number(set.reps) || set.sugReps || 0;
+    const next = Math.max(0, Math.round(atual + delta));
+    onField("reps", String(next));
+  }
+
+  return (
+    <li
+      className={`space-y-1 rounded-lg p-1 ${set.concluida ? "bg-primary/10" : "bg-muted/20"}`}
+    >
+      <div className={ROW_TOP}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-bold ${
+                aquecimento ? "text-warn" : ""
+              }`}
+              aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
+            >
+              {label}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
+              <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
+                {typeName[tipo]}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
+              <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <div className="min-w-0 text-[11px] font-semibold leading-tight text-muted-foreground">
+          {set.antPeso !== null && set.antReps !== null ? (
+            <>
+              <span className="block truncate tabular-nums">
+                {set.antPeso}kg x {set.antReps}
+              </span>
+              <span className="block truncate tabular-nums">
+                {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
+              </span>
+            </>
+          ) : (
+            <span>—</span>
+          )}
+        </div>
+
+        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+
+        <button
+          type="button"
+          onClick={onCheck}
+          aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
+          aria-pressed={set.concluida}
+          className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
+            set.concluida
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-muted text-muted-foreground"
+          }`}
+        >
+          <Check className="size-6" strokeWidth={3} />
+        </button>
       </div>
 
-      <Input
-        value={set.pesoKg}
-        onChange={(e) => onField("pesoKg", e.target.value)}
-        inputMode="decimal"
-        placeholder={t("kg")}
-        aria-label={t("Weight in kg")}
-        className="numeric-field tap-target h-11 px-1 text-base"
-      />
-      <Input
-        value={set.reps}
-        onChange={(e) => onField("reps", e.target.value)}
-        inputMode="numeric"
-        placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-        aria-label={t("Reps")}
-        className="numeric-field tap-target h-11 px-1 text-base"
-      />
-      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
-      <button
-        type="button"
-        onClick={onCheck}
-        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
-        aria-pressed={set.concluida}
-        className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
-          set.concluida
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-muted text-muted-foreground"
-        }`}
-      >
-        <Check className="size-6" strokeWidth={3} />
-      </button>
+      <div className={ROW_STEP}>
+        <StepButton
+          dir="down"
+          label={t("Decrease weight")}
+          onClick={() => stepKg(-passoKg)}
+        />
+        <Input
+          value={set.pesoKg}
+          onChange={(e) => onField("pesoKg", e.target.value)}
+          inputMode="decimal"
+          placeholder={t("kg")}
+          aria-label={t("Weight in kg")}
+          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+        />
+        <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
+        <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
+        <Input
+          value={set.reps}
+          onChange={(e) => onField("reps", e.target.value)}
+          inputMode="numeric"
+          placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
+          aria-label={t("Reps")}
+          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+        />
+        <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
+      </div>
     </li>
   );
 }
+
 
 function RestTimerBar({
   t,
