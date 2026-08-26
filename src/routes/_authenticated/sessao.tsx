@@ -112,28 +112,50 @@ function SessionPage() {
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
-  const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const loadedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const rest = session?.rest ?? null;
+  const restEndsAt = rest?.endsAt ?? null;
 
   useTick(true);
 
+  /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
+  const unlockAudio = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = audioCtxRef.current ?? new Ctx();
+      audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") void ctx.resume();
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
-    if (!rest) return;
-    const msLeft = Math.max(0, rest.endsAt - Date.now());
-    if (msLeft > 0) {
-      setRestFinished(false);
+    if (!restEndsAt) return;
+    const msLeft = restEndsAt - Date.now();
+    const fire = () => {
+      setRestFinished(true);
+      playRestBeep(audioCtxRef);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([300, 150, 300, 150, 500]);
+      }
+    };
+    if (msLeft <= 0) {
+      fire();
       return;
     }
-    setRestFinished(true);
-    playRestBeep(audioCtxRef);
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([300, 150, 300, 150, 500]);
-    }
-  }, [rest]);
+    setRestFinished(false);
+    const id = setTimeout(fire, msLeft);
+    return () => clearTimeout(id);
+  }, [restEndsAt]);
 
   useEffect(() => {
     if (loadedRef.current) return;
