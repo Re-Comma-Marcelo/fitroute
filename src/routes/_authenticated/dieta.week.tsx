@@ -97,7 +97,7 @@ function WeekPage() {
             <li key={date} className="rounded-2xl border border-border bg-card p-3.5">
               <div className="flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold">
-                  {d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "short" })}
+                  {formatWeekdayDayMonth(d)}
                   {date === today ? <span className="ml-2 text-xs text-primary">{t("Today")}</span> : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">

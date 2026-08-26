@@ -122,6 +122,15 @@ export function formatMonthYear(value: Date | string): string {
   );
 }
 
+export function formatFullDate(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  }).format(asDate(value));
+}
+
 export function formatDateNumeric(value: Date | string): string {
   return new Intl.DateTimeFormat(currentLocale, {
     day: "2-digit",

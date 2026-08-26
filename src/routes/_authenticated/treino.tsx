@@ -187,7 +187,7 @@ function TrainPage() {
       {active ? (
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
           <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
-          <p className="mt-1 text-base font-semibold">{active.routineNome}</p>
+          <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
           <Button className="mt-3 w-full font-bold" onClick={() => navigate({ to: "/sessao" })}>
             <Play className="mr-2 size-4" /> {t("Resume workout")}
           </Button>

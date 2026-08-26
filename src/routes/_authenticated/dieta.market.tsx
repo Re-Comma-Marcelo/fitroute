@@ -162,9 +162,7 @@ function MarketPage() {
               <li key={`${o.date}-${o.slot}`} className="flex items-center justify-between text-sm">
                 <span>{o.meal.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(`${o.date}T12:00:00`).toLocaleDateString("en-US", {
-                    weekday: "short",
-                  })}{" "}
+                  {formatWeekdayShort(`${o.date}T12:00:00`)}{" "}
                   · {t(SLOT_LABEL[o.slot])}
                 </span>
               </li>

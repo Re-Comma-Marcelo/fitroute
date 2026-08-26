@@ -59,7 +59,7 @@ export function SessionMiniPlayer() {
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
-              <span className="truncate text-sm font-semibold">{session.routineNome}</span>
+              <span className="truncate text-sm font-semibold">{sessionLabel(session)}</span>
               <span className="ml-auto font-mono text-sm font-bold tabular-nums text-primary">
                 {formatDuration(sessionElapsed(session))}
               </span>
@@ -92,7 +92,7 @@ export function SessionMiniPlayer() {
               <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
               <AlertDialogDescription>
                 {t("Sets logged for {routineNome} will be lost. This cannot be undone.", {
-                  routineNome: session.routineNome,
+                  routineNome: sessionLabel(session),
                 })}
               </AlertDialogDescription>
             </AlertDialogHeader>

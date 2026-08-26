@@ -130,12 +130,7 @@ export default function Inicio() {
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {new Intl.DateTimeFormat("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }).format(new Date())}
+              {formatFullDate(new Date())}
             </p>
           </div>
           <CoachChatButton />
@@ -315,9 +310,9 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
       ? new Date(Date.now() + (remaining / perDay) * 86400000)
       : null;
 
-  const fmtKgLocale = (n: number) => n.toFixed(1).replace(".", ",");
+  const fmtKgLocale = (n: number) => formatNumber(n, 1);
   const shortDate = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(d);
+    formatMonthYear(d);
 
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
@@ -397,7 +392,7 @@ function TodayCard({
             <Flame className="size-4" />
             {t("Session in progress")}
           </div>
-          <h2 className="mt-2 font-display text-xl font-bold">{active.routineNome}</h2>
+          <h2 className="mt-2 font-display text-xl font-bold">{sessionLabel(active)}</h2>
           <p className="text-sm text-muted-foreground">
             {t("Tap resume to keep going where you left off.")}
           </p>

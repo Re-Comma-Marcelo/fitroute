@@ -157,6 +157,11 @@ export function sessionElapsed(session: ActiveSession): number {
 }
 
 /** Index of the exercise being executed: current one if pending, else first pending. */
+/** Session title: blank sessions store an empty name and get a translated label. */
+export function sessionLabel(session: { routineNome: string }): string {
+  return session.routineNome || tx("Blank workout");
+}
+
 export function currentExerciseIndex(session: ActiveSession): number {
   const atual = session.exercicios[session.atual];
   if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return session.atual;

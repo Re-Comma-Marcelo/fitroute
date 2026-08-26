@@ -512,7 +512,7 @@ function SessionPage() {
           >
             <ChevronDown className="size-6" />
           </Button>
-          <h1 className="flex-1 truncate text-base font-bold">{session.routineNome}</h1>
+          <h1 className="flex-1 truncate text-base font-bold">{sessionLabel(session)}</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -555,7 +555,7 @@ function SessionPage() {
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
-          <HeaderStat label={t("Volume")} value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
+          <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
           <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
       </header>
