@@ -12,6 +12,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { configureSupabase, supabase } from "../integrations/supabase/client";
+import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 
 function NotFoundComponent() {
   return (
@@ -74,7 +76,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
+  loader: async () => {
+    const cfg = await getSupabaseBrowserConfig();
+    configureSupabase({ url: cfg.url ?? "", key: cfg.key ?? "" });
+    return { supabaseConfig: { url: cfg.url ?? "", key: cfg.key ?? "" } };
+  },
+  head: ({ loaderData }) => ({
+    // Inline script runs before the app bundle, so the browser Supabase client
+    // is configured before any route gate calls supabase.auth.*.
+    scripts: [
+      {
+        children: `window.__FORJA_SUPABASE__=${JSON.stringify(
+          loaderData?.supabaseConfig ?? { url: "", key: "" },
+        )};`,
+      },
+    ],
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
@@ -131,6 +147,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const router = useRouter();
+
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+      router.invalidate();
+      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+    });
+    return () => subscription.unsubscribe();
+  }, [router, queryClient]);
 
   return (
     <QueryClientProvider client={queryClient}>

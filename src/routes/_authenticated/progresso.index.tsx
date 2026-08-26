@@ -24,7 +24,7 @@ import {
 import { formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/progresso/")({
+export const Route = createFileRoute("/_authenticated/progresso/")({
   head: () => ({
     meta: [
       { title: "Progress — Forja" },

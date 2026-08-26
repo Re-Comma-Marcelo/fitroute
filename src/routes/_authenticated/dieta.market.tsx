@@ -12,7 +12,7 @@ import {
 } from "@/lib/data/nutrition";
 import type { ShoppingItem } from "@/lib/nutrition-types";
 
-export const Route = createFileRoute("/dieta/market")({
+export const Route = createFileRoute("/_authenticated/dieta/market")({
   head: () => ({
     meta: [
       { title: "Shopping list — Forja" },

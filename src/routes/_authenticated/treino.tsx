@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import type { CoachInsight } from "@/lib/coach/types";
 import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
-export const Route = createFileRoute("/treino")({
+export const Route = createFileRoute("/_authenticated/treino")({
   head: () => ({
     meta: [
       { title: "Train — Forja" },

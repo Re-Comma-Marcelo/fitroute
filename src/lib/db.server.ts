@@ -3,9 +3,20 @@
  * Never import this from components — only from server-function handlers.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getRequest } from "@tanstack/react-start/server";
 
-/** Single fixed user while the app runs with open access (no login). */
-export const DEMO_USER_ID = "demo";
+/**
+ * Resolve the signed-in Supabase user from the request bearer token.
+ * Every data handler scopes its rows to this id.
+ */
+export async function requireUserId(): Promise<string> {
+  const header = getRequest()?.headers.get("Authorization") ?? "";
+  if (!header.startsWith("Bearer ")) throw new Response("Unauthorized", { status: 401 });
+  const token = header.slice("Bearer ".length);
+  const { data, error } = await db().auth.getUser(token);
+  if (error || !data.user) throw new Response("Unauthorized", { status: 401 });
+  return data.user.id;
+}
 
 let cached: SupabaseClient | null = null;
 
@@ -70,9 +81,9 @@ export const toProfile = (r: Row) => ({
   metaPrazo: (r["meta_prazo"] ?? undefined) as string | undefined,
 });
 
-export const fromProfile = (p: Row) => ({
-  id: p["id"],
-  user_id: DEMO_USER_ID,
+export const fromProfile = (p: Row, userId: string) => ({
+  id: p["id"] ?? userId,
+  user_id: userId,
   nome: p["nome"],
   peso_kg: p["pesoKg"],
   altura_cm: p["alturaCm"],

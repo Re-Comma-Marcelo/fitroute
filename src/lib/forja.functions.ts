@@ -7,7 +7,8 @@ import type { MealSchedule, MealSlot, WeekPlan } from "./nutrition-types";
 // client-reachable module never pulls the service-role client into the browser.
 
 export const fetchProfile = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, toProfile, unwrap } = await import("./db.server");
+  const { db, requireUserId, toProfile, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const rows = unwrap(
     await db().from("profiles").select("*").eq("user_id", DEMO_USER_ID).limit(1),
   );
@@ -17,13 +18,18 @@ export const fetchProfile = createServerFn({ method: "GET" }).handler(async () =
 export const persistProfile = createServerFn({ method: "POST" })
   .inputValidator((data: { profile: Profile }) => data)
   .handler(async ({ data }) => {
-    const { db, fromProfile, toProfile, unwrap } = await import("./db.server");
+    const { db, fromProfile, requireUserId, toProfile, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
     const row = unwrap(
       await db()
         .from("profiles")
-        .upsert(fromProfile(data.profile as unknown as Record<string, unknown>), {
-          onConflict: "id",
-        })
+        .upsert(
+          fromProfile(
+            { ...(data.profile as unknown as Record<string, unknown>), id: userId },
+            userId,
+          ),
+          { onConflict: "id" },
+        )
         .select("*")
         .single(),
     ) as Record<string, unknown>;
@@ -31,15 +37,23 @@ export const persistProfile = createServerFn({ method: "POST" })
   });
 
 export const fetchExercises = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, toExercise, unwrap } = await import("./db.server");
-  const rows = unwrap(await db().from("exercises").select("*").order("nome"));
+  const { db, requireUserId, toExercise, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("exercises")
+      .select("*")
+      .or(`user_id.is.null,user_id.eq.${userId}`)
+      .order("nome"),
+  );
   return rows.map(toExercise) as unknown as Exercise[];
 });
 
 export const persistExercise = createServerFn({ method: "POST" })
   .inputValidator((data: { exercise: Omit<Exercise, "id" | "isCustom"> }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, toExercise, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, toExercise, uid, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const e = data.exercise;
     const row = unwrap(
       await db()
@@ -62,7 +76,8 @@ export const persistExercise = createServerFn({ method: "POST" })
   });
 
 export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, toRoutineExercise, unwrap } = await import("./db.server");
+  const { db, requireUserId, toRoutineExercise, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const client = db();
   const routines = unwrap(
     await client.from("routines").select("*").eq("user_id", DEMO_USER_ID).order("created_at"),
@@ -81,7 +96,8 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
 export const persistRoutine = createServerFn({ method: "POST" })
   .inputValidator((data: { routine: Routine }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, uid, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const client = db();
     const r = data.routine;
     const id = r.id || uid("r");
@@ -122,13 +138,22 @@ export const persistRoutine = createServerFn({ method: "POST" })
 export const removeRoutine = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-    const { db, unwrap } = await import("./db.server");
-    unwrap(await db().from("routines").delete().eq("id", data.id).select("id"));
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("routines")
+        .delete()
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .select("id"),
+    );
     return { ok: true };
   });
 
 export const fetchWorkoutLog = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, toSet, toWorkout, unwrap } = await import("./db.server");
+  const { db, requireUserId, toSet, toWorkout, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const client = db();
   const workouts = unwrap(
     await client
@@ -150,7 +175,8 @@ export const fetchWorkoutLog = createServerFn({ method: "GET" }).handler(async (
 export const persistWorkout = createServerFn({ method: "POST" })
   .inputValidator((data: { workout: Workout; sets: WorkoutSet[] }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, uid, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const client = db();
     const w = data.workout;
     const id = w.id || uid("w");
@@ -201,13 +227,22 @@ export const persistWorkout = createServerFn({ method: "POST" })
 export const removeWorkout = createServerFn({ method: "POST" })
   .inputValidator((data: { id: string }) => data)
   .handler(async ({ data }) => {
-    const { db, unwrap } = await import("./db.server");
-    unwrap(await db().from("workouts").delete().eq("id", data.id).select("id"));
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("workouts")
+        .delete()
+        .eq("id", data.id)
+        .eq("user_id", userId)
+        .select("id"),
+    );
     return { ok: true };
   });
 
 export const fetchCoachNotes = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, toCoachNote, unwrap } = await import("./db.server");
+  const { db, requireUserId, toCoachNote, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const rows = unwrap(
     await db()
       .from("coach_notes")
@@ -221,7 +256,8 @@ export const fetchCoachNotes = createServerFn({ method: "GET" }).handler(async (
 export const persistCoachNote = createServerFn({ method: "POST" })
   .inputValidator((data: { kind: string; content: string; tags: string[] }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, toCoachNote, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, toCoachNote, uid, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const row = unwrap(
       await db()
         .from("coach_notes")
@@ -239,7 +275,8 @@ export const persistCoachNote = createServerFn({ method: "POST" })
   });
 
 export const fetchNutritionState = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+  const { db, requireUserId, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const client = db();
   const planRows = unwrap(
     await client.from("meal_plan").select("*").eq("user_id", DEMO_USER_ID),
@@ -277,7 +314,8 @@ export const persistPlannedMeals = createServerFn({ method: "POST" })
     }) => data,
   )
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const client = db();
     for (const c of data.clear) {
       let query = client.from("meal_plan").delete().eq("user_id", DEMO_USER_ID).eq("plan_date", c.date);
@@ -306,7 +344,8 @@ export const persistPlannedMeals = createServerFn({ method: "POST" })
 export const persistMealSchedule = createServerFn({ method: "POST" })
   .inputValidator((data: { schedule: MealSchedule }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     unwrap(
       await db()
         .from("meal_schedule")
@@ -327,7 +366,8 @@ export const persistMealSchedule = createServerFn({ method: "POST" })
 export const persistCheckedItem = createServerFn({ method: "POST" })
   .inputValidator((data: { key: string; checked: boolean }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const client = db();
     if (data.checked) {
       unwrap(
@@ -353,7 +393,8 @@ export const persistCheckedItem = createServerFn({ method: "POST" })
   });
 
 export const fetchTrackedLifts = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+  const { db, requireUserId, unwrap } = await import("./db.server");
+  const DEMO_USER_ID = await requireUserId();
   const rows = unwrap(
     await db()
       .from("tracked_lifts")
@@ -367,7 +408,8 @@ export const fetchTrackedLifts = createServerFn({ method: "GET" }).handler(async
 export const persistTrackedLift = createServerFn({ method: "POST" })
   .inputValidator((data: { exerciseId: string; tracked: boolean }) => data)
   .handler(async ({ data }) => {
-    const { db, DEMO_USER_ID, unwrap } = await import("./db.server");
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const DEMO_USER_ID = await requireUserId();
     const client = db();
     if (data.tracked) {
       unwrap(

@@ -12,7 +12,7 @@ import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/li
 import { takePendingExercise } from "@/lib/session-state";
 import type { Routine } from "@/lib/types";
 
-export const Route = createFileRoute("/rotina/$id")({
+export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
     meta: [
       { title: "Routine editor — Forja" },
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/rotina/$id")({
 const DRAFT_KEY = "forja.draftRoutine.v1";
 
 function RoutineEditor() {
-  const { id } = useParams({ from: "/rotina/$id" });
+  const { id } = useParams({ from: "/_authenticated/rotina/$id" });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [routine, setRoutine] = useState<Routine | null>(null);
