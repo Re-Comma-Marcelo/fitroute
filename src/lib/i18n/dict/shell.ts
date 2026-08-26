@@ -72,6 +72,8 @@ export const dict: DictFragment = {
     "At least 6 characters": "Minimaal 6 tekens",
     "Please wait…": "Even geduld...",
     "Google sign-in failed": "Inloggen met Google mislukt",
+    "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.":
+      "Inloggen met Google is nog niet ingeschakeld in dit Supabase-project. Gebruik voorlopig e-mail en wachtwoord.",
     "Could not sign in": "Inloggen mislukt",
   },
 };
