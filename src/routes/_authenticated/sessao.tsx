@@ -878,18 +878,34 @@ function RestTimerBar({
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();
+  const resumeRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    resumeRef.current?.focus();
+  }, []);
   return (
-    <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("Rest done")}
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm"
+    >
       <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
-      <h2 className="mt-6 text-center font-display text-3xl font-bold">{t("Rest done")}</h2>
+      <h2 className="mt-6 text-center font-display text-3xl font-bold" aria-live="assertive">
+        {t("Rest done")}
+      </h2>
       <p className="mt-2 text-center text-base text-muted-foreground">
         {t("Time for the next set. Keep the pace up.")}
       </p>
-      <Button className="mt-8 h-14 w-full max-w-xs text-base font-bold" onClick={onResume}>
-        Resume workout
+      <Button
+        ref={resumeRef}
+        className="mt-8 h-14 w-full max-w-xs text-base font-bold"
+        onClick={onResume}
+      >
+        {t("Resume workout")}
       </Button>
     </div>
   );
 }
+
