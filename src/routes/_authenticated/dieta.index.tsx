@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -29,21 +30,11 @@ import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/")({
   head: () => ({
-    meta: [
-      { title: "Today's meals — Forja" },
-      {
-        name: "description",
-        content:
-          "See the meal that fits the time of day, with calories, macros and coach notes tied to your training load.",
-      },
-      { property: "og:title", content: "Today's meals — Forja" },
-      {
-        property: "og:description",
-        content: "Time-aware meal suggestions with calories, macros and training-aware coach notes.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Today's meals",
+      description: "See the meal that fits the time of day, with calories, macros and coach notes tied to your training load.",
+      ogDescription: "Time-aware meal suggestions with calories, macros and training-aware coach notes.",
+    }),
   }),
   component: TodayPage,
 });

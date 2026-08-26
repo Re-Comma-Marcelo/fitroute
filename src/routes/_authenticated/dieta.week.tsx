@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -23,20 +24,11 @@ import type { MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/week")({
   head: () => ({
-    meta: [
-      { title: "Week meal plan — Forja" },
-      {
-        name: "description",
-        content: "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
-      },
-      { property: "og:title", content: "Week meal plan — Forja" },
-      {
-        property: "og:description",
-        content: "A 7-day meal grid with daily calorie and protein totals next to each training day.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Week meal plan",
+      description: "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
+      ogDescription: "A 7-day meal grid with daily calorie and protein totals next to each training day.",
+    }),
   }),
   component: WeekPage,
 });

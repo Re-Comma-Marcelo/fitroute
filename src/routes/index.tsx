@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -13,21 +14,11 @@ import { useT } from "@/lib/i18n";
 export const Route = createFileRoute("/")({
   ssr: false,
   head: () => ({
-    meta: [
-      { title: "Sign in — Forja AI strength coach" },
-      {
-        name: "description",
-        content:
-          "Sign in to Forja to log sets in two taps, follow adaptive routines and track real strength progress.",
-      },
-      { property: "og:title", content: "Sign in — Forja AI strength coach" },
-      {
-        property: "og:description",
-        content: "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Sign in",
+      description: "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.",
+      ogDescription: "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
+    }),
   }),
   component: AuthPage,
 });

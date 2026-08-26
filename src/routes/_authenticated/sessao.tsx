@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -64,19 +65,11 @@ import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
-    meta: [
-      { title: "Workout session — Forja" },
-      {
-        name: "description",
-        content:
-          "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
-      },
-      { property: "og:title", content: "Workout session — Forja" },
-      {
-        property: "og:description",
-        content: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
-      },
-    ],
+    meta: pageMeta({
+      title: "Workout session",
+      description: "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
+      ogDescription: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
+    }),
   }),
   component: SessionPage,
 });

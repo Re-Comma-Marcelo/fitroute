@@ -45,20 +45,11 @@ import type { TodayPlan } from "@/lib/coach/types";
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
   head: () => ({
-    meta: [
-      { title: "Home — Forja" },
-      {
-        name: "description",
-        content: "Your training dashboard, weekly goal and coach recommendations.",
-      },
-      { property: "og:title", content: "Home — Forja" },
-      {
-        property: "og:description",
-        content: "Your training dashboard, weekly goal and coach recommendations.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: pageMeta({
+      title: "Home",
+      description: "Your training dashboard, weekly goal and coach recommendations.",
+      twitterCard: "summary",
+    }),
   }),
 });
 

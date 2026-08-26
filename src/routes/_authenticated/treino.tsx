@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -40,20 +41,12 @@ import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
 export const Route = createFileRoute("/_authenticated/treino")({
   head: () => ({
-    meta: [
-      { title: "Train — Forja" },
-      {
-        name: "description",
-        content: "Today's session, why it's queued, and your saved routines.",
-      },
-      { property: "og:title", content: "Train — Forja" },
-      {
-        property: "og:description",
-        content: "Today's coached session plus your saved routines and weekly goal.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: pageMeta({
+      title: "Train",
+      description: "Today's session, why it's queued, and your saved routines.",
+      ogDescription: "Today's coached session plus your saved routines and weekly goal.",
+      twitterCard: "summary",
+    }),
   }),
   component: TrainPage,
 });

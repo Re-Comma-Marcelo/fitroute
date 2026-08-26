@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -16,15 +17,11 @@ import type { Routine } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
-    meta: [
-      { title: "Routine editor — Forja" },
-      {
-        name: "description",
-        content: "Build your routine: order exercises, set target sets, rep range and rest.",
-      },
-      { property: "og:title", content: "Routine editor — Forja" },
-      { property: "og:description", content: "Target sets, rep range, rest and notes per exercise." },
-    ],
+    meta: pageMeta({
+      title: "Routine editor",
+      description: "Build your routine: order exercises, set target sets, rep range and rest.",
+      ogDescription: "Target sets, rep range, rest and notes per exercise.",
+    }),
   }),
   component: RoutineEditor,
 });

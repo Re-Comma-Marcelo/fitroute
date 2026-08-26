@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
@@ -19,15 +20,11 @@ import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/progresso/$id")({
   head: () => ({
-    meta: [
-      { title: "Logged session — Forja" },
-      {
-        name: "description",
-        content: "All sets logged in the session and load progression for each exercise.",
-      },
-      { property: "og:title", content: "Logged session — Forja" },
-      { property: "og:description", content: "Sets, loads and progression chart per exercise." },
-    ],
+    meta: pageMeta({
+      title: "Logged session",
+      description: "All sets logged in the session and load progression for each exercise.",
+      ogDescription: "Sets, loads and progression chart per exercise.",
+    }),
   }),
   component: WorkoutDetail,
 });

@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -28,18 +29,10 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
-    meta: [
-      { title: "Profile — Forja" },
-      {
-        name: "description",
-        content: "Your body data, training model, equipment and weekly goal.",
-      },
-      { property: "og:title", content: "Profile — Forja" },
-      {
-        property: "og:description",
-        content: "Your body data, training model, equipment and weekly goal.",
-      },
-    ],
+    meta: pageMeta({
+      title: "Profile",
+      description: "Your body data, training model, equipment and weekly goal.",
+    }),
   }),
   component: ProfilePage,
 });

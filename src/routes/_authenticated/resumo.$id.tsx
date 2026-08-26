@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
@@ -10,15 +11,11 @@ import heroLogin from "@/assets/hero-login.jpg";
 
 export const Route = createFileRoute("/_authenticated/resumo/$id")({
   head: () => ({
-    meta: [
-      { title: "Workout summary — Forja" },
-      {
-        name: "description",
-        content: "Duration, total volume, logged sets and personal records hit in this session.",
-      },
-      { property: "og:title", content: "Workout summary — Forja" },
-      { property: "og:description", content: "Duration, volume, sets and PRs from your session." },
-    ],
+    meta: pageMeta({
+      title: "Workout summary",
+      description: "Duration, total volume, logged sets and personal records hit in this session.",
+      ogDescription: "Duration, volume, sets and PRs from your session.",
+    }),
   }),
   component: SummaryPage,
 });
