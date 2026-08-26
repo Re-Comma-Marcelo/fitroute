@@ -5,7 +5,9 @@ import {
   Check,
   ChevronDown,
   MoreVertical,
+  Minus,
   Plus,
+  RotateCcw,
   SkipForward,
   Timer,
   Trash2,
@@ -23,6 +25,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatRest } from "@/lib/format";
 import { toast } from "sonner";
@@ -41,7 +54,7 @@ import {
   type ActiveSet,
   type RestState,
 } from "@/lib/session-state";
-import { isSerieValida } from "@/lib/progression";
+import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
 import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
@@ -70,7 +83,13 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
-const GRID = "grid grid-cols-[26px_58px_1fr_1fr_46px_44px] items-center gap-1.5";
+/**
+ * Row 1: set type | previous | RPE | check. Row 2: -/kg/+ and -/reps/+ steppers.
+ * Every tap target is 44px and the tracks fit 320-430px with no horizontal scroll.
+ */
+const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
+const ROW_STEP =
+  "grid grid-cols-[44px_minmax(0,1fr)_44px_44px_minmax(0,1fr)_44px] items-center gap-1";
 
 function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
   if (typeof window === "undefined") return;
@@ -199,7 +218,7 @@ function SessionPage() {
       <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
         <p className="text-lg font-semibold">{t("No workout in progress")}</p>
         <Button className="h-12 w-full max-w-xs" onClick={() => navigate({ to: "/treino" })}>
-          Back to training
+          {t("Back to training")}
         </Button>
       </div>
     );
@@ -489,12 +508,10 @@ function SessionPage() {
               {aberto ? (
                 <div className="px-3 pb-3">
                   <div
-                    className={`${GRID} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_TOP} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
                   >
-                    <span>{t("Set")}</span>
-                    <span className="text-center">{t("Previous")}</span>
-                    <span className="text-center">{t("kg")}</span>
-                    <span className="text-center">{t("reps")}</span>
+                    <span className="text-center">{t("Set")}</span>
+                    <span>{t("Previous")}</span>
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
@@ -599,7 +616,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-primary/15 px-2.5 text-xs font-bold text-primary"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-bold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
           {t("Weight increased")}
@@ -620,7 +637,7 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="inline-flex h-8 items-center gap-1 rounded-full bg-info/15 px-2.5 text-xs font-bold text-info"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-bold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
           {t("Rest: {time}", { time: formatRest(value) })}
@@ -699,7 +716,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
             setOpen(false);
           }}
         >
-          Clear
+          {t("Clear")}
         </Button>
       </PopoverContent>
     </Popover>
