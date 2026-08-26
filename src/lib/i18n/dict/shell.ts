@@ -35,6 +35,8 @@ export const dict: DictFragment = {
     "At least 6 characters": "Pelo menos 6 caracteres",
     "Please wait…": "Aguarde...",
     "Google sign-in failed": "Falha no login com Google",
+    "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.":
+      "O login com Google ainda não está ativado neste projeto Supabase. Use e-mail e senha por enquanto.",
     "Could not sign in": "Não foi possível entrar",
   },
   nl: {
