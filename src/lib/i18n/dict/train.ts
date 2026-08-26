@@ -2,6 +2,12 @@ import type { DictFragment } from "../types";
 
 export const dict: DictFragment = {
   pt: {
+    "Could not start the session. Check your connection and try again.":
+      "Não foi possível iniciar a sessão. Verifique sua conexão e tente novamente.",
+    "Could not save the routine. Check your connection and try again.":
+      "Não foi possível salvar a rotina. Verifique sua conexão e tente novamente.",
+    "Could not delete the routine. Check your connection and try again.":
+      "Não foi possível excluir a rotina. Verifique sua conexão e tente novamente.",
     "Train": "Treino",
     "Create new routine": "Criar nova rotina",
     "Session in progress": "Sessão em progresso",
@@ -32,6 +38,12 @@ export const dict: DictFragment = {
     "{title} — see details": "{title} — ver detalhes",
   },
   nl: {
+    "Could not start the session. Check your connection and try again.":
+      "Kon de sessie niet starten. Controleer je verbinding en probeer opnieuw.",
+    "Could not save the routine. Check your connection and try again.":
+      "Kon de routine niet opslaan. Controleer je verbinding en probeer opnieuw.",
+    "Could not delete the routine. Check your connection and try again.":
+      "Kon de routine niet verwijderen. Controleer je verbinding en probeer opnieuw.",
     "Train": "Training",
     "Create new routine": "Nieuwe routine maken",
     "Session in progress": "Sessie bezig",

@@ -2,6 +2,8 @@ import type { DictFragment } from "../types";
 
 export const dict: DictFragment = {
   pt: {
+    "Could not save the workout. It is still stored on this device — try again in a moment.":
+      "Não foi possível salvar o treino. Ele continua guardado neste aparelho — tente novamente em instantes.",
     "Warm-up": "Aquecimento",
     "Normal": "Normal",
     "Failure": "Falha",
@@ -98,6 +100,8 @@ export const dict: DictFragment = {
     "Uncheck set": "Set uitvinken",
     "Complete set": "Set voltooien",
     "Rest": "Rust",
+    "Could not save the workout. It is still stored on this device — try again in a moment.":
+      "Kon de training niet opslaan. Die staat nog op dit apparaat — probeer het straks opnieuw.",
     "Rest done": "Rust voorbij",
     "Time for the next set. Keep the pace up.": "Tijd voor de volgende set. Hou het tempo erin.",
     "Resume workout": "Training hervatten",
