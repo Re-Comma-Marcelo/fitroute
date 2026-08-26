@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/format";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";

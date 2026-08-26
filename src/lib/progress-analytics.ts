@@ -1,4 +1,5 @@
 import { perWorkoutStats, weekStart } from "@/lib/coach/signals";
+import { formatDayMonth } from "@/lib/format";
 import type { Workout, WorkoutSet } from "@/lib/types";
 
 export interface StatDelta {

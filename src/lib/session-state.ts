@@ -1,3 +1,4 @@
+import { tx } from "./format";
 import { isSerieValida, type PrevSet, type ProgressionSuggestion } from "./progression";
 import type { TipoSerie } from "./types";
 
@@ -168,7 +169,7 @@ export function currentExerciseIndex(session: ActiveSession): number {
 
 /** Exercício atual do mini-player: o primeiro com série pendente. */
 export function currentExerciseName(session: ActiveSession): string {
-  return session.exercicios[currentExerciseIndex(session)]?.nome ?? "Treino livre";
+  return session.exercicios[currentExerciseIndex(session)]?.nome ?? tx("Free workout");
 }
 
 /** Sets with weight and reps typed in but never checked — easy to lose on finish. */
