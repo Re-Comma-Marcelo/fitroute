@@ -83,6 +83,8 @@ export const dict: DictFragment = {
     "F": "F",
   },
   nl: {
+    "Fat carries most of the calories, so digestion is slower — good further from training.": "Vet levert de meeste calorieën, dus de vertering is langzamer — goed verder van de training.",
+    "Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.": "Je geplande week staat op {kcal} kcal van {totalKcal} ({pct}% van het weekbudget). Deze maaltijd alleen is {mealPct}% van de week en {proteinPct}% van de weekeiwitten.",
     "Nutrition": "Voeding",
     "Today": "Vandaag",
     "Week": "Week",
