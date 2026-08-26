@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { useT } from "@/lib/i18n";
 import {
   Dumbbell,
   ChevronRight,
@@ -58,12 +59,6 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   }),
 });
 
-function greeting() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 18) return "Good afternoon";
-  return "Good evening";
-}
 
 export default function Inicio() {
   const navigate = useNavigate();

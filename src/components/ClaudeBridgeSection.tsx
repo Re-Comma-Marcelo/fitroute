@@ -1,3 +1,4 @@
+import { useT } from "@/lib/i18n";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ClipboardCopy, Download, Sparkles } from "lucide-react";
@@ -20,6 +21,7 @@ const TIME_LABEL: Record<Profile["preferredTime"], string> = {
   evening: "evenings",
 };
 
+  const t = useT();
 export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
   const queryClient = useQueryClient();
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
@@ -69,7 +71,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       "",
       "## Training setup",
       `- Weekly session target: ${profile.metaTreinosSemana}`,
-      `- Session length: about ${profile.sessionLengthMin} min, usually ${TIME_LABEL[profile.preferredTime]}`,
+      `- Session length: about ${profile.sessionLengthMin} min, usually ${t(TIME_LABEL[profile.preferredTime])}`,
       `- Equipment available: ${profile.equipment.length ? profile.equipment.join(", ") : "not set"}`,
       `- Exercises to avoid: ${avoid.length ? avoid.join("; ") : "none"}`,
       "",
@@ -89,16 +91,16 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
   async function copy(text: string, label: string) {
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(`${label} copied`);
+      toast.success(t("{label} copied", { label }));
     } catch {
-      toast.error("Could not copy — select the text manually.");
+      toast.error(t("Could not copy — select the text manually."));
     }
   }
 
   function check() {
     const result = decodeBridgeCode(raw);
     if (!result.ok) {
-      toast.error(result.error);
+      toast.error(t(result.error));
       return;
     }
     setPending({ payload: result.payload, preview: previewImport(result.payload) });
@@ -114,7 +116,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       setPending(null);
       setRaw("");
     } catch {
-      toast.error("Import failed — check the code and try again.");
+      toast.error(t("Import failed — check the code and try again."));
     } finally {
       setBusy(false);
     }
@@ -127,7 +129,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           <Sparkles className="size-4" />
         </span>
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground">Claude / AI assistant</h2>
+          <h2 className="text-sm font-bold text-foreground">{t("Claude / AI assistant")}</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then
             import the code it gives you back.
@@ -136,23 +138,23 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       </header>
 
       <div className="space-y-2 rounded-xl border border-border bg-card p-3">
-        <Label className="label-caps text-muted-foreground">1 · Connector URL</Label>
+        <Label className="label-caps text-muted-foreground">{t("1 · Connector URL")}</Label>
         <p className="break-all font-mono text-xs text-foreground">{mcpUrl}</p>
         <p className="text-xs text-muted-foreground">
-          In Claude: Settings → Connectors → Add custom connector, and paste this URL.
+          {t("In Claude: Settings → Connectors → Add custom connector, and paste this URL.")}
         </p>
         <Button
           type="button"
           variant="secondary"
           className="h-10 w-full"
-          onClick={() => copy(mcpUrl, "Connector URL")}
+          onClick={() => copy(mcpUrl, t("Connector URL"))}
         >
-          <ClipboardCopy className="mr-2 size-4" /> Copy URL
+          <ClipboardCopy className="mr-2 size-4" /> {t("Copy URL")}
         </Button>
       </div>
 
       <div className="space-y-2 rounded-xl border border-border bg-card p-3">
-        <Label className="label-caps text-muted-foreground">2 · Your training context</Label>
+        <Label className="label-caps text-muted-foreground">{t("2 · Your training context")}</Label>
         <p className="text-xs text-muted-foreground">
           Paste this into the Claude chat first so it plans with your equipment, limits and recent
           sessions.
@@ -161,15 +163,15 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           type="button"
           variant="secondary"
           className="h-10 w-full"
-          onClick={() => copy(context, "Training context")}
+          onClick={() => copy(context, t("Training context"))}
         >
-          <ClipboardCopy className="mr-2 size-4" /> Copy my training context
+          <ClipboardCopy className="mr-2 size-4" /> {t("Copy my training context")}
         </Button>
       </div>
 
       <div className="space-y-2 rounded-xl border border-border bg-card p-3">
         <Label className="label-caps text-muted-foreground" htmlFor="claude-code">
-          3 · Import from Claude
+          {t("3 · Import from Claude")}
         </Label>
         <Textarea
           id="claude-code"
@@ -179,7 +181,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
             setPending(null);
           }}
           rows={3}
-          placeholder="Paste the FORJA1. code Claude returned…"
+          placeholder={t("Paste the FORJA1. code Claude returned…")}
           className="text-xs"
         />
         {pending ? (
@@ -197,7 +199,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
             ))}
             <div className="flex gap-2">
               <Button type="button" className="h-10 flex-1" disabled={busy} onClick={confirm}>
-                <Check className="mr-2 size-4" /> Apply
+                <Check className="mr-2 size-4" /> {t("Apply")}
               </Button>
               <Button
                 type="button"
@@ -205,7 +207,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
                 className="h-10"
                 onClick={() => setPending(null)}
               >
-                Cancel
+                {t("Cancel")}
               </Button>
             </div>
           </div>
@@ -217,7 +219,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
             disabled={!raw.trim()}
             onClick={check}
           >
-            <Download className="mr-2 size-4" /> Preview import
+            <Download className="mr-2 size-4" /> {t("Preview import")}
           </Button>
         )}
       </div>

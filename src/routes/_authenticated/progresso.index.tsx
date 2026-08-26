@@ -14,6 +14,7 @@ import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getTrackedLifts, setTrackedLift } from "@/lib/data/tracked-lifts";
 import { detectPlateau } from "@/lib/coach/plateau";
+import { useT } from "@/lib/i18n";
 import {
   adherence,
   liftTrend,
@@ -140,14 +141,19 @@ function ProgressPage() {
             />
             <p className="text-xs leading-snug text-muted-foreground">
               <span className="font-semibold text-foreground tabular-nums">
-                t("{done} of {planned}", { done: consistency.done, planned: consistency.planned })
+                {t("{done} of {planned}", {
+                  done: consistency.done,
+                  planned: consistency.planned,
+                })}
               </span>{" "}
-              t("planned sessions this month")
+              {t("planned sessions this month")}
               {consistency.streakWeeks > 0 ? (
                 <>
                   {" · "}
                   <span className="font-semibold text-primary tabular-nums">
-                    t("{streakWeeks}-week streak", { streakWeeks: consistency.streakWeeks })
+                    {t("{streakWeeks}-week streak", {
+                      streakWeeks: consistency.streakWeeks,
+                    })}
                   </span>
                 </>
               ) : null}
@@ -216,6 +222,7 @@ function Stat({
   unit?: string;
   percentOnly?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="rounded-2xl border border-border bg-card p-3">
       <dt className="label-caps">{label}</dt>
@@ -238,11 +245,19 @@ function Stat({
   );
 }
 
-function deltaLabel(t: ReturnType<typeof useT>, delta: StatDelta, unit: string, percentOnly: boolean): string {
+function deltaLabel(
+  t: ReturnType<typeof useT>,
+  delta: StatDelta,
+  unit: string,
+  percentOnly: boolean,
+): string {
   if (delta.diff === 0) return t("same as last month");
   const sign = delta.diff > 0 ? "+" : "−";
   if (percentOnly && delta.pct !== null) {
-    return t("{sign}{pct}% vs last month", { sign, pct: Math.abs(Math.round(delta.pct)) });
+    return t("{sign}{pct}% vs last month", {
+      sign,
+      pct: Math.abs(Math.round(delta.pct)),
+    });
   }
   const abs = Math.abs(Math.round(delta.diff * 10) / 10);
   return t("{sign}{diff}{unit} vs last month", { sign, diff: abs, unit });
