@@ -1,8 +1,10 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
+import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -22,20 +24,11 @@ import type { MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/week")({
   head: () => ({
-    meta: [
-      { title: "Week meal plan — Forja" },
-      {
-        name: "description",
-        content: "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
-      },
-      { property: "og:title", content: "Week meal plan — Forja" },
-      {
-        property: "og:description",
-        content: "A 7-day meal grid with daily calorie and protein totals next to each training day.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Week meal plan",
+      description: "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
+      ogDescription: "A 7-day meal grid with daily calorie and protein totals next to each training day.",
+    }),
   }),
   component: WeekPage,
 });
@@ -97,7 +90,7 @@ function WeekPage() {
             <li key={date} className="rounded-2xl border border-border bg-card p-3.5">
               <div className="flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold">
-                  {d.toLocaleDateString("en-US", { weekday: "long", day: "numeric", month: "short" })}
+                  {formatWeekdayDayMonth(d)}
                   {date === today ? <span className="ml-2 text-xs text-primary">{t("Today")}</span> : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">

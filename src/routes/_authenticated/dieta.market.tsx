@@ -1,7 +1,9 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBasket, Truck } from "lucide-react";
+import { formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -15,20 +17,11 @@ import type { ShoppingItem } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/market")({
   head: () => ({
-    meta: [
-      { title: "Shopping list — Forja" },
-      {
-        name: "description",
-        content: "Ingredients from your planned meals, merged and grouped by aisle so shopping takes one trip.",
-      },
-      { property: "og:title", content: "Shopping list — Forja" },
-      {
-        property: "og:description",
-        content: "An aisle-grouped shopping list generated from the meals you planned this week.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Shopping list",
+      description: "Ingredients from your planned meals, merged and grouped by aisle so shopping takes one trip.",
+      ogDescription: "An aisle-grouped shopping list generated from the meals you planned this week.",
+    }),
   }),
   component: MarketPage,
 });
@@ -162,9 +155,7 @@ function MarketPage() {
               <li key={`${o.date}-${o.slot}`} className="flex items-center justify-between text-sm">
                 <span>{o.meal.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {new Date(`${o.date}T12:00:00`).toLocaleDateString("en-US", {
-                    weekday: "short",
-                  })}{" "}
+                  {formatWeekdayShort(`${o.date}T12:00:00`)}{" "}
                   · {t(SLOT_LABEL[o.slot])}
                 </span>
               </li>

@@ -12,8 +12,10 @@ import { setFormatLocale } from "@/lib/format";
 
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
 import { dict as libraryDict } from "./dict/library";
+import { dict as metaDict } from "./dict/meta";
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
 import { dict as sessionDict } from "./dict/session";
@@ -42,6 +44,8 @@ const FRAGMENTS: DictFragment[] = [
   progressDict,
   profileDict,
   coachDict,
+  generatedDict,
+  metaDict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {

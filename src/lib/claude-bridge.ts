@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { tx } from "./format";
+
 /**
  * Shared contract between the app's MCP tools (what Claude produces) and the
  * Profile importer (what the app applies). Pure module — safe on both runtimes.
@@ -74,18 +76,24 @@ export function decodeBridgeCode(
 ): { ok: true; payload: BridgePayload } | { ok: false; error: string } {
   const match = raw.match(new RegExp(`${CODE_PREFIX.replace(".", "\\.")}[A-Za-z0-9+/=\\s]+`));
   if (!match) {
-    return { ok: false, error: `No Forja code found. It should start with ${CODE_PREFIX}` };
+    return {
+      ok: false,
+      error: tx("No Forja code found. It should start with {prefix}", { prefix: CODE_PREFIX }),
+    };
   }
   const body = match[0].slice(CODE_PREFIX.length).replace(/\s+/g, "");
   let json: unknown;
   try {
     json = JSON.parse(fromBase64(body));
   } catch {
-    return { ok: false, error: "That code is damaged — copy the whole code from Claude again." };
+    return {
+      ok: false,
+      error: tx("That code is damaged — copy the whole code from Claude again."),
+    };
   }
   const parsed = bridgePayloadSchema.safeParse(json);
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Unsupported code contents." };
+    return { ok: false, error: tx("Unsupported code contents.") };
   }
   return { ok: true, payload: parsed.data };
 }

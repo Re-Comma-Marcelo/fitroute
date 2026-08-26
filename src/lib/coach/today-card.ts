@@ -1,3 +1,4 @@
+import { formatNumber } from "@/lib/format";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";
@@ -194,7 +195,7 @@ function whyBullets(
     out.push(
       lowest.v === 0
         ? `${lowest.g} has had no working volume this week — this session covers it.`
-        : `${lowest.g} is your lightest group this week at ${Math.round(lowest.v).toLocaleString("en-US")} kg of volume.`,
+        : `${lowest.g} is your lightest group this week at ${formatNumber(Math.round(lowest.v))} kg of volume.`,
     );
   }
 

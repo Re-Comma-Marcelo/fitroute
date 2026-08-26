@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -26,12 +27,15 @@ import { getProfile } from "@/lib/data/profile";
 import { getRecentCoachNotes, saveCoachNote } from "@/lib/data/coach-notes";
 import { getTodayPlan } from "@/lib/coach/recommendations";
 import { currentWeekStart } from "@/lib/coach/signals";
-import { loadActiveSession, type ActiveSession } from "@/lib/session-state";
+import { loadActiveSession, sessionLabel, type ActiveSession } from "@/lib/session-state";
 import { startRoutineSession, startBlankSession } from "@/lib/start-session";
 import {
   formatDate,
   formatDurationShort,
+  formatFullDate,
   formatKg,
+  formatMonthYear,
+  formatNumber,
   relativeDays,
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -42,20 +46,11 @@ import type { TodayPlan } from "@/lib/coach/types";
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
   head: () => ({
-    meta: [
-      { title: "Home — Forja" },
-      {
-        name: "description",
-        content: "Your training dashboard, weekly goal and coach recommendations.",
-      },
-      { property: "og:title", content: "Home — Forja" },
-      {
-        property: "og:description",
-        content: "Your training dashboard, weekly goal and coach recommendations.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: pageMeta({
+      title: "Home",
+      description: "Your training dashboard, weekly goal and coach recommendations.",
+      twitterCard: "summary",
+    }),
   }),
 });
 
@@ -130,12 +125,7 @@ export default function Inicio() {
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {new Intl.DateTimeFormat("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-              }).format(new Date())}
+              {formatFullDate(new Date())}
             </p>
           </div>
           <CoachChatButton />
@@ -315,9 +305,9 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
       ? new Date(Date.now() + (remaining / perDay) * 86400000)
       : null;
 
-  const fmtKgLocale = (n: number) => n.toFixed(1).replace(".", ",");
+  const fmtKgLocale = (n: number) => formatNumber(n, 1);
   const shortDate = (d: Date) =>
-    new Intl.DateTimeFormat("en-US", { month: "short", year: "numeric" }).format(d);
+    formatMonthYear(d);
 
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
@@ -397,7 +387,7 @@ function TodayCard({
             <Flame className="size-4" />
             {t("Session in progress")}
           </div>
-          <h2 className="mt-2 font-display text-xl font-bold">{active.routineNome}</h2>
+          <h2 className="mt-2 font-display text-xl font-bold">{sessionLabel(active)}</h2>
           <p className="text-sm text-muted-foreground">
             {t("Tap resume to keep going where you left off.")}
           </p>

@@ -1,3 +1,4 @@
+import { formatNumber, tx } from "./format";
 import type { TipoSerie, WorkoutSet } from "./types";
 
 /**
@@ -51,7 +52,7 @@ function media(valores: number[]): number | null {
 }
 
 function fmt(n: number): string {
-  return n.toLocaleString("en-US", { maximumFractionDigits: 1 });
+  return formatNumber(n, 1);
 }
 
 export function suggestProgression(input: ProgressionInput): ProgressionSuggestion | null {
@@ -73,15 +74,28 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
   const repsMenor = Math.min(...validas.map((s) => s.reps));
   const repsMaior = Math.max(...validas.map((s) => s.reps));
   const repsTexto = repsMenor === repsMaior ? `${repsMaior}` : `${repsMenor}-${repsMaior}`;
-  const resumo = `Last session: ${validas.length}x${repsTexto}${
-    pseMedio !== null ? ` @ ${fmt(pseMedio)} RPE` : ""
-  }.`;
+  const resumo =
+    pseMedio !== null
+      ? tx("Last session: {sets}x{reps} @ {rpe} RPE.", {
+          sets: validas.length,
+          reps: repsTexto,
+          rpe: fmt(pseMedio),
+        })
+      : tx("Last session: {sets}x{reps}.", { sets: validas.length, reps: repsTexto });
 
   const motivo = aumentou
-    ? `${resumo} Suggested +${fmt(incrementoKg)} kg.`
+    ? tx("{summary} Suggested +{inc} kg.", { summary: resumo, inc: fmt(incrementoKg) })
     : pseAlto
-      ? `${resumo} High RPE — hold ${fmt(pesoAnterior)} kg.`
-      : `${resumo} Target range is ${input.repsMin}-${input.repsMax} reps — hold ${fmt(pesoAnterior)} kg.`;
+      ? tx("{summary} High RPE — hold {weight} kg.", {
+          summary: resumo,
+          weight: fmt(pesoAnterior),
+        })
+      : tx("{summary} Target range is {min}-{max} reps — hold {weight} kg.", {
+          summary: resumo,
+          min: input.repsMin,
+          max: input.repsMax,
+          weight: fmt(pesoAnterior),
+        });
 
   return {
     pesoAnterior,

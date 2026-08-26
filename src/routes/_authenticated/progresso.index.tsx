@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Flame } from "lucide-react";
@@ -27,21 +28,11 @@ import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/progresso/")({
   head: () => ({
-    meta: [
-      { title: "Progress — Forja" },
-      {
-        name: "description",
-        content:
-          "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.",
-      },
-      { property: "og:title", content: "Progress — Forja" },
-      {
-        property: "og:description",
-        content: "Weekly volume trend, tracked lift progression and session history.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
+    meta: pageMeta({
+      title: "Progress",
+      description: "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.",
+      ogDescription: "Weekly volume trend, tracked lift progression and session history.",
+    }),
   }),
   component: ProgressPage,
 });

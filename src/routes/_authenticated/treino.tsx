@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
@@ -29,6 +30,7 @@ import {
   loadTodayChoice,
   saveTodayChoice,
   type ActiveSession,
+  sessionLabel,
 } from "@/lib/session-state";
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
@@ -39,20 +41,12 @@ import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
 export const Route = createFileRoute("/_authenticated/treino")({
   head: () => ({
-    meta: [
-      { title: "Train — Forja" },
-      {
-        name: "description",
-        content: "Today's session, why it's queued, and your saved routines.",
-      },
-      { property: "og:title", content: "Train — Forja" },
-      {
-        property: "og:description",
-        content: "Today's coached session plus your saved routines and weekly goal.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
+    meta: pageMeta({
+      title: "Train",
+      description: "Today's session, why it's queued, and your saved routines.",
+      ogDescription: "Today's coached session plus your saved routines and weekly goal.",
+      twitterCard: "summary",
+    }),
   }),
   component: TrainPage,
 });
@@ -187,7 +181,7 @@ function TrainPage() {
       {active ? (
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
           <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
-          <p className="mt-1 text-base font-semibold">{active.routineNome}</p>
+          <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
           <Button className="mt-3 w-full font-bold" onClick={() => navigate({ to: "/sessao" })}>
             <Play className="mr-2 size-4" /> {t("Resume workout")}
           </Button>
@@ -255,7 +249,7 @@ function TrainPage() {
           disabled={active !== null || loading !== null}
           onClick={startBlank}
         >
-          Blank
+          {t("Blank")}
         </Button>
       </div>
 

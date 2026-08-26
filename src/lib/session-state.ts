@@ -1,3 +1,4 @@
+import { tx } from "./format";
 import { isSerieValida, type PrevSet, type ProgressionSuggestion } from "./progression";
 import type { TipoSerie } from "./types";
 
@@ -156,6 +157,11 @@ export function sessionElapsed(session: ActiveSession): number {
 }
 
 /** Index of the exercise being executed: current one if pending, else first pending. */
+/** Session title: blank sessions store an empty name and get a translated label. */
+export function sessionLabel(session: { routineNome: string }): string {
+  return session.routineNome || tx("Blank workout");
+}
+
 export function currentExerciseIndex(session: ActiveSession): number {
   const atual = session.exercicios[session.atual];
   if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return session.atual;
@@ -168,7 +174,7 @@ export function currentExerciseIndex(session: ActiveSession): number {
 
 /** Exercício atual do mini-player: o primeiro com série pendente. */
 export function currentExerciseName(session: ActiveSession): string {
-  return session.exercicios[currentExerciseIndex(session)]?.nome ?? "Treino livre";
+  return session.exercicios[currentExerciseIndex(session)]?.nome ?? tx("Free workout");
 }
 
 /** Sets with weight and reps typed in but never checked — easy to lose on finish. */

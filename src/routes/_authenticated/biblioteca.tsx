@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
@@ -18,19 +19,11 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
     rotinaId: search["rotinaId"] as string | undefined,
   }),
   head: () => ({
-    meta: [
-      { title: "Exercise library — Forja" },
-      {
-        name: "description",
-        content:
-          "Over 40 resistance exercises with muscle group, equipment and execution instructions.",
-      },
-      { property: "og:title", content: "Exercise library — Forja" },
-      {
-        property: "og:description",
-        content: "Search exercises by name, muscle group and equipment.",
-      },
-    ],
+    meta: pageMeta({
+      title: "Exercise library",
+      description: "Over 40 resistance exercises with muscle group, equipment and execution instructions.",
+      ogDescription: "Search exercises by name, muscle group and equipment.",
+    }),
   }),
   component: LibraryPage,
 });

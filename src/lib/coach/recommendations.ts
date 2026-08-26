@@ -3,6 +3,7 @@ import { getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getCoachNotes } from "@/lib/data/coach-notes";
+import { tx } from "@/lib/format";
 import {
   currentWeekStart,
   daysSince,
@@ -49,9 +50,9 @@ function chooseRecommendation(
 ): TodayPlan["recommendation"] {
   if (routines.length === 0) {
     return {
-      title: "Start a blank workout",
-      subtitle: "No routines yet",
-      reason: "Build a routine first, or log exercises as you go.",
+      title: tx("Start a blank workout"),
+      subtitle: tx("No routines yet"),
+      reason: tx("Build a routine first, or log exercises as you go."),
     };
   }
 
@@ -93,18 +94,26 @@ function chooseRecommendation(
     .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
 
   let reason = last
-    ? `${chosen.nome} was last trained ${daysSince(last.iniciadoEm)} days ago and its main muscle groups are fresh this week.`
-    : `${chosen.nome} is a good place to start — it hits the biggest movement patterns.`;
+    ? tx(
+        "{name} was last trained {days} days ago and its main muscle groups are fresh this week.",
+        { name: chosen.nome, days: daysSince(last.iniciadoEm) },
+      )
+    : tx("{name} is a good place to start — it hits the biggest movement patterns.", {
+        name: chosen.nome,
+      });
 
   if (recentInjury) {
-    reason += " Take the check-in soreness into account and reduce intensity if needed.";
+    reason += ` ${tx("Take the check-in soreness into account and reduce intensity if needed.")}`;
   }
 
   return {
     routineId: chosen.id,
     routineName: chosen.nome,
-    title: `Train ${chosen.nome}`,
-    subtitle: `${chosen.exercicios.length} exercises · ${profile.sessionLengthMin} min target`,
+    title: tx("Train {name}", { name: chosen.nome }),
+    subtitle: tx("{n} exercises · {min} min target", {
+      n: chosen.exercicios.length,
+      min: profile.sessionLengthMin,
+    }),
     reason,
   };
 }
@@ -128,8 +137,11 @@ function weeklyInsights(
       id: "adherence-week",
       scope: "week",
       severity: "nudge",
-      title: "Weekly target",
-      body: `You’re at ${thisWeek.length} of ${profile.metaTreinosSemana} sessions this week. A short session still counts if time is tight.`,
+      title: tx("Weekly target"),
+      body: tx(
+        "You’re at {done} of {goal} sessions this week. A short session still counts if time is tight.",
+        { done: thisWeek.length, goal: profile.metaTreinosSemana },
+      ),
       plateauType: "adherence",
     });
   }
@@ -144,8 +156,10 @@ function weeklyInsights(
         id: "volume-week",
         scope: "week",
         severity: "warning",
-        title: "Volume dropped",
-        body: "This week’s volume is down from last week. Check recovery, sleep, or stress before pushing harder.",
+        title: tx("Volume dropped"),
+        body: tx(
+          "This week’s volume is down from last week. Check recovery, sleep, or stress before pushing harder.",
+        ),
         plateauType: "volume",
       });
     }
@@ -168,8 +182,10 @@ function weeklyInsights(
         id: "fatigue-week",
         scope: "week",
         severity: "warning",
-        title: "Fatigue is climbing",
-        body: "Your average difficulty is rising while performance is flat. A lighter or deload session next time could help.",
+        title: tx("Fatigue is climbing"),
+        body: tx(
+          "Your average difficulty is rising while performance is flat. A lighter or deload session next time could help.",
+        ),
         plateauType: "fatigue",
       });
     }
@@ -186,7 +202,7 @@ function weeklyInsights(
       id: "checkin-flag",
       scope: "week",
       severity: "nudge",
-      title: "Adjusting to your feedback",
+      title: tx("Adjusting to your feedback"),
       body: recentFlag.content,
     });
   }
@@ -223,8 +239,10 @@ function getExerciseInsightSync(
       id: `stall-${re.exerciseId}`,
       scope: "exercise",
       severity: "nudge",
-      title: "Stalled",
-      body: "Same weight for three sessions running — aim for an extra rep or add load if form is clean.",
+      title: tx("Stalled"),
+      body: tx(
+        "Same weight for three sessions running — aim for an extra rep or add load if form is clean.",
+      ),
       plateauType: "single-exercise",
       exerciseId: re.exerciseId,
     };

@@ -1,4 +1,5 @@
 import { perWorkoutStats, weekStart } from "@/lib/coach/signals";
+import { formatDayMonth } from "@/lib/format";
 import type { Workout, WorkoutSet } from "@/lib/types";
 
 export interface StatDelta {
@@ -146,9 +147,7 @@ export function weeklySeries(
     const entry = buckets.get(key) ?? { volume: 0, sessions: 0 };
     out.push({
       weekStart: key,
-      label: new Intl.DateTimeFormat(undefined, { day: "2-digit", month: "short" }).format(
-        new Date(key),
-      ),
+      label: formatDayMonth(new Date(key)),
       volume: Math.round(entry.volume),
       sessions: entry.sessions,
     });

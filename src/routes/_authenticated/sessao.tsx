@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -37,7 +38,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { formatDuration, formatRest } from "@/lib/format";
+import { formatDuration, formatKg, formatRest } from "@/lib/format";
 import { toast } from "sonner";
 import {
   clearActiveSession,
@@ -55,6 +56,7 @@ import {
   type ActiveSession,
   type ActiveSet,
   type RestState,
+  sessionLabel,
 } from "@/lib/session-state";
 import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
@@ -63,19 +65,11 @@ import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
-    meta: [
-      { title: "Workout session — Forja" },
-      {
-        name: "description",
-        content:
-          "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
-      },
-      { property: "og:title", content: "Workout session — Forja" },
-      {
-        property: "og:description",
-        content: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
-      },
-    ],
+    meta: pageMeta({
+      title: "Workout session",
+      description: "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
+      ogDescription: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
+    }),
   }),
   component: SessionPage,
 });
@@ -512,7 +506,7 @@ function SessionPage() {
           >
             <ChevronDown className="size-6" />
           </Button>
-          <h1 className="flex-1 truncate text-base font-bold">{session.routineNome}</h1>
+          <h1 className="flex-1 truncate text-base font-bold">{sessionLabel(session)}</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -555,7 +549,7 @@ function SessionPage() {
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
-          <HeaderStat label={t("Volume")} value={`${Math.round(volumeAtual).toLocaleString("en-US")} kg`} />
+          <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
           <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
       </header>

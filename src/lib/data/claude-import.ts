@@ -1,9 +1,10 @@
 import type { BridgePayload } from "../claude-bridge";
+import { tx } from "../format";
 import type { Routine } from "../types";
 import { exercises } from "./mocks";
 import { meals } from "./meals.mock";
 import { saveRoutine, newRoutineExercise } from "./routines";
-import { setPlannedMeal } from "./nutrition";
+import { setPlannedMeal, SLOT_LABEL } from "./nutrition";
 import { saveCoachNote } from "./coach-notes";
 
 export interface ImportPreview {
@@ -19,32 +20,42 @@ export function previewImport(payload: BridgePayload): ImportPreview {
     const lines = payload.exercises.map((e, i) => {
       const ex = exercises.find((x) => x.id === e.exerciseId);
       if (!ex) {
-        warnings.push(`Unknown exercise "${e.exerciseId}" — it will be skipped.`);
-        return `${i + 1}. (unknown exercise)`;
+        warnings.push(tx('Unknown exercise "{id}" — it will be skipped.', { id: e.exerciseId }));
+        return tx("{n}. (unknown exercise)", { n: i + 1 });
       }
       return `${i + 1}. ${ex.nome} — ${e.sets} × ${e.repsMin}-${e.repsMax}`;
     });
-    return { title: `Routine · ${payload.name}`, lines, warnings };
+    return { title: tx("Routine · {name}", { name: payload.name }), lines, warnings };
   }
 
   if (payload.kind === "diet") {
     const lines = Object.entries(payload.days).map(([date, slots]) => {
       const parts = Object.entries(slots).map(([slot, mealId]) => {
+        const slotLabel = tx(SLOT_LABEL[slot as keyof typeof SLOT_LABEL] ?? slot);
         const meal = meals.find((m) => m.id === mealId);
         if (!meal) {
-          warnings.push(`Unknown meal "${mealId}" on ${date} — it will be skipped.`);
-          return `${slot}: (unknown)`;
+          warnings.push(
+            tx('Unknown meal "{id}" on {date} — it will be skipped.', { id: mealId, date }),
+          );
+          return tx("{slot}: (unknown)", { slot: slotLabel });
         }
-        return `${slot}: ${meal.name}`;
+        return `${slotLabel}: ${meal.name}`;
       });
       return `${date} — ${parts.join(", ")}`;
     });
-    return { title: `Diet plan · ${Object.keys(payload.days).length} day(s)`, lines, warnings };
+    return {
+      title: tx("Diet plan · {n} day(s)", { n: Object.keys(payload.days).length }),
+      lines,
+      warnings,
+    };
   }
 
   return {
-    title: `Coach note · ${payload.noteKind}`,
-    lines: [payload.content, payload.tags.length ? `Tags: ${payload.tags.join(", ")}` : ""].filter(
+    title: tx("Coach note · {kind}", { kind: payload.noteKind }),
+    lines: [
+      payload.content,
+      payload.tags.length ? tx("Tags: {tags}", { tags: payload.tags.join(", ") }) : "",
+    ].filter(
       Boolean,
     ),
     warnings,
@@ -68,7 +79,10 @@ export async function applyImport(payload: BridgePayload): Promise<string> {
       })),
     };
     const saved = await saveRoutine(routine);
-    return `Added routine "${saved.nome}" with ${saved.exercicios.length} exercises.`;
+    return tx('Added routine "{name}" with {n} exercises.', {
+      name: saved.nome,
+      n: saved.exercicios.length,
+    });
   }
 
   if (payload.kind === "diet") {
@@ -80,7 +94,10 @@ export async function applyImport(payload: BridgePayload): Promise<string> {
         count++;
       }
     }
-    return `Planned ${count} meal(s) across ${Object.keys(payload.days).length} day(s).`;
+    return tx("Planned {n} meal(s) across {days} day(s).", {
+      n: count,
+      days: Object.keys(payload.days).length,
+    });
   }
 
   await saveCoachNote({
@@ -88,5 +105,5 @@ export async function applyImport(payload: BridgePayload): Promise<string> {
     content: payload.content,
     tags: payload.tags,
   });
-  return "Coach note saved — your coach will reference it on Train.";
+  return tx("Coach note saved — your coach will reference it on Train.");
 }

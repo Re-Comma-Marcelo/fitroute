@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
@@ -16,15 +17,11 @@ import type { Routine } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
-    meta: [
-      { title: "Routine editor — Forja" },
-      {
-        name: "description",
-        content: "Build your routine: order exercises, set target sets, rep range and rest.",
-      },
-      { property: "og:title", content: "Routine editor — Forja" },
-      { property: "og:description", content: "Target sets, rep range, rest and notes per exercise." },
-    ],
+    meta: pageMeta({
+      title: "Routine editor",
+      description: "Build your routine: order exercises, set target sets, rep range and rest.",
+      ogDescription: "Target sets, rep range, rest and notes per exercise.",
+    }),
   }),
   component: RoutineEditor,
 });
@@ -70,10 +67,16 @@ function RoutineEditor() {
         };
       }
       setRoutine(base);
-      window.localStorage.removeItem(DRAFT_KEY);
     }
     init();
   }, [id]);
+
+  // Keep an in-progress draft so leaving the screen (or bouncing through the
+  // library) never loses edits. Cleared on a successful save or delete.
+  useEffect(() => {
+    if (!routine || !loaded.current) return;
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
+  }, [routine]);
 
   if (!routine) return <div className="min-h-screen bg-background" />;
 
@@ -110,6 +113,7 @@ function RoutineEditor() {
     try {
       await saveRoutine({ ...routine!, nome: routine!.nome.trim() || t("New routine") });
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
     } catch {
       toast.error(t("Could not save the routine. Check your connection and try again."));
@@ -126,6 +130,7 @@ function RoutineEditor() {
         await deleteRoutine(routine!.id);
         await queryClient.invalidateQueries({ queryKey: ["routines"] });
       }
+      window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
     } catch {
       toast.error(t("Could not delete the routine. Check your connection and try again."));
