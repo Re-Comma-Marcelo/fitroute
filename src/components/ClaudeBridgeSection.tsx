@@ -9,7 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { getExercises } from "@/lib/data/exercises";
 import { getRecentCoachNotes } from "@/lib/data/coach-notes";
 import { getWorkouts } from "@/lib/data/workouts";
-import { getMealSchedule, activeSlots, formatSlotTime } from "@/lib/data/nutrition";
+import { getMealSchedule, activeSlots, formatSlotTime, SLOT_LABEL } from "@/lib/data/nutrition";
+import { formatDateNumeric } from "@/lib/format";
 import { applyImport, previewImport, type ImportPreview } from "@/lib/data/claude-import";
 import { decodeBridgeCode, type BridgePayload } from "@/lib/claude-bridge";
 import type { Profile } from "@/lib/types";
@@ -50,14 +51,14 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       .slice(0, 5)
       .map(
         (w) =>
-          `- ${new Date(w.iniciadoEm).toLocaleDateString("en-US")}: ${Math.round(w.duracaoSeg / 60)} min, ${Math.round(w.volumeTotalKg)} kg total volume`,
+          `- ${formatDateNumeric(w.iniciadoEm)}: ${Math.round(w.duracaoSeg / 60)} min, ${Math.round(w.volumeTotalKg)} kg total volume`,
       );
     const notes = (notesQ.data ?? []).map(
-      (n) => `- ${new Date(n.createdAt).toLocaleDateString("en-US")} (${n.kind}): ${n.content}`,
+      (n) => `- ${formatDateNumeric(n.createdAt)} (${n.kind}): ${n.content}`,
     );
     const schedule = scheduleQ.data;
     const slots = schedule
-      ? activeSlots(schedule).map((s) => `${s} ${formatSlotTime(schedule[s].time)}`)
+      ? activeSlots(schedule).map((s) => `${t(SLOT_LABEL[s])} ${formatSlotTime(schedule[s].time)}`)
       : [];
 
     return [
@@ -86,7 +87,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
     ]
       .filter((l) => l !== "")
       .join("\n");
-  }, [profile, exercisesQ.data, notesQ.data, workoutsQ.data, scheduleQ.data]);
+  }, [t, profile, exercisesQ.data, notesQ.data, workoutsQ.data, scheduleQ.data]);
 
   async function copy(text: string, label: string) {
     try {
@@ -131,8 +132,9 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         <div className="min-w-0">
           <h2 className="text-sm font-bold text-foreground">{t("Claude / AI assistant")}</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then
-            import the code it gives you back.
+            {t(
+              "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
+            )}
           </p>
         </div>
       </header>
@@ -156,8 +158,9 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       <div className="space-y-2 rounded-xl border border-border bg-card p-3">
         <Label className="label-caps text-muted-foreground">{t("2 · Your training context")}</Label>
         <p className="text-xs text-muted-foreground">
-          Paste this into the Claude chat first so it plans with your equipment, limits and recent
-          sessions.
+          {t(
+            "Paste this into the Claude chat first so it plans with your equipment, limits and recent sessions.",
+          )}
         </p>
         <Button
           type="button"
