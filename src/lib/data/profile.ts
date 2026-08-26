@@ -15,6 +15,7 @@ const FALLBACK: Profile = {
   sessionLengthMin: 60,
   preferredTime: "evening",
   checkInMode: "card",
+  idioma: "en",
 };
 
 let cache: Profile | null = null;
