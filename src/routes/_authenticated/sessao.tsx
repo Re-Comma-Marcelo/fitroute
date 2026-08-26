@@ -25,10 +25,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatRest } from "@/lib/format";
+import { toast } from "sonner";
 import {
   clearActiveSession,
   loadActiveSession,
   makeSets,
+  restSecondsLeft,
   saveActiveSession,
   serieLabel,
   sessionSetsDone,
@@ -37,6 +39,7 @@ import {
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
+  type RestState,
 } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
