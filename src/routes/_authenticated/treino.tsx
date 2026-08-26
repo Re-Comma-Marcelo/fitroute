@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -62,6 +63,7 @@ function weekStart() {
 }
 
 function TrainPage() {
+  const t = useT();
   const navigate = useNavigate();
   const [active, setActive] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
@@ -154,12 +156,12 @@ function TrainPage() {
 
   return (
     <AppShell
-      title="Train"
+      title={t("Train")}
       action={
         <div className="flex items-center gap-1">
           <CoachChatButton />
           <Button asChild variant="secondary" size="icon" className="tap-target size-11">
-            <Link to="/rotina/$id" params={{ id: "nova" }} aria-label="Create new routine">
+            <Link to="/rotina/$id" params={{ id: "nova" }} aria-label={t("Create new routine")}>
               <Plus className="size-6" />
             </Link>
           </Button>
@@ -168,17 +170,17 @@ function TrainPage() {
     >
       {active ? (
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-primary">Session in progress</p>
+          <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
           <p className="mt-1 text-base font-semibold">{active.routineNome}</p>
           <Button className="mt-3 w-full font-bold" onClick={() => navigate({ to: "/sessao" })}>
-            <Play className="mr-2 size-4" /> Resume workout
+            <Play className="mr-2 size-4" /> {t("Resume workout")}
           </Button>
         </div>
       ) : null}
 
       <section>
         <div className="flex items-end justify-between">
-          <h2 className="label-caps">Weekly goal</h2>
+          <h2 className="label-caps">{t("Weekly goal")}</h2>
           <p className="font-display text-sm font-semibold tabular-nums">
             <span className="text-primary">{doneThisWeek}</span>
             <span className="text-muted-foreground">/{meta}</span>
@@ -187,7 +189,7 @@ function TrainPage() {
         <div
           className="mt-3 flex gap-1"
           role="img"
-          aria-label={`${doneThisWeek} of ${meta} sessions this week`}
+          aria-label={t("{doneThisWeek} of {meta} sessions this week", { doneThisWeek, meta })}
         >
           {Array.from({ length: meta }, (_, i) => (
             <span
@@ -229,7 +231,7 @@ function TrainPage() {
           }
         >
           <Play className="mr-1 size-5" />
-          {active ? "Resume" : "Start"}
+          {active ? t("Resume") : t("Start")}
         </Button>
         <Button
           variant="outline"
@@ -241,7 +243,7 @@ function TrainPage() {
         </Button>
       </div>
 
-      <h2 className="label-caps mt-8 mb-3">My routines</h2>
+      <h2 className="label-caps mt-8 mb-3">{t("My routines")}</h2>
 
       {routinesQuery.isLoading ? (
         <div className="space-y-3">
@@ -251,10 +253,10 @@ function TrainPage() {
         </div>
       ) : routines.length === 0 ? (
         <div className="rounded-2xl border border-border bg-card p-6 text-center">
-          <p className="text-sm text-muted-foreground">No routines yet.</p>
+          <p className="text-sm text-muted-foreground">{t("No routines yet.")}</p>
           <Button asChild className="mt-3">
             <Link to="/rotina/$id" params={{ id: "nova" }}>
-              <Plus className="mr-2 size-4" /> Create routine
+              <Plus className="mr-2 size-4" /> {t("Create routine")}
             </Link>
           </Button>
         </div>
@@ -275,6 +277,7 @@ function TrainPage() {
               loading={loading}
               onStart={() => startRoutine(r.id)}
               onPick={() => pickRoutine(r.id)}
+              t={t}
             />
           ))}
         </ul>
@@ -296,6 +299,7 @@ function RoutineCard({
   loading,
   onStart,
   onPick,
+  t,
 }: {
   r: Routine;
   exercises: Exercise[];
@@ -309,6 +313,7 @@ function RoutineCard({
   loading: string | null;
   onStart: () => void;
   onPick: () => void;
+  t: any;
 }) {
   const flags = r.exercicios
     .map((re) => {
@@ -341,15 +346,15 @@ function RoutineCard({
         <div className="min-w-0 flex-1">
           {recommended ? (
             <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
-              <Sparkles className="size-3" /> Recommended today
+              <Sparkles className="size-3" /> {t("Recommended today")}
             </span>
           ) : null}
           <p className="font-display text-lg font-semibold leading-tight">{r.nome}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {r.exercicios.length} exercises ·{" "}
+            {t("{count} exercises", { count: r.exercicios.length })} ·{" "}
             {last
-              ? `last ${relativeDays(last.iniciadoEm)} · ${formatDurationShort(last.duracaoSeg)}`
-              : "never trained"}
+              ? t("last {time} · {duration}", { time: relativeDays(last.iniciadoEm), duration: formatDurationShort(last.duracaoSeg) })
+              : t("never trained")}
           </p>
           {flags.length && !open ? (
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -363,7 +368,7 @@ function RoutineCard({
                       : "bg-primary/15 text-primary",
                   )}
                 >
-                  {f.nome} · {shortLabel(f.insight)}
+                  {t("{name} · {label}", { name: f.nome, label: t(shortLabel(f.insight)) })}
                 </span>
               ))}
             </div>
@@ -385,13 +390,13 @@ function RoutineCard({
                   <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold">{ex?.nome ?? "Exercise"}</p>
+                      <p className="truncate text-sm font-semibold">{ex?.nome ?? t("Exercise")}</p>
                       {insight && insight.severity !== "info" ? (
                         <InsightBadge insight={insight} />
                       ) : null}
                     </div>
                     <p className="text-xs text-muted-foreground/80">
-                      {re.seriesAlvo} sets · {re.repsMin}-{re.repsMax} reps
+                      {t("{count} sets · {min}-{max} reps", { count: re.seriesAlvo, min: re.repsMin, max: re.repsMax })}
                     </p>
                   </div>
                 </li>
@@ -406,7 +411,7 @@ function RoutineCard({
               disabled={loading !== null || active}
               onClick={onStart}
             >
-              {active ? "Resume in player" : `Start ${r.nome}`}
+              {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}
             </Button>
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -415,11 +420,11 @@ function RoutineCard({
                 disabled={isChoice}
                 onClick={onPick}
               >
-                {isChoice ? "Today's pick" : "Make today's pick"}
+                {isChoice ? t("Today's pick") : t("Make today's pick")}
               </Button>
               <Button asChild variant="ghost" className="h-10 text-xs font-semibold">
                 <Link to="/rotina/$id" params={{ id: r.id }}>
-                  <Pencil className="mr-1.5 size-3.5" /> Edit routine
+                  <Pencil className="mr-1.5 size-3.5" /> {t("Edit routine")}
                 </Link>
               </Button>
             </div>
@@ -444,13 +449,14 @@ function shortLabel(insight: CoachInsight): string {
 }
 
 function InsightBadge({ insight }: { insight: CoachInsight }) {
+  const t = useT();
   const isWarning = insight.severity === "warning";
   return (
     <Popover>
       <PopoverTrigger asChild>
         <button
           type="button"
-          aria-label={`${insight.title} — see details`}
+          aria-label={t("{title} — see details", { title: insight.title })}
           className={cn(
             "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[10px] font-bold",
             isWarning ? "bg-warn/15 text-warn" : "bg-primary/15 text-primary",
@@ -461,7 +467,7 @@ function InsightBadge({ insight }: { insight: CoachInsight }) {
           ) : (
             <TrendingUp className="size-3" strokeWidth={3} />
           )}
-          {shortLabel(insight)}
+          {t(shortLabel(insight))}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">

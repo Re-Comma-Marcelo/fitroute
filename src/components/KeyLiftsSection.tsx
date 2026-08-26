@@ -1,4 +1,5 @@
 import { Minus, Plus, TrendingDown, TrendingUp, X } from "lucide-react";
+import { useT } from "@/lib/i18n";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import type { LiftTrend } from "@/lib/progress-analytics";
 import type { Exercise } from "@/lib/types";
@@ -22,14 +23,14 @@ export function KeyLiftsSection({
   return (
     <section className="mt-8">
       <header className="mb-3 flex items-center justify-between">
-        <h2 className="label-caps">Key lifts</h2>
+        <h2 className="label-caps">{t("Key lifts")}</h2>
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Add tracked lift"
+          aria-label={t("Track a lift")}
           className="tap-target flex items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
-          <Plus className="size-4" /> Track a lift
+          <Plus className="size-4" /> {t("Track a lift")}
         </button>
       </header>
 
@@ -39,7 +40,7 @@ export function KeyLiftsSection({
           onClick={onAdd}
           className="w-full rounded-2xl border border-dashed border-border p-5 text-left"
         >
-          <p className="font-display text-sm font-semibold">Pick the lifts you care about</p>
+          <p className="font-display text-sm font-semibold">{t("Pick the lifts you care about")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             Track bench, squat or anything else and see whether the load is actually going up.
           </p>
@@ -62,7 +63,7 @@ export function KeyLiftsSection({
                     {trend.spanWeeks === 1 ? "" : "s"} · {relativeDays(trend.lastDate)}
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-xs text-muted-foreground">No sets logged yet</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">t("No sets logged yet")</p>
                 )}
               </div>
 
@@ -72,7 +73,7 @@ export function KeyLiftsSection({
               <button
                 type="button"
                 onClick={() => onRemove(exercise.id)}
-                aria-label={`Stop tracking ${exercise.nome}`}
+                aria-label={t("Stop tracking {name}", { name: exercise.nome })}
                 className="tap-target -mr-1 flex w-8 items-center justify-center text-muted-foreground/60 transition-colors hover:text-foreground"
               >
                 <X className="size-4" />

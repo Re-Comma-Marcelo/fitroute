@@ -20,6 +20,7 @@ import {
   sessionElapsed,
   type ActiveSession,
 } from "@/lib/session-state";
+import { useT } from "@/lib/i18n";
 
 /**
  * Floating session bar shown above the bottom nav on every tab.
@@ -28,6 +29,7 @@ import {
 
 export function SessionMiniPlayer() {
   const navigate = useNavigate();
+  const t = useT();
   const [session, setSession] = useState<ActiveSession | null>(null);
 
   useEffect(() => {
@@ -44,8 +46,7 @@ export function SessionMiniPlayer() {
       <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
-          aria-label="Return to workout session"
-
+          aria-label={t("Return to workout session")}
           className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
@@ -69,8 +70,7 @@ export function SessionMiniPlayer() {
           <AlertDialogTrigger asChild>
             <button
               type="button"
-              aria-label="Discard active workout"
-
+              aria-label={t("Discard active workout")}
               className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg text-destructive"
             >
               <Trash2 className="size-5" />
@@ -78,13 +78,17 @@ export function SessionMiniPlayer() {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Discard this workout?</AlertDialogTitle>
+              <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
               <AlertDialogDescription>
-                Sets logged for {session.routineNome} will be lost. This cannot be undone.
+                {t("Sets logged for {routineNome} will be lost. This cannot be undone.", {
+                  routineNome: session.routineNome,
+                })}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="tap-target">Keep training</AlertDialogCancel>
+              <AlertDialogCancel className="tap-target">
+                {t("Keep training")}
+              </AlertDialogCancel>
               <AlertDialogAction
                 className="tap-target bg-destructive text-destructive-foreground"
                 onClick={() => {
@@ -93,9 +97,8 @@ export function SessionMiniPlayer() {
                   navigate({ to: "/treino" });
                 }}
               >
-                Discard
+                {t("Discard")}
               </AlertDialogAction>
-
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>

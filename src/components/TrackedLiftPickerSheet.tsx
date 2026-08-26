@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -29,13 +30,13 @@ export function TrackedLiftPickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         <SheetHeader className="text-left">
-          <SheetTitle>Track a lift</SheetTitle>
+          <SheetTitle>{t("Track a lift")}</SheetTitle>
         </SheetHeader>
 
         <Input
           value={term}
           onChange={(e) => setTerm(e.target.value)}
-          placeholder="Search exercises"
+          placeholder={t("Search exercises")}
           className="mt-3 h-11"
         />
 
@@ -67,7 +68,7 @@ export function TrackedLiftPickerSheet({
             );
           })}
           {list.length === 0 ? (
-            <li className="py-6 text-center text-sm text-muted-foreground">No exercises found.</li>
+            <li className="py-6 text-center text-sm text-muted-foreground">{t("No exercises found.")}</li>
           ) : null}
         </ul>
       </SheetContent>

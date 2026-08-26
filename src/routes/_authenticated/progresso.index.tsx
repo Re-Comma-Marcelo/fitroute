@@ -46,6 +46,7 @@ export const Route = createFileRoute("/_authenticated/progresso/")({
 });
 
 function ProgressPage() {
+  const t = useT();
   const queryClient = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -96,7 +97,7 @@ function ProgressPage() {
   }
 
   return (
-    <AppShell title="Progress">
+    <AppShell title={t("Progress")}>
       {loading ? (
         <div className="space-y-3">
           <Skeleton className="h-20 w-full rounded-2xl" />
@@ -107,19 +108,19 @@ function ProgressPage() {
         <>
           <dl className="grid grid-cols-3 gap-2">
             <Stat
-              label="Sessions"
+              label={t("Sessions")}
               value={String(comparison.current.sessions)}
               delta={comparison.sessionsDelta}
               unit=""
             />
             <Stat
-              label="Volume"
+              label={t("Volume")}
               value={`${Math.round(comparison.current.volume / 1000)}t`}
               delta={comparison.volumeDelta}
               percentOnly
             />
             <Stat
-              label="Avg duration"
+              label={t("Avg duration")}
               value={
                 comparison.current.sessions
                   ? formatDurationShort(comparison.current.avgDurationSeg)
@@ -139,14 +140,14 @@ function ProgressPage() {
             />
             <p className="text-xs leading-snug text-muted-foreground">
               <span className="font-semibold text-foreground tabular-nums">
-                {consistency.done} of {consistency.planned}
+                t("{done} of {planned}", { done: consistency.done, planned: consistency.planned })
               </span>{" "}
-              planned sessions this month
+              t("planned sessions this month")
               {consistency.streakWeeks > 0 ? (
                 <>
                   {" · "}
                   <span className="font-semibold text-primary tabular-nums">
-                    {consistency.streakWeeks}-week streak
+                    t("{streakWeeks}-week streak", { streakWeeks: consistency.streakWeeks })
                   </span>
                 </>
               ) : null}
@@ -165,7 +166,7 @@ function ProgressPage() {
         </>
       )}
 
-      <h2 className="label-caps mt-8 mb-3">History</h2>
+      <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>
 
       <ul className="space-y-2">
         {workouts.map((w) => (
@@ -177,7 +178,7 @@ function ProgressPage() {
             >
               <div className="flex-1">
                 <p className="font-display text-base font-semibold leading-tight">
-                  {routines.find((r) => r.id === w.routineId)?.nome ?? "Blank workout"}
+                  {routines.find((r) => r.id === w.routineId)?.nome ?? t("Blank workout")}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground/80 first-letter:uppercase">
                   {formatDateLong(w.iniciadoEm)}
@@ -230,19 +231,19 @@ function Stat({
             delta.diff === 0 && "text-muted-foreground",
           )}
         >
-          {deltaLabel(delta, unit, percentOnly)}
+          {deltaLabel(t, delta, unit, percentOnly)}
         </dd>
       ) : null}
     </div>
   );
 }
 
-function deltaLabel(delta: StatDelta, unit: string, percentOnly: boolean): string {
-  if (delta.diff === 0) return "same as last month";
+function deltaLabel(t: ReturnType<typeof useT>, delta: StatDelta, unit: string, percentOnly: boolean): string {
+  if (delta.diff === 0) return t("same as last month");
   const sign = delta.diff > 0 ? "+" : "−";
   if (percentOnly && delta.pct !== null) {
-    return `${sign}${Math.abs(Math.round(delta.pct))}% vs last month`;
+    return t("{sign}{pct}% vs last month", { sign, pct: Math.abs(Math.round(delta.pct)) });
   }
   const abs = Math.abs(Math.round(delta.diff * 10) / 10);
-  return `${sign}${abs}${unit} vs last month`;
+  return t("{sign}{diff}{unit} vs last month", { sign, diff: abs, unit });
 }
