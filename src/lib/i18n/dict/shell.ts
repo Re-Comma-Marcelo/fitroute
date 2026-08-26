@@ -38,6 +38,8 @@ export const dict: DictFragment = {
     "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.":
       "O login com Google ainda não está ativado neste projeto Supabase. Use e-mail e senha por enquanto.",
     "Could not sign in": "Não foi possível entrar",
+    "Too many confirmation emails were requested. Please wait a few minutes before trying again.":
+      "Muitos e-mails de confirmação foram solicitados. Aguarde alguns minutos antes de tentar novamente.",
   },
   nl: {
     "Page not found": "Pagina niet gevonden",
@@ -75,5 +77,7 @@ export const dict: DictFragment = {
     "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.":
       "Inloggen met Google is nog niet ingeschakeld in dit Supabase-project. Gebruik voorlopig e-mail en wachtwoord.",
     "Could not sign in": "Inloggen mislukt",
+    "Too many confirmation emails were requested. Please wait a few minutes before trying again.":
+      "Er zijn te veel bevestigingsmails aangevraagd. Wacht een paar minuten voordat je het opnieuw probeert.",
   },
 };

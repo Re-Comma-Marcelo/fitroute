@@ -42,6 +42,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [formError, setFormError] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -77,6 +78,7 @@ function AuthPage() {
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    setFormError("");
     setBusy(true);
     try {
       if (mode === "signup") {
@@ -96,7 +98,24 @@ function AuthPage() {
       }
       navigate({ to: "/inicio", replace: true });
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("Could not sign in"));
+      const raw = error instanceof Error ? error.message : "";
+      const code =
+        typeof error === "object" && error !== null && "code" in error
+          ? String(error.code)
+          : "";
+      const emailLimitExceeded =
+        /email rate limit exceeded|over_email_send_rate_limit/i.test(raw) ||
+        code === "over_email_send_rate_limit";
+
+      if (emailLimitExceeded) {
+        setFormError(
+          t(
+            "Too many confirmation emails were requested. Please wait a few minutes before trying again.",
+          ),
+        );
+      } else {
+        toast.error(raw || t("Could not sign in"));
+      }
     } finally {
       setBusy(false);
     }
@@ -169,7 +188,10 @@ function AuthPage() {
                   <button
                     key={value}
                     type="button"
-                    onClick={() => setMode(value)}
+                    onClick={() => {
+                      setMode(value);
+                      setFormError("");
+                    }}
                     className={cn(
                       "tap-target rounded-lg text-sm font-medium transition-colors",
                       mode === value
@@ -183,6 +205,24 @@ function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-3">
+                {formError ? (
+                  <div
+                    role="alert"
+                    className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+                  >
+                    <p>{formError}</p>
+                    <button
+                      type="button"
+                      className="mt-2 min-h-11 font-semibold text-primary"
+                      onClick={() => {
+                        setMode("signin");
+                        setFormError("");
+                      }}
+                    >
+                      {t("Back to sign in")}
+                    </button>
+                  </div>
+                ) : null}
                 <div className="space-y-1.5">
                   <Label htmlFor="email">{t("Email")}</Label>
                   <Input
