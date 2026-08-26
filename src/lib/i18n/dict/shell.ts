@@ -3,6 +3,12 @@ import type { DictFragment } from "../types";
 /** Translations for the shell area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Page not found": "Página não encontrada",
+    "The page you're looking for doesn't exist or has been moved.": "A página que você procura não existe ou foi movida.",
+    "Go home": "Ir para o início",
+    "This page didn't load": "Esta página não carregou",
+    "Something went wrong on our end. You can try refreshing or head back home.": "Algo deu errado do nosso lado. Tente recarregar ou volte ao início.",
+    "Try again": "Tentar novamente",
     "Home": "Início",
     "Train": "Treino",
     "Diet": "Dieta",
@@ -32,6 +38,12 @@ export const dict: DictFragment = {
     "Could not sign in": "Não foi possível entrar",
   },
   nl: {
+    "Page not found": "Pagina niet gevonden",
+    "The page you're looking for doesn't exist or has been moved.": "De pagina die je zoekt bestaat niet of is verplaatst.",
+    "Go home": "Naar start",
+    "This page didn't load": "Deze pagina is niet geladen",
+    "Something went wrong on our end. You can try refreshing or head back home.": "Er ging iets mis aan onze kant. Probeer te vernieuwen of ga terug naar start.",
+    "Try again": "Opnieuw proberen",
     "Home": "Home",
     "Train": "Trainen",
     "Diet": "Dieet",

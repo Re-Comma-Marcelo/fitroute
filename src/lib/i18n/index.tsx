@@ -87,6 +87,11 @@ function readStoredLang(): Lang {
   return DEFAULT_LANG;
 }
 
+/** Language for components rendered outside the provider (error boundaries). */
+export function currentLangFromStorage(): Lang {
+  return readStoredLang();
+}
+
 /** Persisting the choice to the profile is injected so i18n stays data-agnostic. */
 let persistLanguage: ((lang: Lang) => void) | null = null;
 export function registerLanguagePersister(fn: ((lang: Lang) => void) | null) {
