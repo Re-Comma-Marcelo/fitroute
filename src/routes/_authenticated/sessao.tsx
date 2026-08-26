@@ -203,14 +203,19 @@ function SessionPage() {
   }
 
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
-  const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
+  const restLeft = restSecondsLeft(session);
 
   function startRest(segundos: number) {
     if (segundos <= 0) return;
-    setRest({ total: segundos, endsAt: Date.now() + segundos * 1000 });
+    update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+  }
+
+  function patchRest(mutate: (r: RestState) => RestState | null) {
+    update((s) => ({ ...s, rest: s.rest ? mutate(s.rest) : null }));
   }
 
   function toggleSet(exIdx: number, setIdx: number) {
+    unlockAudio();
     let descanso = 0;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
