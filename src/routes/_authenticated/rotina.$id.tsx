@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
@@ -155,6 +156,7 @@ function RoutineEditor() {
               size="icon"
               className="tap-target text-destructive"
               aria-label={t("Delete routine")}
+              disabled={saving}
               onClick={handleDelete}
             >
               <Trash2 className="size-5" />
@@ -303,7 +305,7 @@ function RoutineEditor() {
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto max-w-md">
-          <Button className="h-14 w-full text-base font-bold" onClick={handleSave}>
+          <Button className="h-14 w-full text-base font-bold" disabled={saving} onClick={handleSave}>
             {t("Save routine")}
           </Button>
         </div>
