@@ -24,10 +24,18 @@ export function formatRest(totalSeconds: number): string {
 }
 
 let currentLocale = "en-US";
+let translator: (source: string, vars?: Record<string, string | number>) => string = (
+  source,
+  vars,
+) => (vars ? source.replace(/\{(\w+)\}/g, (m, k: string) => String(vars[k] ?? m)) : source);
 
 /** Set by the language provider so dates/numbers follow the active language. */
-export function setFormatLocale(locale: string) {
+export function setFormatLocale(
+  locale: string,
+  translate?: (source: string, vars?: Record<string, string | number>) => string,
+) {
   currentLocale = locale;
+  if (translate) translator = translate;
 }
 
 export function formatDate(iso: string): string {
@@ -49,11 +57,11 @@ export function formatDateLong(iso: string): string {
 
 export function relativeDays(iso: string): string {
   const days = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
-  if (days <= 0) return "today";
-  if (days === 1) return "yesterday";
-  if (days < 7) return `${days} days ago`;
+  if (days <= 0) return translator("today");
+  if (days === 1) return translator("yesterday");
+  if (days < 7) return translator("{days} days ago", { days });
   const weeks = Math.floor(days / 7);
-  return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
+  return weeks === 1 ? translator("1 week ago") : translator("{weeks} weeks ago", { weeks });
 }
 
 export function formatKg(value: number): string {
