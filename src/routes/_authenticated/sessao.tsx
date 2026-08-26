@@ -559,9 +559,9 @@ function SessionPage() {
             <RestTimerBar
               rest={rest}
               restLeft={restLeft}
-              onAdd={() => setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))}
-              onSubtract={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
-              onSkip={() => setRest(null)}
+              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+              onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+              onSkip={() => patchRest(() => null)}
               t={t}
             />
           ) : null}
