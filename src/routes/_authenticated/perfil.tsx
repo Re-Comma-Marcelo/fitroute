@@ -378,6 +378,8 @@ function ProfilePage() {
       <div className="mt-6">
         <ClaudeBridgeSection profile={profileQuery.data ?? form} />
       </div>
+
+      <AccountSection />
     </AppShell>
 
   );
