@@ -830,6 +830,8 @@ function RestTimerBar({
           <div>
             <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">{t("Rest")}</p>
             <p
+              role="timer"
+              aria-live="off"
               className={cn(
                 "font-display text-2xl font-bold tabular-nums leading-none",
                 isLow ? "text-warn" : "text-info",
@@ -838,6 +840,7 @@ function RestTimerBar({
               {formatDuration(restLeft)}
             </p>
           </div>
+
         </div>
         <div className="flex gap-1.5">
           <Button
