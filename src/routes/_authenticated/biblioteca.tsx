@@ -213,6 +213,7 @@ function FilterRow({
 }: {
   label: string;
   options: string[];
+  value: string | null;
   onChange: (value: string | null) => void;
 }) {
   const t = useT();
