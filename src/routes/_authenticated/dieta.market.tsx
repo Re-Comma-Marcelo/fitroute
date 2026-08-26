@@ -57,6 +57,16 @@ function MarketPage() {
     queryFn: () => getShoppingList(dates),
   });
 
+  // getCheckedItems() reads a cache filled during hydration, so the initial
+  // state can be empty on a cold reload — re-sync once the list resolves.
+  useEffect(() => {
+    if (!listQ.isSuccess) return;
+    const stored = getCheckedItems();
+    setChecked((prev) =>
+      prev.length === stored.length && prev.every((k) => stored.includes(k)) ? prev : stored,
+    );
+  }, [listQ.isSuccess, listQ.dataUpdatedAt]);
+
   const groups = useMemo(() => {
     const map = new Map<string, ShoppingItem[]>();
     for (const item of listQ.data?.items ?? []) {
