@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -129,17 +130,25 @@ function TrainPage() {
       return;
     }
     setLoading(routineId);
-    saveTodayChoice(routineId);
-    const applied = Object.fromEntries(
-      Object.entries(swaps).filter(([original]) =>
-        routines.find((r) => r.id === routineId)?.exercicios.some((re) => re.exerciseId === original),
-      ),
-    );
-    await startRoutineSession(routineId, {
-      ...(Object.keys(applied).length ? { swaps: applied } : {}),
-      ...(opts.deload ? { deload: true } : {}),
-    });
-    navigate({ to: "/sessao" });
+    try {
+      saveTodayChoice(routineId);
+      const applied = Object.fromEntries(
+        Object.entries(swaps).filter(([original]) =>
+          routines
+            .find((r) => r.id === routineId)
+            ?.exercicios.some((re) => re.exerciseId === original),
+        ),
+      );
+      await startRoutineSession(routineId, {
+        ...(Object.keys(applied).length ? { swaps: applied } : {}),
+        ...(opts.deload ? { deload: true } : {}),
+      });
+      navigate({ to: "/sessao" });
+    } catch {
+      toast.error(t("Could not start the session. Check your connection and try again."));
+    } finally {
+      setLoading(null);
+    }
   }
 
   function pickRoutine(routineId: string) {
@@ -150,9 +159,16 @@ function TrainPage() {
 
   async function startBlank() {
     setLoading("blank");
-    await startBlankSession();
-    navigate({ to: "/sessao" });
+    try {
+      await startBlankSession();
+      navigate({ to: "/sessao" });
+    } catch {
+      toast.error(t("Could not start the session. Check your connection and try again."));
+    } finally {
+      setLoading(null);
+    }
   }
+
 
   return (
     <AppShell

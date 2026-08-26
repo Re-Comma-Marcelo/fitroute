@@ -17,6 +17,7 @@ import {
   clearActiveSession,
   currentExerciseName,
   loadActiveSession,
+  restSecondsLeft,
   sessionElapsed,
   type ActiveSession,
 } from "@/lib/session-state";
@@ -41,6 +42,8 @@ export function SessionMiniPlayer() {
 
   if (!session) return null;
 
+  const restLeft = restSecondsLeft(session);
+
   return (
     <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 px-3">
       <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
@@ -62,6 +65,14 @@ export function SessionMiniPlayer() {
               </span>
             </span>
             <span className="block truncate text-xs text-muted-foreground/80">
+              {restLeft > 0 ? (
+                <>
+                  <span className="font-mono font-semibold tabular-nums text-primary">
+                    {t("Rest")} {formatDuration(restLeft)}
+                  </span>
+                  {" · "}
+                </>
+              ) : null}
               {currentExerciseName(session)}
             </span>
           </span>

@@ -25,10 +25,12 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { formatDuration, formatRest } from "@/lib/format";
+import { toast } from "sonner";
 import {
   clearActiveSession,
   loadActiveSession,
   makeSets,
+  restSecondsLeft,
   saveActiveSession,
   serieLabel,
   sessionSetsDone,
@@ -37,6 +39,7 @@ import {
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
+  type RestState,
 } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
@@ -112,28 +115,50 @@ function SessionPage() {
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
-  const [rest, setRest] = useState<{ total: number; endsAt: number } | null>(null);
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const loadedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
+  const rest = session?.rest ?? null;
+  const restEndsAt = rest?.endsAt ?? null;
 
   useTick(true);
 
+  /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
+  const unlockAudio = useCallback(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const Ctx =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = audioCtxRef.current ?? new Ctx();
+      audioCtxRef.current = ctx;
+      if (ctx.state === "suspended") void ctx.resume();
+    } catch {
+      // ignore
+    }
+  }, []);
+
   // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
-    if (!rest) return;
-    const msLeft = Math.max(0, rest.endsAt - Date.now());
-    if (msLeft > 0) {
-      setRestFinished(false);
+    if (!restEndsAt) return;
+    const msLeft = restEndsAt - Date.now();
+    const fire = () => {
+      setRestFinished(true);
+      playRestBeep(audioCtxRef);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        navigator.vibrate([300, 150, 300, 150, 500]);
+      }
+    };
+    if (msLeft <= 0) {
+      fire();
       return;
     }
-    setRestFinished(true);
-    playRestBeep(audioCtxRef);
-    if (typeof navigator !== "undefined" && navigator.vibrate) {
-      navigator.vibrate([300, 150, 300, 150, 500]);
-    }
-  }, [rest]);
+    setRestFinished(false);
+    const id = setTimeout(fire, msLeft);
+    return () => clearTimeout(id);
+  }, [restEndsAt]);
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -181,14 +206,19 @@ function SessionPage() {
   }
 
   const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
-  const restLeft = rest ? Math.max(0, Math.round((rest.endsAt - Date.now()) / 1000)) : 0;
+  const restLeft = restSecondsLeft(session);
 
   function startRest(segundos: number) {
     if (segundos <= 0) return;
-    setRest({ total: segundos, endsAt: Date.now() + segundos * 1000 });
+    update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+  }
+
+  function patchRest(mutate: (r: RestState) => RestState | null) {
+    update((s) => ({ ...s, rest: s.rest ? mutate(s.rest) : null }));
   }
 
   function toggleSet(exIdx: number, setIdx: number) {
+    unlockAudio();
     let descanso = 0;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
@@ -278,63 +308,73 @@ function SessionPage() {
   async function finalizar() {
     if (!session) return;
     setFinishing(true);
-    const duracaoSeg = elapsed;
-    const sets: WorkoutSet[] = [];
-    let volume = 0;
-    const prs: { nome: string; pesoKg: number }[] = [];
+    try {
+      const duracaoSeg = elapsed;
+      const sets: WorkoutSet[] = [];
+      let volume = 0;
+      const prs: { nome: string; pesoKg: number }[] = [];
 
-    for (let i = 0; i < session.exercicios.length; i++) {
-      const ex = session.exercicios[i]!;
-      const pr = await getPersonalRecord(ex.exerciseId);
-      let melhor = 0;
-      ex.sets.forEach((s) => {
-        if (!s.concluida) return;
-        const peso = Number(s.pesoKg) || 0;
-        const reps = Number(s.reps) || 0;
-        // Warm-up is logged but does not count toward volume.
-        if (isSerieValida(s)) {
-          volume += peso * reps;
-          melhor = Math.max(melhor, peso);
-        }
-        sets.push({
-          id: `${session.id}_${i}_${s.serieNum}`,
-          workoutId: session.id,
-          exerciseId: ex.exerciseId,
-          ordemExercicio: i,
-          serieNum: s.serieNum,
-          tipoSerie: s.tipoSerie,
-          pesoKg: peso,
-          reps,
-          concluida: true,
-          ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+      for (let i = 0; i < session.exercicios.length; i++) {
+        const ex = session.exercicios[i]!;
+        const pr = await getPersonalRecord(ex.exerciseId);
+        let melhor = 0;
+        ex.sets.forEach((s) => {
+          if (!s.concluida) return;
+          const peso = Number(s.pesoKg) || 0;
+          const reps = Number(s.reps) || 0;
+          // Warm-up is logged but does not count toward volume.
+          if (isSerieValida(s)) {
+            volume += peso * reps;
+            melhor = Math.max(melhor, peso);
+          }
+          sets.push({
+            id: `${session.id}_${i}_${s.serieNum}`,
+            workoutId: session.id,
+            exerciseId: ex.exerciseId,
+            ordemExercicio: i,
+            serieNum: s.serieNum,
+            tipoSerie: s.tipoSerie,
+            pesoKg: peso,
+            reps,
+            concluida: true,
+            ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+          });
         });
-      });
-      if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
-    }
+        if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
+      }
 
-    await saveWorkout(
-      {
-        id: session.id,
-        ...(session.routineId ? { routineId: session.routineId } : {}),
-        iniciadoEm: session.iniciadoEm,
-        finalizadoEm: new Date().toISOString(),
-        duracaoSeg,
-        volumeTotalKg: Math.round(volume),
-        notas: session.notas,
-        origem: session.routineId ? "rotina" : "branco",
-      },
-      sets,
-    );
-
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(
-        `forja.resumo.${session.id}`,
-        JSON.stringify({ prs, series: sets.length }),
+      await saveWorkout(
+        {
+          id: session.id,
+          ...(session.routineId ? { routineId: session.routineId } : {}),
+          iniciadoEm: session.iniciadoEm,
+          finalizadoEm: new Date().toISOString(),
+          duracaoSeg,
+          volumeTotalKg: Math.round(volume),
+          notas: session.notas,
+          origem: session.routineId ? "rotina" : "branco",
+        },
+        sets,
       );
+
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          `forja.resumo.${session.id}`,
+          JSON.stringify({ prs, series: sets.length }),
+        );
+      }
+      clearActiveSession();
+      navigate({ to: "/resumo/$id", params: { id: session.id } });
+    } catch {
+      // Keep the session in localStorage so nothing is lost.
+      toast.error(
+        t("Could not save the workout. It is still stored on this device — try again in a moment."),
+      );
+    } finally {
+      setFinishing(false);
     }
-    clearActiveSession();
-    navigate({ to: "/resumo/$id", params: { id: session.id } });
   }
+
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
@@ -522,9 +562,9 @@ function SessionPage() {
             <RestTimerBar
               rest={rest}
               restLeft={restLeft}
-              onAdd={() => setRest((r) => (r ? { total: r.total + 15, endsAt: r.endsAt + 15000 } : r))}
-              onSubtract={() => setRest((r) => (r ? { ...r, endsAt: r.endsAt - 15000 } : r))}
-              onSkip={() => setRest(null)}
+              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+              onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+              onSkip={() => patchRest(() => null)}
               t={t}
             />
           ) : null}

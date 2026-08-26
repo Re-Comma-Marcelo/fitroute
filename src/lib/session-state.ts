@@ -31,6 +31,11 @@ export interface ActiveExercise {
   sets: ActiveSet[];
 }
 
+export interface RestState {
+  total: number;
+  endsAt: number;
+}
+
 export interface ActiveSession {
   id: string;
   routineId?: string;
@@ -39,6 +44,14 @@ export interface ActiveSession {
   notas: string;
   exercicios: ActiveExercise[];
   atual: number;
+  /** Rest countdown, persisted so it survives navigation/unmount. */
+  rest?: RestState | null;
+}
+
+/** Seconds left on the persisted rest countdown (0 when idle/finished). */
+export function restSecondsLeft(session: ActiveSession | null): number {
+  if (!session?.rest) return 0;
+  return Math.max(0, Math.round((session.rest.endsAt - Date.now()) / 1000));
 }
 
 const KEY = "forja.activeSession.v1";
