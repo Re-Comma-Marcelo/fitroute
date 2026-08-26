@@ -1,3 +1,4 @@
+import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
