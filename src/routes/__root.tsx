@@ -76,11 +76,21 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  beforeLoad: async () => {
+  loader: async () => {
     const cfg = await getSupabaseBrowserConfig();
     configureSupabase({ url: cfg.url ?? "", key: cfg.key ?? "" });
+    return { supabaseConfig: { url: cfg.url ?? "", key: cfg.key ?? "" } };
   },
-  head: () => ({
+  head: ({ loaderData }) => ({
+    // Inline script runs before the app bundle, so the browser Supabase client
+    // is configured before any route gate calls supabase.auth.*.
+    scripts: [
+      {
+        children: `window.__FORJA_SUPABASE__=${JSON.stringify(
+          loaderData?.supabaseConfig ?? { url: "", key: "" },
+        )};`,
+      },
+    ],
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
