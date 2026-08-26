@@ -29,7 +29,7 @@ function CoachSheet({ children }: { children: React.ReactNode }) {
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
             <MessageSquare className="size-5 text-primary" />
-            Coach
+            {t("Coach")}
           </SheetTitle>
         </SheetHeader>
         <ChatPanel />
@@ -45,6 +45,7 @@ export function CoachChatButton({
   children?: React.ReactNode;
   className?: string;
 }) {
+  const t = useT();
   return (
     <CoachSheet>
       <button
@@ -61,9 +62,9 @@ export function CoachChatButton({
   );
 }
 
-export function CoachChatRow({ label = t("Any questions about today's training?") }: { label?: string }) {
+export function CoachChatRow({ label }: { label?: string }) {
   const t = useT();
-  const t = useT();
+  const displayLabel = label ?? t("Any questions about today's training?");
   return (
     <CoachSheet>
       <button
@@ -75,7 +76,7 @@ export function CoachChatRow({ label = t("Any questions about today's training?"
           <MessageSquare className="size-4" strokeWidth={2} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-foreground">{label}</span>
+          <span className="block text-sm font-medium text-foreground">{displayLabel}</span>
           <span className="block text-xs text-muted-foreground">{t("Ask your coach")}</span>
         </span>
         <ChevronRight className="size-5 shrink-0 text-muted-foreground" />

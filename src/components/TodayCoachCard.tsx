@@ -25,6 +25,7 @@ export function TodayCoachCard({
   onNoteSaved: () => void;
   busy: boolean;
 }) {
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const preview = previewText(model);
@@ -100,7 +101,7 @@ export function TodayCoachCard({
               disabled={busy || !model.routineId}
               onClick={() => onStart({})}
             >
-              Keep this plan
+              {t("Keep this plan")}
             </Button>
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -109,7 +110,7 @@ export function TodayCoachCard({
                 disabled={busy || !model.routineId}
                 onClick={() => onStart({ deload: true })}
               >
-                <TrendingDown className="mr-1.5 size-4" /> Lighter session
+                <TrendingDown className="mr-1.5 size-4" /> {t("Lighter session")}
               </Button>
               <Button
                 variant="outline"
@@ -117,7 +118,7 @@ export function TodayCoachCard({
                 disabled={model.flagged.length === 0}
                 onClick={() => setSwapFor(model.flagged[0]?.exerciseId ?? null)}
               >
-                <Repeat2 className="mr-1.5 size-4" /> Swap exercise
+                <Repeat2 className="mr-1.5 size-4" /> {t("Swap exercise")}
               </Button>
             </div>
           </div>
@@ -180,7 +181,6 @@ export function TodayCoachCard({
 }
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
-  const t = useT();
   return (
     <div>
       <h3 className="label-caps mb-2">{title}</h3>
@@ -190,7 +190,6 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Bullet({ children, tone }: { children: React.ReactNode; tone?: "warn" }) {
-  const t = useT();
   return (
     <li className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
       <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", tone === "warn" ? "bg-warn" : "bg-primary/60")} />
