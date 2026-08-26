@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/progresso/$id")({
 });
 
 function WorkoutDetail() {
-  const { id } = useParams({ from: "/progresso/$id" });
+  const { id } = useParams({ from: "/_authenticated/progresso/$id" });
   const navigate = useNavigate();
 
   const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 
 function LibraryPage() {
   const navigate = useNavigate();
-  const { para, rotinaId } = useSearch({ from: "/biblioteca" });
+  const { para, rotinaId } = useSearch({ from: "/_authenticated/biblioteca" });
   const [q, setQ] = useState("");
   const [grupo, setGrupo] = useState<string | null>(null);
   const [equip, setEquip] = useState<string | null>(null);
