@@ -19,6 +19,7 @@ import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/l
 import { CoachChatButton } from "@/components/CoachChatSheet";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 
+import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -391,5 +392,39 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
       <Label>{label}</Label>
       {children}
     </div>
+  );
+}
+
+function AccountSection() {
+  const queryClient = useQueryClient();
+  const [email, setEmail] = useState<string | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? null));
+  }, []);
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    await queryClient.cancelQueries();
+    queryClient.clear();
+    await supabase.auth.signOut();
+    // Full reload clears the in-memory data caches so the next account starts clean.
+    window.location.assign("/");
+  }
+
+  return (
+    <section className="mt-6 rounded-2xl border border-border/60 bg-card/70 p-4">
+      <h2 className="font-display text-sm font-semibold text-foreground">Account</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{email ?? "Signed in"}</p>
+      <Button
+        variant="outline"
+        disabled={signingOut}
+        onClick={handleSignOut}
+        className="tap-target mt-3 w-full"
+      >
+        {signingOut ? "Signing out…" : "Sign out"}
+      </Button>
+    </section>
   );
 }
