@@ -23,17 +23,22 @@ export function formatRest(totalSeconds: number): string {
   return `${m}min ${sec}s`;
 }
 
-const dtf = new Intl.DateTimeFormat("en-US", {
-  day: "2-digit",
-  month: "short",
-});
+let currentLocale = "en-US";
+
+/** Set by the language provider so dates/numbers follow the active language. */
+export function setFormatLocale(locale: string) {
+  currentLocale = locale;
+}
 
 export function formatDate(iso: string): string {
-  return dtf.format(new Date(iso));
+  return new Intl.DateTimeFormat(currentLocale, {
+    day: "2-digit",
+    month: "short",
+  }).format(new Date(iso));
 }
 
 export function formatDateLong(iso: string): string {
-  return new Intl.DateTimeFormat("en-US", {
+  return new Intl.DateTimeFormat(currentLocale, {
     weekday: "short",
     day: "2-digit",
     month: "long",
@@ -53,5 +58,5 @@ export function relativeDays(iso: string): string {
 
 export function formatKg(value: number): string {
   const rounded = Math.round(value * 10) / 10;
-  return `${rounded.toLocaleString("en-US")} kg`;
+  return `${rounded.toLocaleString(currentLocale)} kg`;
 }
