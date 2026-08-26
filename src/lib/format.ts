@@ -68,3 +68,64 @@ export function formatKg(value: number): string {
   const rounded = Math.round(value * 10) / 10;
   return `${rounded.toLocaleString(currentLocale)} kg`;
 }
+
+/** Active locale, for the rare caller that needs Intl directly. */
+export function activeLocale(): string {
+  return currentLocale;
+}
+
+/**
+ * Translate outside React (data layer, pure modules). The provider injects the
+ * active language, so generated copy follows the user's choice.
+ */
+export function tx(source: string, vars?: Record<string, string | number>): string {
+  return translator(source, vars);
+}
+
+export function formatNumber(value: number, maximumFractionDigits = 0): string {
+  return value.toLocaleString(currentLocale, { maximumFractionDigits });
+}
+
+/** "HH:MM" (24h/12h per locale) from a stored "08:00" string. */
+export function formatTimeOfDay(time: string): string {
+  const [h, m] = time.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h ?? 0, m ?? 0, 0, 0);
+  return new Intl.DateTimeFormat(currentLocale, { hour: "2-digit", minute: "2-digit" }).format(d);
+}
+
+function asDate(value: Date | string): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+export function formatWeekdayShort(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, { weekday: "short" }).format(asDate(value));
+}
+
+export function formatWeekdayDayMonth(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, {
+    weekday: "long",
+    day: "numeric",
+    month: "short",
+  }).format(asDate(value));
+}
+
+export function formatDayMonth(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, { day: "2-digit", month: "short" }).format(
+    asDate(value),
+  );
+}
+
+export function formatMonthYear(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, { month: "short", year: "numeric" }).format(
+    asDate(value),
+  );
+}
+
+export function formatDateNumeric(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(asDate(value));
+}
