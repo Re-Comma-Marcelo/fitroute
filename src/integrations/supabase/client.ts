@@ -18,7 +18,16 @@ export function configureSupabase(next: { url: string; key: string } | null) {
 
 export const isSupabaseConfigured = () => Boolean(config);
 
+function configFromWindow() {
+  if (typeof window === "undefined") return null;
+  const injected = (window as unknown as {
+    __FORJA_SUPABASE__?: { url?: string; key?: string };
+  }).__FORJA_SUPABASE__;
+  return injected?.url && injected?.key ? { url: injected.url, key: injected.key } : null;
+}
+
 export function getSupabase(): SupabaseClient {
+  if (!config) configureSupabase(configFromWindow());
   if (!config) {
     throw new Error(
       "Supabase is not configured: FORJA_SUPABASE_URL / FORJA_SUPABASE_PUBLISHABLE_KEY are missing.",
