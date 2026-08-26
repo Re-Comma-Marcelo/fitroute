@@ -1,4 +1,5 @@
 import { getRoutines } from "@/lib/data/routines";
+import { tx } from "@/lib/format";
 import { getNutritionInsight } from "./nutrition";
 import { getTodayPlan } from "./recommendations";
 import { getRoutineInsights } from "./exercise-insights";
@@ -14,16 +15,21 @@ export async function askCoach(question: string): Promise<{
   insights: CoachInsight[];
 }> {
   const q = question.toLowerCase();
+  const asks = (...terms: string[]) => terms.some((term) => q.includes(term));
 
-  if (q.includes("today") || q.includes("train") || q.includes("what to") || q.includes("treinar")) {
+  // Keyword matching across the three supported languages (en / pt / nl).
+  if (asks("today", "train", "what to", "workout", "hoje", "treinar", "treino", "vandaag", "trainen", "training")) {
     const plan = await getTodayPlan();
     return {
-      answer: `${plan.recommendation.title}. ${plan.recommendation.reason}`,
+      answer: tx("{title}. {reason}", {
+        title: plan.recommendation.title,
+        reason: plan.recommendation.reason,
+      }),
       insights: plan.insights,
     };
   }
 
-  if (q.includes("stuck") || q.includes("stalled") || q.includes("plateau") || q.includes("estagnado")) {
+  if (asks("stuck", "stalled", "plateau", "stall", "estagnado", "travado", "platô", "plato", "vast", "stagn")) {
     const routines = await getRoutines();
     const insights: CoachInsight[] = [];
     for (const r of routines) {
@@ -36,35 +42,42 @@ export async function askCoach(question: string): Promise<{
     }
     if (insights.length) {
       return {
-        answer: `Stalled lifts: ${insights.map((i) => i.title).join(", ")}. Push for reps or consider a small load jump if form is clean.`,
+        answer: tx(
+          "Stalled lifts: {lifts}. Push for reps or consider a small load jump if form is clean.",
+          { lifts: insights.map((i) => i.title).join(", ") },
+        ),
         insights,
       };
     }
     return {
-      answer: "No stalled lifts detected right now. Keep hitting your rep ranges before adding load.",
+      answer: tx(
+        "No stalled lifts detected right now. Keep hitting your rep ranges before adding load.",
+      ),
       insights: [],
     };
   }
 
-  if (q.includes("rest") || q.includes("descanso") || q.includes("recovery")) {
+  if (asks("rest", "recovery", "sleep", "descanso", "recupera", "sono", "rust", "herstel", "slaap")) {
     return {
-      answer:
+      answer: tx(
         "Rest long enough to hit the next set with quality. Compound lifts usually need 90–180s; isolation moves 60–90s. If your RPE is climbing, add 15–30s.",
+      ),
       insights: [],
     };
   }
 
-  if (q.includes("protein") || q.includes("nutrition") || q.includes("dieta") || q.includes("eat")) {
+  if (asks("protein", "nutrition", "eat", "meal", "diet", "proteína", "proteina", "dieta", "comer", "refei", "eiwit", "voeding", "eten", "maaltijd")) {
     const n = await getNutritionInsight();
     return {
-      answer: n?.body ?? "Nutrition notes will get sharper once meal logging ships.",
+      answer: n?.body ?? tx("Nutrition notes will get sharper once meal logging ships."),
       insights: n ? [n] : [],
     };
   }
 
   return {
-    answer:
+    answer: tx(
       "I can’t reason about that yet. Ask me what to train today, what’s stalled, or about recovery and nutrition.",
+    ),
     insights: [],
   };
 }
