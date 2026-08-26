@@ -17,6 +17,7 @@ import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
 import { CoachChatButton } from "@/components/CoachChatSheet";
+import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -67,6 +68,8 @@ const times: { value: PreferredTime; label: string }[] = [
 const EQUIPMENT_OPTIONS = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight"];
 
 function ProfilePage() {
+  const t = useT();
+  const { lang, setLang } = useLanguage();
   const queryClient = useQueryClient();
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
@@ -78,7 +81,7 @@ function ProfilePage() {
 
   if (!form) {
     return (
-      <AppShell title="Profile">
+      <AppShell title={t("Profile")}>
         <div className="h-64 animate-pulse rounded-xl bg-card" />
       </AppShell>
     );
@@ -87,7 +90,7 @@ function ProfilePage() {
   async function save() {
     await saveProfile(form!);
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    toast.success("Profile saved");
+    toast.success(t("Profile saved"));
   }
 
   const exercises = exercisesQuery.data ?? [];
@@ -126,7 +129,7 @@ function ProfilePage() {
 
   return (
     <AppShell
-      title="Profile"
+      title={t("Profile")}
       action={
         <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
       }
@@ -138,8 +141,31 @@ function ProfilePage() {
           save();
         }}
       >
+        <Field label={t("Language")}>
+          <div className="grid grid-cols-3 gap-2">
+            {LANGS.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => {
+                  setLang(option.value);
+                  setForm({ ...form!, idioma: option.value });
+                }}
+                className={cn(
+                  "tap-target rounded-lg border px-2 py-3 text-sm font-bold transition-colors",
+                  lang === option.value
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-card",
+                )}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">{t("Name")}</Label>
           <Input
             id="name"
             value={form.nome}
@@ -150,7 +176,7 @@ function ProfilePage() {
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
-            <Label htmlFor="weight">Weight (kg)</Label>
+            <Label htmlFor="weight">{t("Weight (kg)")}</Label>
             <Input
               id="weight"
               inputMode="decimal"
@@ -162,7 +188,7 @@ function ProfilePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="height">Height (cm)</Label>
+            <Label htmlFor="height">{t("Height (cm)")}</Label>
             <Input
               id="height"
               inputMode="numeric"
@@ -175,7 +201,7 @@ function ProfilePage() {
           </div>
         </div>
 
-        <Field label="Sex">
+        <Field label={t("Sex")}>
           <Select value={form.sexo} onValueChange={(v) => setForm({ ...form, sexo: v as Sexo })}>
             <SelectTrigger className="tap-target h-12 w-full text-base">
               <SelectValue />
@@ -183,14 +209,14 @@ function ProfilePage() {
             <SelectContent>
               {sexes.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
-                  {s.label}
+                  {t(s.label)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
 
-        <Field label="Activity level">
+        <Field label={t("Activity level")}>
           <Select
             value={form.nivelAtividade}
             onValueChange={(v) => setForm({ ...form, nivelAtividade: v as NivelAtividade })}
@@ -201,14 +227,14 @@ function ProfilePage() {
             <SelectContent>
               {activityLevels.map((n) => (
                 <SelectItem key={n.value} value={n.value}>
-                  {n.label}
+                  {t(n.label)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
 
-        <Field label="Goal">
+        <Field label={t("Goal")}>
           <div className="grid grid-cols-3 gap-2">
             {goals.map((o) => (
               <button
@@ -222,13 +248,13 @@ function ProfilePage() {
                     : "border-border bg-card",
                 )}
               >
-                {o.label}
+                {t(o.label)}
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Weekly training target">
+        <Field label={t("Weekly training target")}>
           <div className="grid grid-cols-6 gap-2">
             {[2, 3, 4, 5, 6, 7].map((n) => (
               <button
@@ -248,7 +274,7 @@ function ProfilePage() {
           </div>
         </Field>
 
-        <Field label="Equipment available">
+        <Field label={t("Equipment available")}>
           <div className="flex flex-wrap gap-2">
             {EQUIPMENT_OPTIONS.map((item) => (
               <button
@@ -262,13 +288,13 @@ function ProfilePage() {
                     : "border-border bg-card",
                 )}
               >
-                {item}
+                {t(item)}
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Preferred session length (minutes)">
+        <Field label={t("Preferred session length (minutes)")}>
           <div className="grid grid-cols-5 gap-2">
             {[30, 45, 60, 75, 90, 105, 120].map((n) => (
               <button
@@ -288,27 +314,27 @@ function ProfilePage() {
           </div>
         </Field>
 
-        <Field label="Preferred training time">
+        <Field label={t("Preferred training time")}>
           <div className="grid grid-cols-4 gap-2">
-            {times.map((t) => (
+            {times.map((time) => (
               <button
-                key={t.value}
+                key={time.value}
                 type="button"
-                onClick={() => setForm({ ...form, preferredTime: t.value })}
+                onClick={() => setForm({ ...form, preferredTime: time.value })}
                 className={cn(
                   "tap-target rounded-lg border py-3 text-xs font-bold transition-colors",
-                  form.preferredTime === t.value
+                  form.preferredTime === time.value
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-card",
                 )}
               >
-                {t.label}
+                {t(time.label)}
               </button>
             ))}
           </div>
         </Field>
 
-        <Field label="Exercises to avoid">
+        <Field label={t("Exercises to avoid")}>
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
               {exercises.map((ex) => {
@@ -339,7 +365,7 @@ function ProfilePage() {
                   <Input
                     value={a.reason}
                     onChange={(e) => setAvoidReason(a.exerciseId, e.target.value)}
-                    placeholder="Reason (e.g., shoulder pain)"
+                    placeholder={t("Reason (e.g., shoulder pain)")}
                     className="h-10 text-sm"
                   />
                 </div>
@@ -348,7 +374,7 @@ function ProfilePage() {
           </div>
         </Field>
 
-        <Field label="Weekly check-in prompt">
+        <Field label={t("Weekly check-in prompt")}>
           <div className="grid grid-cols-2 gap-2">
             {[
               { value: "card" as const, label: "Card on Home" },
@@ -365,14 +391,14 @@ function ProfilePage() {
                     : "border-border bg-card",
                 )}
               >
-                {m.label}
+                {t(m.label)}
               </button>
             ))}
           </div>
         </Field>
 
         <Button type="submit" className="h-14 w-full text-base font-bold">
-          Save profile
+          {t("Save profile")}
         </Button>
       </form>
 
@@ -396,6 +422,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function AccountSection() {
+  const t = useT();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -415,15 +442,15 @@ function AccountSection() {
 
   return (
     <section className="mt-6 rounded-2xl border border-border/60 bg-card/70 p-4">
-      <h2 className="font-display text-sm font-semibold text-foreground">Account</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{email ?? "Signed in"}</p>
+      <h2 className="font-display text-sm font-semibold text-foreground">{t("Account")}</h2>
+      <p className="mt-1 text-sm text-muted-foreground">{email ?? t("Signed in")}</p>
       <Button
         variant="outline"
         disabled={signingOut}
         onClick={handleSignOut}
         className="tap-target mt-3 w-full"
       >
-        {signingOut ? "Signing out…" : "Sign out"}
+        {signingOut ? t("Signing out…") : t("Sign out")}
       </Button>
     </section>
   );
