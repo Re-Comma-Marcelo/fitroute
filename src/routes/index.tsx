@@ -1,4 +1,4 @@
-import { pageMeta } from "@/lib/route-meta";
+import { APP_NAME, pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -123,7 +123,7 @@ function AuthPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/85 to-background" />
 
       <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-10 pt-24">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Forja</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">{APP_NAME}</p>
         <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground">
           {t("An AI trainer that adapts to your actual life")}
         </h1>
