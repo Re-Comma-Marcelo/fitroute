@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import {
   Sheet,
@@ -20,6 +21,7 @@ interface Message {
 }
 
 function CoachSheet({ children }: { children: React.ReactNode }) {
+  const t = useT();
   return (
     <Sheet>
       <SheetTrigger asChild>{children}</SheetTrigger>
@@ -51,7 +53,7 @@ export function CoachChatButton({
           className ??
           "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm"
         }
-        aria-label="Ask your coach"
+        aria-label={t("Ask your coach")}
       >
         {children ?? <MessageSquare className="size-5" strokeWidth={2} />}
       </button>
@@ -59,20 +61,22 @@ export function CoachChatButton({
   );
 }
 
-export function CoachChatRow({ label = "Any questions about today's training?" }: { label?: string }) {
+export function CoachChatRow({ label = t("Any questions about today's training?") }: { label?: string }) {
+  const t = useT();
+  const t = useT();
   return (
     <CoachSheet>
       <button
         type="button"
         className="tap-target flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left"
-        aria-label="Ask your coach"
+        aria-label={t("Ask your coach")}
       >
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <MessageSquare className="size-4" strokeWidth={2} />
         </span>
         <span className="min-w-0 flex-1">
           <span className="block text-sm font-medium text-foreground">{label}</span>
-          <span className="block text-xs text-muted-foreground">Ask your coach</span>
+          <span className="block text-xs text-muted-foreground">{t("Ask your coach")}</span>
         </span>
         <ChevronRight className="size-5 shrink-0 text-muted-foreground" />
       </button>
@@ -81,10 +85,11 @@ export function CoachChatRow({ label = "Any questions about today's training?" }
 }
 
 function ChatPanel() {
+  const t = useT();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "coach",
-      text: "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
+      text: t("What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition."),
       insights: [],
     },
   ]);
@@ -154,16 +159,16 @@ function ChatPanel() {
         <Input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask something..."
+          placeholder={t("Ask something...")}
           className="h-12 flex-1"
-          aria-label="Ask your coach"
+          aria-label={t("Ask your coach")}
         />
         <Button
           type="submit"
           size="icon"
           className="tap-target size-12 shrink-0"
           disabled={loading || !input.trim()}
-          aria-label="Send"
+          aria-label={t("Send")}
         >
           <Send className="size-5" />
         </Button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useT } from "@/lib/i18n";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis } from "recharts";
 import type { WeekPoint } from "@/lib/progress-analytics";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Mode = "volume" | "sessions";
@@ -27,7 +27,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
         <div className="flex rounded-full border border-border p-0.5">
           {(["volume", "sessions"] as Mode[]).map((m) => (
             <button
-              key={t(m)}
+              key={m}
               type="button"
               onClick={() => setMode(m)}
               className={cn(

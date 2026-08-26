@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { getExercises } from "@/lib/data/exercises";
 import { getExerciseHistory, getWorkout, getWorkoutSets, getWorkouts } from "@/lib/data/workouts";
 import { formatDate, formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/progresso/$id")({
   head: () => ({
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/_authenticated/progresso/$id")({
 });
 
 function WorkoutDetail() {
+  const t = useT();
   const { id } = useParams({ from: "/_authenticated/progresso/$id" });
   const navigate = useNavigate();
 
@@ -51,7 +53,7 @@ function WorkoutDetail() {
   });
 
   const exerciseName = (exId: string) =>
-    exercisesQuery.data?.find((e) => e.id === exId)?.nome ?? "Exercise";
+    exercisesQuery.data?.find((e) => e.id === exId)?.nome ?? t("Exercise");
 
   const dataDe = (workoutId: string) =>
     allWorkoutsQuery.data?.find((w) => w.id === workoutId)?.iniciadoEm ?? "";
@@ -61,13 +63,13 @@ function WorkoutDetail() {
   return (
     <div className="min-h-screen bg-background pb-10">
       <PageHeader
-        title="Session"
+        title={t("Session")}
         left={
           <Button
             variant="ghost"
             size="icon"
             className="tap-target"
-            aria-label="Back"
+            aria-label={t("Back")}
             onClick={() => navigate({ to: "/progresso" })}
           >
             <ArrowLeft className="size-6" />
@@ -81,7 +83,7 @@ function WorkoutDetail() {
             <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDateLong(workout.iniciadoEm)}</p>
             <p className="mt-2 text-base font-bold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
-              {sets.length} sets
+              {t("{count} sets", { count: sets.length })}
             </p>
             {workout.notas ? <p className="mt-2 text-sm">{workout.notas}</p> : null}
           </div>
@@ -107,7 +109,7 @@ function WorkoutDetail() {
                 {exSets.map((s) => (
                   <li key={s.id} className="flex justify-between tabular-nums">
                     <span className="text-muted-foreground">
-                      {s.tipoSerie === "aquecimento" ? "Warm-up" : `Set ${s.serieNum}`}
+                      {s.tipoSerie === "aquecimento" ? t("Warm-up") : t("Set {num}", { num: s.serieNum })}
                     </span>
                     <span className="font-semibold">
                       {s.pesoKg} kg × {s.reps}
@@ -131,7 +133,7 @@ function WorkoutDetail() {
                           borderRadius: 12,
                           color: "var(--popover-foreground)",
                         }}
-                        formatter={(value) => [`${value} kg`, "Carga"]}
+                        formatter={(value) => [`${value} kg`, t("Load")]}
                       />
                       <Line
                         type="monotone"
@@ -145,7 +147,7 @@ function WorkoutDetail() {
                 </div>
               ) : (
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Log one more session to see the progression chart.
+                  {t("Log one more session to see the progression chart.")}
                 </p>
               )}
             </section>

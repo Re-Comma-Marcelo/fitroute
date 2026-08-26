@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 import { ChevronDown, Repeat2, Sparkles, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CoachIssueForm } from "@/components/CoachIssueForm";
@@ -41,7 +42,7 @@ export function TodayCoachCard({
         </span>
         <span className="min-w-0 flex-1">
           <span className="label-caps block text-primary/80">
-            {model.isSwitch ? "Your pick" : "Coach · today"}
+            {model.isSwitch ? t("Your pick") : t("Coach · today")}
           </span>
           <span className="mt-1 block text-sm leading-snug text-foreground">{model.line}</span>
           {!open ? (
@@ -49,10 +50,10 @@ export function TodayCoachCard({
               {preview ? (
                 <span className="block text-xs leading-relaxed text-muted-foreground">
                   {preview}{" "}
-                  <span className="font-semibold text-primary/80">See why</span>
+                  <span className="font-semibold text-primary/80">{t("See why")}</span>
                 </span>
               ) : (
-                <span className="text-xs font-semibold text-primary/80">See why this session</span>
+                <span className="text-xs font-semibold text-primary/80">{t("See why this session")}</span>
               )}
             </span>
           ) : null}
@@ -68,7 +69,7 @@ export function TodayCoachCard({
       {open ? (
         <div className="space-y-4 border-t border-primary/15 px-4 pb-4 pt-4">
           {model.why.length ? (
-            <Block title="Why today">
+            <Block title={t("Why today")}>
               {model.why.map((t) => (
                 <Bullet key={t}>{t}</Bullet>
               ))}
@@ -76,7 +77,7 @@ export function TodayCoachCard({
           ) : null}
 
           {model.setup.length ? (
-            <Block title="Your setup">
+            <Block title={t("Your setup")}>
               {model.setup.map((t) => (
                 <Bullet key={t}>{t}</Bullet>
               ))}
@@ -84,7 +85,7 @@ export function TodayCoachCard({
           ) : null}
 
           {model.cautions.length ? (
-            <Block title="What you told me">
+            <Block title={t("What you told me")}>
               {model.cautions.map((t) => (
                 <Bullet key={t} tone="warn">
                   {t}
@@ -142,7 +143,7 @@ export function TodayCoachCard({
               </div>
               {(swapOptions[swapFor] ?? []).length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No alternative on file that fits your equipment and avoid list.
+                  {t("No alternative on file that fits your equipment and avoid list.")}
                 </p>
               ) : (
                 <ul className="space-y-1.5">
@@ -166,7 +167,7 @@ export function TodayCoachCard({
                 </ul>
               )}
               <p className="text-[11px] text-muted-foreground">
-                Applies to today's session only — the routine stays as it is.
+                {t("Applies to today's session only — the routine stays as it is.")}
               </p>
             </div>
           ) : null}
@@ -179,6 +180,7 @@ export function TodayCoachCard({
 }
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
+  const t = useT();
   return (
     <div>
       <h3 className="label-caps mb-2">{title}</h3>
@@ -188,6 +190,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 }
 
 function Bullet({ children, tone }: { children: React.ReactNode; tone?: "warn" }) {
+  const t = useT();
   return (
     <li className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
       <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", tone === "warn" ? "bg-warn" : "bg-primary/60")} />

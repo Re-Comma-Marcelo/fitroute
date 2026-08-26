@@ -1,6 +1,7 @@
 import { mealImage } from "@/lib/meal-image";
 import type { Meal, MealSlot, NutritionTargets } from "@/lib/nutrition-types";
 import { Check, Clock, Info, Truck } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 export function Ring({
   pct,
@@ -39,10 +40,11 @@ export function MacroRings({
   totals: NutritionTargets;
   targets: NutritionTargets;
 }) {
+  const t = useT();
   const macros = [
-    { label: "Protein", current: totals.proteinG, target: targets.proteinG, color: "var(--chart-1)" },
-    { label: "Carbs", current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
-    { label: "Fat", current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
+    { label: t("Protein"), current: totals.proteinG, target: targets.proteinG, color: "var(--chart-1)" },
+    { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
+    { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
   ];
   return (
     <div className="rounded-2xl border border-border bg-card p-5">
@@ -52,7 +54,7 @@ export function MacroRings({
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-bold tabular-nums">{totals.kcal}</span>
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground">
-              of {targets.kcal} kcal
+              {t("of {kcal} kcal", { kcal: targets.kcal })}
             </span>
           </div>
         </div>
@@ -97,6 +99,7 @@ export function MealCard({
   onSelect?: () => void;
   onDetails?: () => void;
 }) {
+  const t = useT();
   return (
     <div
       className={`w-full overflow-hidden rounded-2xl border bg-card text-left transition-colors ${
@@ -115,7 +118,7 @@ export function MealCard({
         />
         {selected ? (
           <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
-            <Check className="size-3" /> Planned
+            <Check className="size-3" /> {t("Planned")}
           </span>
         ) : null}
       </div>
@@ -127,18 +130,18 @@ export function MealCard({
           </span>
         </div>
         <p className="mt-1 text-xs tabular-nums text-muted-foreground">
-          P {meal.proteinG}g · C {meal.carbsG}g · F {meal.fatG}g
+          {t("P")} {meal.proteinG}g · {t("C")} {meal.carbsG}g · {t("F")} {meal.fatG}g
         </p>
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           {meal.orderOut ? (
-            <Tag icon={<Truck className="size-3" />}>Order out</Tag>
+            <Tag icon={<Truck className="size-3" />}>{t("Order out")}</Tag>
           ) : (
-            <Tag icon={<Clock className="size-3" />}>{meal.prepMin} min</Tag>
+            <Tag icon={<Clock className="size-3" />}>{t("{prepMin} min", { prepMin: meal.prepMin })}</Tag>
           )}
           {meal.tags
-            .filter((t) => t !== "order-out")
-            .map((t) => (
-              <Tag key={t}>{t.replace("-", " ")}</Tag>
+            .filter((t_tag) => t_tag !== "order-out")
+            .map((t_tag) => (
+              <Tag key={t_tag}>{t(t_tag.replace("-", " "))}</Tag>
             ))}
         </div>
         {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
@@ -151,7 +154,7 @@ export function MealCard({
             onClick={onDetails}
             className="tap-target flex w-full items-center gap-1.5 text-xs font-semibold text-primary"
           >
-            <Info className="size-3.5" /> Macros & nutrition details
+            <Info className="size-3.5" /> {t("Macros & nutrition details")}
           </button>
         </div>
       ) : null}

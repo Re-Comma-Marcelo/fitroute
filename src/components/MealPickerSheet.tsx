@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MealCard } from "@/components/nutrition-ui";
 import { SLOT_LABEL, getMeals } from "@/lib/data/nutrition";
+import { useT } from "@/lib/i18n";
 import type { MealSlot } from "@/lib/nutrition-types";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ export function MealPickerSheet({
   onOpenChange: (open: boolean) => void;
   onPick: (mealId: string | null) => void;
 }) {
+  const t = useT();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
   const mealsQ = useQuery({
     queryKey: ["meals", slot],
@@ -35,7 +37,7 @@ export function MealPickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         <SheetHeader className="text-left">
-          <SheetTitle>{slot ? `Choose ${SLOT_LABEL[slot].toLowerCase()}` : "Choose a meal"}</SheetTitle>
+          <SheetTitle>{slot ? t("Choose {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() }) : t("Choose a meal")}</SheetTitle>
         </SheetHeader>
 
         <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
@@ -50,7 +52,7 @@ export function MealPickerSheet({
                   : "border-border text-muted-foreground"
               }`}
             >
-              {f.replace("-", " ")}
+              {t(f.replace("-", " "))}
             </button>
           ))}
         </div>
@@ -63,7 +65,7 @@ export function MealPickerSheet({
                 onClick={() => onPick(null)}
                 className="tap-target w-full rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground"
               >
-                Clear this slot
+                {t("Clear this slot")}
               </button>
             </li>
           ) : null}

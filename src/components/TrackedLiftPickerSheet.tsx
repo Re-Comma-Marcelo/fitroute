@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { getExercises } from "@/lib/data/exercises";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function TrackedLiftPickerSheet({
@@ -19,6 +19,7 @@ export function TrackedLiftPickerSheet({
   onOpenChange: (open: boolean) => void;
   onToggle: (exerciseId: string, tracked: boolean) => void;
 }) {
+  const t = useT();
   const [term, setTerm] = useState("");
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises, enabled: open });
   const q = term.trim().toLowerCase();

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useT } from "@/lib/i18n";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,6 +18,8 @@ const TAGS = [
  * Same shape as the weekly check-in note.
  */
 export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
+  const t = useT();
+  const t = useT();
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -38,7 +41,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
     setText("");
     setTags([]);
     setOpen(false);
-    toast.success("Noted — I'll factor that into your next sessions.");
+    toast.success(t("Noted — I'll factor that into your next sessions."));
     onSaved?.();
   }
 
@@ -59,7 +62,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Left shoulder sore since Monday's presses…"
+        placeholder={t("Left shoulder sore since Monday's presses…")}
         className="min-h-[72px] text-sm"
       />
       <div className="flex flex-wrap gap-2">

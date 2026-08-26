@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useT } from "@/lib/i18n";
 import { ChevronDown, Sparkles } from "lucide-react";
 import type { PlateauFlag } from "@/lib/coach/plateau";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {

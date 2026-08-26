@@ -8,6 +8,7 @@ import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
+import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
   activeSlots,
@@ -48,6 +49,7 @@ export const Route = createFileRoute("/_authenticated/dieta/")({
 });
 
 function TodayPage() {
+  const t = useT();
   const today = isoDate(new Date());
   const recentDates = useMemo(() => {
     const out: string[] = [];
@@ -153,7 +155,7 @@ function TodayPage() {
                 : "border-border text-muted-foreground"
             }`}
           >
-            {SLOT_LABEL[s]}
+            {t(SLOT_LABEL[s])}
             {schedule ? (
               <span className="ml-1.5 font-normal opacity-60">{formatSlotTime(schedule[s].time)}</span>
             ) : null}
@@ -162,10 +164,10 @@ function TodayPage() {
         <button
           type="button"
           onClick={() => setTimingOpen(true)}
-          aria-label="Edit meal timing"
+          aria-label={t("Timing")}
           className="tap-target ml-auto flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground"
         >
-          <Clock className="size-4" /> Timing
+          <Clock className="size-4" /> {t("Timing")}
         </button>
       </nav>
 
@@ -179,14 +181,14 @@ function TodayPage() {
 
       <div className="mt-3 flex items-baseline justify-between">
         <h2 className="text-lg font-semibold tracking-tight">
-          {SLOT_LABEL[currentSlot]}
+          {t(SLOT_LABEL[currentSlot])}
           {schedule ? (
             <span className="ml-2 text-sm font-normal text-muted-foreground">
               {formatSlotTime(schedule[currentSlot].time)}
             </span>
           ) : null}
         </h2>
-        {tag ? <span className="text-xs text-muted-foreground">Today: {tag}</span> : null}
+        {tag ? <span className="text-xs text-muted-foreground">{t("Today: {tag}", { tag: t(tag) })}</span> : null}
       </div>
 
       <ul className="mt-3 space-y-3">

@@ -1,6 +1,7 @@
 import { ArrowLeftRight, Sparkles } from "lucide-react";
 import { mealImage } from "@/lib/meal-image";
 import { Button } from "@/components/ui/button";
+import { useT } from "@/lib/i18n";
 import type { SwapSuggestion } from "@/lib/nutrition-swap";
 
 function delta(value: number, unit: string) {
@@ -17,13 +18,14 @@ export function MealSwapCard({
   onSwap: () => void;
   onDetails: () => void;
 }) {
+  const t = useT();
   const { meal, current, reason, deltas } = suggestion;
   return (
     <section className="mt-4 overflow-hidden rounded-2xl border border-primary/25 bg-primary/5">
       <div className="flex items-center gap-2 px-4 pt-3">
         <Sparkles className="size-4 text-primary" />
         <h3 className="text-xs font-semibold tracking-wide text-primary uppercase">
-          Better fit for today
+          {t("Better fit for today")}
         </h3>
       </div>
 
@@ -56,7 +58,7 @@ export function MealSwapCard({
                     d.v > 0 ? "border-primary/30 text-primary" : "border-border text-muted-foreground"
                   }`}
                 >
-                  {d.label} {delta(d.v, d.u)}
+                  {t(d.label)} {delta(d.v, d.u)}
                 </li>
               ))}
           </ul>
@@ -65,10 +67,10 @@ export function MealSwapCard({
 
       <div className="flex gap-2 px-4 pb-4">
         <Button variant="outline" className="tap-target flex-1" onClick={onDetails}>
-          Details
+          {t("Details")}
         </Button>
         <Button className="tap-target flex-1" onClick={onSwap}>
-          Swap in
+          {t("Swap in")}
         </Button>
       </div>
     </section>

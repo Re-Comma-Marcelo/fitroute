@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBasket, Truck } from "lucide-react";
+import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
   getCheckedItems,
@@ -32,13 +33,14 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
   component: MarketPage,
 });
 
-const RANGES = [
-  { id: "3", label: "Next 3 days" },
-  { id: "7", label: "Full week" },
-] as const;
-
 function MarketPage() {
-  const [range, setRange] = useState<(typeof RANGES)[number]["id"]>("7");
+  const t = useT();
+  const ranges = useMemo(() => [
+    { id: "3", label: t("Next 3 days") },
+    { id: "7", label: t("Full week") },
+  ] as const, [t]);
+
+  const [range, setRange] = useState<"3" | "7">("7");
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
 
   const dates = useMemo(() => {
@@ -71,7 +73,7 @@ function MarketPage() {
   return (
     <>
       <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
-        {RANGES.map((r) => (
+        {ranges.map((r) => (
           <button
             key={r.id}
             type="button"
@@ -88,15 +90,15 @@ function MarketPage() {
       {total === 0 ? (
         <section className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
           <ShoppingBasket className="size-9 text-muted-foreground" />
-          <h2 className="mt-3 text-base font-semibold">Nothing to buy yet</h2>
+          <h2 className="mt-3 text-base font-semibold">{t("Nothing to buy yet")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Plan meals in the Week tab and the ingredients show up here, merged by aisle.
+            {t("Plan meals in the Week tab and the ingredients show up here, merged by aisle.")}
           </p>
         </section>
       ) : (
         <>
           <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {done} of {total} items checked
+            {t("{done} of {total} items checked", { done, total })}
           </p>
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
@@ -143,7 +145,7 @@ function MarketPage() {
       {listQ.data?.orderOut.length ? (
         <section className="mt-4 rounded-2xl border border-border bg-card p-3.5">
           <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            <Truck className="size-3.5" /> Ordering out
+            <Truck className="size-3.5" /> {t("Ordering out")}
           </h2>
           <ul className="mt-2 space-y-1.5">
             {listQ.data.orderOut.map((o) => (
@@ -153,7 +155,7 @@ function MarketPage() {
                   {new Date(`${o.date}T12:00:00`).toLocaleDateString("en-US", {
                     weekday: "short",
                   })}{" "}
-                  · {SLOT_LABEL[o.slot]}
+                  · {t(SLOT_LABEL[o.slot])}
                 </span>
               </li>
             ))}
