@@ -166,10 +166,9 @@ function SessionPage() {
     const fire = () => {
       setRestFinished(true);
       playRestBeep(audioCtxRef);
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        navigator.vibrate([300, 150, 300, 150, 500]);
-      }
+      hapticRestDone();
     };
+
     if (msLeft <= 0) {
       fire();
       return;
