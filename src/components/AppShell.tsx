@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
@@ -18,6 +19,22 @@ export function AppShell({
 }) {
   useLanguageSync();
   const { pathname } = useLocation();
+  const mainRef = useRef<HTMLElement>(null);
+
+  /**
+   * Replay the entry animation on route change without remounting the tree —
+   * keying <main> by pathname threw away children state (accordions, filters,
+   * scroll position) on every navigation.
+   */
+  useEffect(() => {
+    const node = mainRef.current;
+    if (!node) return;
+    node.classList.remove("route-enter");
+    // Force a reflow so the animation restarts.
+    void node.offsetWidth;
+    node.classList.add("route-enter");
+  }, [pathname]);
+
   return (
     <div className="min-h-screen bg-background pb-[calc(10rem+env(safe-area-inset-bottom))]">
       {hideHeader ? null : (
@@ -29,7 +46,7 @@ export function AppShell({
         </header>
       )}
       <main
-        key={pathname}
+        ref={mainRef}
         className={`route-enter mx-auto max-w-md px-4 pb-4 ${hideHeader ? "pt-6" : "pt-2"}`}
       >
         {children}
@@ -40,6 +57,7 @@ export function AppShell({
   );
 
 }
+
 
 export function PageHeader({
   title,
