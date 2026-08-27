@@ -177,10 +177,9 @@ function AuthPage() {
             <>
               <Button
                 type="button"
-                variant="outline"
                 disabled={busy}
                 onClick={handleGoogle}
-                className="tap-target w-full gap-2 text-sm font-semibold"
+                className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
               >
                 <GoogleMark />
                 {t("Continue with Google")}

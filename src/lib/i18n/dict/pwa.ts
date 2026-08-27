@@ -3,6 +3,7 @@ import type { DictFragment } from "../types";
 /** Installed-app polish: PR celebration, haptics toggle and guided empty states. */
 export const dict: DictFragment = {
   pt: {
+    "Strength, tracked": "Força, monitorada",
     "New personal record": "Novo recorde pessoal",
     "New personal records": "Novos recordes pessoais",
     "{count} new personal records": "{count} novos recordes pessoais",
@@ -26,6 +27,7 @@ export const dict: DictFragment = {
       "A biblioteca é onde você navega por todos os exercícios por grupo muscular e equipamento.",
   },
   nl: {
+    "Strength, tracked": "Kracht, gemeten",
     "New personal record": "Nieuw persoonlijk record",
     "New personal records": "Nieuwe persoonlijke records",
     "{count} new personal records": "{count} nieuwe persoonlijke records",
