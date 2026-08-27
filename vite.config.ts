@@ -24,6 +24,8 @@ export default defineConfig({
         registerType: "autoUpdate",
         injectRegister: null,
         filename: "sw.js",
+        // The client bundle is emitted into dist/client, which is what gets served.
+        outDir: "dist/client",
         // The manifest is hand-maintained in public/manifest.webmanifest.
         manifest: false,
         devOptions: { enabled: false },
