@@ -40,6 +40,8 @@ import {
 } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { CoachChatButton } from "@/components/CoachChatSheet";
+import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
+
 import type { CoachNote, Profile } from "@/lib/types";
 import type { TodayPlan } from "@/lib/coach/types";
 
