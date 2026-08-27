@@ -9,6 +9,8 @@ import { PlateauCoachCard } from "@/components/PlateauCoachCard";
 import { ProgressTrendChart } from "@/components/ProgressTrendChart";
 import { TrackedLiftPickerSheet } from "@/components/TrackedLiftPickerSheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import { getExercises } from "@/lib/data/exercises";
