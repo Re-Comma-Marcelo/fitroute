@@ -12,10 +12,11 @@ An optional "Get a plan" flow that interviews you, translates vague goals into n
 
 A multi-step form at `/plano`, prefilled from your existing profile so most fields are already filled:
 
-1. **You** — age, sex, height, current weight, activity level.
-2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline.
-3. **Training** — equipment (reuses your profile equipment picker), days per week, session length, experience level, injuries/limitations (reuses the avoid-exercises list plus a free-text note).
+1. **You** — age, sex, height, current weight, and a more specific activity picture: daily activity outside sport (desk job / on your feet / physical work) instead of one vague slider.
+2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline. Goals can also be sport-driven ("be faster in the pool", "last 3 boxing rounds").
+3. **Training** — gym context (equipment from your profile picker, gym days per week, session length, experience level, injuries/limitations) **plus your other sports**: add each sport you do (boxing, football, swimming, running, climbing, anything else), with sessions per week, typical duration and intensity, and which weekdays they usually fall on.
 4. **Food** — allergies/restrictions, disliked foods, preferred foods.
+
 
 Progress bar, back/next, answers kept in a draft so leaving and returning doesn't lose work.
 
@@ -29,8 +30,9 @@ If the requested pace is aggressive (roughly beyond 0.5–1% bodyweight per week
 
 Two tabs on one review screen:
 
-- **Training** — weekly split with rest days, per-exercise sets, rep ranges and rest times, drawn only from Iron Logger's existing exercise library (so it starts, logs and progresses like any other routine). Rep ranges follow standard strength / hypertrophy / endurance guidance for your goal, with progressive overload and recovery respected. Each day carries a one-line "why" ("3x/week full body because you have 3 days available").
-- **Diet** — daily calorie and macro guidance in general framing, plus meal suggestions per slot pulled from the existing meal library, matched to your preferred foods. Allergies and dislikes are hard filters applied in code after generation, not just prompt instructions.
+- **Training** — a weekly split that plans *around* your other sports, not just the gym: your sport sessions are shown as fixed blocks in the week, gym days are placed so hard leg work doesn't land the day before a match or a long run, and total weekly load (gym + sport) drives volume and rest days. Exercises come only from Iron Logger's existing library (so they start, log and progress like any other routine), with sets, rep ranges and rest times following standard strength / hypertrophy / endurance guidance for your goal. Where your sport implies it, the plan leans toward supporting work (e.g. rotational and shoulder work for boxing, single-leg and hip work for football) using mainstream guidance only. Each day carries a one-line "why" ("2 gym days because you box 3x/week — Thursday kept light before Saturday's session").
+- **Diet** — daily calorie and macro guidance in general framing, sized to your *total* weekly activity including sports rather than gym sessions alone, plus meal suggestions per slot pulled from the existing meal library and matched to your preferred foods. Sport days get slightly higher carb guidance than rest days. Allergies and dislikes are hard filters applied in code after generation, not just prompt instructions.
+
 
 ## Approve, feedback, edit
 
@@ -52,6 +54,6 @@ Goals, generated plan versions, feedback and imports are kept locally on the dev
 - Enable Lovable AI and add server functions in `src/lib/plan-ai.functions.ts`: `translateGoal`, `generatePlan`, `regeneratePlan`, `parseImport`. Model: `google/gemini-3.7-flash` via `/v1/chat/completions` with strict JSON-schema structured output; `LOVABLE_API_KEY` read inside each handler. Gateway errors (402/403/429) surface as real messages in the UI.
 - Prompts receive the exercise and meal libraries as allowed ids (same approach as `src/lib/mcp/tools/get-training-context.ts`); any id outside the library is dropped in validation.
 - New zod contracts in `src/lib/plan/schema.ts` reusing `routinePayloadSchema` / `dietPayloadSchema` shapes from `src/lib/claude-bridge.ts`, so approval can reuse `applyImport` in `src/lib/data/claude-import.ts`.
-- New files: `src/routes/_authenticated/plano.tsx` (interview + review), `src/lib/plan/store.ts` (localStorage: goals, versions, feedback, imports), `src/lib/plan/guardrails.ts` (pace sanity check, allergy/dislike filtering), `src/components/GetAPlanCard.tsx`, `src/components/PlanReview.tsx`, `src/components/PlanImportPanel.tsx`.
+- New files: `src/routes/_authenticated/plano.tsx` (interview + review), `src/lib/plan/store.ts` (localStorage: goals, versions, feedback, imports), `src/lib/plan/sports.ts` (sport catalogue with weekly load/intensity weights used for volume and calorie sizing), `src/lib/plan/guardrails.ts` (pace sanity check, allergy/dislike filtering), `src/components/GetAPlanCard.tsx`, `src/components/SportsPicker.tsx`, `src/components/PlanReview.tsx`, `src/components/PlanImportPanel.tsx`.
 - Touched files: `src/routes/_authenticated/inicio.tsx` (dismissible card), `src/routes/_authenticated/perfil.tsx` (AI coach section), `src/lib/i18n/dict/` (new fragment for EN/PT/NL copy).
 - No changes to Supabase schema, existing server functions, or navigation structure.
