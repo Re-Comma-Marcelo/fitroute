@@ -166,6 +166,10 @@ export default function Inicio() {
           />
         )}
 
+        {/* Optional AI plan entry — dismissible, never blocking */}
+        {!isLoading && <GetAPlanCard dismissible />}
+
+
         {/* Insights */}
         {!isLoading && coach?.insights && coach.insights.length > 0 && (
           <div className="space-y-2">
