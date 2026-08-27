@@ -161,6 +161,10 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    registerAppServiceWorker();
+  }, []);
+
+  useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
@@ -170,6 +174,7 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
