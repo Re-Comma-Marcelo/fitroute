@@ -23,6 +23,7 @@ import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
+import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 
@@ -460,6 +461,8 @@ function ProfilePage() {
           </div>
 
           <VibrationToggle />
+
+          <GetAPlanCard />
 
           <ClaudeBridgeSection profile={profileQuery.data ?? form} />
 
