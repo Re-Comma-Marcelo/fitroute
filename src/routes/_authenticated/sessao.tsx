@@ -160,24 +160,37 @@ function SessionPage() {
     }
   }, []);
 
+  /** Clear the persisted rest countdown (it is consumed once and never re-fires). */
+  const clearRest = useCallback(() => {
+    setSession((prev) => {
+      if (!prev?.rest) return prev;
+      const next = { ...prev, rest: null };
+      saveActiveSession(next);
+      return next;
+    });
+  }, []);
+
   // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
     if (!restEndsAt) return;
     const msLeft = restEndsAt - Date.now();
-    const fire = () => {
+
+    // Rest that ran out while the app was closed/backgrounded: drop it silently.
+    if (msLeft <= 0) {
+      clearRest();
+      return;
+    }
+
+    setRestFinished(false);
+    const id = setTimeout(() => {
+      clearRest();
       setRestFinished(true);
       playRestBeep(audioCtxRef);
       hapticRestDone();
-    };
-
-    if (msLeft <= 0) {
-      fire();
-      return;
-    }
-    setRestFinished(false);
-    const id = setTimeout(fire, msLeft);
+    }, msLeft);
     return () => clearTimeout(id);
-  }, [restEndsAt]);
+  }, [restEndsAt, clearRest]);
+
 
   useEffect(() => {
     if (loadedRef.current) return;
