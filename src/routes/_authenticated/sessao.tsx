@@ -35,7 +35,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticRestDone, hapticTick } from "@/lib/haptics";
@@ -86,7 +85,7 @@ const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300
  */
 const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
 const ROW_STEP =
-  "grid grid-cols-[44px_minmax(0,1fr)_44px_44px_minmax(0,1fr)_44px] items-center gap-1";
+  "grid grid-cols-[44px_minmax(3rem,1fr)_44px_44px_minmax(3rem,1fr)_44px] items-center gap-0.5";
 
 function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
   if (typeof window === "undefined") return;
@@ -134,7 +133,6 @@ function SessionPage() {
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
-  const [pendingSets, setPendingSets] = useState(0);
   const [scrollTo, setScrollTo] = useState<number | null>(null);
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
@@ -365,6 +363,7 @@ function SessionPage() {
   function repeatLastSet(exIdx: number) {
     unlockAudio();
     let descanso = 0;
+    let proximo: number | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const feitas = ex.sets.filter((x) => x.concluida);
@@ -375,9 +374,16 @@ function SessionPage() {
       proxima.reps = ultima.reps;
       proxima.concluida = true;
       descanso = ex.descansoSeg;
+      const todasFeitas = ex.sets.every((x) => x.concluida);
+      if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
+        s.atual = exIdx + 1;
+        proximo = s.atual;
+      }
       return s;
     });
+    hapticTick();
     if (descanso > 0) startRest(descanso);
+    if (proximo !== null) setScrollTo(proximo);
   }
 
   function removeSet(exIdx: number, setIdx: number) {
@@ -506,6 +512,7 @@ function SessionPage() {
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
+  const pendCount = filledUncheckedSets(session);
   const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
 
   return (
@@ -771,7 +778,6 @@ function SessionPage() {
 }
 
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  const t = useT();
   return (
     <div className="px-3 py-2">
       <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
@@ -1028,7 +1034,7 @@ function SetRow({
           inputMode="decimal"
           placeholder={t("kg")}
           aria-label={t("Weight in kg")}
-          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
         <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
@@ -1038,7 +1044,7 @@ function SetRow({
           inputMode="numeric"
           placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
           aria-label={t("Reps")}
-          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
       </div>

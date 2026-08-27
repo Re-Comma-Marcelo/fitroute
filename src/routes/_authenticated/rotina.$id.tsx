@@ -329,11 +329,10 @@ function NumField({
   value: number;
   onChange: (value: number) => void;
 }) {
-  const t = useT();
   return (
     <label className="block">
       <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-        {t(label)}
+        {label}
       </span>
       <Input
         value={String(value)}

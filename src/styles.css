@@ -178,10 +178,6 @@
  * the iOS gesture bar and taps have no visual feedback at all.
  */
 
-@utility safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
 @layer base {
   /* Visible press state on the main touch targets. */
   .tap-target:active,
