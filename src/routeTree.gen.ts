@@ -18,6 +18,7 @@ import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDietaRouteImport } from './routes/_authenticated/dieta'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
+import { Route as AuthenticatedPlanoRouteImport } from './routes/_authenticated/plano'
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
 import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated/treino'
@@ -74,6 +75,11 @@ const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
   id: '/perfil',
   path: '/perfil',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPlanoRoute = AuthenticatedPlanoRouteImport.update({
+  id: '/plano',
+  path: '/plano',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProgressoRoute = AuthenticatedProgressoRouteImport.update({
@@ -145,6 +151,7 @@ export interface FileRoutesByFullPath {
   '/dieta': typeof AuthenticatedDietaRouteWithChildren
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/plano': typeof AuthenticatedPlanoRoute
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/inicio': typeof AuthenticatedInicioRoute
   '/perfil': typeof AuthenticatedPerfilRoute
+  '/plano': typeof AuthenticatedPlanoRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_authenticated/dieta': typeof AuthenticatedDietaRouteWithChildren
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
+  '/_authenticated/plano': typeof AuthenticatedPlanoRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/dieta'
     | '/inicio'
     | '/perfil'
+    | '/plano'
     | '/progresso'
     | '/sessao'
     | '/treino'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/biblioteca'
     | '/inicio'
     | '/perfil'
+    | '/plano'
     | '/sessao'
     | '/treino'
     | '/.mcp/invoke-tool/$tool'
@@ -251,6 +262,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dieta'
     | '/_authenticated/inicio'
     | '/_authenticated/perfil'
+    | '/_authenticated/plano'
     | '/_authenticated/progresso'
     | '/_authenticated/sessao'
     | '/_authenticated/treino'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       path: '/perfil'
       fullPath: '/perfil'
       preLoaderRoute: typeof AuthenticatedPerfilRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/plano': {
+      id: '/_authenticated/plano'
+      path: '/plano'
+      fullPath: '/plano'
+      preLoaderRoute: typeof AuthenticatedPlanoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/progresso': {
@@ -454,6 +473,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDietaRoute: typeof AuthenticatedDietaRouteWithChildren
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
+  AuthenticatedPlanoRoute: typeof AuthenticatedPlanoRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
   AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
   AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
@@ -466,6 +486,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDietaRoute: AuthenticatedDietaRouteWithChildren,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
+  AuthenticatedPlanoRoute: AuthenticatedPlanoRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
   AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
