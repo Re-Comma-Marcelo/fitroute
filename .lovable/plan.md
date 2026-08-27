@@ -15,11 +15,10 @@ A multi-step form at `/plano`, prefilled from your existing profile so most fiel
 1. **You** — age, sex, height, current weight, and a more specific activity picture: daily activity outside sport (desk job / on your feet / physical work) instead of one vague slider.
 2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline. Goals can also be sport-driven ("be faster in the pool", "last 3 boxing rounds").
 3. **Training** — gym context (equipment from your profile picker, gym days per week, session length, experience level, injuries/limitations) **plus your other sports**: add each sport you do (boxing, football, swimming, running, climbing, anything else), with sessions per week, typical duration and intensity, and which weekdays they usually fall on.
-4. **Your life & time** — how much time you actually have, so the plan fits your week instead of an ideal one:
-   - total time you can give to training per week, and/or realistic minutes per day
-   - per-weekday availability: which days are free, tight or blocked, and roughly which part of the day (morning / midday / evening)
+4. **Your life** — you never type how many minutes or hours you have; you just describe your week and the app works the time out itself:
+   - a simple weekly grid: tap the parts of the day (morning / midday / evening) that are usually free, usually tight, or never available
    - life context that shapes recovery and eating: work or study pattern (shifts, nights, travel), commute, kids/care duties, typical sleep hours and wake/bed time, stress level right now
-   - cooking reality: how much time you have to cook, how often you eat out or on the go, and your budget comfort
+   - cooking reality: whether you usually have time to cook, how often you eat out or on the go, and your budget comfort
    - a free-text "anything else about my week" field
 5. **Food** — allergies/restrictions, disliked foods, preferred foods.
 
@@ -27,11 +26,20 @@ A multi-step form at `/plano`, prefilled from your existing profile so most fiel
 
 Progress bar, back/next, answers kept in a draft so leaving and returning doesn't lose work.
 
+## Time read-back (the app does the math)
+
+Right after the life step, the app plays back what it understood in plain language and asks you to confirm, instead of asking you for numbers:
+
+> "So Friday morning, Saturday afternoon and Monday evening are free — that's roughly 4 hours a week you can spend on training, plus your 3 boxing sessions. Sound right?"
+
+You can confirm, or nudge it ("less than that", "I can do more on weekends") and it recalculates. The derived weekly training budget and per-day session lengths come out of this read-back, so the plan is built on time you actually recognise as yours.
+
 ## Goal translation and safety
 
 For free-text goals the AI returns a concrete target weight range, a rough body-comp estimate, and a timeline in weeks. These are shown on a confirmation screen where you can accept or edit them — nothing is locked in silently.
 
-If the requested pace is aggressive (roughly beyond 0.5–1% bodyweight per week), the screen shows the safer suggested pace as the default, explains why in one line, and lets you proceed knowingly. Requests that read as medically risky or as disordered-eating patterns get a short "talk to a professional" note instead of a compliant plan; that note also appears once, quietly, at the bottom of every generated diet plan.
+If the requested pace is aggressive (roughly beyond 0.5–1% bodyweight per week), or if the goal simply doesn't fit the time your week allows, the screen shows the safer/realistic option as the default, explains why in one line, and lets you proceed knowingly. Requests that read as medically risky or as disordered-eating patterns get a short "talk to a professional" note instead of a compliant plan; that note also appears once, quietly, at the bottom of every generated diet plan.
+
 
 ## Generated plan
 
@@ -62,6 +70,6 @@ Goals, generated plan versions, feedback and imports are kept locally on the dev
 - Enable Lovable AI and add server functions in `src/lib/plan-ai.functions.ts`: `translateGoal`, `generatePlan`, `regeneratePlan`, `parseImport`. Model: `google/gemini-3.7-flash` via `/v1/chat/completions` with strict JSON-schema structured output; `LOVABLE_API_KEY` read inside each handler. Gateway errors (402/403/429) surface as real messages in the UI.
 - Prompts receive the exercise and meal libraries as allowed ids (same approach as `src/lib/mcp/tools/get-training-context.ts`); any id outside the library is dropped in validation.
 - New zod contracts in `src/lib/plan/schema.ts` reusing `routinePayloadSchema` / `dietPayloadSchema` shapes from `src/lib/claude-bridge.ts`, so approval can reuse `applyImport` in `src/lib/data/claude-import.ts`.
-- New files: `src/routes/_authenticated/plano.tsx` (interview + review), `src/lib/plan/store.ts` (localStorage: goals, versions, feedback, imports), `src/lib/plan/sports.ts` (sport catalogue with weekly load/intensity weights used for volume and calorie sizing), `src/lib/plan/life.ts` (per-weekday time budget, sleep/stress/work pattern and cooking-time model that constrains session length, weekly volume and meal complexity), `src/lib/plan/guardrails.ts` (pace sanity check, allergy/dislike filtering, time-budget feasibility check), `src/components/GetAPlanCard.tsx`, `src/components/SportsPicker.tsx`, `src/components/WeeklyTimePicker.tsx`, `src/components/PlanReview.tsx`, `src/components/PlanImportPanel.tsx`.
+- New files: `src/routes/_authenticated/plano.tsx` (interview + review), `src/lib/plan/store.ts` (localStorage: goals, versions, feedback, imports), `src/lib/plan/sports.ts` (sport catalogue with weekly load/intensity weights used for volume and calorie sizing), `src/lib/plan/life.ts` (derives the weekly time budget and per-day session lengths from the free/tight/blocked slot grid plus sleep, stress, work pattern and cooking time — no minute inputs from the user; also builds the read-back sentence), `src/lib/plan/guardrails.ts` (pace sanity check, allergy/dislike filtering, goal-vs-time feasibility check), `src/components/GetAPlanCard.tsx`, `src/components/SportsPicker.tsx`, `src/components/WeeklySlotGrid.tsx`, `src/components/TimeReadBack.tsx`, `src/components/PlanReview.tsx`, `src/components/PlanImportPanel.tsx`.
 - Touched files: `src/routes/_authenticated/inicio.tsx` (dismissible card), `src/routes/_authenticated/perfil.tsx` (AI coach section), `src/lib/i18n/dict/` (new fragment for EN/PT/NL copy).
 - No changes to Supabase schema, existing server functions, or navigation structure.
