@@ -12,10 +12,11 @@ An optional "Get a plan" flow that interviews you, translates vague goals into n
 
 A multi-step form at `/plano`, prefilled from your existing profile so most fields are already filled:
 
-1. **You** — age, sex, height, current weight, activity level.
-2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline.
-3. **Training** — equipment (reuses your profile equipment picker), days per week, session length, experience level, injuries/limitations (reuses the avoid-exercises list plus a free-text note).
+1. **You** — age, sex, height, current weight, and a more specific activity picture: daily activity outside sport (desk job / on your feet / physical work) instead of one vague slider.
+2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline. Goals can also be sport-driven ("be faster in the pool", "last 3 boxing rounds").
+3. **Training** — gym context (equipment from your profile picker, gym days per week, session length, experience level, injuries/limitations) **plus your other sports**: add each sport you do (boxing, football, swimming, running, climbing, anything else), with sessions per week, typical duration and intensity, and which weekdays they usually fall on.
 4. **Food** — allergies/restrictions, disliked foods, preferred foods.
+
 
 Progress bar, back/next, answers kept in a draft so leaving and returning doesn't lose work.
 
