@@ -118,20 +118,40 @@ function AuthPage() {
         src={heroLogin}
         alt=""
         aria-hidden
-        className="absolute inset-0 h-full w-full object-cover opacity-40"
+        className="absolute inset-0 h-full w-full object-cover opacity-45"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background/85 to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/85 to-background" />
+      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/20 to-transparent" />
 
-      <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-10 pt-24">
-        <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">{APP_NAME}</p>
-        <h1 className="mt-3 font-display text-3xl font-semibold leading-tight text-foreground">
+      <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-24">
+        <div className="flex items-center gap-3">
+          <img
+            src="/icon-192.png"
+            alt=""
+            aria-hidden
+            width={192}
+            height={192}
+            className="size-11 rounded-2xl border border-border/60 shadow-lg"
+          />
+          <div>
+            <p className="font-display text-lg font-semibold leading-none text-foreground">
+              {APP_NAME}
+            </p>
+            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
+              {t("Strength, tracked")}
+            </p>
+          </div>
+        </div>
+
+        <h1 className="mt-7 font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
           {t("An AI trainer that adapts to your actual life")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
+        <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
           {t("Log sets in two taps. Get routines, diet and coaching grounded in your own history.")}
         </p>
 
-        <div className="mt-8 rounded-2xl border border-border/60 bg-card/80 p-5 backdrop-blur">
+        <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-2xl backdrop-blur-xl">
+
           {checkEmail ? (
             <div className="space-y-3 text-center">
               <h2 className="font-display text-lg font-semibold text-foreground">
