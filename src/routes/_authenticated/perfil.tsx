@@ -457,7 +457,10 @@ function ProfilePage() {
             </div>
           </div>
 
+          <VibrationToggle />
+
           <ClaudeBridgeSection profile={profileQuery.data ?? form} />
+
           <AccountSection email={email} />
         </Section>
       </form>
