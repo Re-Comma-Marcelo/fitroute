@@ -723,32 +723,45 @@ function SessionPage() {
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
-      <AlertDialog open={pendingSets > 0} onOpenChange={(open) => !open && setPendingSets(0)}>
+      {/* One dialog for every finish path, so no two modals swap in the same tick. */}
+      <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("{count} sets filled in but not checked — include them?", { count: pendingSets })}
+              {pendCount > 0
+                ? t("{count} sets filled in but not checked — include them?", { count: pendCount })
+                : t("Finish this workout?")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("Unchecked sets are discarded when the workout is saved.")}
+              {pendCount > 0
+                ? t("Unchecked sets are discarded when the workout is saved.")
+                : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="tap-target"
-              onClick={() => {
-                setPendingSets(0);
-                void finalizar();
-              }}
-            >
-              {t("Discard")}
-            </AlertDialogCancel>
-            <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
-              {t("Include")}
-            </AlertDialogAction>
+            <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
+            {pendCount > 0 ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="tap-target"
+                  onClick={finishDiscardingPending}
+                >
+                  {t("Discard")}
+                </Button>
+                <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
+                  {t("Include")}
+                </AlertDialogAction>
+              </>
+            ) : (
+              <AlertDialogAction className="tap-target" onClick={finishDiscardingPending}>
+                {t("Finish")}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {restFinished ? (
         <RestFinishedOverlay onResume={() => setRestFinished(false)} />
