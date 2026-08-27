@@ -405,19 +405,19 @@ function SessionPage() {
     });
   }
 
-  /** Finish flow: warn about filled-but-unchecked sets before building the payload. */
+  /** Every finish path goes through the single confirmation dialog. */
   function requestFinish() {
     if (!session) return;
-    const pend = filledUncheckedSets(session);
-    if (pend > 0) {
-      setPendingSets(pend);
-      return;
-    }
+    setConfirmFinish(true);
+  }
+
+  function finishDiscardingPending() {
+    setConfirmFinish(false);
     void finalizar();
   }
 
   function finishIncludingPending() {
-    setPendingSets(0);
+    setConfirmFinish(false);
     const target = structuredClone(session!);
     target.exercicios.forEach((ex) =>
       ex.sets.forEach((set) => {
@@ -430,6 +430,7 @@ function SessionPage() {
     saveActiveSession(target);
     void finalizar(target);
   }
+
 
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
