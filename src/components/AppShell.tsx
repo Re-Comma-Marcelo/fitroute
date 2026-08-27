@@ -36,9 +36,9 @@ export function AppShell({
   }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-background pb-[calc(10rem+env(safe-area-inset-bottom))]">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
       {hideHeader ? null : (
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl">
+        <header className="z-30 shrink-0 bg-background/80 backdrop-blur-xl">
           <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">
             <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
             {action}
@@ -47,7 +47,7 @@ export function AppShell({
       )}
       <main
         ref={mainRef}
-        className={`route-enter mx-auto max-w-md px-4 pb-4 ${hideHeader ? "pt-6" : "pt-2"}`}
+        className={`route-enter mx-auto w-full max-w-md flex-1 overflow-y-auto px-4 pb-6 ${hideHeader ? "pt-6" : "pt-2"}`}
       >
         {children}
       </main>

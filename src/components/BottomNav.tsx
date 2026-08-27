@@ -15,7 +15,7 @@ export function BottomNav() {
   const t = useT();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/85 backdrop-blur-xl">
+    <nav className="z-40 shrink-0 border-t border-border bg-background/85 backdrop-blur-xl">
       <ul className="mx-auto flex max-w-md">
         {tabs.map(({ to, label, icon: Icon }) => (
           <li key={to} className="flex-1">
