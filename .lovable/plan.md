@@ -8,14 +8,21 @@ An optional "Get a plan" flow that interviews you, translates vague goals into n
 - A permanent "Get a plan" row in Profile, in a new "AI coach" section next to the existing Claude section.
 - No route gate, no onboarding wall. Everything else in the app works exactly as today.
 
-## The interview (4 steps)
+## The interview (5 steps)
 
 A multi-step form at `/plano`, prefilled from your existing profile so most fields are already filled:
 
 1. **You** — age, sex, height, current weight, and a more specific activity picture: daily activity outside sport (desk job / on your feet / physical work) instead of one vague slider.
 2. **Goal** — either a target weight/body-comp number, or a free-text goal ("get lean", "look more athletic"), plus a timeline. Goals can also be sport-driven ("be faster in the pool", "last 3 boxing rounds").
 3. **Training** — gym context (equipment from your profile picker, gym days per week, session length, experience level, injuries/limitations) **plus your other sports**: add each sport you do (boxing, football, swimming, running, climbing, anything else), with sessions per week, typical duration and intensity, and which weekdays they usually fall on.
-4. **Food** — allergies/restrictions, disliked foods, preferred foods.
+4. **Your life & time** — how much time you actually have, so the plan fits your week instead of an ideal one:
+   - total time you can give to training per week, and/or realistic minutes per day
+   - per-weekday availability: which days are free, tight or blocked, and roughly which part of the day (morning / midday / evening)
+   - life context that shapes recovery and eating: work or study pattern (shifts, nights, travel), commute, kids/care duties, typical sleep hours and wake/bed time, stress level right now
+   - cooking reality: how much time you have to cook, how often you eat out or on the go, and your budget comfort
+   - a free-text "anything else about my week" field
+5. **Food** — allergies/restrictions, disliked foods, preferred foods.
+
 
 
 Progress bar, back/next, answers kept in a draft so leaving and returning doesn't lose work.
