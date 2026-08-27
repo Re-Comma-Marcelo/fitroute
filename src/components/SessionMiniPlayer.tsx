@@ -46,7 +46,7 @@ export function SessionMiniPlayer() {
   const restLeft = restSecondsLeft(session);
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(4.25rem+env(safe-area-inset-bottom))] z-40 px-3">
+    <div className="z-40 shrink-0 px-3 pb-2">
       <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
