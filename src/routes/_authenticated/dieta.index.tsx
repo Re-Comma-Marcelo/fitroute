@@ -1,5 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Button } from "@/components/ui/button";
+
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Sparkles } from "lucide-react";
@@ -182,20 +184,37 @@ function TodayPage() {
         {tag ? <span className="text-xs text-muted-foreground">{t("Today: {tag}", { tag: t(tag) })}</span> : null}
       </div>
 
-      <ul className="mt-3 space-y-3">
-        {options.map((meal) => (
-          <li key={meal.id}>
-            <MealCard
-              meal={meal}
-              slot={currentSlot}
-              selected={day?.[currentSlot] === meal.id}
-              note={note(meal)}
-              onSelect={() => choose(meal.id)}
-              onDetails={() => setDetail(meal)}
-            />
-          </li>
-        ))}
-      </ul>
+      {!options.length && !mealsQ.isLoading ? (
+        <div className="mt-3 rounded-2xl border border-dashed border-border p-5 text-center">
+          <p className="font-display text-sm font-semibold">
+            {t("No meal planned for this slot yet")}
+          </p>
+          <p className="mt-1 text-xs leading-snug text-muted-foreground">
+            {t(
+              "This screen suggests what to eat around your training. Plan your week to fill these slots.",
+            )}
+          </p>
+          <Button asChild className="tap-target mt-3">
+            <Link to="/dieta/week">{t("Plan my week")}</Link>
+          </Button>
+        </div>
+      ) : (
+        <ul className="mt-3 space-y-3">
+          {options.map((meal) => (
+            <li key={meal.id}>
+              <MealCard
+                meal={meal}
+                slot={currentSlot}
+                selected={day?.[currentSlot] === meal.id}
+                note={note(meal)}
+                onSelect={() => choose(meal.id)}
+                onDetails={() => setDetail(meal)}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
+
 
       <MealDetailSheet
         meal={detail}

@@ -18,6 +18,7 @@ import { dict as libraryDict } from "./dict/library";
 import { dict as metaDict } from "./dict/meta";
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
+import { dict as pwaDict } from "./dict/pwa";
 import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
 import { dict as trainDict } from "./dict/train";
@@ -46,6 +47,7 @@ const FRAGMENTS: DictFragment[] = [
   coachDict,
   generatedDict,
   metaDict,
+  pwaDict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {

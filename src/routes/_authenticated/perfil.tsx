@@ -23,6 +23,8 @@ import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
+import { Switch } from "@/components/ui/switch";
+import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -457,7 +459,10 @@ function ProfilePage() {
             </div>
           </div>
 
+          <VibrationToggle />
+
           <ClaudeBridgeSection profile={profileQuery.data ?? form} />
+
           <AccountSection email={email} />
         </Section>
       </form>
@@ -623,6 +628,35 @@ function AccountSection({ email }: { email: string | null }) {
       >
         {signingOut ? t("Signing out…") : t("Sign out")}
       </Button>
+    </div>
+  );
+}
+
+function VibrationToggle() {
+  const t = useT();
+  const [on, setOn] = useState(true);
+
+  useEffect(() => {
+    setOn(hapticsEnabled());
+  }, []);
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
+      <div>
+        <Label htmlFor="haptics">{t("Vibration")}</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {t("Short buzz when you complete a set or hit a personal record.")}
+        </p>
+      </div>
+      <Switch
+        id="haptics"
+        checked={on}
+        onCheckedChange={(next) => {
+          setOn(next);
+          setHapticsEnabled(next);
+          if (next) hapticTick();
+        }}
+      />
     </div>
   );
 }

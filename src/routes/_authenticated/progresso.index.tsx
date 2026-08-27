@@ -9,6 +9,8 @@ import { PlateauCoachCard } from "@/components/PlateauCoachCard";
 import { ProgressTrendChart } from "@/components/ProgressTrendChart";
 import { TrackedLiftPickerSheet } from "@/components/TrackedLiftPickerSheet";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import { getExercises } from "@/lib/data/exercises";
@@ -164,6 +166,22 @@ function ProgressPage() {
       )}
 
       <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>
+
+      {!workouts.length && !loading ? (
+        <div className="rounded-2xl border border-dashed border-border p-5 text-center">
+          <p className="font-display text-sm font-semibold">{t("No workout logged yet")}</p>
+          <p className="mt-1 text-xs leading-snug text-muted-foreground">
+            {t(
+              "This screen tracks how your volume, streak and key lifts move over time. Log one session to start the trend.",
+            )}
+          </p>
+          <Button asChild className="tap-target mt-3">
+            <Link to="/treino">{t("Start a workout")}</Link>
+          </Button>
+        </div>
+      ) : null}
+
+
 
       <ul className="space-y-2">
         {workouts.map((w) => (

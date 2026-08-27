@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
+import { useLocation } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
 import { useLanguageSync } from "@/lib/i18n/use-language-sync";
+
 
 export function AppShell({
   title,
@@ -15,8 +17,9 @@ export function AppShell({
   children: ReactNode;
 }) {
   useLanguageSync();
+  const { pathname } = useLocation();
   return (
-    <div className="min-h-screen bg-background pb-40">
+    <div className="min-h-screen bg-background pb-[calc(10rem+env(safe-area-inset-bottom))]">
       {hideHeader ? null : (
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-xl">
           <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">
@@ -25,13 +28,17 @@ export function AppShell({
           </div>
         </header>
       )}
-      <main className={`mx-auto max-w-md px-4 pb-4 ${hideHeader ? "pt-6" : "pt-2"}`}>
+      <main
+        key={pathname}
+        className={`route-enter mx-auto max-w-md px-4 pb-4 ${hideHeader ? "pt-6" : "pt-2"}`}
+      >
         {children}
       </main>
       <SessionMiniPlayer />
       <BottomNav />
     </div>
   );
+
 }
 
 export function PageHeader({

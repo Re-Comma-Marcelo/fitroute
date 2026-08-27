@@ -172,3 +172,71 @@
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
+
+/* ---- Standalone / installed app behaviour ---------------------------------
+ * In standalone mode there is no browser chrome, so fixed bars sit on top of
+ * the iOS gesture bar and taps have no visual feedback at all.
+ */
+
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+@layer base {
+  /* Visible press state on the main touch targets. */
+  .tap-target:active,
+  button:active,
+  a:active {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .tap-target:active,
+    button:not(:disabled):active,
+    [role="button"]:not([aria-disabled="true"]):active {
+      transform: scale(0.97);
+      transition: transform 90ms ease-out;
+    }
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pr-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94) translateY(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility route-enter {
+  animation: route-enter 150ms ease-out both;
+}
+
+@utility pr-pop {
+  animation: pr-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-enter,
+  .pr-pop {
+    animation: none;
+  }
+}

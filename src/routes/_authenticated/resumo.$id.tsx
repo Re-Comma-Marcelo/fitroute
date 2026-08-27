@@ -20,15 +20,17 @@ export const Route = createFileRoute("/_authenticated/resumo/$id")({
   component: SummaryPage,
 });
 
+type PrEntry = { nome: string; pesoKg: number; anteriorKg?: number };
+
 function SummaryPage() {
   const t = useT();
   const { id } = useParams({ from: "/_authenticated/resumo/$id" });
-  const [prs, setPrs] = useState<{ nome: string; pesoKg: number }[]>([]);
+  const [prs, setPrs] = useState<PrEntry[]>([]);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(`forja.resumo.${id}`);
-      if (raw) setPrs((JSON.parse(raw).prs ?? []) as { nome: string; pesoKg: number }[]);
+      if (raw) setPrs((JSON.parse(raw).prs ?? []) as PrEntry[]);
     } catch {
       setPrs([]);
     }
@@ -58,6 +60,46 @@ function SummaryPage() {
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
 
+        {prs.length ? (
+          <section
+            aria-label={t("New personal records")}
+            className="pr-pop shadow-elegant mt-6 overflow-hidden rounded-3xl border border-primary/40 bg-primary/10 p-5"
+          >
+            <div className="flex items-center gap-2 text-primary">
+              <Trophy className="size-5" />
+              <p className="text-xs font-bold uppercase tracking-[0.2em]">
+                {prs.length > 1
+                  ? t("{count} new personal records", { count: prs.length })
+                  : t("New personal record")}
+              </p>
+            </div>
+            <ul className="mt-4 space-y-4">
+              {prs.map((pr) => {
+                const delta =
+                  pr.anteriorKg && pr.anteriorKg > 0
+                    ? Math.round((pr.pesoKg - pr.anteriorKg) * 10) / 10
+                    : 0;
+                return (
+                  <li key={pr.nome}>
+                    <p className="text-sm font-semibold text-foreground">{pr.nome}</p>
+                    <p className="font-display text-3xl font-semibold tabular-nums text-primary">
+                      {formatKg(pr.pesoKg)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {delta > 0
+                        ? t("{delta} over your previous best of {previous}", {
+                            delta: formatKg(delta),
+                            previous: formatKg(pr.anteriorKg ?? 0),
+                          })
+                        : t("First time logged at this load")}
+                    </p>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
+
         <dl className="mt-6 grid grid-cols-2 gap-3">
           <Stat label={t("Duration")} value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
           <Stat label={t("Total volume")} value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
@@ -65,23 +107,6 @@ function SummaryPage() {
           <Stat label={t("Exercises")} value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
         </dl>
 
-        <section className="mt-6 rounded-2xl border border-border bg-card p-4">
-          <h2 className="label-caps flex items-center gap-2">
-            <Trophy className="size-4 text-primary" /> {t("PRs hit")}
-          </h2>
-          {prs.length ? (
-            <ul className="mt-3 space-y-2">
-              {prs.map((pr) => (
-                <li key={pr.nome} className="flex justify-between text-sm font-semibold">
-                  <span>{pr.nome}</span>
-                  <span className="text-primary">{formatKg(pr.pesoKg)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-2 text-sm text-muted-foreground">{t("No records today — consistency also counts.")}</p>
-          )}
-        </section>
 
         {workout?.notas ? (
           <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">{workout.notas}</p>

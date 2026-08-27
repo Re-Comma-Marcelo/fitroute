@@ -262,8 +262,14 @@ function TrainPage() {
           ))}
         </div>
       ) : routines.length === 0 ? (
-        <div className="rounded-2xl border border-border bg-card p-6 text-center">
-          <p className="text-sm text-muted-foreground">{t("No routines yet.")}</p>
+        <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+          <p className="font-display text-sm font-semibold">{t("No routines yet.")}</p>
+          <p className="mt-1 text-xs leading-snug text-muted-foreground">
+            {t(
+              "A routine is your list of exercises, sets and rep ranges — the coach uses it to plan each day.",
+            )}
+          </p>
+
           <Button asChild className="mt-3">
             <Link to="/rotina/$id" params={{ id: "nova" }}>
               <Plus className="mr-2 size-4" /> {t("Create routine")}
