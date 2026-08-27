@@ -136,7 +136,13 @@ function LibraryPage() {
           ))}
           {!lista.length && !exercisesQuery.isLoading ? (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground">
-              {t("No exercises found.")}{" "}
+              <p className="font-display text-sm font-semibold text-foreground">
+                {t("No exercises found.")}
+              </p>
+              <p className="mx-auto mt-1 max-w-xs text-xs leading-snug">
+                {t("The library is where you browse every exercise by muscle group and equipment.")}
+              </p>{" "}
+
               <button
                 type="button"
                 className="font-semibold text-primary"
