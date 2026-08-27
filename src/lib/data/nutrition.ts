@@ -88,9 +88,6 @@ export function hourOf(time: string): number {
 
 /** Formats "08:00" using the user's locale (e.g. 8:00 AM). */
 export function formatSlotTime(time: string): string {
-  const [h, m] = time.split(":").map(Number);
-  const d = new Date();
-  d.setHours(h ?? 0, m ?? 0, 0, 0);
   return formatTimeOfDay(time);
 }
 

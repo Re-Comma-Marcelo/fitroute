@@ -35,7 +35,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticRestDone, hapticTick } from "@/lib/haptics";
@@ -86,7 +85,7 @@ const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300
  */
 const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
 const ROW_STEP =
-  "grid grid-cols-[44px_minmax(0,1fr)_44px_44px_minmax(0,1fr)_44px] items-center gap-1";
+  "grid grid-cols-[44px_minmax(3rem,1fr)_44px_44px_minmax(3rem,1fr)_44px] items-center gap-0.5";
 
 function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
   if (typeof window === "undefined") return;
@@ -134,7 +133,6 @@ function SessionPage() {
   const [restFinished, setRestFinished] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
-  const [pendingSets, setPendingSets] = useState(0);
   const [scrollTo, setScrollTo] = useState<number | null>(null);
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
@@ -160,24 +158,37 @@ function SessionPage() {
     }
   }, []);
 
+  /** Clear the persisted rest countdown (it is consumed once and never re-fires). */
+  const clearRest = useCallback(() => {
+    setSession((prev) => {
+      if (!prev?.rest) return prev;
+      const next = { ...prev, rest: null };
+      saveActiveSession(next);
+      return next;
+    });
+  }, []);
+
   // Prominent rest timer: sound + vibration + full-screen overlay when done.
   useEffect(() => {
     if (!restEndsAt) return;
     const msLeft = restEndsAt - Date.now();
-    const fire = () => {
+
+    // Rest that ran out while the app was closed/backgrounded: drop it silently.
+    if (msLeft <= 0) {
+      clearRest();
+      return;
+    }
+
+    setRestFinished(false);
+    const id = setTimeout(() => {
+      clearRest();
       setRestFinished(true);
       playRestBeep(audioCtxRef);
       hapticRestDone();
-    };
-
-    if (msLeft <= 0) {
-      fire();
-      return;
-    }
-    setRestFinished(false);
-    const id = setTimeout(fire, msLeft);
+    }, msLeft);
     return () => clearTimeout(id);
-  }, [restEndsAt]);
+  }, [restEndsAt, clearRest]);
+
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -352,6 +363,7 @@ function SessionPage() {
   function repeatLastSet(exIdx: number) {
     unlockAudio();
     let descanso = 0;
+    let proximo: number | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const feitas = ex.sets.filter((x) => x.concluida);
@@ -362,9 +374,16 @@ function SessionPage() {
       proxima.reps = ultima.reps;
       proxima.concluida = true;
       descanso = ex.descansoSeg;
+      const todasFeitas = ex.sets.every((x) => x.concluida);
+      if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
+        s.atual = exIdx + 1;
+        proximo = s.atual;
+      }
       return s;
     });
+    hapticTick();
     if (descanso > 0) startRest(descanso);
+    if (proximo !== null) setScrollTo(proximo);
   }
 
   function removeSet(exIdx: number, setIdx: number) {
@@ -392,19 +411,19 @@ function SessionPage() {
     });
   }
 
-  /** Finish flow: warn about filled-but-unchecked sets before building the payload. */
+  /** Every finish path goes through the single confirmation dialog. */
   function requestFinish() {
     if (!session) return;
-    const pend = filledUncheckedSets(session);
-    if (pend > 0) {
-      setPendingSets(pend);
-      return;
-    }
+    setConfirmFinish(true);
+  }
+
+  function finishDiscardingPending() {
+    setConfirmFinish(false);
     void finalizar();
   }
 
   function finishIncludingPending() {
-    setPendingSets(0);
+    setConfirmFinish(false);
     const target = structuredClone(session!);
     target.exercicios.forEach((ex) =>
       ex.sets.forEach((set) => {
@@ -417,6 +436,7 @@ function SessionPage() {
     saveActiveSession(target);
     void finalizar(target);
   }
+
 
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
@@ -492,6 +512,7 @@ function SessionPage() {
 
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
+  const pendCount = filledUncheckedSets(session);
   const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
 
   return (
@@ -517,36 +538,14 @@ function SessionPage() {
           >
             <Timer className="size-6" />
           </Button>
-          <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
-            <AlertDialogTrigger asChild>
-              <Button
-                className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
-                disabled={finishing}
-              >
-                {t("Finish")}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t("Finish this workout?")}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("{count} completed sets will be saved.", { count: setsDone })}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
-                <AlertDialogAction
-                  className="tap-target"
-                  onClick={() => {
-                    setConfirmFinish(false);
-                    requestFinish();
-                  }}
-                >
-                  {t("Finish")}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button
+            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+            disabled={finishing}
+            onClick={requestFinish}
+          >
+            {t("Finish")}
+          </Button>
+
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
@@ -731,32 +730,45 @@ function SessionPage() {
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
-      <AlertDialog open={pendingSets > 0} onOpenChange={(open) => !open && setPendingSets(0)}>
+      {/* One dialog for every finish path, so no two modals swap in the same tick. */}
+      <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {t("{count} sets filled in but not checked — include them?", { count: pendingSets })}
+              {pendCount > 0
+                ? t("{count} sets filled in but not checked — include them?", { count: pendCount })
+                : t("Finish this workout?")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t("Unchecked sets are discarded when the workout is saved.")}
+              {pendCount > 0
+                ? t("Unchecked sets are discarded when the workout is saved.")
+                : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel
-              className="tap-target"
-              onClick={() => {
-                setPendingSets(0);
-                void finalizar();
-              }}
-            >
-              {t("Discard")}
-            </AlertDialogCancel>
-            <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
-              {t("Include")}
-            </AlertDialogAction>
+            <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
+            {pendCount > 0 ? (
+              <>
+                <Button
+                  variant="outline"
+                  className="tap-target"
+                  onClick={finishDiscardingPending}
+                >
+                  {t("Discard")}
+                </Button>
+                <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
+                  {t("Include")}
+                </AlertDialogAction>
+              </>
+            ) : (
+              <AlertDialogAction className="tap-target" onClick={finishDiscardingPending}>
+                {t("Finish")}
+              </AlertDialogAction>
+            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
 
       {restFinished ? (
         <RestFinishedOverlay onResume={() => setRestFinished(false)} />
@@ -766,7 +778,6 @@ function SessionPage() {
 }
 
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  const t = useT();
   return (
     <div className="px-3 py-2">
       <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
@@ -1023,7 +1034,7 @@ function SetRow({
           inputMode="decimal"
           placeholder={t("kg")}
           aria-label={t("Weight in kg")}
-          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
         <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
@@ -1033,7 +1044,7 @@ function SetRow({
           inputMode="numeric"
           placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
           aria-label={t("Reps")}
-          className="numeric-field tap-target h-11 min-w-0 px-0.5 text-base"
+          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
       </div>
