@@ -38,6 +38,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
+import { hapticRestDone, hapticTick } from "@/lib/haptics";
 import { formatDuration, formatKg, formatRest } from "@/lib/format";
 import { toast } from "sonner";
 import {
@@ -303,6 +304,7 @@ function SessionPage() {
       }
       return s;
     });
+    hapticTick();
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
   }
@@ -424,7 +426,7 @@ function SessionPage() {
       const duracaoSeg = elapsed;
       const sets: WorkoutSet[] = [];
       let volume = 0;
-      const prs: { nome: string; pesoKg: number }[] = [];
+      const prs: { nome: string; pesoKg: number; anteriorKg: number }[] = [];
 
       for (let i = 0; i < target.exercicios.length; i++) {
         const ex = target.exercicios[i]!;
@@ -452,7 +454,7 @@ function SessionPage() {
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
           });
         });
-        if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor });
+        if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
       }
 
       await saveWorkout(
