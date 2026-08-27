@@ -30,8 +30,9 @@ If the requested pace is aggressive (roughly beyond 0.5–1% bodyweight per week
 
 Two tabs on one review screen:
 
-- **Training** — weekly split with rest days, per-exercise sets, rep ranges and rest times, drawn only from Iron Logger's existing exercise library (so it starts, logs and progresses like any other routine). Rep ranges follow standard strength / hypertrophy / endurance guidance for your goal, with progressive overload and recovery respected. Each day carries a one-line "why" ("3x/week full body because you have 3 days available").
-- **Diet** — daily calorie and macro guidance in general framing, plus meal suggestions per slot pulled from the existing meal library, matched to your preferred foods. Allergies and dislikes are hard filters applied in code after generation, not just prompt instructions.
+- **Training** — a weekly split that plans *around* your other sports, not just the gym: your sport sessions are shown as fixed blocks in the week, gym days are placed so hard leg work doesn't land the day before a match or a long run, and total weekly load (gym + sport) drives volume and rest days. Exercises come only from Iron Logger's existing library (so they start, log and progress like any other routine), with sets, rep ranges and rest times following standard strength / hypertrophy / endurance guidance for your goal. Where your sport implies it, the plan leans toward supporting work (e.g. rotational and shoulder work for boxing, single-leg and hip work for football) using mainstream guidance only. Each day carries a one-line "why" ("2 gym days because you box 3x/week — Thursday kept light before Saturday's session").
+- **Diet** — daily calorie and macro guidance in general framing, sized to your *total* weekly activity including sports rather than gym sessions alone, plus meal suggestions per slot pulled from the existing meal library and matched to your preferred foods. Sport days get slightly higher carb guidance than rest days. Allergies and dislikes are hard filters applied in code after generation, not just prompt instructions.
+
 
 ## Approve, feedback, edit
 
