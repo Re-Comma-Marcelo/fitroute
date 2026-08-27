@@ -531,36 +531,14 @@ function SessionPage() {
           >
             <Timer className="size-6" />
           </Button>
-          <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
-            <AlertDialogTrigger asChild>
-              <Button
-                className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
-                disabled={finishing}
-              >
-                {t("Finish")}
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>{t("Finish this workout?")}</AlertDialogTitle>
-                <AlertDialogDescription>
-                  {t("{count} completed sets will be saved.", { count: setsDone })}
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
-                <AlertDialogAction
-                  className="tap-target"
-                  onClick={() => {
-                    setConfirmFinish(false);
-                    requestFinish();
-                  }}
-                >
-                  {t("Finish")}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button
+            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+            disabled={finishing}
+            onClick={requestFinish}
+          >
+            {t("Finish")}
+          </Button>
+
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
