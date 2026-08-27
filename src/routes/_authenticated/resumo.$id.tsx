@@ -7,6 +7,7 @@ import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
+import { hapticSuccess } from "@/lib/haptics";
 import heroLogin from "@/assets/hero-login.jpg";
 
 export const Route = createFileRoute("/_authenticated/resumo/$id")({
@@ -30,7 +31,10 @@ function SummaryPage() {
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(`forja.resumo.${id}`);
-      if (raw) setPrs((JSON.parse(raw).prs ?? []) as PrEntry[]);
+      const parsed = raw ? ((JSON.parse(raw).prs ?? []) as PrEntry[]) : [];
+      setPrs(parsed);
+      // Celebrate the record once, when the summary first appears.
+      if (parsed.length) hapticSuccess();
     } catch {
       setPrs([]);
     }
