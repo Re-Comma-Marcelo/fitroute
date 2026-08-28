@@ -54,42 +54,88 @@ function ConsentPage() {
   async function approve() {
     setState("submitting");
     setError("");
+
+    const cfg = supabaseConfig();
+    if (!cfg) {
+      setState("ready");
+      setError(
+        t(
+          "Supabase is not configured in this build, so the connection cannot be approved. Set the Supabase URL and publishable key, then reload this page.",
+        ),
+      );
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const authorizationId = params.get("authorization_id");
+    if (!authorizationId) {
+      setState("ready");
+      setError(
+        t(
+          "This link is missing the authorization_id parameter. Start the connection again from your assistant.",
+        ),
+      );
+      return;
+    }
+
+    const issuer = cfg.url.replace(/\/+$/, "").replace(/\/rest\/v1$/, "");
+
+    let response: Response;
+    let body: { redirect_url?: string; error_description?: string; msg?: string; error?: string };
     try {
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
-      if (!token) throw new Error("no session");
-      const params = new URLSearchParams(window.location.search);
-      // The browser client config is injected at runtime by the root route.
-      const injected = (
-        window as unknown as { __FORJA_SUPABASE__?: { url?: string; key?: string } }
-      ).__FORJA_SUPABASE__;
-      const supabaseUrl = (
-        injected?.url ?? (import.meta.env["VITE_FORJA_SUPABASE_URL"] as string | undefined) ?? ""
-      )
-        .replace(/\/+$/, "")
-        .replace(/\/rest\/v1$/, "");
-      if (!supabaseUrl) throw new Error("missing issuer");
-      const response = await fetch(`${supabaseUrl}/auth/v1/oauth/authorizations`, {
+      if (!token) {
+        setState("ready");
+        setError(
+          t("Your session expired. Sign in again and reopen this page from your assistant."),
+        );
+        return;
+      }
+      response = await fetch(`${issuer}/auth/v1/oauth/authorizations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          ...(injected?.key ? { apikey: injected.key } : {}),
+          apikey: cfg.key,
         },
-        body: JSON.stringify({
-          authorization_id: params.get("authorization_id"),
-          action: "approve",
-        }),
+        body: JSON.stringify({ authorization_id: authorizationId, action: "approve" }),
       });
-
-      const json = (await response.json().catch(() => ({}))) as { redirect_url?: string };
-      if (!response.ok || !json.redirect_url) throw new Error("authorization failed");
-      window.location.replace(json.redirect_url);
-    } catch {
+      body = (await response.json().catch(() => ({}))) as typeof body;
+    } catch (cause) {
       setState("ready");
-      setError(t("We could not complete the connection. Close this window and try again."));
+      setError(
+        t("The authorization request could not be sent: {message}", {
+          message: cause instanceof Error ? cause.message : String(cause),
+        }),
+      );
+      return;
     }
+
+    if (!response.ok) {
+      setState("ready");
+      setError(
+        t("Supabase rejected the authorization (HTTP {status}): {message}", {
+          status: String(response.status),
+          message: body.error_description ?? body.msg ?? body.error ?? response.statusText,
+        }),
+      );
+      return;
+    }
+
+    if (!body.redirect_url) {
+      setState("ready");
+      setError(
+        t(
+          "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.",
+        ),
+      );
+      return;
+    }
+
+    window.location.replace(body.redirect_url);
   }
+
 
   function deny() {
     window.history.length > 1 ? window.history.back() : navigate({ to: "/inicio", replace: true });
