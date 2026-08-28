@@ -261,7 +261,7 @@ export function parseHevyCsv(csv: string): HevyParseResult {
       tipoSerie: setType(get(row, idx.setType)),
       pesoKg,
       reps,
-      rpe: rpe > 0 ? rpe : undefined,
+      ...(rpe > 0 ? { rpe } : {}),
       durationSec: Math.max(0, Math.round(num(get(row, idx.duration)))),
     });
   }
@@ -539,7 +539,7 @@ export function buildImport(
           tipoSerie: s.tipoSerie,
           pesoKg: s.pesoKg,
           reps: s.reps,
-          rpe: s.rpe,
+          ...(s.rpe === undefined ? {} : { rpe: s.rpe }),
           concluida: true,
         });
         if (countsAsVolume(s)) volume += s.pesoKg * s.reps;
