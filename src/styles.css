@@ -212,8 +212,25 @@
 }
 
 @utility shadow-elegant {
-  box-shadow: var(--shadow-elegant);
+  box-shadow: none;
 }
+
+@utility num-hero {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility num-big {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+
 
 @utility label-caps {
   font-size: 0.6875rem;
