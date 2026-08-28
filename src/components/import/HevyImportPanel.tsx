@@ -152,8 +152,8 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
           <h2 className="mt-1 text-lg font-semibold">{t("Here is what we found")}</h2>
 
           <div className="mt-4">
-            <p className="label-caps text-training">{t("Total volume")}</p>
-            <p className="num-hero text-training">
+            <p className="label-caps text-train">{t("Total volume")}</p>
+            <p className="num-hero text-train">
               <CountUp value={s.volumeKg} format={(n) => formatNumber(n)} />
               <span className="ml-1 text-base font-semibold">kg</span>
             </p>
@@ -182,8 +182,8 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
                     cell.level === 0
                       ? "bg-surface-3"
                       : cell.level === 1
-                        ? "bg-training/40"
-                        : "bg-training",
+                        ? "bg-train/40"
+                        : "bg-train",
                   )}
                 />
               ))}

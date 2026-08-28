@@ -110,8 +110,8 @@ function OnboardingPage() {
             </p>
 
             <Card className="mt-5 rounded-2xl border-border bg-card p-4">
-              <p className="label-caps text-training">{t("This week")}</p>
-              <p className="num-hero text-training">
+              <p className="label-caps text-train">{t("This week")}</p>
+              <p className="num-hero text-train">
                 <CountUp value={DEMO_VOLUME} format={(n) => formatNumber(n)} />
                 <span className="ml-1 text-base font-semibold">kg</span>
               </p>
@@ -126,8 +126,8 @@ function OnboardingPage() {
                       level === 0
                         ? "bg-surface-3"
                         : level === 1
-                          ? "bg-training/40"
-                          : "bg-training",
+                          ? "bg-train/40"
+                          : "bg-train",
                     )}
                   />
                 ))}
@@ -161,7 +161,7 @@ function OnboardingPage() {
                 onClick={() => setStep("import")}
               />
               <BigCard
-                icon={<Dumbbell className="size-5 text-training" />}
+                icon={<Dumbbell className="size-5 text-train" />}
                 title={t("Start from scratch")}
                 subtitle={t("Three quick questions and we suggest a routine.")}
                 onClick={() => setStep("goal")}
@@ -263,7 +263,7 @@ function OnboardingPage() {
               <ul className="space-y-2.5">
                 {plan.exercises.map((item) => (
                   <li key={item.exercise.id} className="flex items-center gap-3">
-                    <Flame className="size-4 shrink-0 text-training" />
+                    <Flame className="size-4 shrink-0 text-train" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{item.exercise.nome}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
