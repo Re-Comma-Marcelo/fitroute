@@ -22,6 +22,7 @@ import { Route as AuthenticatedPlanoRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
 import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
 import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated/treino'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
 import { Route as AuthenticatedDietaMarketRouteImport } from './routes/_authenticated/dieta.market'
@@ -97,6 +98,11 @@ const AuthenticatedTreinoRoute = AuthenticatedTreinoRouteImport.update({
   path: '/treino',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char91DotmcpChar93InvokeToolToolRoute =
   Char91DotmcpChar93InvokeToolToolRouteImport.update({
     id: '/.mcp/invoke-tool/$tool',
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
@@ -175,6 +182,7 @@ export interface FileRoutesByTo {
   '/plano': typeof AuthenticatedPlanoRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
@@ -199,6 +207,7 @@ export interface FileRoutesById {
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/_authenticated/dieta/week': typeof AuthenticatedDietaWeekRoute
@@ -223,6 +232,7 @@ export interface FileRouteTypes {
     | '/progresso'
     | '/sessao'
     | '/treino'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/dieta/market'
     | '/dieta/week'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/plano'
     | '/sessao'
     | '/treino'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/dieta/market'
     | '/dieta/week'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/progresso'
     | '/_authenticated/sessao'
     | '/_authenticated/treino'
+    | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/dieta/market'
     | '/_authenticated/dieta/week'
@@ -282,6 +294,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
@@ -377,6 +390,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/treino'
       preLoaderRoute: typeof AuthenticatedTreinoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/.mcp/invoke-tool/$tool': {
       id: '/.mcp/invoke-tool/$tool'
@@ -504,6 +524,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport

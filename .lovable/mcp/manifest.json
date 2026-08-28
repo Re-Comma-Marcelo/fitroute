@@ -8,14 +8,14 @@
   "mcp": {
     "server": {
       "name": "iron-logger",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "Iron Logger"
     },
     "tools": [
       {
         "name": "get_training_context",
-        "title": "Get Forja libraries",
-        "description": "Returns Forja's exercise library and meal library, plus how to build plans for this app. Call this first — routines and diets may only use these ids.",
+        "title": "Get Iron Logger context",
+        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -31,9 +31,10 @@
       {
         "name": "create_routine",
         "title": "Create a workout routine",
-        "description": "Builds a Forja workout routine from library exercises and returns an import code plus a readable summary. Call get_training_context first for valid exerciseId values.",
+        "description": "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. Call get_training_context first for valid exerciseId values.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {
@@ -111,9 +112,10 @@
       {
         "name": "create_week_diet",
         "title": "Plan a week of meals",
-        "description": "Fills Forja meal slots for one or more days from the meal library and returns an import code plus a readable summary. Call get_training_context first for valid mealId values.",
+        "description": "Writes meal slots for one or more days directly into the connected user's app, and also returns an import code as a fallback. Call get_training_context first for valid mealId values.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {
@@ -165,9 +167,10 @@
       {
         "name": "log_coach_note",
         "title": "Log a coach note",
-        "description": "Turns something the user reported (soreness, an injury, how the week went) into a Forja note code they can import. The app's coach then references it when planning sessions.",
+        "description": "Records something the user reported (soreness, an injury, how the week went) directly in the connected user's app, so the in-app coach references it when planning sessions. Also returns an import code as a fallback.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {

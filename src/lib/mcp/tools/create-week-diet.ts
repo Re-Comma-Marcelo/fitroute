@@ -2,6 +2,7 @@ import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { meals } from "@/lib/data/meals.mock";
 import { encodeBridgeCode, type DietPayload } from "@/lib/claude-bridge";
+import { dbModule, requireMcpUser } from "../db";
 
 const SLOTS = ["breakfast", "lunch", "snack", "dinner"] as const;
 
@@ -9,7 +10,7 @@ export default defineTool({
   name: "create_week_diet",
   title: "Plan a week of meals",
   description:
-    "Fills Forja meal slots for one or more days from the meal library and returns an import code plus a readable summary. Call get_training_context first for valid mealId values.",
+    "Writes meal slots for one or more days directly into the connected user's app, and also returns an import code as a fallback. Call get_training_context first for valid mealId values.",
   inputSchema: {
     days: z
       .array(
@@ -28,8 +29,10 @@ export default defineTool({
       .max(14)
       .describe("One entry per day. Leave a slot out if the user does not eat it."),
   },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: (input) => {
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    const userId = await requireMcpUser(ctx);
+
     const problems: string[] = [];
     const days: DietPayload["days"] = {};
 
@@ -59,7 +62,7 @@ export default defineTool({
         content: [
           {
             type: "text",
-            text: `Fix these before importing:\n${problems.join("\n")}\nCall get_training_context for the meal library.`,
+            text: `Fix these before saving:\n${problems.join("\n")}\nCall get_training_context for the meal library.`,
           },
         ],
         isError: true,
@@ -71,6 +74,23 @@ export default defineTool({
 
     const payload: DietPayload = { kind: "diet", days };
     const code = encodeBridgeCode(payload);
+
+    const { db, unwrap } = await dbModule();
+    const client = db();
+    const rows = Object.entries(days).flatMap(([date, slots]) =>
+      SLOTS.filter((s) => slots[s]).map((s) => ({
+        user_id: userId,
+        plan_date: date,
+        slot: s,
+        meal_id: slots[s] as string,
+      })),
+    );
+    unwrap(
+      await client
+        .from("meal_plan")
+        .upsert(rows, { onConflict: "user_id,plan_date,slot" })
+        .select("meal_id"),
+    );
 
     const lines = Object.entries(days).map(([date, slots]) => {
       const parts = SLOTS.filter((s) => slots[s]).map((s) => {
@@ -85,15 +105,16 @@ export default defineTool({
     });
 
     const summary = [
+      `Meal plan saved in your app: ${Object.keys(days).length} day(s), ${rows.length} slot(s) filled.`,
       ...lines,
       "",
-      "Paste this code into Forja → Profile → Claude → Import:",
+      "If you prefer to review it first, this import code also works in Profile → Claude → Import:",
       code,
     ].join("\n");
 
     return {
       content: [{ type: "text", text: summary }],
-      structuredContent: { code, days },
+      structuredContent: { saved: true, slots: rows.length, code, days },
     };
   },
 });
