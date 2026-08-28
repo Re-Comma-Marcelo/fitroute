@@ -234,11 +234,12 @@
 
 @utility label-caps {
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
+
 
 /* ---- Standalone / installed app behaviour ---------------------------------
  * In standalone mode there is no browser chrome, so fixed bars sit on top of
