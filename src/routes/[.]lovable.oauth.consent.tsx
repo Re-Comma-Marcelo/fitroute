@@ -59,8 +59,14 @@ function ConsentPage() {
       const token = data.session?.access_token;
       if (!token) throw new Error("no session");
       const params = new URLSearchParams(window.location.search);
-      const supabaseUrl = (import.meta.env["VITE_FORJA_SUPABASE_URL"] as string | undefined)
-        ?.replace(/\/+$/, "")
+      // The browser client config is injected at runtime by the root route.
+      const injected = (
+        window as unknown as { __FORJA_SUPABASE__?: { url?: string; key?: string } }
+      ).__FORJA_SUPABASE__;
+      const supabaseUrl = (
+        injected?.url ?? (import.meta.env["VITE_FORJA_SUPABASE_URL"] as string | undefined) ?? ""
+      )
+        .replace(/\/+$/, "")
         .replace(/\/rest\/v1$/, "");
       if (!supabaseUrl) throw new Error("missing issuer");
       const response = await fetch(`${supabaseUrl}/auth/v1/oauth/authorizations`, {
@@ -68,13 +74,14 @@ function ConsentPage() {
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
-          apikey: String(import.meta.env["VITE_FORJA_SUPABASE_ANON_KEY"] ?? ""),
+          ...(injected?.key ? { apikey: injected.key } : {}),
         },
         body: JSON.stringify({
           authorization_id: params.get("authorization_id"),
           action: "approve",
         }),
       });
+
       const json = (await response.json().catch(() => ({}))) as { redirect_url?: string };
       if (!response.ok || !json.redirect_url) throw new Error("authorization failed");
       window.location.replace(json.redirect_url);
