@@ -27,6 +27,18 @@ export const Route = createFileRoute("/")({
 
 type Mode = "signin" | "signup";
 
+const RESUME_KEY = "ironlogger.oauth.resume";
+
+/** Same-origin path to resume after sign-in (e.g. the MCP consent screen). */
+function resumeTarget(): string | null {
+  if (typeof window === "undefined") return null;
+  const fromQuery = new URLSearchParams(window.location.search).get("redirect");
+  const stored = window.sessionStorage.getItem(RESUME_KEY);
+  const candidate = fromQuery ?? stored;
+  if (!candidate || !candidate.startsWith("/") || candidate.startsWith("//")) return null;
+  return candidate;
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const t = useT();
@@ -37,10 +49,29 @@ function AuthPage() {
   const [checkEmail, setCheckEmail] = useState(false);
   const [formError, setFormError] = useState("");
 
+  function goAfterAuth() {
+    const target = resumeTarget();
+    if (target) {
+      window.sessionStorage.removeItem(RESUME_KEY);
+      window.location.replace(target);
+      return;
+    }
+    navigate({ to: "/inicio", replace: true });
+  }
+
   useEffect(() => {
     let alive = true;
+    // Keep the pending consent URL across the OAuth round trip.
+    const pending = resumeTarget();
+    if (pending) window.sessionStorage.setItem(RESUME_KEY, pending);
     supabase.auth.getUser().then(({ data }) => {
-      if (alive && data.user) navigate({ to: "/inicio", replace: true });
+      if (!alive || !data.user) return;
+      if (pending) {
+        window.sessionStorage.removeItem(RESUME_KEY);
+        window.location.replace(pending);
+        return;
+      }
+      navigate({ to: "/inicio", replace: true });
     });
     return () => {
       alive = false;
@@ -50,9 +81,14 @@ function AuthPage() {
   async function handleGoogle() {
     setBusy(true);
     try {
+      const target = resumeTarget();
+      if (target) window.sessionStorage.setItem(RESUME_KEY, target);
+      const redirectTo = target
+        ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
+        : window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: window.location.origin },
+        options: { redirectTo },
       });
       if (error) throw error;
     } catch (error) {
@@ -76,11 +112,17 @@ function AuthPage() {
     setFormError("");
     setBusy(true);
     try {
+      const target = resumeTarget();
+      if (target) window.sessionStorage.setItem(RESUME_KEY, target);
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: window.location.origin },
+          options: {
+            emailRedirectTo: target
+              ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
+              : window.location.origin,
+          },
         });
         if (error) throw error;
         if (!data.session) {
@@ -91,7 +133,8 @@ function AuthPage() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
       }
-      navigate({ to: "/inicio", replace: true });
+      goAfterAuth();
+
     } catch (error) {
       const raw = error instanceof Error ? error.message : "";
       const code =
