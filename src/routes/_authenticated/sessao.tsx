@@ -781,7 +781,7 @@ function HeaderStat({ label, value, mono }: { label: string; value: string; mono
   return (
     <div className="px-3 py-2">
       <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className={`text-lg font-bold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
+      <dd className={`text-lg font-semibold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }
@@ -1078,12 +1078,12 @@ function RestTimerBar({
             <Timer className="size-5" />
           </span>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">{t("Rest")}</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.02em] text-info/80">{t("Rest")}</p>
             <p
               role="timer"
               aria-live="off"
               className={cn(
-                "font-display text-2xl font-bold tabular-nums leading-none",
+                "num-big leading-none",
                 isLow ? "text-warn" : "text-info",
               )}
             >
@@ -1145,7 +1145,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
-      <h2 className="mt-6 text-center font-display text-3xl font-bold" aria-live="assertive">
+      <h2 className="mt-6 text-center font-display text-3xl font-semibold" aria-live="assertive">
         {t("Rest done")}
       </h2>
       <p className="mt-2 text-center text-base text-muted-foreground">
