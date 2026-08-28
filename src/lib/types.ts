@@ -41,7 +41,6 @@ export interface Profile {
   metaPrazo?: string;
 }
 
-
 export interface Exercise {
   id: string;
   nome: string;

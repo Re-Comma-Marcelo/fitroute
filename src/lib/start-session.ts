@@ -2,7 +2,12 @@ import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise } from "./data/workouts";
 import { suggestProgression, type PrevSet } from "./progression";
-import { makeSets, saveActiveSession, type ActiveExercise, type ActiveSession } from "./session-state";
+import {
+  makeSets,
+  saveActiveSession,
+  type ActiveExercise,
+  type ActiveSession,
+} from "./session-state";
 
 export async function buildActiveExercise(
   exerciseId: string,

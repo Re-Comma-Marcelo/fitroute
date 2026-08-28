@@ -17,7 +17,6 @@ import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 import { LanguageProvider, currentLangFromStorage, translate } from "../lib/i18n";
 import { registerAppServiceWorker } from "../lib/pwa";
 
-
 function NotFoundComponent() {
   const t = (source: string) => translate(currentLangFromStorage(), source);
   return (
@@ -108,7 +107,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Forja — AI strength training tracker" },
       {
         property: "og:description",
-        content: "Mobile-first strength training app with fast session logging, routines, and adaptive coaching.",
+        content:
+          "Mobile-first strength training app with fast session logging, routines, and adaptive coaching.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -136,7 +136,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
     ],
-
   }),
   shellComponent: RootShell,
   component: RootComponent,
@@ -158,7 +157,6 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
@@ -177,7 +175,6 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
-
 
   return (
     <QueryClientProvider client={queryClient}>

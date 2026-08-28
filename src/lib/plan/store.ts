@@ -1,6 +1,12 @@
 import { DEFAULT_EQUIPMENT_FALLBACK } from "./defaults";
 import { emptyGrid } from "./life";
-import type { GeneratedPlan, GoalTranslation, PlanIntake, PlanVersion, StoredPlanState } from "./types";
+import type {
+  GeneratedPlan,
+  GoalTranslation,
+  PlanIntake,
+  PlanVersion,
+  StoredPlanState,
+} from "./types";
 
 const STATE_KEY = "iron-plan-state-v1";
 const DISMISS_KEY = "iron-plan-dismissed-at";
@@ -42,7 +48,11 @@ export function saveGoalTranslation(goal: GoalTranslation | null): void {
   writePlanState({ ...readPlanState(), goal });
 }
 
-export function addPlanVersion(plan: GeneratedPlan, feedback: string, diffSummary: string): PlanVersion {
+export function addPlanVersion(
+  plan: GeneratedPlan,
+  feedback: string,
+  diffSummary: string,
+): PlanVersion {
   const state = readPlanState();
   const version: PlanVersion = {
     id: `v${state.versions.length + 1}-${Date.now().toString(36)}`,

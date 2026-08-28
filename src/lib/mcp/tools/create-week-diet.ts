@@ -14,7 +14,10 @@ export default defineTool({
     days: z
       .array(
         z.object({
-          date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).describe("ISO date, yyyy-mm-dd."),
+          date: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .describe("ISO date, yyyy-mm-dd."),
           breakfast: z.string().optional().describe("mealId"),
           lunch: z.string().optional().describe("mealId"),
           snack: z.string().optional().describe("mealId"),

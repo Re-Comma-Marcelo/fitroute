@@ -18,7 +18,20 @@ export async function askCoach(question: string): Promise<{
   const asks = (...terms: string[]) => terms.some((term) => q.includes(term));
 
   // Keyword matching across the three supported languages (en / pt / nl).
-  if (asks("today", "train", "what to", "workout", "hoje", "treinar", "treino", "vandaag", "trainen", "training")) {
+  if (
+    asks(
+      "today",
+      "train",
+      "what to",
+      "workout",
+      "hoje",
+      "treinar",
+      "treino",
+      "vandaag",
+      "trainen",
+      "training",
+    )
+  ) {
     const plan = await getTodayPlan();
     return {
       answer: tx("{title}. {reason}", {
@@ -29,7 +42,20 @@ export async function askCoach(question: string): Promise<{
     };
   }
 
-  if (asks("stuck", "stalled", "plateau", "stall", "estagnado", "travado", "platô", "plato", "vast", "stagn")) {
+  if (
+    asks(
+      "stuck",
+      "stalled",
+      "plateau",
+      "stall",
+      "estagnado",
+      "travado",
+      "platô",
+      "plato",
+      "vast",
+      "stagn",
+    )
+  ) {
     const routines = await getRoutines();
     const insights: CoachInsight[] = [];
     for (const r of routines) {
@@ -57,7 +83,9 @@ export async function askCoach(question: string): Promise<{
     };
   }
 
-  if (asks("rest", "recovery", "sleep", "descanso", "recupera", "sono", "rust", "herstel", "slaap")) {
+  if (
+    asks("rest", "recovery", "sleep", "descanso", "recupera", "sono", "rust", "herstel", "slaap")
+  ) {
     return {
       answer: tx(
         "Rest long enough to hit the next set with quality. Compound lifts usually need 90–180s; isolation moves 60–90s. If your RPE is climbing, add 15–30s.",
@@ -66,7 +94,24 @@ export async function askCoach(question: string): Promise<{
     };
   }
 
-  if (asks("protein", "nutrition", "eat", "meal", "diet", "proteína", "proteina", "dieta", "comer", "refei", "eiwit", "voeding", "eten", "maaltijd")) {
+  if (
+    asks(
+      "protein",
+      "nutrition",
+      "eat",
+      "meal",
+      "diet",
+      "proteína",
+      "proteina",
+      "dieta",
+      "comer",
+      "refei",
+      "eiwit",
+      "voeding",
+      "eten",
+      "maaltijd",
+    )
+  ) {
     const n = await getNutritionInsight();
     return {
       answer: n?.body ?? tx("Nutrition notes will get sharper once meal logging ships."),

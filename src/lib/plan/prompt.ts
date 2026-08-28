@@ -4,7 +4,13 @@ import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
 import { CONSULT_NOTE, filterMeals } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
-import { DAY_KEYS, SLOT_PARTS, type GeneratedPlan, type GoalTranslation, type PlanIntake } from "./types";
+import {
+  DAY_KEYS,
+  SLOT_PARTS,
+  type GeneratedPlan,
+  type GoalTranslation,
+  type PlanIntake,
+} from "./types";
 
 /** Human-readable summary of what the user told us — shared by every prompt. */
 export function intakeSummary(intake: PlanIntake): string {
@@ -33,8 +39,14 @@ export function intakeSummary(intake: PlanIntake): string {
     `- Injuries / limitations: ${intake.limitations || "none"}`,
     "",
     "## Other sports",
-    intake.sports.length ? describeSports(intake.sports).map((s) => `- ${s}`).join("\n") : "- none",
-    intake.sports.length ? `- Already trained hard by sport: ${sportEmphasis(intake.sports).join(", ")}` : "",
+    intake.sports.length
+      ? describeSports(intake.sports)
+          .map((s) => `- ${s}`)
+          .join("\n")
+      : "- none",
+    intake.sports.length
+      ? `- Already trained hard by sport: ${sportEmphasis(intake.sports).join(", ")}`
+      : "",
     "",
     "## Life & week",
     `- Usable parts of the day: ${slots.join(", ") || "none marked"}`,
@@ -80,7 +92,10 @@ export function planPrompt(
   const budget = deriveTimeBudget(intake);
   const allowedMeals = filterMeals(meals, intake, maxPrepMinutes(intake));
   const allowedExercises = exercises.filter(
-    (e) => intake.equipment.length === 0 || intake.equipment.includes(e.equipamento) || e.equipamento === "Bodyweight",
+    (e) =>
+      intake.equipment.length === 0 ||
+      intake.equipment.includes(e.equipamento) ||
+      e.equipamento === "Bodyweight",
   );
   const exerciseList = (allowedExercises.length > 12 ? allowedExercises : exercises).map(
     (e) => `${e.id}|${e.nome}|${e.grupoPrimario}|${e.equipamento}`,

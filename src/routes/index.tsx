@@ -16,8 +16,10 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: pageMeta({
       title: "Sign in",
-      description: "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.",
-      ogDescription: "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
+      description:
+        "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.",
+      ogDescription:
+        "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
     }),
   }),
   component: AuthPage,
@@ -56,7 +58,9 @@ function AuthPage() {
     } catch (error) {
       setBusy(false);
       const raw = error instanceof Error ? error.message : "";
-      const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(raw);
+      const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(
+        raw,
+      );
       toast.error(
         notEnabled
           ? t(
@@ -91,9 +95,7 @@ function AuthPage() {
     } catch (error) {
       const raw = error instanceof Error ? error.message : "";
       const code =
-        typeof error === "object" && error !== null && "code" in error
-          ? String(error.code)
-          : "";
+        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
       const emailLimitExceeded =
         /email rate limit exceeded|over_email_send_rate_limit/i.test(raw) ||
         code === "over_email_send_rate_limit";
@@ -151,7 +153,6 @@ function AuthPage() {
         </p>
 
         <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 backdrop-blur-xl">
-
           {checkEmail ? (
             <div className="space-y-3 text-center">
               <h2 className="font-display text-lg font-semibold text-foreground">
@@ -204,9 +205,7 @@ function AuthPage() {
                     }}
                     className={cn(
                       "tap-target rounded-lg text-sm font-medium transition-colors",
-                      mode === value
-                        ? "bg-surface-3 text-foreground"
-                        : "text-muted-foreground",
+                      mode === value ? "bg-surface-3 text-foreground" : "text-muted-foreground",
                     )}
                   >
                     {t(value === "signin" ? "Sign in" : "Create account")}

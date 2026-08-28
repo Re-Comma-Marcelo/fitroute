@@ -1,11 +1,6 @@
 import { Check, Clock, Flame, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { mealImage } from "@/lib/meal-image";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
@@ -24,13 +19,21 @@ function pct(n: number, d: number) {
 }
 
 /** Plain-language reason this meal fits (or not) today. */
-function explanation(meal: Meal, targets: NutritionTargets, tag: TrainingTag | undefined, t: (s: string, v?: any) => string) {
+function explanation(
+  meal: Meal,
+  targets: NutritionTargets,
+  tag: TrainingTag | undefined,
+  t: (s: string, v?: any) => string,
+) {
   const proteinShare = pct(meal.proteinG, targets.proteinG);
   const kcalShare = pct(meal.kcal, targets.kcal);
   const parts: string[] = [];
 
   parts.push(
-    t("This meal covers {kcalShare}% of your daily calories and {proteinShare}% of your protein target.", { kcalShare, proteinShare }),
+    t(
+      "This meal covers {kcalShare}% of your daily calories and {proteinShare}% of your protein target.",
+      { kcalShare, proteinShare },
+    ),
   );
 
   if (tag === "Strength") {
@@ -54,8 +57,12 @@ function explanation(meal: Meal, targets: NutritionTargets, tag: TrainingTag | u
   }
 
   const fatShare = pct(meal.fatG * MACRO_KCAL.fatG, meal.kcal);
-  if (fatShare > 40) parts.push(t("Fat carries most of the calories, so digestion is slower — good further from training."));
-  else if (fatShare < 15) parts.push(t("Very low fat, which keeps it easy to digest close to a session."));
+  if (fatShare > 40)
+    parts.push(
+      t("Fat carries most of the calories, so digestion is slower — good further from training."),
+    );
+  else if (fatShare < 15)
+    parts.push(t("Very low fat, which keeps it easy to digest close to a session."));
 
   if (meal.orderOut) parts.push(t("Ordered out — it does not add anything to your shopping list."));
 
@@ -201,7 +208,7 @@ export function MealDetailSheet({
                       grams: m.grams,
                       kcal: m.kcal,
                       pct: pct(m.kcal, macroKcal),
-                      dailyPct: pct(m.grams, m.target)
+                      dailyPct: pct(m.grams, m.target),
                     })}
                   </span>
                 </li>
@@ -239,7 +246,7 @@ export function MealDetailSheet({
                         after,
                         target,
                         unit,
-                        left: Math.max(0, target - after)
+                        left: Math.max(0, target - after),
                       })}
                     </span>
                   </div>
@@ -267,13 +274,16 @@ export function MealDetailSheet({
           <section>
             <h3 className="label-caps text-xs text-muted-foreground">{t("Impact on the week")}</h3>
             <p className="mt-2 text-sm leading-snug text-muted-foreground">
-              {t("Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.", {
-                kcal: weekAfter.kcal,
-                totalKcal: weeklyTargets.kcal,
-                pct: pct(weekAfter.kcal, weeklyTargets.kcal),
-                mealPct: pct(meal.kcal, weeklyTargets.kcal),
-                proteinPct: pct(meal.proteinG, weeklyTargets.proteinG)
-              })}
+              {t(
+                "Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.",
+                {
+                  kcal: weekAfter.kcal,
+                  totalKcal: weeklyTargets.kcal,
+                  pct: pct(weekAfter.kcal, weeklyTargets.kcal),
+                  mealPct: pct(meal.kcal, weeklyTargets.kcal),
+                  proteinPct: pct(meal.proteinG, weeklyTargets.proteinG),
+                },
+              )}
             </p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-3">
               <div
@@ -300,12 +310,17 @@ export function MealDetailSheet({
             </section>
           )}
 
-          <Button onClick={onToggle} className="w-full font-semibold" variant={planned ? "outline" : "default"}>
+          <Button
+            onClick={onToggle}
+            className="w-full font-semibold"
+            variant={planned ? "outline" : "default"}
+          >
             {planned ? (
               t("Remove from today")
             ) : (
               <>
-                <Check className="mr-2 size-4" /> {t("Plan for {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() })}
+                <Check className="mr-2 size-4" />{" "}
+                {t("Plan for {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() })}
               </>
             )}
           </Button>

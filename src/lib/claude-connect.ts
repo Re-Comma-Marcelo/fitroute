@@ -37,7 +37,6 @@ function isInaccessibleHost(host: string): boolean {
   );
 }
 
-
 function normalizeOrigin(origin: string): string {
   return origin.replace(/\/+$/, "");
 }
@@ -62,7 +61,6 @@ export function resolveConnectorTarget(origin: string | null): ConnectorTarget {
     typeof import.meta.env !== "undefined" && import.meta.env["VITE_PUBLIC_APP_ORIGIN"]
       ? String(import.meta.env["VITE_PUBLIC_APP_ORIGIN"])
       : undefined;
-
 
   if (configuredOrigin) {
     const published = normalizeOrigin(configuredOrigin);

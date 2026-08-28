@@ -59,9 +59,11 @@ export async function generateJson<T>(prompt: string, schema: z.ZodType<T>): Pro
         0,
     );
     const message = (error as Error)?.message ?? "AI request failed.";
-    if (status === 402) throw new PlanAiError(402, "The app's AI credits are used up. Ask the owner to top up.");
+    if (status === 402)
+      throw new PlanAiError(402, "The app's AI credits are used up. Ask the owner to top up.");
     if (status === 403) throw new PlanAiError(403, "AI access is blocked for this workspace.");
-    if (status === 429) throw new PlanAiError(429, "The AI is busy right now — try again in a moment.");
+    if (status === 429)
+      throw new PlanAiError(429, "The AI is busy right now — try again in a moment.");
     throw new PlanAiError(status || 500, message);
   }
 

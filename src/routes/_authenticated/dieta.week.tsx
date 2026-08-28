@@ -26,8 +26,10 @@ export const Route = createFileRoute("/_authenticated/dieta/week")({
   head: () => ({
     meta: pageMeta({
       title: "Week meal plan",
-      description: "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
-      ogDescription: "A 7-day meal grid with daily calorie and protein totals next to each training day.",
+      description:
+        "Plan breakfast, lunch, snack and dinner for the whole week alongside your training days.",
+      ogDescription:
+        "A 7-day meal grid with daily calorie and protein totals next to each training day.",
     }),
   }),
   component: WeekPage,
@@ -43,7 +45,10 @@ function WeekPage() {
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
   const mealsQ = useQuery({ queryKey: ["meals", undefined], queryFn: () => getMeals() });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
-  const tagsQ = useQuery({ queryKey: ["trainingTags", dates.join()], queryFn: () => getTrainingTags(dates) });
+  const tagsQ = useQuery({
+    queryKey: ["trainingTags", dates.join()],
+    queryFn: () => getTrainingTags(dates),
+  });
 
   const targets = targetsQ.data;
   const mealName = (id?: string) => mealsQ.data?.find((m) => m.id === id)?.name;
@@ -91,7 +96,9 @@ function WeekPage() {
               <div className="flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold">
                   {formatWeekdayDayMonth(d)}
-                  {date === today ? <span className="ml-2 text-xs text-primary">{t("Today")}</span> : null}
+                  {date === today ? (
+                    <span className="ml-2 text-xs text-primary">{t("Today")}</span>
+                  ) : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
                   {t(tagsQ.data?.[date] ?? "Rest")} · {totals.kcal}

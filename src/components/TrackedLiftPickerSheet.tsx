@@ -69,7 +69,9 @@ export function TrackedLiftPickerSheet({
             );
           })}
           {list.length === 0 ? (
-            <li className="py-6 text-center text-sm text-muted-foreground">{t("No exercises found.")}</li>
+            <li className="py-6 text-center text-sm text-muted-foreground">
+              {t("No exercises found.")}
+            </li>
           ) : null}
         </ul>
       </SheetContent>

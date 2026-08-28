@@ -1,8 +1,4 @@
-import {
-  fetchWorkoutLog,
-  persistWorkout,
-  removeWorkout,
-} from "../forja.functions";
+import { fetchWorkoutLog, persistWorkout, removeWorkout } from "../forja.functions";
 import type { Workout, WorkoutSet } from "../types";
 
 interface Log {

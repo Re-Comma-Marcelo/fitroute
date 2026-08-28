@@ -1,9 +1,4 @@
-export type PlateauType =
-  | "strength"
-  | "volume"
-  | "fatigue"
-  | "adherence"
-  | "single-exercise";
+export type PlateauType = "strength" | "volume" | "fatigue" | "adherence" | "single-exercise";
 
 export type CoachSeverity = "info" | "nudge" | "warning";
 

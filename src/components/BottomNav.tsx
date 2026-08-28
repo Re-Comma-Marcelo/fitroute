@@ -3,7 +3,6 @@ import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-
 const tabs = [
   { to: "/inicio", label: "Home", icon: Home, accent: "" },
   { to: "/treino", label: "Train", icon: Dumbbell, accent: "text-train" },
@@ -11,7 +10,6 @@ const tabs = [
   { to: "/progresso", label: "Progress", icon: TrendingUp, accent: "text-train" },
   { to: "/perfil", label: "Profile", icon: User, accent: "" },
 ] as const;
-
 
 export function BottomNav() {
   const t = useT();
@@ -43,4 +41,3 @@ export function BottomNav() {
     </nav>
   );
 }
-

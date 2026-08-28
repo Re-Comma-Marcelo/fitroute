@@ -99,7 +99,9 @@ export async function getTodayCard(activeRoutineId?: string | null): Promise<Tod
     routineName: chosen.nome,
     line,
     isSwitch,
-    ...(recommended ? { recommendedRoutineId: recommended.id, recommendedRoutineName: recommended.nome } : {}),
+    ...(recommended
+      ? { recommendedRoutineId: recommended.id, recommendedRoutineName: recommended.nome }
+      : {}),
     why: whyBullets(chosen, workouts, sets, exercises, flagged),
     setup: setupBullets(chosen, exercises, profile),
     cautions: grounded.slice(0, 2).map(cautionSentence),
@@ -183,14 +185,14 @@ function whyBullets(
   );
 
   const load = muscleGroupVolumeThisWeek(workouts, sets, exercises);
-  const groups = [...new Set(
-    routine.exercicios
-      .map((re) => exercises.find((e) => e.id === re.exerciseId)?.grupoPrimario)
-      .filter((g): g is string => !!g),
-  )];
-  const lowest = groups
-    .map((g) => ({ g, v: load.get(g) ?? 0 }))
-    .sort((a, b) => a.v - b.v)[0];
+  const groups = [
+    ...new Set(
+      routine.exercicios
+        .map((re) => exercises.find((e) => e.id === re.exerciseId)?.grupoPrimario)
+        .filter((g): g is string => !!g),
+    ),
+  ];
+  const lowest = groups.map((g) => ({ g, v: load.get(g) ?? 0 })).sort((a, b) => a.v - b.v)[0];
   if (lowest) {
     out.push(
       lowest.v === 0
@@ -218,8 +220,10 @@ function whyBullets(
       done,
     );
     const trend = rpeTrend(stats);
-    if (trend === "up") out.push("Your last sessions felt progressively harder, so I'm keeping the jump small.");
-    else if (trend === "down") out.push("Your last sessions felt easier than before — a good window to push a lift.");
+    if (trend === "up")
+      out.push("Your last sessions felt progressively harder, so I'm keeping the jump small.");
+    else if (trend === "down")
+      out.push("Your last sessions felt easier than before — a good window to push a lift.");
   }
 
   for (const f of flagged.slice(0, 2)) out.push(`${f.nome}: ${f.insight.body}`);
@@ -238,15 +242,20 @@ function setupBullets(routine: Routine, exercises: Exercise[], profile: Profile)
       ? `Roughly ${est} min at your usual pace — inside the ${profile.sessionLengthMin} min you set aside.`
       : `Roughly ${est} min, a bit over your ${profile.sessionLengthMin} min target — drop the last exercise if you're tight on time.`,
   );
-  out.push(`You train best in the ${TIME_LABEL[profile.preferredTime]}, so this is queued for today's slot.`);
+  out.push(
+    `You train best in the ${TIME_LABEL[profile.preferredTime]}, so this is queued for today's slot.`,
+  );
 
-  const needed = [...new Set(
-    routine.exercicios
-      .map((re) => exercises.find((e) => e.id === re.exerciseId)?.equipamento)
-      .filter((e): e is string => !!e),
-  )];
+  const needed = [
+    ...new Set(
+      routine.exercicios
+        .map((re) => exercises.find((e) => e.id === re.exerciseId)?.equipamento)
+        .filter((e): e is string => !!e),
+    ),
+  ];
   const missing = needed.filter((e) => !profile.equipment.includes(e));
-  if (missing.length) out.push(`Needs ${missing.join(", ")}, which isn't in your equipment list — swap those below.`);
+  if (missing.length)
+    out.push(`Needs ${missing.join(", ")}, which isn't in your equipment list — swap those below.`);
   else if (needed.length) out.push(`Everything here uses gear you have: ${needed.join(", ")}.`);
 
   const avoided = profile.avoidExercises.filter((a) =>
@@ -265,7 +274,8 @@ function setupBullets(routine: Routine, exercises: Exercise[], profile: Profile)
     const avoidedNames = profile.avoidExercises
       .map((a) => exercises.find((e) => e.id === a.exerciseId)?.nome)
       .filter((n): n is string => !!n);
-    if (avoidedNames.length) out.push(`Keeping ${avoidedNames.join(", ")} out of rotation, as you asked.`);
+    if (avoidedNames.length)
+      out.push(`Keeping ${avoidedNames.join(", ")} out of rotation, as you asked.`);
   }
   return out;
 }

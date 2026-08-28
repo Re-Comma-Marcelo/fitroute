@@ -33,7 +33,9 @@ export function PlanImportPanel() {
   return (
     <div className="space-y-3">
       <p className="text-xs text-muted-foreground">
-        {t("Paste workout notes or a history export from another app. We show what we found before saving anything.")}
+        {t(
+          "Paste workout notes or a history export from another app. We show what we found before saving anything.",
+        )}
       </p>
       <Textarea rows={5} value={raw} onChange={(e) => setRaw(e.target.value)} />
       <Button
@@ -65,7 +67,9 @@ export function PlanImportPanel() {
             </p>
           ))}
           <p className="text-muted-foreground/80">
-            {t("Reviewed only for now — we use it as context for your plan, not as logged history.")}
+            {t(
+              "Reviewed only for now — we use it as context for your plan, not as logged history.",
+            )}
           </p>
         </div>
       ) : null}

@@ -9,9 +9,7 @@ import type { MealSchedule, MealSlot, WeekPlan } from "./nutrition-types";
 export const fetchProfile = createServerFn({ method: "GET" }).handler(async () => {
   const { db, requireUserId, toProfile, unwrap } = await import("./db.server");
   const DEMO_USER_ID = await requireUserId();
-  const rows = unwrap(
-    await db().from("profiles").select("*").eq("user_id", DEMO_USER_ID).limit(1),
-  );
+  const rows = unwrap(await db().from("profiles").select("*").eq("user_id", DEMO_USER_ID).limit(1));
   return (rows[0] ? toProfile(rows[0]) : null) as Profile | null;
 });
 
@@ -141,12 +139,7 @@ export const removeRoutine = createServerFn({ method: "POST" })
     const { db, requireUserId, unwrap } = await import("./db.server");
     const userId = await requireUserId();
     unwrap(
-      await db()
-        .from("routines")
-        .delete()
-        .eq("id", data.id)
-        .eq("user_id", userId)
-        .select("id"),
+      await db().from("routines").delete().eq("id", data.id).eq("user_id", userId).select("id"),
     );
     return { ok: true };
   });
@@ -230,12 +223,7 @@ export const removeWorkout = createServerFn({ method: "POST" })
     const { db, requireUserId, unwrap } = await import("./db.server");
     const userId = await requireUserId();
     unwrap(
-      await db()
-        .from("workouts")
-        .delete()
-        .eq("id", data.id)
-        .eq("user_id", userId)
-        .select("id"),
+      await db().from("workouts").delete().eq("id", data.id).eq("user_id", userId).select("id"),
     );
     return { ok: true };
   });
@@ -278,9 +266,7 @@ export const fetchNutritionState = createServerFn({ method: "GET" }).handler(asy
   const { db, requireUserId, unwrap } = await import("./db.server");
   const DEMO_USER_ID = await requireUserId();
   const client = db();
-  const planRows = unwrap(
-    await client.from("meal_plan").select("*").eq("user_id", DEMO_USER_ID),
-  );
+  const planRows = unwrap(await client.from("meal_plan").select("*").eq("user_id", DEMO_USER_ID));
   const scheduleRows = unwrap(
     await client.from("meal_schedule").select("*").eq("user_id", DEMO_USER_ID),
   );
@@ -318,7 +304,11 @@ export const persistPlannedMeals = createServerFn({ method: "POST" })
     const DEMO_USER_ID = await requireUserId();
     const client = db();
     for (const c of data.clear) {
-      let query = client.from("meal_plan").delete().eq("user_id", DEMO_USER_ID).eq("plan_date", c.date);
+      let query = client
+        .from("meal_plan")
+        .delete()
+        .eq("user_id", DEMO_USER_ID)
+        .eq("plan_date", c.date);
       if (c.slot) query = query.eq("slot", c.slot);
       unwrap(await query.select("meal_id"));
     }
@@ -373,10 +363,7 @@ export const persistCheckedItem = createServerFn({ method: "POST" })
       unwrap(
         await client
           .from("shopping_checked")
-          .upsert(
-            { user_id: DEMO_USER_ID, item_key: data.key },
-            { onConflict: "user_id,item_key" },
-          )
+          .upsert({ user_id: DEMO_USER_ID, item_key: data.key }, { onConflict: "user_id,item_key" })
           .select("item_key"),
       );
     } else {

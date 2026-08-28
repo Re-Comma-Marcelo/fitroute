@@ -127,9 +127,7 @@ function weeklyInsights(
 ): CoachInsight[] {
   const insights: CoachInsight[] = [];
   const start = currentWeekStart();
-  const thisWeek = workouts.filter(
-    (w) => new Date(w.iniciadoEm).toISOString() >= start,
-  );
+  const thisWeek = workouts.filter((w) => new Date(w.iniciadoEm).toISOString() >= start);
 
   // Adherence
   if (thisWeek.length < profile.metaTreinosSemana) {
@@ -222,12 +220,8 @@ function getExerciseInsightSync(
   const history = allSets
     .filter((s) => s.exerciseId === re.exerciseId && s.concluida)
     .sort((a, b) => {
-      const da = new Date(
-        workouts.find((w) => w.id === a.workoutId)?.iniciadoEm ?? 0,
-      ).getTime();
-      const db = new Date(
-        workouts.find((w) => w.id === b.workoutId)?.iniciadoEm ?? 0,
-      ).getTime();
+      const da = new Date(workouts.find((w) => w.id === a.workoutId)?.iniciadoEm ?? 0).getTime();
+      const db = new Date(workouts.find((w) => w.id === b.workoutId)?.iniciadoEm ?? 0).getTime();
       return da - db || a.serieNum - b.serieNum;
     });
   if (history.length === 0) return null;

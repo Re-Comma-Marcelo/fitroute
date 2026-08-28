@@ -55,7 +55,9 @@ export function MealSwapCard({
                 <li
                   key={d.label}
                   className={`rounded-full border px-2 py-0.5 ${
-                    d.v > 0 ? "border-primary/30 text-primary" : "border-border text-muted-foreground"
+                    d.v > 0
+                      ? "border-primary/30 text-primary"
+                      : "border-border text-muted-foreground"
                   }`}
                 >
                   {t(d.label)} {delta(d.v, d.u)}

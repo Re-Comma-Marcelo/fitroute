@@ -26,7 +26,10 @@ import { getExercises } from "@/lib/data/exercises";
 import { getMeals } from "@/lib/data/nutrition";
 import { getProfile } from "@/lib/data/profile";
 import { useT } from "@/lib/i18n";
-import { generatePlan as generatePlanFn, translateGoal as translateGoalFn } from "@/lib/plan-ai.functions";
+import {
+  generatePlan as generatePlanFn,
+  translateGoal as translateGoalFn,
+} from "@/lib/plan-ai.functions";
 import { applyPlan } from "@/lib/plan/apply";
 import { checkPace, checkTimeFit } from "@/lib/plan/guardrails";
 import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL, deriveExperience } from "@/lib/plan/experience";
@@ -119,7 +122,8 @@ function PlanPage() {
     if (hydrated) saveIntakeDraft(intake);
   }, [intake, hydrated]);
 
-  const patch = (changes: Partial<PlanIntake>) => setIntake((current) => ({ ...current, ...changes }));
+  const patch = (changes: Partial<PlanIntake>) =>
+    setIntake((current) => ({ ...current, ...changes }));
 
   const budget = useMemo(() => deriveTimeBudget(intake), [intake]);
   const pace = useMemo(
@@ -152,13 +156,17 @@ function PlanPage() {
     setBusy("plan");
     try {
       const result = await generatePlanFn({
-        data: { intake, goal, feedback, previous: feedback ? current?.plan ?? null : null },
+        data: { intake, goal, feedback, previous: feedback ? (current?.plan ?? null) : null },
       });
       if (!result.ok) {
         toast.error(result.error);
         return;
       }
-      addPlanVersion(result.plan, feedback, feedback ? t("Regenerated with your feedback") : t("First plan"));
+      addPlanVersion(
+        result.plan,
+        feedback,
+        feedback ? t("Regenerated with your feedback") : t("First plan"),
+      );
       setState(readPlanState());
       toast.success(t("Your plan is ready."));
     } catch {
@@ -222,7 +230,11 @@ function PlanPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">{t("Get a plan")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("Step {n} of {total} — {label}", { n: step + 1, total: STEPS.length, label: t(STEPS[step] ?? "") })}
+            {t("Step {n} of {total} — {label}", {
+              n: step + 1,
+              total: STEPS.length,
+              label: t(STEPS[step] ?? ""),
+            })}
           </p>
           <div className="flex gap-1">
             {STEPS.map((label, i) => (
@@ -247,7 +259,10 @@ function PlanPage() {
                 />
               </Field>
               <Field label={t("Sex")}>
-                <Select value={intake.sex} onValueChange={(v) => patch({ sex: v as PlanIntake["sex"] })}>
+                <Select
+                  value={intake.sex}
+                  onValueChange={(v) => patch({ sex: v as PlanIntake["sex"] })}
+                >
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
@@ -303,7 +318,10 @@ function PlanPage() {
                   key={mode}
                   type="button"
                   variant="outline"
-                  className={cn("h-11 flex-1", intake.goalMode === mode && "border-primary/60 bg-primary/15 text-primary")}
+                  className={cn(
+                    "h-11 flex-1",
+                    intake.goalMode === mode && "border-primary/60 bg-primary/15 text-primary",
+                  )}
                   onClick={() => patch({ goalMode: mode })}
                 >
                   {t(mode === "words" ? "Describe it" : "I have a target weight")}
@@ -361,9 +379,17 @@ function PlanPage() {
 
             <div className="space-y-2 rounded-xl border border-border/60 bg-card/40 p-3">
               <p className="text-xs text-muted-foreground">
-                {t("We translate this into concrete numbers and show them to you before building anything.")}
+                {t(
+                  "We translate this into concrete numbers and show them to you before building anything.",
+                )}
               </p>
-              <Button type="button" variant="outline" className="h-11 w-full" disabled={busy !== null} onClick={runGoal}>
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full"
+                disabled={busy !== null}
+                onClick={runGoal}
+              >
                 {busy === "goal" ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
@@ -418,7 +444,9 @@ function PlanPage() {
                       }
                       className={cn(
                         "min-h-11 rounded-lg border px-3 text-xs font-medium",
-                        on ? "border-primary/50 bg-primary/15 text-primary" : "border-border/60 text-muted-foreground",
+                        on
+                          ? "border-primary/50 bg-primary/15 text-primary"
+                          : "border-border/60 text-muted-foreground",
                       )}
                     >
                       {t(item)}
@@ -453,11 +481,13 @@ function PlanPage() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {(Object.keys(TRAINING_YEARS_LABEL) as PlanIntake["trainingYears"][]).map((key) => (
-                      <SelectItem key={key} value={key}>
-                        {t(TRAINING_YEARS_LABEL[key])}
-                      </SelectItem>
-                    ))}
+                    {(Object.keys(TRAINING_YEARS_LABEL) as PlanIntake["trainingYears"][]).map(
+                      (key) => (
+                        <SelectItem key={key} value={key}>
+                          {t(TRAINING_YEARS_LABEL[key])}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </Field>
@@ -486,7 +516,9 @@ function PlanPage() {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                {t("That puts you around {level}.", { level: t(EXPERIENCE_LABEL[intake.experience]) })}
+                {t("That puts you around {level}.", {
+                  level: t(EXPERIENCE_LABEL[intake.experience]),
+                })}
               </p>
             </Field>
 
@@ -619,7 +651,10 @@ function PlanPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <Field label={t("Time to cook")}>
-                <Select value={intake.cookTime} onValueChange={(v) => patch({ cookTime: v as PlanIntake["cookTime"] })}>
+                <Select
+                  value={intake.cookTime}
+                  onValueChange={(v) => patch({ cookTime: v as PlanIntake["cookTime"] })}
+                >
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
@@ -642,7 +677,10 @@ function PlanPage() {
             </div>
 
             <Field label={t("Budget")}>
-              <Select value={intake.budget} onValueChange={(v) => patch({ budget: v as PlanIntake["budget"] })}>
+              <Select
+                value={intake.budget}
+                onValueChange={(v) => patch({ budget: v as PlanIntake["budget"] })}
+              >
                 <SelectTrigger className="h-11">
                   <SelectValue />
                 </SelectTrigger>
@@ -695,7 +733,11 @@ function PlanPage() {
               disabled={busy !== null || budget.gymSlots.length === 0}
               onClick={() => runPlan("")}
             >
-              {busy === "plan" ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+              {busy === "plan" ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
               {busy === "plan" ? t("Building your plan…") : t("Build my plan")}
             </Button>
           )}

@@ -1,4 +1,11 @@
-import type { DayTotals, Meal, MealSlot, MealTag, NutritionTargets, TrainingTag } from "./nutrition-types";
+import type {
+  DayTotals,
+  Meal,
+  MealSlot,
+  MealTag,
+  NutritionTargets,
+  TrainingTag,
+} from "./nutrition-types";
 
 /** Macro emphasis each training tag calls for. */
 const TAG_PRIORITY: Record<TrainingTag, { tag: MealTag; label: string }> = {
@@ -59,10 +66,10 @@ function scoreMeal(meal: Meal, ctx: SwapContext, rem: NutritionTargets): number 
   };
 
   const dev =
-    2.2 * Math.abs(meal.proteinG - ideal.proteinG) / Math.max(1, ideal.proteinG) +
-    1.4 * Math.abs(meal.carbsG - ideal.carbsG) / Math.max(1, ideal.carbsG) +
-    0.8 * Math.abs(meal.fatG - ideal.fatG) / Math.max(1, ideal.fatG) +
-    1.6 * Math.abs(meal.kcal - ideal.kcal) / Math.max(1, ideal.kcal);
+    (2.2 * Math.abs(meal.proteinG - ideal.proteinG)) / Math.max(1, ideal.proteinG) +
+    (1.4 * Math.abs(meal.carbsG - ideal.carbsG)) / Math.max(1, ideal.carbsG) +
+    (0.8 * Math.abs(meal.fatG - ideal.fatG)) / Math.max(1, ideal.fatG) +
+    (1.6 * Math.abs(meal.kcal - ideal.kcal)) / Math.max(1, ideal.kcal);
 
   let bonus = 0;
   const priority = ctx.tag ? TAG_PRIORITY[ctx.tag] : null;
@@ -77,7 +84,12 @@ function scoreMeal(meal: Meal, ctx: SwapContext, rem: NutritionTargets): number 
   return dev - bonus;
 }
 
-function reasonFor(meal: Meal, ctx: SwapContext, rem: NutritionTargets, current?: Meal | null): string {
+function reasonFor(
+  meal: Meal,
+  ctx: SwapContext,
+  rem: NutritionTargets,
+  current?: Meal | null,
+): string {
   const parts: string[] = [];
   if (current) {
     const dp = Math.round(meal.proteinG - current.proteinG);
@@ -103,7 +115,11 @@ function reasonFor(meal: Meal, ctx: SwapContext, rem: NutritionTargets, current?
 export function rankMeals(meals: Meal[], ctx: SwapContext): RankedMeal[] {
   const rem = remaining(ctx);
   return meals
-    .map((meal) => ({ meal, score: scoreMeal(meal, ctx, rem), reason: reasonFor(meal, ctx, rem, ctx.currentMeal) }))
+    .map((meal) => ({
+      meal,
+      score: scoreMeal(meal, ctx, rem),
+      reason: reasonFor(meal, ctx, rem, ctx.currentMeal),
+    }))
     .sort((a, b) => a.score - b.score);
 }
 

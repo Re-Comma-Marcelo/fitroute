@@ -9,11 +9,11 @@ export const dict: DictFragment = {
     "Your AI trainer that adapts to your actual life. Sign in with Google or email.":
       "Seu treinador de IA que se adapta à sua vida real. Entre com Google ou e-mail.",
 
-    "Home": "Início",
+    Home: "Início",
     "Your training dashboard, weekly goal and coach recommendations.":
       "Seu painel de treino, meta semanal e recomendações do coach.",
 
-    "Train": "Treino",
+    Train: "Treino",
     "Today's session, why it's queued, and your saved routines.":
       "O treino de hoje, o motivo da sugestão e suas rotinas salvas.",
     "Today's coached session plus your saved routines and weekly goal.":
@@ -43,7 +43,7 @@ export const dict: DictFragment = {
     "Search exercises by name, muscle group and equipment.":
       "Busque exercícios por nome, grupo muscular e equipamento.",
 
-    "Progress": "Progresso",
+    Progress: "Progresso",
     "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.":
       "Veja sua trajetória: tendência de volume semanal, progressão dos exercícios chave e alertas de platô.",
     "Weekly volume trend, tracked lift progression and session history.":
@@ -73,7 +73,7 @@ export const dict: DictFragment = {
     "An aisle-grouped shopping list generated from the meals you planned this week.":
       "Uma lista agrupada por seção, gerada a partir das refeições planejadas da semana.",
 
-    "Profile": "Perfil",
+    Profile: "Perfil",
     "Your body data, training model, equipment and weekly goal.":
       "Seus dados corporais, modelo de treino, equipamentos e meta semanal.",
   },
@@ -84,11 +84,11 @@ export const dict: DictFragment = {
     "Your AI trainer that adapts to your actual life. Sign in with Google or email.":
       "Je AI-trainer die zich aanpast aan je echte leven. Log in met Google of e-mail.",
 
-    "Home": "Start",
+    Home: "Start",
     "Your training dashboard, weekly goal and coach recommendations.":
       "Je trainingsdashboard, weekdoel en aanbevelingen van de coach.",
 
-    "Train": "Trainen",
+    Train: "Trainen",
     "Today's session, why it's queued, and your saved routines.":
       "De sessie van vandaag, waarom die klaarstaat, en je opgeslagen routines.",
     "Today's coached session plus your saved routines and weekly goal.":
@@ -118,7 +118,7 @@ export const dict: DictFragment = {
     "Search exercises by name, muscle group and equipment.":
       "Zoek oefeningen op naam, spiergroep en materiaal.",
 
-    "Progress": "Voortgang",
+    Progress: "Voortgang",
     "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.":
       "Zie je traject: weektrend in volume, progressie van kernoefeningen en plateau-signalen.",
     "Weekly volume trend, tracked lift progression and session history.":
@@ -148,7 +148,7 @@ export const dict: DictFragment = {
     "An aisle-grouped shopping list generated from the meals you planned this week.":
       "Een per schap gegroepeerde lijst, gemaakt uit de maaltijden die je deze week plande.",
 
-    "Profile": "Profiel",
+    Profile: "Profiel",
     "Your body data, training model, equipment and weekly goal.":
       "Je lichaamsgegevens, trainingsmodel, materiaal en weekdoel.",
   },

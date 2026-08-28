@@ -44,7 +44,9 @@ export function WeeklySlotGrid({
       </div>
       {DAY_KEYS.map((day) => (
         <div key={day} className="grid grid-cols-[3rem_repeat(3,1fr)] items-center gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">{t(DAY_LABEL[day] ?? "")}</span>
+          <span className="text-xs font-medium text-muted-foreground">
+            {t(DAY_LABEL[day] ?? "")}
+          </span>
           {SLOT_PARTS.map((part) => {
             const state = value[day][part];
             return (

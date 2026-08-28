@@ -19,8 +19,10 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
   head: () => ({
     meta: pageMeta({
       title: "Shopping list",
-      description: "Ingredients from your planned meals, merged and grouped by aisle so shopping takes one trip.",
-      ogDescription: "An aisle-grouped shopping list generated from the meals you planned this week.",
+      description:
+        "Ingredients from your planned meals, merged and grouped by aisle so shopping takes one trip.",
+      ogDescription:
+        "An aisle-grouped shopping list generated from the meals you planned this week.",
     }),
   }),
   component: MarketPage,
@@ -28,10 +30,14 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
 
 function MarketPage() {
   const t = useT();
-  const ranges = useMemo(() => [
-    { id: "3", label: t("Next 3 days") },
-    { id: "7", label: t("Next 7 days") },
-  ] as const, [t]);
+  const ranges = useMemo(
+    () =>
+      [
+        { id: "3", label: t("Next 3 days") },
+        { id: "7", label: t("Next 7 days") },
+      ] as const,
+    [t],
+  );
 
   const [range, setRange] = useState<"3" | "7">("3");
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
@@ -137,7 +143,9 @@ function MarketPage() {
                         >
                           <span
                             className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
-                              isChecked ? "border-primary bg-primary text-primary-foreground" : "border-border"
+                              isChecked
+                                ? "border-primary bg-primary text-primary-foreground"
+                                : "border-border"
                             }`}
                           >
                             {isChecked ? <Check className="size-3.5" /> : null}
@@ -174,8 +182,7 @@ function MarketPage() {
               <li key={`${o.date}-${o.slot}`} className="flex items-center justify-between text-sm">
                 <span>{o.meal.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  {formatWeekdayShort(`${o.date}T12:00:00`)}{" "}
-                  · {t(SLOT_LABEL[o.slot])}
+                  {formatWeekdayShort(`${o.date}T12:00:00`)} · {t(SLOT_LABEL[o.slot])}
                 </span>
               </li>
             ))}

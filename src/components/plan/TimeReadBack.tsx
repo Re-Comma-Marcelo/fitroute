@@ -42,12 +42,19 @@ export function TimeReadBack({
           : sportSessions > 0
             ? t(
                 "So {slots} look open — that's roughly {time} a week for the gym, on top of your {sports} sport session(s). Sound right?",
-                { slots: slotPhrase, time: hoursLabel(budget.gymMinutesPerWeek), sports: sportSessions },
+                {
+                  slots: slotPhrase,
+                  time: hoursLabel(budget.gymMinutesPerWeek),
+                  sports: sportSessions,
+                },
               )
-            : t("So {slots} look open — that's roughly {time} a week you can spend training. Sound right?", {
-                slots: slotPhrase,
-                time: hoursLabel(budget.gymMinutesPerWeek),
-              })}
+            : t(
+                "So {slots} look open — that's roughly {time} a week you can spend training. Sound right?",
+                {
+                  slots: slotPhrase,
+                  time: hoursLabel(budget.gymMinutesPerWeek),
+                },
+              )}
       </p>
 
       <div className="flex flex-wrap gap-1.5">
@@ -87,7 +94,9 @@ export function TimeReadBack({
 
       {budget.recoveryFactor < 1 ? (
         <p className="text-xs text-muted-foreground">
-          {t("Your sleep, stress and sport load mean we keep the weekly volume a bit lower on purpose.")}
+          {t(
+            "Your sleep, stress and sport load mean we keep the weekly volume a bit lower on purpose.",
+          )}
         </p>
       ) : null}
     </div>

@@ -1,4 +1,12 @@
-import { DAY_KEYS, SLOT_PARTS, type PlanIntake, type PlannedSlot, type SlotGrid, type SlotState, type TimeBudget } from "./types";
+import {
+  DAY_KEYS,
+  SLOT_PARTS,
+  type PlanIntake,
+  type PlannedSlot,
+  type SlotGrid,
+  type SlotState,
+  type TimeBudget,
+} from "./types";
 import { sportLoadUnits, sportMinutesPerWeek } from "./sports";
 
 /** Minutes a slot state is worth before any adjustment. */

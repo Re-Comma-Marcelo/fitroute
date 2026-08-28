@@ -55,9 +55,7 @@ export function previewImport(payload: BridgePayload): ImportPreview {
     lines: [
       payload.content,
       payload.tags.length ? tx("Tags: {tags}", { tags: payload.tags.join(", ") }) : "",
-    ].filter(
-      Boolean,
-    ),
+    ].filter(Boolean),
     warnings,
   };
 }

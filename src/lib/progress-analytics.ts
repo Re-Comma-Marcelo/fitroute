@@ -81,18 +81,11 @@ export interface Adherence {
   streakWeeks: number;
 }
 
-export function adherence(
-  workouts: Workout[],
-  weeklyTarget: number,
-  now = new Date(),
-): Adherence {
+export function adherence(workouts: Workout[], weeklyTarget: number, now = new Date()): Adherence {
   const cur = monthKey(now.toISOString());
   const done = workouts.filter((w) => monthKey(w.iniciadoEm) === cur).length;
   const daysElapsed = now.getDate();
-  const planned = Math.max(
-    1,
-    Math.round((weeklyTarget * daysElapsed) / 7),
-  );
+  const planned = Math.max(1, Math.round((weeklyTarget * daysElapsed) / 7));
 
   const perWeek = new Map<string, number>();
   for (const w of workouts) {
@@ -125,11 +118,7 @@ export interface WeekPoint {
 }
 
 /** Continuous weekly series (zero-filled) for the last `weeks` weeks. */
-export function weeklySeries(
-  workouts: Workout[],
-  weeks = 8,
-  now = new Date(),
-): WeekPoint[] {
+export function weeklySeries(workouts: Workout[], weeks = 8, now = new Date()): WeekPoint[] {
   const buckets = new Map<string, { volume: number; sessions: number }>();
   for (const w of workouts) {
     const key = weekStart(new Date(w.iniciadoEm));

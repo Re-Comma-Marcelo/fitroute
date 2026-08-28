@@ -43,9 +43,7 @@ function RoutineEditor() {
     if (loaded.current) return;
     loaded.current = true;
 
-    getExercises().then((all) =>
-      setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))),
-    );
+    getExercises().then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))));
 
     const draftRaw = typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
     const draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
@@ -310,7 +308,11 @@ function RoutineEditor() {
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto max-w-md">
-          <Button className="h-14 w-full text-base font-semibold" disabled={saving} onClick={handleSave}>
+          <Button
+            className="h-14 w-full text-base font-semibold"
+            disabled={saving}
+            onClick={handleSave}
+          >
             {t("Save routine")}
           </Button>
         </div>

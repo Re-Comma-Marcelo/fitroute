@@ -112,7 +112,8 @@ export function makeSets(
       reps: opts.repsAlvo ? String(opts.repsAlvo) : "",
       rpe: "",
       sugPeso,
-      sugReps: tipoSerie === "aquecimento" ? (ant?.reps ?? null) : (opts.repsAlvo ?? ant?.reps ?? null),
+      sugReps:
+        tipoSerie === "aquecimento" ? (ant?.reps ?? null) : (opts.repsAlvo ?? ant?.reps ?? null),
       antPeso: ant?.pesoKg ?? null,
       antReps: ant?.reps ?? null,
       antRpe: ant?.rpe ?? null,
@@ -165,9 +166,7 @@ export function sessionLabel(session: { routineNome: string }): string {
 export function currentExerciseIndex(session: ActiveSession): number {
   const atual = session.exercicios[session.atual];
   if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return session.atual;
-  const idx = session.exercicios.findIndex(
-    (ex) => !ex.pulado && ex.sets.some((s) => !s.concluida),
-  );
+  const idx = session.exercicios.findIndex((ex) => !ex.pulado && ex.sets.some((s) => !s.concluida));
   if (idx >= 0) return idx;
   return Math.max(0, Math.min(session.atual, session.exercicios.length - 1));
 }
@@ -208,8 +207,5 @@ export function loadTodayChoice(): string | null {
 
 export function saveTodayChoice(routineId: string) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(
-    CHOICE_KEY,
-    JSON.stringify({ date: todayKey(), routineId }),
-  );
+  window.localStorage.setItem(CHOICE_KEY, JSON.stringify({ date: todayKey(), routineId }));
 }

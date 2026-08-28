@@ -1,4 +1,9 @@
-import { perWorkoutStats, rpeTrend, sessionsSinceWeightIncrease, isSameWeightForLastN } from "./signals";
+import {
+  perWorkoutStats,
+  rpeTrend,
+  sessionsSinceWeightIncrease,
+  isSameWeightForLastN,
+} from "./signals";
 import type { CoachInsight } from "./types";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 

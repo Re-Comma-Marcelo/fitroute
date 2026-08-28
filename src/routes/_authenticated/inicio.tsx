@@ -126,9 +126,7 @@ export default function Inicio() {
                 (profile?.nome.split(" ")[0] ?? t("Athlete"))
               )}
             </h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {formatFullDate(new Date())}
-            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{formatFullDate(new Date())}</p>
           </div>
           <CoachChatButton />
         </header>
@@ -141,7 +139,9 @@ export default function Inicio() {
         )}
 
         {/* Check-in */}
-        {!isLoading && <CheckInPrompt profile={profile} notes={notes} onSaved={() => notesQ.refetch()} />}
+        {!isLoading && (
+          <CheckInPrompt profile={profile} notes={notes} onSaved={() => notesQ.refetch()} />
+        )}
 
         {/* Today recommendation */}
         {isLoading ? (
@@ -154,7 +154,6 @@ export default function Inicio() {
             onStart={startAction}
           />
         )}
-
 
         {/* Weekly goal + segmented progress */}
         {isLoading ? (
@@ -170,7 +169,6 @@ export default function Inicio() {
 
         {/* Optional AI plan entry — dismissible, never blocking */}
         {!isLoading && <GetAPlanCard dismissible />}
-
 
         {/* Insights */}
         {!isLoading && coach?.insights && coach.insights.length > 0 && (
@@ -307,13 +305,10 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
     : 0;
   const perDay = daysElapsed && done > 0 ? done / daysElapsed : 0;
   const paceDate =
-    perDay > 0 && remaining > 0
-      ? new Date(Date.now() + (remaining / perDay) * 86400000)
-      : null;
+    perDay > 0 && remaining > 0 ? new Date(Date.now() + (remaining / perDay) * 86400000) : null;
 
   const fmtKgLocale = (n: number) => formatNumber(n, 1);
-  const shortDate = (d: Date) =>
-    formatMonthYear(d);
+  const shortDate = (d: Date) => formatMonthYear(d);
 
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
@@ -333,13 +328,15 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
         <div>
           <p className="text-xs text-muted-foreground">{t("Current")}</p>
           <p className="font-display text-3xl font-semibold tabular-nums">
-            {fmtKgLocale(current)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
+            {fmtKgLocale(current)}{" "}
+            <span className="text-sm font-semibold text-muted-foreground">kg</span>
           </p>
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">{t("Target")}</p>
           <p className="num-big text-train">
-            {fmtKgLocale(target)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
+            {fmtKgLocale(target)}{" "}
+            <span className="text-sm font-semibold text-muted-foreground">kg</span>
           </p>
         </div>
       </div>
@@ -358,10 +355,7 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
             </span>{" "}
             {t("to {action}", { action: gaining ? t("gain") : t("lose") })}.
             {paceDate ? (
-              <>
-                {" "}
-                {t("At the current pace: {date}", { date: formatDate(paceDate.toISOString()) })}
-              </>
+              <> {t("At the current pace: {date}", { date: formatDate(paceDate.toISOString()) })}</>
             ) : (
               t(" Log your weight to project a date.")
             )}
@@ -387,7 +381,7 @@ function TodayCard({
   if (active) {
     return (
       <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
-                <div className="relative">
+        <div className="relative">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Flame className="size-4" />
             {t("Session in progress")}
@@ -424,7 +418,7 @@ function TodayCard({
 
   return (
     <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
-            <div className="relative">
+      <div className="relative">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary">
           <MessageSquare className="size-4" />
           {t("Today's training")}
@@ -443,7 +437,6 @@ function TodayCard({
     </Card>
   );
 }
-
 
 function WeeklyGoalCard({
   sessions,
@@ -477,10 +470,7 @@ function WeeklyGoalCard({
         {blocks.map((filled, i) => (
           <div
             key={i}
-            className={cn(
-              "h-2 flex-1 rounded-full",
-              filled ? "bg-train" : "bg-surface-3",
-            )}
+            className={cn("h-2 flex-1 rounded-full", filled ? "bg-train" : "bg-surface-3")}
           />
         ))}
       </div>
@@ -527,7 +517,8 @@ function SessionRow({ workout }: { workout: Awaited<ReturnType<typeof getWorkout
       <ExerciseThumb grupo="Back" className="size-12 rounded-lg" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">
-          {workout.routineId ? t("Routine") : t("Free workout")} · {relativeDays(workout.iniciadoEm)}
+          {workout.routineId ? t("Routine") : t("Free workout")} ·{" "}
+          {relativeDays(workout.iniciadoEm)}
         </p>
         <p className="text-xs text-muted-foreground">
           {formatDate(workout.iniciadoEm)} · {formatDurationShort(workout.duracaoSeg)}

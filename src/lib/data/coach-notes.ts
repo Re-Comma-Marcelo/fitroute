@@ -13,14 +13,10 @@ export async function getCoachNotes(): Promise<CoachNote[]> {
 }
 
 export async function getRecentCoachNotes(limit = 5): Promise<CoachNote[]> {
-  return [...(await all())]
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .slice(0, limit);
+  return [...(await all())].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
 }
 
-export async function saveCoachNote(
-  note: Omit<CoachNote, "id" | "createdAt">,
-): Promise<CoachNote> {
+export async function saveCoachNote(note: Omit<CoachNote, "id" | "createdAt">): Promise<CoachNote> {
   const saved = (await persistCoachNote({
     data: { kind: note.kind, content: note.content, tags: note.tags },
   })) as CoachNote;

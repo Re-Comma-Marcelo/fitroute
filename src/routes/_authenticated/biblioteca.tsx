@@ -21,7 +21,8 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   head: () => ({
     meta: pageMeta({
       title: "Exercise library",
-      description: "Over 40 resistance exercises with muscle group, equipment and execution instructions.",
+      description:
+        "Over 40 resistance exercises with muscle group, equipment and execution instructions.",
       ogDescription: "Search exercises by name, muscle group and equipment.",
     }),
   }),
@@ -54,7 +55,8 @@ function LibraryPage() {
 
   function goBack() {
     if (para === "sessao") navigate({ to: "/sessao" });
-    else if (para === "rotina" && rotinaId) navigate({ to: "/rotina/$id", params: { id: rotinaId } });
+    else if (para === "rotina" && rotinaId)
+      navigate({ to: "/rotina/$id", params: { id: rotinaId } });
     else navigate({ to: "/treino" });
   }
 
@@ -72,7 +74,13 @@ function LibraryPage() {
       <PageHeader
         title={para ? t("Choose exercise") : t("Library")}
         left={
-          <Button variant="ghost" size="icon" className="tap-target" aria-label={t("Back")} onClick={goBack}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="tap-target"
+            aria-label={t("Back")}
+            onClick={goBack}
+          >
             <ArrowLeft className="size-6" />
           </Button>
         }
@@ -142,7 +150,6 @@ function LibraryPage() {
               <p className="mx-auto mt-1 max-w-xs text-xs leading-snug">
                 {t("The library is where you browse every exercise by muscle group and equipment.")}
               </p>{" "}
-
               <button
                 type="button"
                 className="font-semibold text-primary"
@@ -217,7 +224,7 @@ function FilterRow({
 }) {
   const t = useT();
   return (
-      <div className="mt-4">
+    <div className="mt-4">
       <p className="label-caps mb-1.5">{label}</p>
       <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
         <FilterChip active={value === null} onClick={() => onChange(null)}>

@@ -67,14 +67,13 @@ export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
     meta: pageMeta({
       title: "Workout session",
-      description: "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
+      description:
+        "Log sets, weight, reps and RPE during the workout with the previous load always visible.",
       ogDescription: "Stopwatch, fixed previous load, progression suggestion and rest timer.",
     }),
   }),
   component: SessionPage,
 });
-
-
 
 const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
@@ -90,7 +89,9 @@ const ROW_STEP =
 function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
   if (typeof window === "undefined") return;
   try {
-    const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    const Ctx =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
     if (!Ctx) return;
     const ctx = audioCtxRef.current ?? new Ctx();
     audioCtxRef.current = ctx;
@@ -188,7 +189,6 @@ function SessionPage() {
     }, msLeft);
     return () => clearTimeout(id);
   }, [restEndsAt, clearRest]);
-
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -320,7 +320,12 @@ function SessionPage() {
     if (proximo !== null) setScrollTo(proximo);
   }
 
-  function setField(exIdx: number, setIdx: number, field: "pesoKg" | "reps" | "rpe", value: string) {
+  function setField(
+    exIdx: number,
+    setIdx: number,
+    field: "pesoKg" | "reps" | "rpe",
+    value: string,
+  ) {
     update((s) => {
       s.exercicios[exIdx]!.sets[setIdx]![field] = value;
       return s;
@@ -437,7 +442,6 @@ function SessionPage() {
     void finalizar(target);
   }
 
-
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
     if (!target) return;
@@ -509,7 +513,6 @@ function SessionPage() {
     }
   }
 
-
   const setsDone = sessionSetsDone(session);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
@@ -545,7 +548,6 @@ function SessionPage() {
           >
             {t("Finish")}
           </Button>
-
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
@@ -581,7 +583,12 @@ function SessionPage() {
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-semibold leading-tight">{ex.nome}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
-                        {t("{count}/{total} sets · target {min}-{max} reps", { count: feitas, total: validas, min: ex.repsMin, max: ex.repsMax })}
+                        {t("{count}/{total} sets · target {min}-{max} reps", {
+                          count: feitas,
+                          total: validas,
+                          min: ex.repsMin,
+                          max: ex.repsMax,
+                        })}
                       </p>
                     </div>
                     <ChevronDown
@@ -749,11 +756,7 @@ function SessionPage() {
             <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
             {pendCount > 0 ? (
               <>
-                <Button
-                  variant="outline"
-                  className="tap-target"
-                  onClick={finishDiscardingPending}
-                >
+                <Button variant="outline" className="tap-target" onClick={finishDiscardingPending}>
                   {t("Discard")}
                 </Button>
                 <AlertDialogAction className="tap-target" onClick={finishIncludingPending}>
@@ -769,10 +772,7 @@ function SessionPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-
-      {restFinished ? (
-        <RestFinishedOverlay onResume={() => setRestFinished(false)} />
-      ) : null}
+      {restFinished ? <RestFinishedOverlay onResume={() => setRestFinished(false)} /> : null}
     </div>
   );
 }
@@ -780,7 +780,9 @@ function SessionPage() {
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="px-3 py-2">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </dt>
       <dd className={`text-lg font-semibold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
     </div>
   );
@@ -856,7 +858,9 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
           type="button"
           aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
           className={`tap-target h-11 w-full rounded-lg border text-xs font-semibold tabular-nums ${
-            value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
+            value
+              ? "border-info/60 bg-info/15 text-info"
+              : "border-border bg-muted text-muted-foreground"
           }`}
         >
           {value || t("RPE")}
@@ -962,9 +966,7 @@ function SetRow({
   }
 
   return (
-    <li
-      className={`space-y-1 rounded-lg p-1 ${set.concluida ? "bg-primary/10" : "bg-muted/20"}`}
-    >
+    <li className={`space-y-1 rounded-lg p-1 ${set.concluida ? "bg-primary/10" : "bg-muted/20"}`}>
       <div className={ROW_TOP}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -1023,11 +1025,7 @@ function SetRow({
       </div>
 
       <div className={ROW_STEP}>
-        <StepButton
-          dir="down"
-          label={t("Decrease weight")}
-          onClick={() => stepKg(-passoKg)}
-        />
+        <StepButton dir="down" label={t("Decrease weight")} onClick={() => stepKg(-passoKg)} />
         <Input
           value={set.pesoKg}
           onChange={(e) => onField("pesoKg", e.target.value)}
@@ -1051,7 +1049,6 @@ function SetRow({
     </li>
   );
 }
-
 
 function RestTimerBar({
   t,
@@ -1078,19 +1075,17 @@ function RestTimerBar({
             <Timer className="size-5" />
           </span>
           <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.02em] text-info/80">{t("Rest")}</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.02em] text-info/80">
+              {t("Rest")}
+            </p>
             <p
               role="timer"
               aria-live="off"
-              className={cn(
-                "num-big leading-none",
-                isLow ? "text-warn" : "text-info",
-              )}
+              className={cn("num-big leading-none", isLow ? "text-warn" : "text-info")}
             >
               {formatDuration(restLeft)}
             </p>
           </div>
-
         </div>
         <div className="flex gap-1.5">
           <Button
@@ -1161,4 +1156,3 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
     </div>
   );
 }
-

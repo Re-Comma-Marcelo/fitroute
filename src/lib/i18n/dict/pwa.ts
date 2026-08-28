@@ -10,7 +10,7 @@ export const dict: DictFragment = {
     "{delta} over your previous best of {previous}":
       "{delta} acima do seu melhor anterior de {previous}",
     "First time logged at this load": "Primeira vez registrado com esta carga",
-    "Vibration": "Vibração",
+    Vibration: "Vibração",
     "Short buzz when you complete a set or hit a personal record.":
       "Vibração curta ao concluir uma série ou bater um recorde.",
     "A routine is your list of exercises, sets and rep ranges — the coach uses it to plan each day.":
@@ -34,7 +34,7 @@ export const dict: DictFragment = {
     "{delta} over your previous best of {previous}":
       "{delta} boven je vorige record van {previous}",
     "First time logged at this load": "Voor het eerst gelogd met dit gewicht",
-    "Vibration": "Vibratie",
+    Vibration: "Vibratie",
     "Short buzz when you complete a set or hit a personal record.":
       "Korte vibratie als je een set afrondt of een record haalt.",
     "A routine is your list of exercises, sets and rep ranges — the coach uses it to plan each day.":

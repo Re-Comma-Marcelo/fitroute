@@ -77,7 +77,9 @@ function WorkoutDetail() {
       <div className="mx-auto max-w-md space-y-4 px-4 py-4">
         {workout ? (
           <div className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDateLong(workout.iniciadoEm)}</p>
+            <p className="text-sm text-muted-foreground first-letter:uppercase">
+              {formatDateLong(workout.iniciadoEm)}
+            </p>
             <p className="mt-2 text-base font-semibold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
               {t("{count} sets", { count: sets.length })}
@@ -106,7 +108,9 @@ function WorkoutDetail() {
                 {exSets.map((s) => (
                   <li key={s.id} className="flex justify-between tabular-nums">
                     <span className="text-muted-foreground">
-                      {s.tipoSerie === "aquecimento" ? t("Warm-up") : t("Set {num}", { num: s.serieNum })}
+                      {s.tipoSerie === "aquecimento"
+                        ? t("Warm-up")
+                        : t("Set {num}", { num: s.serieNum })}
                     </span>
                     <span className="font-semibold">
                       {s.pesoKg} kg × {s.reps}
@@ -122,7 +126,12 @@ function WorkoutDetail() {
                     <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
                       <CartesianGrid stroke="var(--border)" vertical={false} />
                       <XAxis dataKey="data" stroke="var(--muted-foreground)" fontSize={11} />
-                      <YAxis stroke="var(--muted-foreground)" fontSize={11} width={46} tickMargin={4} />
+                      <YAxis
+                        stroke="var(--muted-foreground)"
+                        fontSize={11}
+                        width={46}
+                        tickMargin={4}
+                      />
                       <Tooltip
                         contentStyle={{
                           background: "var(--surface-2)",

@@ -81,12 +81,16 @@ const AISLE_FALLBACK: Record<Aisle, number> = {
 const COUNTABLE = new Set(["unit", "slice", "can", "piece"]);
 
 /** Estimated cost in EUR for one shopping-list row. */
-export function estimateItemPrice(item: Pick<ShoppingItem, "name" | "qty" | "unit" | "aisle">): number {
+export function estimateItemPrice(
+  item: Pick<ShoppingItem, "name" | "qty" | "unit" | "aisle">,
+): number {
   const rate = PRICE[item.name] ?? AISLE_FALLBACK[item.aisle] ?? 0.5;
   const multiplier = COUNTABLE.has(item.unit) ? item.qty : item.qty / 100;
   return Math.max(0, rate * multiplier);
 }
 
-export function estimateTotalPrice(items: Pick<ShoppingItem, "name" | "qty" | "unit" | "aisle">[]): number {
+export function estimateTotalPrice(
+  items: Pick<ShoppingItem, "name" | "qty" | "unit" | "aisle">[],
+): number {
   return items.reduce((sum, item) => sum + estimateItemPrice(item), 0);
 }

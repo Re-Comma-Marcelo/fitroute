@@ -50,11 +50,12 @@ export function TodayCoachCard({
             <span className="mt-2 block">
               {preview ? (
                 <span className="block text-xs leading-relaxed text-muted-foreground">
-                  {preview}{" "}
-                  <span className="font-semibold text-primary/80">{t("See why")}</span>
+                  {preview} <span className="font-semibold text-primary/80">{t("See why")}</span>
                 </span>
               ) : (
-                <span className="text-xs font-semibold text-primary/80">{t("See why this session")}</span>
+                <span className="text-xs font-semibold text-primary/80">
+                  {t("See why this session")}
+                </span>
               )}
             </span>
           ) : null}
@@ -192,7 +193,12 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 function Bullet({ children, tone }: { children: React.ReactNode; tone?: "warn" }) {
   return (
     <li className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-      <span className={cn("mt-1.5 size-1.5 shrink-0 rounded-full", tone === "warn" ? "bg-warn" : "bg-primary/60")} />
+      <span
+        className={cn(
+          "mt-1.5 size-1.5 shrink-0 rounded-full",
+          tone === "warn" ? "bg-warn" : "bg-primary/60",
+        )}
+      />
       <span>{children}</span>
     </li>
   );
