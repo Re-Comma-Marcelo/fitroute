@@ -480,7 +480,7 @@ function ProfilePage() {
 
       {dirty ? (
         <div className="fixed inset-x-0 bottom-24 z-40 px-4">
-          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 shadow-lg backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 backdrop-blur">
             <p className="min-w-0 flex-1 pl-1 text-xs font-semibold text-muted-foreground">
               {t("Unsaved changes")}
             </p>

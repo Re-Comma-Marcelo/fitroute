@@ -131,7 +131,7 @@ function AuthPage() {
             aria-hidden
             width={192}
             height={192}
-            className="size-11 rounded-2xl border border-border/60 shadow-lg"
+            className="size-11 rounded-2xl border border-border/60"
           />
           <div>
             <p className="font-display text-lg font-semibold leading-none text-foreground">
@@ -150,7 +150,7 @@ function AuthPage() {
           {t("Log sets in two taps. Get routines, diet and coaching grounded in your own history.")}
         </p>
 
-        <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 shadow-2xl backdrop-blur-xl">
+        <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 backdrop-blur-xl">
 
           {checkEmail ? (
             <div className="space-y-3 text-center">
@@ -193,7 +193,7 @@ function AuthPage() {
                 <span className="h-px flex-1 bg-border" />
               </div>
 
-              <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-muted/40 p-1">
+              <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
                 {(["signin", "signup"] as Mode[]).map((value) => (
                   <button
                     key={value}
@@ -205,7 +205,7 @@ function AuthPage() {
                     className={cn(
                       "tap-target rounded-lg text-sm font-medium transition-colors",
                       mode === value
-                        ? "bg-card text-foreground shadow-sm"
+                        ? "bg-surface-3 text-foreground"
                         : "text-muted-foreground",
                     )}
                   >

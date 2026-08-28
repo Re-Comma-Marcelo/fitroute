@@ -52,7 +52,7 @@ export function CoachChatButton({
         type="button"
         className={
           className ??
-          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm"
+          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary"
         }
         aria-label={t("Ask your coach")}
       >
