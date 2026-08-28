@@ -52,19 +52,29 @@ export function PlanReview({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-xl border border-border/60 bg-card/50 p-4">
-        <p className="text-sm leading-relaxed text-muted-foreground">{plan.summary}</p>
+      <section className="rounded-xl border border-primary/25 bg-primary/5 p-4">
+        <p className="text-sm leading-relaxed text-foreground/90">{plan.summary}</p>
       </section>
 
       <section className="space-y-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <Dumbbell className="h-4 w-4" />
+          <span className="flex size-6 items-center justify-center rounded-md bg-primary/15 text-primary">
+            <Dumbbell className="h-3.5 w-3.5" />
+          </span>
           {t("Your week")}
         </h2>
         {planDayOrder(plan).map((day) => {
           const isOpen = open === day.day;
           return (
-            <div key={day.day} className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
+            <div
+              key={day.day}
+              className={cn(
+                "overflow-hidden rounded-xl border border-border/60 bg-card/40 border-l-[3px]",
+                day.kind === "gym" && "border-l-primary",
+                day.kind === "sport" && "border-l-accent",
+                day.kind === "rest" && "border-l-muted-foreground/40",
+              )}
+            >
               <button
                 type="button"
                 onClick={() => setOpen(isOpen ? null : day.day)}
