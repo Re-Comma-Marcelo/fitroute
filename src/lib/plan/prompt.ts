@@ -1,5 +1,6 @@
 import { exercises } from "../data/mocks";
 import { meals } from "../data/meals.mock";
+import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
 import { CONSULT_NOTE, filterMeals } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
