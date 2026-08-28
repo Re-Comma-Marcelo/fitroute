@@ -52,6 +52,8 @@ const FRAGMENTS: DictFragment[] = [
   generatedDict,
   metaDict,
   pwaDict,
+  onboardingDict,
+
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {
