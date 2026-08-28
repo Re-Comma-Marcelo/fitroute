@@ -167,9 +167,10 @@
       {
         "name": "log_coach_note",
         "title": "Log a coach note",
-        "description": "Turns something the user reported (soreness, an injury, how the week went) into a Forja note code they can import. The app's coach then references it when planning sessions.",
+        "description": "Records something the user reported (soreness, an injury, how the week went) directly in the connected user's app, so the in-app coach references it when planning sessions. Also returns an import code as a fallback.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {
