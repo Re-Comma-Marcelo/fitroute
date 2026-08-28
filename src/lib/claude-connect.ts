@@ -33,10 +33,10 @@ function isInaccessibleHost(host: string): boolean {
     host.startsWith("id-preview--") ||
     host.startsWith("preview--") ||
     host.endsWith(".lovableproject.com") ||
-    host.endsWith(".lovableproject-dev.com") ||
-    host.endsWith(".lovable.app")
+    host.endsWith(".lovableproject-dev.com")
   );
 }
+
 
 function normalizeOrigin(origin: string): string {
   return origin.replace(/\/+$/, "");
