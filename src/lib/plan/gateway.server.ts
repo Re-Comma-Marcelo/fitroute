@@ -27,7 +27,7 @@ function provider(apiKey: string) {
 function stripFence(text: string): string {
   const trimmed = text.trim();
   const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/);
-  const body = fenced ? fenced[1] : trimmed;
+  const body = (fenced ? fenced[1] : trimmed) ?? trimmed;
   const start = body.indexOf("{");
   const end = body.lastIndexOf("}");
   if (start === -1 || end === -1) return body;

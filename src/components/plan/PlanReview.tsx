@@ -72,7 +72,7 @@ export function PlanReview({
                 className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
               >
                 <span className="min-w-0">
-                  <span className="block text-sm font-medium">{t(DAY_LABEL[day.day])}</span>
+                  <span className="block text-sm font-medium">{t(DAY_LABEL[day.day] ?? "")}</span>
                   <span className="block truncate text-xs text-muted-foreground">
                     {day.kind === "rest" ? t("Rest") : day.label}
                     {day.minutes > 0 ? ` · ${day.minutes} ${t("min")}` : ""}
@@ -89,7 +89,7 @@ export function PlanReview({
                     const exercise = exerciseById.get(ex.exerciseId);
                     return (
                       <div key={ex.exerciseId} className="flex items-center gap-3">
-                        <ExerciseThumb exercise={exercise} className="h-10 w-10 shrink-0" />
+                        <ExerciseThumb grupo={exercise?.grupoPrimario} nome={exercise?.nome} className="h-10 w-10 shrink-0" />
                         <div className="min-w-0">
                           <p className="truncate text-sm">{exercise?.nome ?? ex.exerciseId}</p>
                           <p className="text-xs text-muted-foreground">

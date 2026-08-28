@@ -31,7 +31,7 @@ export function TimeReadBack({
   const t = useT();
 
   const slotPhrase = budget.gymSlots
-    .map((slot) => `${t(DAY_LABEL[slot.day])} ${t(slot.part)}`)
+    .map((slot) => `${t(DAY_LABEL[slot.day] ?? "")} ${t(slot.part)}`)
     .join(", ");
 
   return (
@@ -56,7 +56,7 @@ export function TimeReadBack({
             key={`${slot.day}-${slot.part}`}
             className="rounded-full bg-background/60 px-2.5 py-1 text-xs text-muted-foreground"
           >
-            {t(DAY_LABEL[slot.day])} · {slot.minutes} {t("min")}
+            {t(DAY_LABEL[slot.day] ?? "")} · {slot.minutes} {t("min")}
           </span>
         ))}
       </div>
