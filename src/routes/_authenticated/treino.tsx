@@ -192,7 +192,7 @@ function TrainPage() {
         <div className="flex items-end justify-between">
           <h2 className="label-caps">{t("Weekly goal")}</h2>
           <p className="font-display text-sm font-semibold tabular-nums">
-            <span className="text-primary">{doneThisWeek}</span>
+            <span className="text-train">{doneThisWeek}</span>
             <span className="text-muted-foreground">/{meta}</span>
           </p>
         </div>
@@ -204,7 +204,7 @@ function TrainPage() {
           {Array.from({ length: meta }, (_, i) => (
             <span
               key={i}
-              className={cn("h-1.5 flex-1 rounded-full", i < doneThisWeek ? "bg-primary" : "bg-muted")}
+              className={cn("h-1.5 flex-1 rounded-full", i < doneThisWeek ? "bg-train" : "bg-surface-3")}
             />
           ))}
         </div>

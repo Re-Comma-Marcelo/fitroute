@@ -319,7 +319,7 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
     <Card className="rounded-2xl border-border bg-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <Target className="size-4 text-primary" />
+          <Target className="size-4 text-train" />
           {t("Body goal")}
         </div>
         {profile.metaPrazo && (
@@ -338,14 +338,14 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
         </div>
         <div className="text-right">
           <p className="text-xs text-muted-foreground">{t("Target")}</p>
-          <p className="font-display text-3xl font-bold tabular-nums text-primary">
+          <p className="num-big text-train">
             {fmtKgLocale(target)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
           </p>
         </div>
       </div>
 
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+        <div className="h-full rounded-full bg-train" style={{ width: `${pct}%` }} />
       </div>
 
       <p className="mt-2 text-sm leading-snug text-muted-foreground">
@@ -386,9 +386,8 @@ function TodayCard({
   const t = useT();
   if (active) {
     return (
-      <Card className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary/20 via-primary/10 to-transparent p-5">
-        <div className="absolute -right-6 -top-6 size-24 rounded-full bg-primary/20 blur-2xl" />
-        <div className="relative">
+      <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
+                <div className="relative">
           <div className="flex items-center gap-2 text-sm font-semibold text-primary">
             <Flame className="size-4" />
             {t("Session in progress")}
@@ -424,9 +423,8 @@ function TodayCard({
   }
 
   return (
-    <Card className="relative overflow-hidden rounded-2xl border-primary/20 bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-5">
-      <div className="absolute -right-6 -top-6 size-24 rounded-full bg-primary/20 blur-2xl" />
-      <div className="relative">
+    <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
+            <div className="relative">
         <div className="flex items-center gap-2 text-sm font-semibold text-primary">
           <MessageSquare className="size-4" />
           {t("Today's training")}
@@ -481,7 +479,7 @@ function WeeklyGoalCard({
             key={i}
             className={cn(
               "h-2 flex-1 rounded-full",
-              filled ? "bg-primary" : "bg-muted",
+              filled ? "bg-train" : "bg-surface-3",
             )}
           />
         ))}
