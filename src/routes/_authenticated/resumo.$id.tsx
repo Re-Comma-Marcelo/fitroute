@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CountUp } from "@/components/CountUp";
 import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
@@ -120,7 +121,7 @@ function SummaryPage() {
         ) : null}
 
         <div className="mt-8 space-y-3">
-          <Button asChild className="shadow-elegant h-14 w-full text-base font-semibold">
+          <Button asChild className="h-14 w-full text-base font-semibold">
             <Link to="/progresso/$id" params={{ id }}>
               {t("View session details")}
             </Link>
@@ -138,7 +139,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <dt className="label-caps">{label}</dt>
-      <dd className="font-display mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
+      <dd className="num-big mt-1">{value}</dd>
     </div>
   );
 }
