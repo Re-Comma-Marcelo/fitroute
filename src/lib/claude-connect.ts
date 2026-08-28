@@ -1,12 +1,19 @@
 /**
  * Works out which address Claude can actually reach.
  *
- * The editor preview host is behind Lovable's login, so a connector URL built
- * from `window.location.origin` there answers 401 to Claude with no
- * explanation. Preview hosts do carry the project id, and the published app is
- * always reachable at the stable `project--<id>.lovable.app`, so we derive that
- * instead of showing a broken address. Nothing is invented: when no published
- * host can be derived we say so.
+ * The editor/preview host is behind Lovable's login, so a connector URL built
+ * from `window.location.origin` there answers 401/403 to Claude. When running on
+ * the published app we use the current origin directly.
+ *
+ * For preview/localhost builds, the real published origin can be supplied via
+ * the optional client env variable:
+ *
+ *   VITE_PUBLIC_APP_ORIGIN=https://gym-session-pro.lovable.app
+ *
+ * This must be the public app origin (no trailing path). When it is set, the
+ * section shows `${VITE_PUBLIC_APP_ORIGIN}/mcp` as the connector URL. When it is
+ * not set, no URL is shown and the user is instructed to open the screen on the
+ * published app.
  */
 
 export type ConnectorTarget = {
@@ -18,11 +25,21 @@ export type ConnectorTarget = {
   host: string | null;
 };
 
-const PREVIEW_MARKERS = ["id-preview--", "preview--"];
+function isInaccessibleHost(host: string): boolean {
+  if (host === "localhost" || host === "127.0.0.1" || host.endsWith(".local")) {
+    return true;
+  }
+  return (
+    host.startsWith("id-preview--") ||
+    host.startsWith("preview--") ||
+    host.endsWith(".lovableproject.com") ||
+    host.endsWith(".lovableproject-dev.com") ||
+    host.endsWith(".lovable.app")
+  );
+}
 
-function projectIdFromPreviewHost(host: string): string | null {
-  const match = /^(?:id-)?preview--([0-9a-f-]{36})/i.exec(host);
-  return match?.[1] ?? null;
+function normalizeOrigin(origin: string): string {
+  return origin.replace(/\/+$/, "");
 }
 
 export function resolveConnectorTarget(origin: string | null): ConnectorTarget {
@@ -35,20 +52,26 @@ export function resolveConnectorTarget(origin: string | null): ConnectorTarget {
     return { url: null, unreachable: true, host: null };
   }
 
-  const isLocal = host === "localhost" || host === "127.0.0.1" || host.endsWith(".local");
-  const isPreview =
-    PREVIEW_MARKERS.some((m) => host.startsWith(m)) ||
-    host.endsWith(".lovableproject.com") ||
-    host.endsWith(".lovableproject-dev.com");
-
-  if (!isLocal && !isPreview) {
-    return { url: `${origin.replace(/\/$/, "")}/mcp`, unreachable: false, host };
+  // Published app: current origin is the source of truth.
+  if (!isInaccessibleHost(host)) {
+    return { url: `${normalizeOrigin(origin)}/mcp`, unreachable: false, host };
   }
 
-  const projectId = projectIdFromPreviewHost(host);
-  if (projectId) {
-    const published = `project--${projectId}.lovable.app`;
-    return { url: `https://${published}/mcp`, unreachable: true, host: published };
+  // Preview/localhost: rely on the optional published-origin env variable.
+  const configuredOrigin =
+    typeof import.meta.env !== "undefined" && import.meta.env.VITE_PUBLIC_APP_ORIGIN
+      ? String(import.meta.env.VITE_PUBLIC_APP_ORIGIN)
+      : undefined;
+
+  if (configuredOrigin) {
+    const published = normalizeOrigin(configuredOrigin);
+    let publishedHost: string;
+    try {
+      publishedHost = new URL(published).hostname;
+    } catch {
+      return { url: null, unreachable: true, host: null };
+    }
+    return { url: `${published}/mcp`, unreachable: true, host: publishedHost };
   }
 
   return { url: null, unreachable: true, host: null };
