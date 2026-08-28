@@ -1,13 +1,14 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { exercises } from "@/lib/data/mocks";
+import { exercises as mockExercises } from "@/lib/data/mocks";
 import { encodeBridgeCode, type RoutinePayload } from "@/lib/claude-bridge";
+import { dbModule, requireMcpUser } from "../db";
 
 export default defineTool({
   name: "create_routine",
   title: "Create a workout routine",
   description:
-    "Builds a Forja workout routine from library exercises and returns an import code plus a readable summary. Call get_training_context first for valid exerciseId values.",
+    "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. Call get_training_context first for valid exerciseId values.",
   inputSchema: {
     name: z.string().min(1).max(60).describe("Routine name, e.g. 'Upper A'."),
     description: z.string().max(200).default("").describe("One line on the intent of the routine."),
@@ -26,24 +27,41 @@ export default defineTool({
       .max(15)
       .describe("Exercises in the order they should be performed."),
   },
-  annotations: { readOnlyHint: true, openWorldHint: false },
-  handler: (input) => {
-    const unknown = input.exercises.filter((e) => !exercises.some((x) => x.id === e.exerciseId));
+  annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+  handler: async (input, ctx) => {
+    // Writes require the caller to be the authenticated app user.
+    const userId = await requireMcpUser(ctx);
+    const { db, uid, unwrap } = await dbModule();
+    const client = db();
+
+    const bad = input.exercises.find((e) => e.repsMax < e.repsMin);
+    if (bad) {
+      return {
+        content: [{ type: "text", text: "repsMax must be greater than or equal to repsMin." }],
+        isError: true,
+      };
+    }
+
+    const ids = [...new Set(input.exercises.map((e) => e.exerciseId))];
+    const known = await client
+      .from("exercises")
+      .select("id, nome, user_id")
+      .in("id", ids)
+      .or(`user_id.is.null,user_id.eq.${userId}`);
+    const dbRows = (known.data ?? []) as { id: string; nome: string }[];
+    const nameOf = (id: string) =>
+      dbRows.find((r) => r.id === id)?.nome ?? mockExercises.find((x) => x.id === id)?.nome ?? id;
+    const unknown = ids.filter(
+      (id) => !dbRows.some((r) => r.id === id) && !mockExercises.some((x) => x.id === id),
+    );
     if (unknown.length) {
       return {
         content: [
           {
             type: "text",
-            text: `Unknown exerciseId: ${unknown.map((u) => u.exerciseId).join(", ")}. Call get_training_context and use only ids from that library.`,
+            text: `Unknown exerciseId: ${unknown.join(", ")}. Call get_training_context and use only ids from that library.`,
           },
         ],
-        isError: true,
-      };
-    }
-    const bad = input.exercises.find((e) => e.repsMax < e.repsMin);
-    if (bad) {
-      return {
-        content: [{ type: "text", text: "repsMax must be greater than or equal to repsMin." }],
         isError: true,
       };
     }
@@ -56,23 +74,74 @@ export default defineTool({
     };
     const code = encodeBridgeCode(payload);
 
+    // Idempotent by name, scoped to this user.
+    const existing = await client
+      .from("routines")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("nome", input.name)
+      .maybeSingle();
+    const updated = Boolean(existing.data?.id);
+    const routineId = (existing.data?.id as string | undefined) ?? uid("r");
+
+    unwrap(
+      await client
+        .from("routines")
+        .upsert(
+          {
+            id: routineId,
+            user_id: userId,
+            nome: payload.name,
+            descricao: payload.description,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "id" },
+        )
+        .select("id"),
+    );
+    unwrap(
+      await client.from("routine_exercises").delete().eq("routine_id", routineId).select("id"),
+    );
+    unwrap(
+      await client
+        .from("routine_exercises")
+        .insert(
+          payload.exercises.map((e, i) => ({
+            id: uid("rex"),
+            routine_id: routineId,
+            exercise_id: e.exerciseId,
+            ordem: i,
+            series_alvo: e.sets,
+            reps_min: e.repsMin,
+            reps_max: e.repsMax,
+            descanso_seg: e.restSec,
+            notas: e.notes,
+          })),
+        )
+        .select("id"),
+    );
+
     const lines = payload.exercises.map((e, i) => {
-      const ex = exercises.find((x) => x.id === e.exerciseId)!;
       const rest = `${Math.round(e.restSec / 60)}min`;
-      return `${i + 1}. ${ex.nome} — ${e.sets} × ${e.repsMin}-${e.repsMax}, rest ${rest}${e.notes ? ` (${e.notes})` : ""}`;
+      return `${i + 1}. ${nameOf(e.exerciseId)} — ${e.sets} × ${e.repsMin}-${e.repsMax}, rest ${rest}${e.notes ? ` (${e.notes})` : ""}`;
     });
 
     const summary = [
-      `${payload.name}${payload.description ? ` — ${payload.description}` : ""}`,
+      updated
+        ? `Routine "${payload.name}" updated in your app (${payload.exercises.length} exercises) — it already existed, so it was replaced instead of duplicated.`
+        : `Routine "${payload.name}" created in your app (${payload.exercises.length} exercises).`,
+      payload.description ? payload.description : "",
       ...lines,
       "",
-      "Paste this code into Forja → Profile → Claude → Import:",
+      "If you prefer to review it before it lands, this import code also works in Profile → Claude → Import:",
       code,
-    ].join("\n");
+    ]
+      .filter(Boolean)
+      .join("\n");
 
     return {
       content: [{ type: "text", text: summary }],
-      structuredContent: { code, routine: payload },
+      structuredContent: { saved: true, updated, routineId, code, routine: payload },
     };
   },
 });

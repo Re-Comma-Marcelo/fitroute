@@ -31,9 +31,10 @@
       {
         "name": "create_routine",
         "title": "Create a workout routine",
-        "description": "Builds a Forja workout routine from library exercises and returns an import code plus a readable summary. Call get_training_context first for valid exerciseId values.",
+        "description": "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. Call get_training_context first for valid exerciseId values.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {
