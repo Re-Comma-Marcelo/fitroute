@@ -347,7 +347,7 @@ function DietCard({ kcal, target }: { kcal: number; target: number }) {
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="label-caps">{t("Today's calories")}</p>
+        <p className="label-caps">{t("Today's plan")}</p>
         <Link to="/dieta" className="text-xs font-semibold text-primary underline-offset-2">
           {t("See diet")}
         </Link>
