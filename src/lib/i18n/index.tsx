@@ -16,7 +16,9 @@ import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
 import { dict as libraryDict } from "./dict/library";
 import { dict as metaDict } from "./dict/meta";
+import { dict as onboardingDict } from "./dict/onboarding";
 import { dict as planDict } from "./dict/plan";
+
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
 import { dict as pwaDict } from "./dict/pwa";
