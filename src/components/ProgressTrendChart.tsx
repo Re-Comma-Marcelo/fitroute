@@ -55,7 +55,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
                 <Bar
                   dataKey="volume"
-                  className="fill-primary"
+                  className="fill-train"
                   radius={[4, 4, 2, 2]}
                   maxBarSize={22}
                 />
@@ -72,9 +72,9 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 <Line
                   type="monotone"
                   dataKey="sessions"
-                  className="stroke-primary"
+                  className="stroke-train"
                   strokeWidth={2}
-                  dot={{ r: 2.5, className: "fill-primary stroke-primary" }}
+                  dot={{ r: 2.5, className: "fill-train stroke-train" }}
                 />
               </LineChart>
             )}

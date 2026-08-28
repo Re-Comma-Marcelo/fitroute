@@ -47,7 +47,7 @@ export function SessionMiniPlayer() {
 
   return (
     <div className="z-40 shrink-0 px-3 pb-2">
-      <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
           aria-label={t("Return to workout session")}

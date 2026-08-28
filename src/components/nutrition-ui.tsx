@@ -18,7 +18,7 @@ export function Ring({
   const c = 2 * Math.PI * r;
   return (
     <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-      <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={width} stroke="var(--muted)" fill="none" />
+      <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={width} stroke="var(--surface-3)" fill="none" />
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -42,7 +42,7 @@ export function MacroRings({
 }) {
   const t = useT();
   const macros = [
-    { label: t("Protein"), current: totals.proteinG, target: targets.proteinG, color: "var(--chart-1)" },
+    { label: t("Protein"), current: totals.proteinG, target: targets.proteinG, color: "var(--diet)" },
     { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
     { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
   ];
@@ -50,7 +50,7 @@ export function MacroRings({
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
-          <Ring pct={totals.kcal / Math.max(1, targets.kcal)} color="var(--primary)" size={120} width={9} />
+          <Ring pct={totals.kcal / Math.max(1, targets.kcal)} color="var(--diet)" size={120} width={9} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-bold tabular-nums">{totals.kcal}</span>
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground">

@@ -249,7 +249,7 @@ export function MealDetailSheet({
                       style={{ width: `${Math.min(100, pct(before, target))}%` }}
                     />
                     <div
-                      className="h-full bg-primary"
+                      className="h-full bg-diet"
                       style={{
                         width: `${Math.min(100 - Math.min(100, pct(before, target)), pct(after - before, target))}%`,
                       }}
@@ -277,7 +277,7 @@ export function MealDetailSheet({
             </p>
             <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
               <div
-                className="h-full rounded-full bg-primary"
+                className="h-full rounded-full bg-diet"
                 style={{ width: `${Math.min(100, pct(weekAfter.kcal, weeklyTargets.kcal))}%` }}
               />
             </div>
