@@ -88,19 +88,50 @@ export const dict: DictFragment = {
     "Claude / AI assistant": "Claude / assistente de IA",
     "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
       "Conecte o app ao seu próprio chat do Claude, peça uma rotina ou uma semana de refeições e importe o código que ele devolver.",
-    "1 · Connector URL": "1 · URL do conector",
-    "In Claude: Settings → Connectors → Add custom connector, and paste this URL.":
-      "No Claude: Configurações → Conectores → Adicionar conector personalizado e cole esta URL.",
+    "What Claude gets": "O que o Claude ganha",
+    "read the app's exercise and meal libraries":
+      "ler a biblioteca de exercícios e de refeições do app",
+    "build a workout routine": "montar uma rotina de treino",
+    "plan a week of meals": "planejar uma semana de refeições",
+    "log an observation for your coach": "registrar uma observação para o coach",
+    "All four only read — none of them writes into the app on its own.":
+      "As quatro apenas leem — nenhuma escreve no app sozinha.",
+    "1 · Copy the address": "1 · Copiar o endereço",
+    "You are on the editor preview. Claude cannot reach this address. Publish the app and use the published address.":
+      "Você está no preview do editor. O Claude não consegue acessar este endereço. Publique o app e use o endereço publicado.",
+    "This is the published address — the one to paste into Claude.":
+      "Este é o endereço publicado — é ele que você cola no Claude.",
+    "Publish the app, then open this screen on the published address to see the URL.":
+      "Publique o app e abra esta tela no endereço publicado para ver a URL.",
     "Copy URL": "Copiar URL",
     "Connector URL": "URL do conector",
-    "2 · Your training context": "2 · Seu contexto de treino",
-    "Paste this into the Claude chat first so it plans with your equipment, limits and recent sessions.":
-      "Cole isto primeiro no chat do Claude para que ele planeje com seus equipamentos, limites e treinos recentes.",
+    "2 · Add it in Claude": "2 · Adicionar no Claude",
+    'Customize → Connectors → "+" → Add custom connector → paste the URL → Add. You only do this once, and it works in Claude web, desktop and Cowork.':
+      'Customize → Connectors → "+" → Add custom connector → cole a URL → Add. Isso se faz uma única vez e funciona no Claude web, no desktop e no Cowork.',
+    "3 · Turn it on in the chat": "3 · Ligar na conversa",
+    'In every new conversation you have to switch the connector on: the "+" button in the message box → Connectors → enable it. This is the step people forget.':
+      'Em cada conversa nova é preciso ligar o conector: botão "+" da caixa de mensagem → Connectors → ative-o. Este é o passo que todo mundo esquece.',
+    "4 · Test it": "4 · Testar",
+    "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
+      "Use as ferramentas do Iron Logger: leia meu contexto de treino e monte uma rotina de superiores de 45 minutos com halteres e barra.",
+    "Copy the example": "Copiar o exemplo",
+    "Example question": "Pergunta de exemplo",
+    "If the answer contains a code starting with FORJA1., it worked.":
+      "Se a resposta trouxer um código começando em FORJA1., funcionou.",
+    "5 · Import it back": "5 · Importar de volta",
+    "Nothing enters the app until you confirm — the tools only read and hand back a code.":
+      "Nada entra no app sem você confirmar — as ferramentas só leem e devolvem um código.",
+    "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.":
+      "Isso não parece um código do Forja — copie o bloco inteiro que o Claude devolveu, incluindo a parte que começa com FORJA1.",
+    "Optional · your training context": "Opcional · seu contexto de treino",
+    "Optional — while the tools cannot read your data straight from the app, paste this into the chat so Claude plans with your equipment, your limits and your latest sessions.":
+      "Opcional — enquanto as ferramentas não leem seus dados direto do app, cole isto na conversa para o Claude planejar com o seu equipamento, seus limites e suas últimas sessões.",
     "Copy my training context": "Copiar meu contexto de treino",
     "Training context": "Contexto de treino",
-    "3 · Import from Claude": "3 · Importar do Claude",
+    "Cancel": "Cancelar",
     "Paste the FORJA1. code Claude returned…": "Cole o código FORJA1. que o Claude devolveu…",
     "Preview import": "Pré-visualizar importação",
+
     "Apply": "Aplicar",
     "{label} copied": "{label} copiado",
     "Could not copy — select the text manually.":
