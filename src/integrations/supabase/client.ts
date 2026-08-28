@@ -18,6 +18,15 @@ export function configureSupabase(next: { url: string; key: string } | null) {
 
 export const isSupabaseConfigured = () => Boolean(config);
 
+/**
+ * The resolved runtime config (URL + publishable key), or null when it has not
+ * been injected yet. Use this instead of build-time VITE_* variables.
+ */
+export function supabaseConfig(): { url: string; key: string } | null {
+  if (!config) configureSupabase(configFromWindow());
+  return config;
+}
+
 function configFromWindow() {
   if (typeof window === "undefined") return null;
   const injected = (
