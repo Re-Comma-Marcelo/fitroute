@@ -166,5 +166,17 @@ export const dict: DictFragment = {
     "Signed in": "Ingelogd",
     "Sign out": "Uitloggen",
     "Signing out…": "Uitloggen…",
+    "Your session expired. Sign in again and reopen this page from your assistant.":
+      "Je sessie is verlopen. Log opnieuw in en open deze pagina nogmaals via je assistent.",
+    "Supabase is not configured in this build, so the connection cannot be approved. Set the Supabase URL and publishable key, then reload this page.":
+      "Supabase is niet geconfigureerd in deze build, dus de verbinding kan niet worden goedgekeurd. Stel de Supabase-URL en de publiceerbare sleutel in en herlaad deze pagina.",
+    "This link is missing the authorization_id parameter. Start the connection again from your assistant.":
+      "In deze link ontbreekt de parameter authorization_id. Start de verbinding opnieuw via je assistent.",
+    "Supabase rejected the authorization (HTTP {status}): {message}":
+      "Supabase heeft de autorisatie geweigerd (HTTP {status}): {message}",
+    "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.":
+      "Supabase accepteerde het verzoek maar gaf geen redirect-URL terug. Controleer of de OAuth-server is ingeschakeld voor dit project.",
+    "The authorization request could not be sent: {message}":
+      "Het autorisatieverzoek kon niet worden verzonden: {message}",
   },
 };
