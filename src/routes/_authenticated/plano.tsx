@@ -29,6 +29,7 @@ import { useT } from "@/lib/i18n";
 import { generatePlan as generatePlanFn, translateGoal as translateGoalFn } from "@/lib/plan-ai.functions";
 import { applyPlan } from "@/lib/plan/apply";
 import { checkPace, checkTimeFit } from "@/lib/plan/guardrails";
+import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL, deriveExperience } from "@/lib/plan/experience";
 import { deriveTimeBudget } from "@/lib/plan/life";
 import {
   activeVersion,
@@ -54,6 +55,12 @@ export const Route = createFileRoute("/_authenticated/plano")({
 });
 
 const STEPS = ["You", "Goal", "Training", "Your life & time", "Food"];
+
+const EXPERIENCE_LABEL: Record<PlanIntake["experience"], string> = {
+  beginner: "Beginner",
+  intermediate: "Intermediate",
+  advanced: "Advanced",
+};
 
 const EQUIPMENT = ["Barbell", "Dumbbells", "Machine", "Cable", "Kettlebell", "Bodyweight", "Bands"];
 
@@ -86,7 +93,7 @@ function PlanPage() {
   useEffect(() => {
     const stored = readPlanState();
     setState(stored);
-    if (stored.intake) setIntake(stored.intake);
+    if (stored.intake) setIntake({ ...blankIntake(), ...stored.intake });
     if (stored.goal) {
       setGoal(stored.goal);
       setGoalConfirmed(true);
