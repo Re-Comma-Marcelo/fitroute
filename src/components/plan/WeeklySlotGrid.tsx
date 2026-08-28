@@ -44,7 +44,7 @@ export function WeeklySlotGrid({
       </div>
       {DAY_KEYS.map((day) => (
         <div key={day} className="grid grid-cols-[3rem_repeat(3,1fr)] items-center gap-1.5">
-          <span className="text-xs font-medium text-muted-foreground">{t(DAY_LABEL[day])}</span>
+          <span className="text-xs font-medium text-muted-foreground">{t(DAY_LABEL[day] ?? "")}</span>
           {SLOT_PARTS.map((part) => {
             const state = value[day][part];
             return (
@@ -52,7 +52,7 @@ export function WeeklySlotGrid({
                 key={part}
                 type="button"
                 onClick={() => cycle(day, part)}
-                aria-label={`${t(DAY_LABEL[day])} ${part}: ${state}`}
+                aria-label={`${t(DAY_LABEL[day] ?? "")} ${part}: ${state}`}
                 className={cn(
                   "h-11 rounded-lg border text-xs font-medium transition-colors active:scale-[0.98]",
                   state === "free" && "border-primary/50 bg-primary/15 text-primary",

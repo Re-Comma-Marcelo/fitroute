@@ -215,7 +215,7 @@ function PlanPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">{t("Get a plan")}</h1>
           <p className="text-sm text-muted-foreground">
-            {t("Step {n} of {total} — {label}", { n: step + 1, total: STEPS.length, label: t(STEPS[step]) })}
+            {t("Step {n} of {total} — {label}", { n: step + 1, total: STEPS.length, label: t(STEPS[step] ?? "") })}
           </p>
           <div className="flex gap-1">
             {STEPS.map((label, i) => (
