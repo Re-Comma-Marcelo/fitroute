@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBasket, Truck } from "lucide-react";
-import { formatWeekdayShort } from "@/lib/format";
+import { formatCurrency, formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -11,8 +11,8 @@ import {
   getShoppingList,
   isoDate,
   toggleCheckedItem,
-  weekDates,
 } from "@/lib/data/nutrition";
+import { estimateItemPrice, estimateTotalPrice } from "@/lib/data/prices";
 import type { ShoppingItem } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/market")({
@@ -30,15 +30,16 @@ function MarketPage() {
   const t = useT();
   const ranges = useMemo(() => [
     { id: "3", label: t("Next 3 days") },
-    { id: "7", label: t("Full week") },
+    { id: "7", label: t("Next 7 days") },
   ] as const, [t]);
 
-  const [range, setRange] = useState<"3" | "7">("7");
+  const [range, setRange] = useState<"3" | "7">("3");
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
 
+  // Both ranges roll forward from today so the shorter one is always a subset.
   const dates = useMemo(() => {
-    if (range === "7") return weekDates();
-    return Array.from({ length: 3 }, (_, i) => {
+    const length = range === "7" ? 7 : 3;
+    return Array.from({ length }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
       return isoDate(d);
@@ -70,8 +71,11 @@ function MarketPage() {
     return [...map.entries()];
   }, [listQ.data]);
 
-  const total = listQ.data?.items.length ?? 0;
-  const done = (listQ.data?.items ?? []).filter((i) => checked.includes(i.key)).length;
+  const items = listQ.data?.items ?? [];
+  const total = items.length;
+  const done = items.filter((i) => checked.includes(i.key)).length;
+  const estTotal = estimateTotalPrice(items);
+  const estLeft = estimateTotalPrice(items.filter((i) => !checked.includes(i.key)));
 
   return (
     <>
@@ -100,9 +104,21 @@ function MarketPage() {
         </section>
       ) : (
         <>
-          <p className="mt-4 text-xs font-medium text-muted-foreground">
-            {t("{done} of {total} items checked", { done, total })}
-          </p>
+          <section className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-primary/5 p-3.5">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {t("Estimated cost")}
+              </p>
+              <p className="text-xl font-semibold tabular-nums">{formatCurrency(estTotal)}</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t("~{amount} still to buy · rough estimate", { amount: formatCurrency(estLeft) })}
+              </p>
+            </div>
+            <div className="text-right text-xs text-muted-foreground">
+              <p>{t("{days} days covered", { days: dates.length })}</p>
+              <p className="mt-0.5">{t("{done} of {total} items checked", { done, total })}</p>
+            </div>
+          </section>
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
               <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
@@ -131,8 +147,11 @@ function MarketPage() {
                           >
                             {item.name}
                           </span>
-                          <span className="shrink-0 text-xs tabular-nums text-muted-foreground">
+                          <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                             {Math.round(item.qty * 10) / 10} {item.unit}
+                            <span className="block text-[11px] text-muted-foreground/70">
+                              ~{formatCurrency(estimateItemPrice(item))}
+                            </span>
                           </span>
                         </button>
                       </li>

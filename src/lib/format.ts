@@ -138,3 +138,12 @@ export function formatDateNumeric(value: Date | string): string {
     year: "numeric",
   }).format(asDate(value));
 }
+
+/** Estimated money, in the active locale. Amounts are rough supermarket prices. */
+export function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat(currentLocale, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: amount < 10 ? 2 : 0,
+  }).format(amount);
+}

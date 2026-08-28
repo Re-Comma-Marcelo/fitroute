@@ -1,5 +1,6 @@
 import { exercises } from "../data/mocks";
 import { meals } from "../data/meals.mock";
+import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
 import { CONSULT_NOTE, filterMeals } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
@@ -18,7 +19,8 @@ export function intakeSummary(intake: PlanIntake): string {
     "## Person",
     `- ${intake.age} y, ${intake.sex}, ${intake.heightCm} cm, ${intake.weightKg} kg`,
     `- Daily activity outside sport: ${intake.dailyActivity}`,
-    `- Experience: ${intake.experience}`,
+    `- Experience level (derived): ${intake.experience}`,
+    `- Training history: ${TRAINING_YEARS_LABEL[intake.trainingYears]}, consistency last 6 months: ${CONSISTENCY_LABEL[intake.consistency]}`,
     "",
     "## Goal",
     intake.goalMode === "number"

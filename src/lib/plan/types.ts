@@ -26,6 +26,8 @@ export type DailyActivity = "desk" | "onFeet" | "physical";
 export type WorkPattern = "regular" | "shifts" | "nights" | "travel";
 export type CookTime = "none" | "some" | "plenty";
 export type Experience = "beginner" | "intermediate" | "advanced";
+export type TrainingYears = "lt6m" | "6to12m" | "1to3y" | "3plus";
+export type Consistency = "barely" | "onOff" | "steady";
 export type Budget = "tight" | "normal" | "comfortable";
 export type TimeAdjust = "less" | "asIs" | "more";
 
@@ -44,6 +46,11 @@ export interface PlanIntake {
   // Step 3 — training
   equipment: string[];
   gymDaysPerWeek: number;
+  /** How long they have been training — asked directly. */
+  trainingYears: TrainingYears;
+  /** How consistent the last 6 months were — asked directly. */
+  consistency: Consistency;
+  /** Derived from trainingYears + consistency, never asked. */
   experience: Experience;
   limitations: string;
   sports: SportEntry[];
