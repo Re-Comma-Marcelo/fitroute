@@ -30,15 +30,16 @@ function MarketPage() {
   const t = useT();
   const ranges = useMemo(() => [
     { id: "3", label: t("Next 3 days") },
-    { id: "7", label: t("Full week") },
+    { id: "7", label: t("Next 7 days") },
   ] as const, [t]);
 
-  const [range, setRange] = useState<"3" | "7">("7");
+  const [range, setRange] = useState<"3" | "7">("3");
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
 
+  // Both ranges roll forward from today so the shorter one is always a subset.
   const dates = useMemo(() => {
-    if (range === "7") return weekDates();
-    return Array.from({ length: 3 }, (_, i) => {
+    const length = range === "7" ? 7 : 3;
+    return Array.from({ length }, (_, i) => {
       const d = new Date();
       d.setDate(d.getDate() + i);
       return isoDate(d);
