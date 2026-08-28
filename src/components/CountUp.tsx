@@ -48,13 +48,18 @@ export function CountUp({
 }) {
   const current = useCountUp(value);
   const text = format ? format(current) : current.toFixed(decimals);
+  const finalText = format ? format(value) : value.toFixed(decimals);
   return (
-    <span
-      className={className}
-      {...(ariaLabel ? { "aria-label": ariaLabel, role: "text" } : {})}
-      style={{ fontVariantNumeric: "tabular-nums" }}
-    >
-      {text}
-    </span>
+    <>
+      <span
+        aria-hidden="true"
+        className={className}
+        style={{ fontVariantNumeric: "tabular-nums" }}
+      >
+        {text}
+      </span>
+      {ariaLabel && <span className="sr-only">{ariaLabel}</span>}
+      {!ariaLabel && <span className="sr-only">{finalText}</span>}
+    </>
   );
 }

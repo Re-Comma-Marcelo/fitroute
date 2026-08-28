@@ -234,7 +234,9 @@ function SessionPage() {
 
   /** Zero finished workouts means this is the user's first session. */
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
-  const firstSession = (workoutsQuery.data ?? []).filter((w) => w.finalizadoEm).length === 0;
+  const firstSession =
+    workoutsQuery.isSuccess &&
+    (workoutsQuery.data ?? []).filter((w) => w.finalizadoEm).length === 0;
 
   /** Keep the screen awake while training; silently ignored where unsupported. */
   useEffect(() => {
@@ -282,9 +284,10 @@ function SessionPage() {
   /** First-ever session: two dismissible coach marks, shown once per device. */
   useEffect(() => {
     if (!hasSession || typeof window === "undefined") return;
+    if (!workoutsQuery.isSuccess) return;
     if (window.localStorage.getItem(COACH_MARK_KEY) === "done") return;
     if (firstSession) setCoachMark(1);
-  }, [hasSession, firstSession]);
+  }, [hasSession, workoutsQuery.isSuccess, firstSession]);
 
   const advanceCoachMark = useCallback(() => {
     setCoachMark((step) => {
