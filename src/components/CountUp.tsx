@@ -37,16 +37,23 @@ export function CountUp({
   decimals = 0,
   format,
   className,
+  "aria-label": ariaLabel,
 }: {
   value: number;
   decimals?: number;
   format?: (n: number) => string;
   className?: string;
+  /** Screen readers get the final value, not the animated frames. */
+  "aria-label"?: string;
 }) {
   const current = useCountUp(value);
   const text = format ? format(current) : current.toFixed(decimals);
   return (
-    <span className={className} style={{ fontVariantNumeric: "tabular-nums" }}>
+    <span
+      className={className}
+      {...(ariaLabel ? { "aria-label": ariaLabel, role: "text" } : {})}
+      style={{ fontVariantNumeric: "tabular-nums" }}
+    >
       {text}
     </span>
   );
