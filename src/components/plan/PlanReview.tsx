@@ -22,6 +22,20 @@ const DAY_LABEL: Record<string, string> = {
   sun: "Sunday",
 };
 
+const NOTES_KEY = "__notes";
+
+const MACROS: {
+  label: string;
+  suffix: string;
+  value: (d: GeneratedPlan["diet"]) => number;
+  className: string;
+}[] = [
+  { label: "kcal", suffix: "", value: (d) => d.kcal, className: "border-primary/30 bg-primary/10" },
+  { label: "Protein", suffix: "g", value: (d) => d.proteinG, className: "border-accent/30 bg-accent/10" },
+  { label: "Carbs", suffix: "g", value: (d) => d.carbsG, className: "border-border/60 bg-card/40" },
+  { label: "Fat", suffix: "g", value: (d) => d.fatG, className: "border-border/60 bg-card/40" },
+];
+
 export function PlanReview({
   plan,
   versions,
@@ -45,6 +59,7 @@ export function PlanReview({
 }) {
   const t = useT();
   const [open, setOpen] = useState<string | null>(null);
+  const [openMeal, setOpenMeal] = useState<string | null>(null);
   const [feedback, setFeedback] = useState("");
 
   const exerciseById = new Map(exercises.map((e) => [e.id, e]));
