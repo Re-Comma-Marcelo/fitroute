@@ -114,7 +114,8 @@
   /* Laranja — dados de treino (nunca em botões) */
   --train: oklch(0.7045 0.1926 39.23); /* #FF6B35 */
   --train-dim: oklch(0.4162 0.1058 40.94); /* #7A3418 */
-  --warn: oklch(0.7045 0.1926 39.23);
+  /* Aviso/manutenção = cinza neutro (nunca laranja de treino, nunca vermelho de erro) */
+  --warn: oklch(0.6488 0.0146 262.36); /* #8A8F98 */
   --warn-foreground: oklch(0.1493 0.0046 264.47);
   /* Teal — dados de nutrição (nunca em botões) */
   --diet: oklch(0.776 0.1512 166.17); /* #2DD4A0 */

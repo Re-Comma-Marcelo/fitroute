@@ -2,55 +2,45 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useT } from "@/lib/i18n";
-import {
-  Dumbbell,
-  ChevronRight,
-  Flame,
-  Clock,
-  Layers,
-  Timer,
-  MessageSquare,
-  Target,
-  Moon,
-} from "lucide-react";
+import { Check, ChevronRight, Dumbbell, Timer, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
-import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { getRoutines } from "@/lib/data/routines";
-import { getWorkouts } from "@/lib/data/workouts";
-import { getProfile } from "@/lib/data/profile";
-import { getRecentCoachNotes, saveCoachNote } from "@/lib/data/coach-notes";
-import { getTodayPlan } from "@/lib/coach/recommendations";
-import { currentWeekStart } from "@/lib/coach/signals";
-import { loadActiveSession, sessionLabel, type ActiveSession } from "@/lib/session-state";
-import { startRoutineSession, startBlankSession } from "@/lib/start-session";
-import {
-  formatDate,
-  formatDurationShort,
-  formatFullDate,
-  formatKg,
-  formatMonthYear,
-  formatNumber,
-  relativeDays,
-} from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { CountUp } from "@/components/CountUp";
 import { CoachChatButton } from "@/components/CoachChatSheet";
-import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
+import { useT } from "@/lib/i18n";
+import { getExercises } from "@/lib/data/exercises";
+import { getProfile } from "@/lib/data/profile";
+import { getRoutines } from "@/lib/data/routines";
+import { getWorkoutLog } from "@/lib/data/workouts";
+import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { loadActiveSession, sessionLabel } from "@/lib/session-state";
+import { startRoutineSession } from "@/lib/start-session";
+import { formatFullDate, formatKg, formatNumber, relativeDays } from "@/lib/format";
+import {
+  heatmap,
+  latestPR,
+  nextRoutine,
+  sessionsThisWeek,
+  trainedDays,
+  weekStreak,
+  weeklyVolume,
+  type HeatCell,
+  type PRInfo,
+} from "@/lib/home-metrics";
+import { cn } from "@/lib/utils";
 
-import type { CoachNote, Profile } from "@/lib/types";
-import type { TodayPlan } from "@/lib/coach/types";
+const QUICKSTART_KEY = "iron-logger-quickstart-done";
+const HEATMAP_WEEKS = 8;
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
   head: () => ({
     meta: pageMeta({
       title: "Home",
-      description: "Your training dashboard, weekly goal and coach recommendations.",
+      description: "Your weekly volume, consistency heatmap and latest personal record.",
       twitterCard: "summary",
     }),
   }),
@@ -61,61 +51,58 @@ export default function Inicio() {
   const navigate = useNavigate();
   const [active, setActive] = useState(loadActiveSession());
 
-  const h = new Date().getHours();
-  const greeting = h < 12 ? t("Good morning") : h < 18 ? t("Good afternoon") : t("Good evening");
-
   useEffect(() => {
     const id = setInterval(() => setActive(loadActiveSession()), 1000);
     return () => clearInterval(id);
   }, []);
 
+  const h = new Date().getHours();
+  const greeting = h < 12 ? t("Good morning") : h < 18 ? t("Good afternoon") : t("Good evening");
+
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
-  const workoutsQ = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
-  const coachQ = useQuery({ queryKey: ["coach-today"], queryFn: getTodayPlan });
-  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: () => getRecentCoachNotes() });
+  const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
+  const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
+  const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
+  const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
 
-  async function startAction() {
+  const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
+
+  const workouts = useMemo(() => logQ.data?.workouts ?? [], [logQ.data]);
+  const sets = useMemo(() => logQ.data?.sets ?? [], [logQ.data]);
+  const routines = routinesQ.data ?? [];
+
+  const volume = useMemo(() => weeklyVolume(workouts, sets), [workouts, sets]);
+  const cells = useMemo(() => heatmap(workouts, HEATMAP_WEEKS), [workouts]);
+  const sessions = useMemo(() => sessionsThisWeek(workouts), [workouts]);
+  const streak = useMemo(() => weekStreak(workouts), [workouts]);
+  const pr = useMemo(() => latestPR(workouts, sets), [workouts, sets]);
+  const next = useMemo(() => nextRoutine(routines, workouts), [routines, workouts]);
+
+  const hasData = workouts.some((w) => w.finalizadoEm);
+  const prName =
+    (pr && exercisesQ.data?.find((e) => e.id === pr.exerciseId)?.nome) || t("Latest PR");
+
+  const today = isoDate(new Date());
+  const kcalToday = useMemo(() => totalsFor(planQ.data?.[today]).kcal, [planQ.data, today]);
+  const kcalTarget = targetsQ.data?.kcal ?? 0;
+
+  async function primaryAction() {
     if (active) {
       navigate({ to: "/sessao" });
       return;
     }
-    const rec = coachQ.data?.recommendation;
-    if (rec?.routineId) {
-      await startRoutineSession(rec.routineId);
-    } else {
-      await startBlankSession();
+    if (next) {
+      await startRoutineSession(next.id);
+      navigate({ to: "/sessao" });
+      return;
     }
-    navigate({ to: "/sessao" });
+    navigate({ to: "/rotina/$id", params: { id: "nova" } });
   }
-
-  const profile = profileQ.data;
-  const routines = routinesQ.data ?? [];
-  const workouts = workoutsQ.data ?? [];
-  const coach = coachQ.data;
-  const notes = notesQ.data ?? [];
-
-  const weekStart = currentWeekStart();
-  const thisWeek = workouts.filter(
-    (w) => w.finalizadoEm && new Date(w.iniciadoEm).toISOString() >= weekStart,
-  );
-  const weekSessions = thisWeek.length;
-  const target = profile?.metaTreinosSemana ?? 4;
-  const weekVolume = thisWeek.reduce((sum, w) => sum + w.volumeTotalKg, 0);
-  const weekTime = thisWeek.reduce((sum, w) => sum + w.duracaoSeg, 0);
-
-  const isLoading =
-    profileQ.isLoading || routinesQ.isLoading || workoutsQ.isLoading || coachQ.isLoading;
-
-  const trainedToday = thisWeek.some(
-    (w) => new Date(w.iniciadoEm).toDateString() === new Date().toDateString(),
-  );
-  const restDay = !active && (trainedToday || weekSessions >= target);
 
   return (
     <AppShell hideHeader title={t("Home")}>
-      <div className="space-y-5 pb-28">
-        {/* Header */}
+      <div className="route-enter space-y-7 pb-28">
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-semibold tracking-tight">
@@ -123,7 +110,7 @@ export default function Inicio() {
               {isLoading ? (
                 <Skeleton className="inline-block h-6 w-24 align-middle" />
               ) : (
-                (profile?.nome.split(" ")[0] ?? t("Athlete"))
+                (profileQ.data?.nome.split(" ")[0] ?? t("Athlete"))
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{formatFullDate(new Date())}</p>
@@ -131,524 +118,314 @@ export default function Inicio() {
           <CoachChatButton />
         </header>
 
-        {/* Body goal */}
-        {isLoading ? (
-          <Skeleton className="h-40 w-full rounded-2xl" />
-        ) : (
-          <BodyGoalCard profile={profile} />
-        )}
+        <VolumeHero loading={isLoading} hasData={hasData} volume={volume} />
 
-        {/* Check-in */}
+        <HeatmapSection
+          loading={isLoading}
+          hasData={hasData}
+          cells={cells}
+          sessions={sessions}
+          streak={streak}
+        />
+
+        <PRCard loading={isLoading} pr={pr} name={prName} />
+
+        <div className="space-y-2">
+          <Button
+            onClick={primaryAction}
+            disabled={isLoading}
+            className="h-14 w-full text-base font-semibold"
+          >
+            {active ? (
+              <>
+                <Timer className="mr-2 size-5" /> {t("Resume workout")}
+              </>
+            ) : next ? (
+              <>
+                <Dumbbell className="mr-2 size-5" /> {t("Start {routine}", { routine: next.nome })}
+              </>
+            ) : (
+              <>
+                <Dumbbell className="mr-2 size-5" /> {t("Create my routine")}
+              </>
+            )}
+          </Button>
+          {active && (
+            <p className="text-center text-xs text-muted-foreground">{sessionLabel(active)}</p>
+          )}
+        </div>
+
+        <DietCard kcal={kcalToday} target={kcalTarget} />
+
         {!isLoading && (
-          <CheckInPrompt profile={profile} notes={notes} onSaved={() => notesQ.refetch()} />
-        )}
-
-        {/* Today recommendation */}
-        {isLoading ? (
-          <Skeleton className="h-40 w-full rounded-2xl" />
-        ) : (
-          <TodayCard
-            active={active}
-            restDay={restDay}
-            recommendation={coach?.recommendation}
-            onStart={startAction}
+          <QuickStartChecklist
+            hasRoutine={routines.length > 0}
+            hasWorkout={hasData}
+            hasPR={!!pr}
           />
         )}
-
-        {/* Weekly goal + segmented progress */}
-        {isLoading ? (
-          <Skeleton className="h-32 w-full rounded-2xl" />
-        ) : (
-          <WeeklyGoalCard
-            sessions={weekSessions}
-            target={target}
-            onStart={startAction}
-            active={!!active}
-          />
-        )}
-
-        {/* Optional AI plan entry — dismissible, never blocking */}
-        {!isLoading && <GetAPlanCard dismissible />}
-
-        {/* Insights */}
-        {!isLoading && coach?.insights && coach.insights.length > 0 && (
-          <div className="space-y-2">
-            <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("Coach notes")}
-            </h2>
-            <div className="grid gap-2">
-              {coach.insights.map((insight) => (
-                <Card
-                  key={insight.id}
-                  className={cn(
-                    "border-l-4 p-3 shadow-none",
-                    insight.severity === "warning"
-                      ? "border-l-warn bg-warn/10"
-                      : "border-l-info bg-info/10",
-                  )}
-                >
-                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    {insight.title}
-                  </p>
-                  <p className="mt-0.5 text-sm leading-snug">{insight.body}</p>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Metrics */}
-        {isLoading ? (
-          <Skeleton className="h-16 w-full rounded-2xl" />
-        ) : (
-          <div className="flex items-stretch justify-between rounded-2xl border border-border bg-card/50 p-3">
-            <Metric label={t("Volume")} value={formatKg(weekVolume)} icon={Layers} />
-            <Metric label={t("Time")} value={formatDurationShort(weekTime)} icon={Clock} />
-            <Metric label={t("Sets")} value={String(thisWeek.length * 4)} icon={Timer} />
-          </div>
-        )}
-
-        {/* Routines */}
-        <section>
-          <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("Routines")}
-            </h2>
-            <Link
-              to="/treino"
-              className="inline-flex items-center gap-1 text-xs font-semibold text-primary"
-            >
-              {t("See all")} <ChevronRight className="size-3.5" />
-            </Link>
-          </div>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-20 w-full rounded-2xl" />
-              <Skeleton className="h-20 w-full rounded-2xl" />
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {routines.slice(0, 2).map((r) => (
-                <RoutineCard key={r.id} routine={r} />
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Recent sessions */}
-        <section>
-          <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t("Recent sessions")}
-          </h2>
-          {isLoading ? (
-            <div className="space-y-2">
-              <Skeleton className="h-16 w-full rounded-xl" />
-              <Skeleton className="h-16 w-full rounded-xl" />
-            </div>
-          ) : workouts.length === 0 ? (
-            <p className="px-1 text-sm text-muted-foreground">{t("No sessions yet.")}</p>
-          ) : (
-            <div className="space-y-2">
-              {workouts
-                .filter((w) => w.finalizadoEm)
-                .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))
-                .slice(0, 3)
-                .map((w) => (
-                  <SessionRow key={w.id} workout={w} />
-                ))}
-            </div>
-          )}
-        </section>
       </div>
     </AppShell>
   );
 }
 
-function Metric({
-  label,
-  value,
-  icon: Icon,
+/* ---------- hero volume ---------- */
+
+function VolumeHero({
+  loading,
+  hasData,
+  volume,
 }: {
-  label: string;
-  value: string;
-  icon: React.ElementType;
+  loading: boolean;
+  hasData: boolean;
+  volume: ReturnType<typeof weeklyVolume>;
 }) {
-  return (
-    <div className="flex flex-1 items-center gap-2 px-2">
-      <div className="flex size-9 items-center justify-center rounded-full bg-muted">
-        <Icon className="size-4 text-muted-foreground" />
-      </div>
-      <div>
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
-        <p className="text-sm font-semibold tabular-nums">{value}</p>
-      </div>
-    </div>
-  );
-}
-
-function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
   const t = useT();
-  if (!profile?.pesoMetaKg) return null;
-  const current = profile.pesoKg;
-  const target = profile.pesoMetaKg;
-  const start = profile.pesoInicialKg ?? current;
-  const gaining = target >= start;
-  const total = Math.abs(target - start) || 1;
-  const done = Math.abs(current - start);
-  const pct = Math.max(0, Math.min(100, (done / total) * 100));
-  const remaining = Math.abs(target - current);
+  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
 
-  const daysElapsed = profile.metaIniciadaEm
-    ? Math.max(1, Math.round((Date.now() - new Date(profile.metaIniciadaEm).getTime()) / 86400000))
-    : 0;
-  const perDay = daysElapsed && done > 0 ? done / daysElapsed : 0;
-  const paceDate =
-    perDay > 0 && remaining > 0 ? new Date(Date.now() + (remaining / perDay) * 86400000) : null;
+  if (!hasData) {
+    return (
+      <section>
+        <p className="label-caps">{t("This week's volume")}</p>
+        <p className="num-hero mt-1 text-muted-foreground/30" aria-label="0 kg">
+          0 kg
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("Your first workout lights this number up.")}
+        </p>
+      </section>
+    );
+  }
 
-  const fmtKgLocale = (n: number) => formatNumber(n, 1);
-  const shortDate = (d: Date) => formatMonthYear(d);
+  const pct = volume.deltaPct;
+  const label = `${formatNumber(Math.round(volume.current))} kg`;
 
   return (
-    <Card className="rounded-2xl border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-          <Target className="size-4 text-train" />
-          {t("Body goal")}
-        </div>
-        {profile.metaPrazo && (
-          <span className="text-xs text-muted-foreground">
-            {t("by {date}", { date: shortDate(new Date(profile.metaPrazo)) })}
-          </span>
-        )}
-      </div>
-
-      <div className="mt-2 flex items-end justify-between gap-3">
-        <div>
-          <p className="text-xs text-muted-foreground">{t("Current")}</p>
-          <p className="font-display text-3xl font-semibold tabular-nums">
-            {fmtKgLocale(current)}{" "}
-            <span className="text-sm font-semibold text-muted-foreground">kg</span>
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-xs text-muted-foreground">{t("Target")}</p>
-          <p className="num-big text-train">
-            {fmtKgLocale(target)}{" "}
-            <span className="text-sm font-semibold text-muted-foreground">kg</span>
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-3">
-        <div className="h-full rounded-full bg-train" style={{ width: `${pct}%` }} />
-      </div>
-
-      <p className="mt-2 text-sm leading-snug text-muted-foreground">
-        {remaining < 0.05 ? (
-          t("Goal reached. Time to set a new one.")
-        ) : (
-          <>
-            <span className="font-semibold text-foreground">
-              {t("{remaining} kg", { remaining: fmtKgLocale(remaining) })}
-            </span>{" "}
-            {t("to {action}", { action: gaining ? t("gain") : t("lose") })}.
-            {paceDate ? (
-              <> {t("At the current pace: {date}", { date: formatDate(paceDate.toISOString()) })}</>
-            ) : (
-              t(" Log your weight to project a date.")
-            )}
-          </>
-        )}
+    <section>
+      <p className="label-caps">{t("This week's volume")}</p>
+      <p className="num-hero mt-1" aria-label={label}>
+        <span aria-hidden="true">
+          <CountUp value={volume.current} format={(n) => formatNumber(Math.round(n))} />{" "}
+          <span className="text-xl font-semibold text-muted-foreground">kg</span>
+        </span>
       </p>
-    </Card>
+      <p
+        className={cn(
+          "mt-1 text-sm font-semibold",
+          volume.isRecord
+            ? "text-success"
+            : pct === null
+              ? "text-muted-foreground"
+              : pct >= 0
+                ? "text-train"
+                : "text-muted-foreground",
+        )}
+      >
+        {volume.isRecord
+          ? t("New weekly record")
+          : pct === null
+            ? t("First week logged")
+            : t("{pct}% vs last week", {
+                pct: `${pct >= 0 ? "+" : ""}${formatNumber(pct, 0)}`,
+              })}
+      </p>
+    </section>
   );
 }
 
-function TodayCard({
-  active,
-  restDay,
-  recommendation,
-  onStart,
-}: {
-  active: ActiveSession | null;
-  restDay?: boolean;
-  recommendation?: TodayPlan["recommendation"] | undefined;
-  onStart: () => void;
-}) {
-  const t = useT();
-  if (active) {
-    return (
-      <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
-        <div className="relative">
-          <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-            <Flame className="size-4" />
-            {t("Session in progress")}
-          </div>
-          <h2 className="mt-2 font-display text-xl font-semibold">{sessionLabel(active)}</h2>
-          <p className="text-sm text-muted-foreground">
-            {t("Tap resume to keep going where you left off.")}
-          </p>
-          <Button onClick={onStart} className="mt-4 w-full font-semibold">
-            <Timer className="mr-2 size-4" /> {t("Resume workout")}
-          </Button>
-        </div>
-      </Card>
-    );
-  }
+/* ---------- consistency heatmap ---------- */
 
-  if (restDay) {
-    return (
-      <Card className="rounded-2xl border-border bg-card p-5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-warn">
-          <Moon className="size-4" />
-          {t("Today's training")}
-        </div>
-        <h2 className="mt-2 font-display text-xl font-semibold">{t("Rest day")}</h2>
-        <p className="text-sm leading-snug text-muted-foreground">
-          {t("Use it to recover. Hydrate and sleep well.")}
-        </p>
-        <Button onClick={onStart} variant="outline" className="mt-4 w-full font-semibold">
-          <Dumbbell className="mr-2 size-4" /> {t("Train anyway")}
-        </Button>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="relative overflow-hidden rounded-2xl border-border bg-surface-2 p-5">
-      <div className="relative">
-        <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-          <MessageSquare className="size-4" />
-          {t("Today's training")}
-        </div>
-        <h2 className="mt-2 font-display text-xl font-semibold">
-          {recommendation?.title ?? t("Start a workout")}
-        </h2>
-        <p className="text-sm leading-snug text-muted-foreground">
-          {recommendation?.reason ?? t("Pick a routine and start logging.")}
-        </p>
-        <Button onClick={onStart} className="mt-4 w-full font-semibold">
-          <Dumbbell className="mr-2 size-4" />
-          {recommendation?.routineId ? t("Start recommended") : t("Start blank workout")}
-        </Button>
-      </div>
-    </Card>
-  );
-}
-
-function WeeklyGoalCard({
+function HeatmapSection({
+  loading,
+  hasData,
+  cells,
   sessions,
-  target,
-  onStart,
-  active,
+  streak,
 }: {
+  loading: boolean;
+  hasData: boolean;
+  cells: HeatCell[];
   sessions: number;
-  target: number;
-  onStart: () => void;
-  active: boolean;
+  streak: number;
 }) {
   const t = useT();
-  const blocks = Array.from({ length: target }, (_, i) => i < sessions);
+  if (loading) return <Skeleton className="h-28 w-full rounded-2xl" />;
+
+  const total = cells.length;
+  const days = trainedDays(cells);
+  const ghostIdx = new Set([total - 12, total - 9, total - 5, total - 2]);
+
   return (
-    <Card className="rounded-2xl border-border bg-card p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {t("Weekly goal")}
-          </p>
-          <p className="mt-0.5 text-lg font-semibold">
-            {t("{sessions}/{target} sessions", { sessions, target })}
-          </p>
-        </div>
-        <Button onClick={onStart} variant="outline" className="h-10 font-semibold">
-          {active ? t("Resume") : t("Train")}
-        </Button>
-      </div>
-      <div className="mt-3 flex gap-1.5">
-        {blocks.map((filled, i) => (
+    <section>
+      <p className="label-caps">{t("Consistency")}</p>
+      <div
+        role="img"
+        aria-label={t("Trained on {days} of the last {total} days", { days, total })}
+        className="mt-2 grid grid-flow-col grid-rows-7 gap-1"
+      >
+        {cells.map((cell, i) => (
           <div
-            key={i}
-            className={cn("h-2 flex-1 rounded-full", filled ? "bg-train" : "bg-surface-3")}
+            key={cell.date}
+            className={cn(
+              "aspect-square rounded-[3px]",
+              cell.level === 2
+                ? "bg-train"
+                : cell.level === 1
+                  ? "bg-train-dim"
+                  : "bg-surface-3",
+              !hasData && ghostIdx.has(i) && "bg-train/30",
+              cell.isToday && "ring-1 ring-inset ring-foreground/40",
+            )}
           />
         ))}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        {sessions >= target
-          ? t("Weekly goal hit. Well done.")
-          : t("{count} more to hit your weekly target.", { count: target - sessions })}
+        {hasData
+          ? t("{sessions} workouts this week · {weeks} week streak", { sessions, weeks: streak })
+          : t("Your first square shows up today.")}
       </p>
+    </section>
+  );
+}
+
+/* ---------- latest PR ---------- */
+
+function PRCard({
+  loading,
+  pr,
+  name,
+}: {
+  loading: boolean;
+  pr: PRInfo | null;
+  name: string;
+}) {
+  const t = useT();
+  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
+
+  if (!pr) {
+    return (
+      <Card className="rounded-2xl border-border bg-surface-1 p-4">
+        <p className="label-caps">{t("Latest PR")}</p>
+        <div className="mt-3 h-4 w-2/3 rounded-full bg-surface-3" />
+        <div className="mt-2 h-4 w-1/3 rounded-full bg-surface-3" />
+        <p className="mt-3 text-sm text-muted-foreground">
+          {t("Complete a workout to log your first record.")}
+        </p>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="rounded-2xl border-border bg-surface-1 p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="label-caps">{t("Latest PR")}</p>
+        <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success">
+          <Trophy className="size-3" /> PR
+        </span>
+      </div>
+      <p className="mt-2 truncate font-semibold">{name}</p>
+      <div className="mt-1 flex items-end justify-between gap-3">
+        <p className="num-big">
+          {formatKg(pr.pesoKg)}{" "}
+          <span className="text-sm font-semibold text-muted-foreground">
+            × {pr.reps}
+          </span>
+        </p>
+        {pr.date && (
+          <p className="text-xs text-muted-foreground">{relativeDays(pr.date)}</p>
+        )}
+      </div>
     </Card>
   );
 }
 
-function RoutineCard({ routine }: { routine: Awaited<ReturnType<typeof getRoutines>>[number] }) {
+/* ---------- diet ---------- */
+
+function DietCard({ kcal, target }: { kcal: number; target: number }) {
   const t = useT();
-  const first = routine.exercicios[0];
-  const primaryGroup = first ? first.exerciseId : "";
-  // Note: this is a placeholder group; real group would come from exercise lookup.
+  const pct = target > 0 ? Math.max(0, Math.min(100, (kcal / target) * 100)) : 0;
   return (
-    <Link
-      to="/rotina/$id"
-      params={{ id: routine.id }}
-      className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 transition-colors hover:bg-accent"
-    >
-      <ExerciseThumb grupo="Chest" className="size-14 rounded-xl" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{routine.nome}</p>
-        <p className="text-sm text-muted-foreground">
-          {t("{count} exercises", { count: routine.exercicios.length })}
-        </p>
+    <Card className="rounded-2xl border-border bg-card p-4">
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="label-caps">{t("Today's calories")}</p>
+        <Link to="/dieta" className="text-xs font-semibold text-primary underline-offset-2">
+          {t("See diet")}
+        </Link>
       </div>
-      <ChevronRight className="size-5 text-muted-foreground transition-colors group-hover:text-primary" />
-    </Link>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-diet">
+        {formatNumber(Math.round(kcal))}{" "}
+        <span className="text-sm font-semibold text-muted-foreground">
+          {t("of {target} kcal", { target: formatNumber(Math.round(target)) })}
+        </span>
+      </p>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+        <div className="h-full rounded-full bg-diet" style={{ width: `${pct}%` }} />
+      </div>
+    </Card>
   );
 }
 
-function SessionRow({ workout }: { workout: Awaited<ReturnType<typeof getWorkouts>>[number] }) {
-  const t = useT();
-  return (
-    <Link
-      to="/resumo/$id"
-      params={{ id: workout.id }}
-      className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-accent"
-    >
-      <ExerciseThumb grupo="Back" className="size-12 rounded-lg" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold">
-          {workout.routineId ? t("Routine") : t("Free workout")} ·{" "}
-          {relativeDays(workout.iniciadoEm)}
-        </p>
-        <p className="text-xs text-muted-foreground">
-          {formatDate(workout.iniciadoEm)} · {formatDurationShort(workout.duracaoSeg)}
-        </p>
-      </div>
-      <div className="text-right">
-        <p className="text-sm font-semibold tabular-nums">{formatKg(workout.volumeTotalKg)}</p>
-        <p className="text-[10px] text-muted-foreground">{t("volume")}</p>
-      </div>
-    </Link>
-  );
-}
+/* ---------- quick start checklist ---------- */
 
-function CheckInPrompt({
-  profile,
-  notes,
-  onSaved,
+function QuickStartChecklist({
+  hasRoutine,
+  hasWorkout,
+  hasPR,
 }: {
-  profile: Profile | undefined;
-  notes: CoachNote[];
-  onSaved: () => void;
+  hasRoutine: boolean;
+  hasWorkout: boolean;
+  hasPR: boolean;
 }) {
   const t = useT();
-  if (profile?.checkInMode === "prompt") return null;
-  const day = new Date().getDay();
-  if (day !== 0 && day !== 1) return null;
-  const recent = notes.some(
-    (n) => n.createdAt > new Date(Date.now() - 7 * 86400000).toISOString() && n.kind === "checkin",
-  );
-  if (recent) return null;
+  const [dismissed, setDismissed] = useState(true);
 
-  return (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Card className="cursor-pointer rounded-2xl border-warn/30 bg-warn/10 p-3">
-          <p className="text-sm font-semibold text-warn">{t("Weekly check-in")}</p>
-          <p className="text-xs text-muted-foreground">
-            {t("Two quick questions to keep your coach aligned.")}
-          </p>
-        </Card>
-      </SheetTrigger>
-      <SheetContent side="bottom" className="flex flex-col">
-        <SheetHeader className="pb-2">
-          <SheetTitle>{t("Weekly check-in")}</SheetTitle>
-        </SheetHeader>
-        <CheckInForm onSaved={onSaved} />
-      </SheetContent>
-    </Sheet>
-  );
-}
+  useEffect(() => {
+    setDismissed(localStorage.getItem(QUICKSTART_KEY) === "1");
+  }, []);
 
-function CheckInForm({ onSaved }: { onSaved: () => void }) {
-  const t = useT();
-  const [soreness, setSoreness] = useState("");
-  const [workoutIssue, setWorkoutIssue] = useState<string | null>(null);
-  const [note, setNote] = useState("");
-  const [saving, setSaving] = useState(false);
-
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
-    const tags: string[] = [];
-    if (soreness.trim()) tags.push("soreness");
-    if (workoutIssue) tags.push(workoutIssue);
-    await saveCoachNote({
-      kind: "checkin",
-      content: [soreness, note].filter(Boolean).join(" ") || "Weekly check-in",
-      tags,
-    });
-    setSaving(false);
-    onSaved();
-  }
-
-  const issues = [
-    { value: "too-long", label: t("Too long") },
-    { value: "disliked", label: t("Disliked an exercise") },
-    { value: "missed", label: t("Missed sessions") },
-    { value: "none", label: t("Nothing") },
+  const items = [
+    { label: t("Account created"), done: true },
+    { label: t("Create a routine"), done: hasRoutine },
+    { label: t("First workout"), done: hasWorkout },
+    { label: t("First PR"), done: hasPR },
   ];
+  const complete = items.every((i) => i.done);
+
+  useEffect(() => {
+    if (complete) {
+      localStorage.setItem(QUICKSTART_KEY, "1");
+      setDismissed(true);
+    }
+  }, [complete]);
+
+  if (dismissed || complete) return null;
 
   return (
-    <form onSubmit={submit} className="space-y-4 pb-6">
-      <div>
-        <label className="mb-1.5 block text-sm font-semibold">
-          {t("Did anything bother you last week?")}
-        </label>
-        <p className="mb-2 text-xs text-muted-foreground">
-          {t("Soreness, tweak, or anything that limited your training.")}
-        </p>
-        <textarea
-          value={soreness}
-          onChange={(e) => setSoreness(e.target.value)}
-          placeholder={t("Knee felt off on squats...")}
-          className="min-h-[80px] w-full rounded-xl border border-border bg-card p-3 text-sm"
-        />
-      </div>
-      <div>
-        <label className="mb-2 block text-sm font-semibold">
-          {t("Did anything about the workouts not work?")}
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {issues.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              onClick={() => setWorkoutIssue(opt.value === "none" ? null : opt.value)}
+    <Card className="rounded-2xl border-border bg-card p-4">
+      <p className="label-caps">{t("Quick start")}</p>
+      <ul className="mt-3 space-y-2">
+        {items.map((item) => (
+          <li key={item.label} className="flex items-center gap-2 text-sm">
+            <span
               className={cn(
-                "tap-target rounded-full border px-3 py-1.5 text-xs font-semibold",
-                workoutIssue === opt.value
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card",
+                "flex size-5 items-center justify-center rounded-full border",
+                item.done ? "border-success bg-success-bg text-success" : "border-border",
               )}
             >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div>
-        <label className="mb-1.5 block text-sm font-semibold">{t("Anything else?")}</label>
-        <textarea
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder={t("Sleep, stress, nutrition, energy...")}
-          className="min-h-[60px] w-full rounded-xl border border-border bg-card p-3 text-sm"
-        />
-      </div>
-      <Button type="submit" className="w-full font-semibold" disabled={saving}>
-        {t("Save check-in")}
-      </Button>
-    </form>
+              {item.done && <Check className="size-3" />}
+            </span>
+            <span className={item.done ? "text-success" : "text-muted-foreground"}>
+              {item.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <Link
+        to="/treino"
+        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"
+      >
+        {t("Routines")} <ChevronRight className="size-3.5" />
+      </Link>
+    </Card>
   );
 }
