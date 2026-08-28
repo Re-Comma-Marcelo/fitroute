@@ -151,14 +151,12 @@ export function latestPR(workouts: Workout[], sets: WorkoutSet[]): PRInfo | null
     const prior = best.get(s.exerciseId) ?? 0;
     if (s.pesoKg > prior) {
       best.set(s.exerciseId, s.pesoKg);
-      if (prior > 0 || chronological.length > 0) {
-        last = {
-          exerciseId: s.exerciseId,
-          pesoKg: s.pesoKg,
-          reps: s.reps,
-          date: startedAt.get(s.workoutId) ?? "",
-        };
-      }
+      last = {
+        exerciseId: s.exerciseId,
+        pesoKg: s.pesoKg,
+        reps: s.reps,
+        date: startedAt.get(s.workoutId) ?? "",
+      };
     }
   }
   return last;
