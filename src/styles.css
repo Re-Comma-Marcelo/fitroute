@@ -294,6 +294,27 @@
   }
 }
 
+@keyframes set-pop {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes set-flash {
+  0% {
+    background-color: color-mix(in oklab, var(--success) 10%, transparent);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
 @utility route-enter {
   animation: route-enter 150ms ease-out both;
 }
@@ -302,9 +323,21 @@
   animation: pr-pop 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+/* Feedback for completing a set: the check pops, the row flashes green. */
+@utility set-pop {
+  animation: set-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@utility set-flash {
+  animation: set-flash 400ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .route-enter,
-  .pr-pop {
+  .pr-pop,
+  .set-pop,
+  .set-flash {
     animation: none;
   }
 }
+
