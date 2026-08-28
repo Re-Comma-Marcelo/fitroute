@@ -58,6 +58,15 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-surface-1: var(--card);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-train: var(--train);
+  --color-train-dim: var(--train-dim);
+  --color-diet: var(--diet);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
