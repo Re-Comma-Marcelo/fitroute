@@ -125,7 +125,7 @@ function WorkoutDetail() {
                       <YAxis stroke="var(--muted-foreground)" fontSize={11} width={46} tickMargin={4} />
                       <Tooltip
                         contentStyle={{
-                          background: "var(--popover)",
+                          background: "var(--surface-2)",
                           border: "1px solid var(--border)",
                           borderRadius: 12,
                           color: "var(--popover-foreground)",
@@ -135,9 +135,9 @@ function WorkoutDetail() {
                       <Line
                         type="monotone"
                         dataKey="pesoKg"
-                        stroke="var(--primary)"
+                        stroke="var(--train)"
                         strokeWidth={2.5}
-                        dot={{ r: 3, fill: "var(--primary)" }}
+                        dot={{ r: 3, fill: "var(--train)" }}
                       />
                     </LineChart>
                   </ResponsiveContainer>
