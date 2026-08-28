@@ -52,6 +52,9 @@ function OnboardingPage() {
   const [step, setStep] = useState<Step>("value");
   const [answers, setAnswers] = useState<Partial<StarterAnswers>>({});
   const [creating, setCreating] = useState(false);
+  const reducedMotion =
+    typeof window !== "undefined" &&
+    Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
 
   const finish = () => {
     markOnboardingDone();
@@ -238,8 +241,12 @@ function OnboardingPage() {
                   className="w-3 rounded-full bg-primary"
                   style={{
                     height: `${16 + i * 10}px`,
-                    animation: "pulse 1.2s ease-in-out infinite",
-                    animationDelay: `${i * 120}ms`,
+                    ...(reducedMotion
+                      ? {}
+                      : {
+                          animation: "pulse 1.2s ease-in-out infinite",
+                          animationDelay: `${i * 120}ms`,
+                        }),
                   }}
                 />
               ))}
