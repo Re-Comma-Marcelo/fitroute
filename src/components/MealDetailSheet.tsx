@@ -174,7 +174,7 @@ export function MealDetailSheet({
           {/* Macro breakdown */}
           <section>
             <h3 className="label-caps text-xs text-muted-foreground">{t("Macro breakdown")}</h3>
-            <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-full bg-muted">
+            <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-full bg-surface-3">
               {macros.map((m) => (
                 <div
                   key={m.label}
@@ -243,7 +243,7 @@ export function MealDetailSheet({
                       })}
                     </span>
                   </div>
-                  <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-muted">
+                  <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-surface-3">
                     <div
                       className="h-full bg-muted-foreground/60"
                       style={{ width: `${Math.min(100, pct(before, target))}%` }}
@@ -275,7 +275,7 @@ export function MealDetailSheet({
                 proteinPct: pct(meal.proteinG, weeklyTargets.proteinG)
               })}
             </p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-3">
               <div
                 className="h-full rounded-full bg-diet"
                 style={{ width: `${Math.min(100, pct(weekAfter.kcal, weeklyTargets.kcal))}%` }}

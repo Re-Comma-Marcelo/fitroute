@@ -1116,7 +1116,7 @@ function RestTimerBar({
           </Button>
         </div>
       </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-muted">
+      <div className="h-2.5 overflow-hidden rounded-full bg-surface-3">
         <div
           className={cn(
             "h-full rounded-full transition-[width] duration-1000 ease-linear",

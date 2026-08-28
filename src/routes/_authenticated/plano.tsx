@@ -228,7 +228,7 @@ function PlanPage() {
             {STEPS.map((label, i) => (
               <span
                 key={label}
-                className={cn("h-1 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-muted")}
+                className={cn("h-1 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-surface-3")}
               />
             ))}
           </div>
@@ -343,7 +343,7 @@ function PlanPage() {
             </Field>
 
             {pace && !pace.ok ? (
-              <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-300">
+              <div className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
                 {t(
                   "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
                   { rate: pace.weeklyKg, safe: pace.safeWeeklyKg, weeks: pace.suggestedWeeks },
@@ -382,7 +382,7 @@ function PlanPage() {
                   <p className="text-muted-foreground">{goal.bodyCompNote}</p>
                   <p className="text-muted-foreground">{goal.rationale}</p>
                   {goal.unrealistic ? (
-                    <p className="text-amber-300">
+                    <p className="text-warn">
                       {t("We stretched the timeline to {weeks} weeks to keep this healthy.", {
                         weeks: goal.saferTimelineWeeks,
                       })}
@@ -584,7 +584,7 @@ function PlanPage() {
             />
 
             {timeWarning ? (
-              <p className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-300">
+              <p className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
                 {t(timeWarning)}
               </p>
             ) : null}

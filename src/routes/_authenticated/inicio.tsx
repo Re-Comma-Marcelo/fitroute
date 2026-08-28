@@ -344,7 +344,7 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
         </div>
       </div>
 
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
+      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-3">
         <div className="h-full rounded-full bg-train" style={{ width: `${pct}%` }} />
       </div>
 

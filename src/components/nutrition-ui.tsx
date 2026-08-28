@@ -67,7 +67,7 @@ export function MacroRings({
                   {m.current}/{m.target}g
                 </span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
                 <div
                   className="h-full rounded-full"
                   style={{
