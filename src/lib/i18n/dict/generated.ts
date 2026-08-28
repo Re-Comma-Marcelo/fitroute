@@ -97,13 +97,12 @@ export const dict: DictFragment = {
     "All four only read — none of them writes into the app on its own.":
       "As quatro apenas leem — nenhuma escreve no app sozinha.",
     "1 · Copy the address": "1 · Copiar o endereço",
-    "You are on the editor preview. Claude cannot reach this address. Publish the app and use the published address.":
-      "Você está no preview do editor. O Claude não consegue acessar este endereço. Publique o app e use o endereço publicado.",
-    "This is the published address — the one to paste into Claude.":
-      "Este é o endereço publicado — é ele que você cola no Claude.",
-    "Publish the app, then open this screen on the published address to see the URL.":
-      "Publique o app e abra esta tela no endereço publicado para ver a URL.",
+    "You are on the editor preview. Use the URL below — it points to the published app.":
+      "Você está no preview do editor. Use a URL abaixo — ela aponta para o app publicado.",
+    "You are on the editor preview. Claude cannot reach this address. Publish the app, open this screen on the published address, and the connector URL will appear here to copy.":
+      "Você está no preview do editor. O Claude não consegue acessar este endereço. Publique o app, abra esta tela no endereço publicado e o endereço do conector aparecerá aqui para copiar.",
     "Copy URL": "Copiar URL",
+
     "Connector URL": "URL do conector",
     "2 · Add it in Claude": "2 · Adicionar no Claude",
     'Customize → Connectors → "+" → Add custom connector → paste the URL → Add. You only do this once, and it works in Claude web, desktop and Cowork.':
@@ -234,13 +233,12 @@ export const dict: DictFragment = {
     "All four only read — none of them writes into the app on its own.":
       "Alle vier lezen alleen — geen enkele schrijft zelf in de app.",
     "1 · Copy the address": "1 · Het adres kopiëren",
-    "You are on the editor preview. Claude cannot reach this address. Publish the app and use the published address.":
-      "Je zit in de preview van de editor. Claude kan dit adres niet bereiken. Publiceer de app en gebruik het gepubliceerde adres.",
-    "This is the published address — the one to paste into Claude.":
-      "Dit is het gepubliceerde adres — dat plak je in Claude.",
-    "Publish the app, then open this screen on the published address to see the URL.":
-      "Publiceer de app en open dit scherm op het gepubliceerde adres om de URL te zien.",
+    "You are on the editor preview. Use the URL below — it points to the published app.":
+      "Je zit in de preview van de editor. Gebruik de URL hieronder — die wijst naar de gepubliceerde app.",
+    "You are on the editor preview. Claude cannot reach this address. Publish the app, open this screen on the published address, and the connector URL will appear here to copy.":
+      "Je zit in de preview van de editor. Claude kan dit adres niet bereiken. Publiceer de app, open dit scherm op het gepubliceerde adres en de connector-URL verschijnt hier om te kopiëren.",
     "Copy URL": "URL kopiëren",
+
     "Connector URL": "Connector-URL",
     "2 · Add it in Claude": "2 · Toevoegen in Claude",
     'Customize → Connectors → "+" → Add custom connector → paste the URL → Add. You only do this once, and it works in Claude web, desktop and Cowork.':
