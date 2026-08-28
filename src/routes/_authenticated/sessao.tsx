@@ -60,7 +60,9 @@ import {
 } from "@/lib/session-state";
 import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
-import { getPersonalRecord, saveWorkout } from "@/lib/data/workouts";
+import { getPersonalRecord, getWorkouts, saveWorkout } from "@/lib/data/workouts";
+import { ProgressRing } from "@/components/ProgressRing";
+import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
@@ -74,6 +76,8 @@ export const Route = createFileRoute("/_authenticated/sessao")({
   }),
   component: SessionPage,
 });
+
+const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 
 const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
@@ -135,6 +139,10 @@ function SessionPage() {
   const [finishing, setFinishing] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
   const [scrollTo, setScrollTo] = useState<number | null>(null);
+  /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
+  const [justSet, setJustSet] = useState<string | null>(null);
+  const [justExercise, setJustExercise] = useState<number | null>(null);
+  const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
@@ -224,6 +232,10 @@ function SessionPage() {
 
   const hasSession = !!session;
 
+  /** Zero finished workouts means this is the user's first session. */
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const firstSession = (workoutsQuery.data ?? []).filter((w) => w.finalizadoEm).length === 0;
+
   /** Keep the screen awake while training; silently ignored where unsupported. */
   useEffect(() => {
     if (!hasSession || typeof navigator === "undefined") return;
@@ -267,6 +279,34 @@ function SessionPage() {
     node.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
   }, [scrollTo]);
 
+  /** First-ever session: two dismissible coach marks, shown once per device. */
+  useEffect(() => {
+    if (!hasSession || typeof window === "undefined") return;
+    if (window.localStorage.getItem(COACH_MARK_KEY) === "done") return;
+    if (firstSession) setCoachMark(1);
+  }, [hasSession, firstSession]);
+
+  const advanceCoachMark = useCallback(() => {
+    setCoachMark((step) => {
+      if (step === 1) return 2;
+      if (typeof window !== "undefined") window.localStorage.setItem(COACH_MARK_KEY, "done");
+      return 0;
+    });
+  }, []);
+
+  /** Clear the transient set/exercise feedback after the animation window. */
+  useEffect(() => {
+    if (!justSet) return;
+    const id = setTimeout(() => setJustSet(null), 450);
+    return () => clearTimeout(id);
+  }, [justSet]);
+
+  useEffect(() => {
+    if (justExercise === null) return;
+    const id = setTimeout(() => setJustExercise(null), 600);
+    return () => clearTimeout(id);
+  }, [justExercise]);
+
   if (!ready) return <div className="min-h-screen bg-background" />;
 
   if (!session) {
@@ -296,6 +336,7 @@ function SessionPage() {
     unlockAudio();
     let descanso = 0;
     let proximo: number | null = null;
+    let completou = false;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -309,6 +350,7 @@ function SessionPage() {
       set.concluida = true;
       descanso = ex.descansoSeg;
       const todasFeitas = ex.sets.every((x) => x.concluida);
+      completou = todasFeitas;
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
         s.atual = exIdx + 1;
         proximo = s.atual;
@@ -316,6 +358,8 @@ function SessionPage() {
       return s;
     });
     hapticTick();
+    setJustSet(`${exIdx}:${setIdx}`);
+    if (completou) setJustExercise(exIdx);
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
   }
@@ -514,6 +558,9 @@ function SessionPage() {
   }
 
   const setsDone = sessionSetsDone(session);
+  const setsTotal = session.exercicios
+    .filter((ex) => !ex.pulado)
+    .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
   const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
@@ -532,6 +579,7 @@ function SessionPage() {
             <ChevronDown className="size-6" />
           </Button>
           <h1 className="flex-1 truncate text-base font-semibold">{sessionLabel(session)}</h1>
+          <ProgressRing done={setsDone} total={setsTotal} />
           <Button
             variant="ghost"
             size="icon"
@@ -561,6 +609,7 @@ function SessionPage() {
           const aberto = exIdx === session.atual;
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
+          const exDone = validas > 0 && feitas >= validas;
           return (
             <section
               key={ex.exerciseId + exIdx}
@@ -582,14 +631,42 @@ function SessionPage() {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="text-base font-semibold leading-tight">{ex.nome}</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        {t("{count}/{total} sets · target {min}-{max} reps", {
-                          count: feitas,
-                          total: validas,
-                          min: ex.repsMin,
-                          max: ex.repsMax,
-                        })}
+                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className="font-semibold tabular-nums text-train">
+                          {feitas}/{validas}
+                        </span>
+                        <span>
+                          {t("{count}/{total} sets · target {min}-{max} reps", {
+                            count: feitas,
+                            total: validas,
+                            min: ex.repsMin,
+                            max: ex.repsMax,
+                          })}
+                        </span>
+                        {exDone ? (
+                          <Check
+                            className="size-3.5 shrink-0 text-success"
+                            strokeWidth={3}
+                            aria-label={t("Exercise complete")}
+                          />
+                        ) : null}
                       </p>
+                      <div
+                        className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-surface-3"
+                        role="img"
+                        aria-label={t("{done} of {total} sets completed", {
+                          done: feitas,
+                          total: validas,
+                        })}
+                      >
+                        <div
+                          className={cn(
+                            "h-full rounded-full motion-safe:transition-all motion-safe:duration-300",
+                            justExercise === exIdx ? "bg-success" : "bg-train",
+                          )}
+                          style={{ width: `${validas > 0 ? (feitas / validas) * 100 : 0}%` }}
+                        />
+                      </div>
                     </div>
                     <ChevronDown
                       className={`mt-1 size-5 shrink-0 text-muted-foreground transition-transform ${
@@ -655,11 +732,19 @@ function SessionPage() {
                         onRemove={() => removeSet(exIdx, setIdx)}
                         onField={(field, value) => setField(exIdx, setIdx, field, value)}
                         onCheck={() => toggleSet(exIdx, setIdx)}
+                        justDone={justSet === `${exIdx}:${setIdx}`}
                         typeName={typeName}
                         t={t}
                       />
                     ))}
                   </ul>
+                  {coachMark === 1 && exIdx === session.atual ? (
+                    <CoachMark
+                      text={t("Adjust weight and reps, then tap ✓ when the set is done")}
+                      onDismiss={advanceCoachMark}
+                      t={t}
+                    />
+                  ) : null}
                   <div className="mt-2 grid grid-cols-2 gap-2">
                     <Button
                       variant="ghost"
@@ -723,6 +808,13 @@ function SessionPage() {
               onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
               onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
               onSkip={() => patchRest(() => null)}
+              t={t}
+            />
+          ) : null}
+          {coachMark === 2 ? (
+            <CoachMark
+              text={t("When everything is done, finish here to save your workout")}
+              onDismiss={advanceCoachMark}
               t={t}
             />
           ) : null}
@@ -938,9 +1030,11 @@ function SetRow({
   onTipo,
   onRemove,
   typeName,
+  justDone,
   t,
 }: {
   set: ActiveSet;
+  justDone?: boolean;
   label: string;
   exercise: ActiveExercise;
   onField: (field: "pesoKg" | "reps" | "rpe", value: string) => void;
@@ -966,7 +1060,13 @@ function SetRow({
   }
 
   return (
-    <li className={`space-y-1 rounded-lg p-1 ${set.concluida ? "bg-primary/10" : "bg-muted/20"}`}>
+    <li
+      className={cn(
+        "space-y-1 rounded-lg p-1",
+        set.concluida ? "bg-primary/10" : "bg-muted/20",
+        justDone ? "set-flash" : "",
+      )}
+    >
       <div className={ROW_TOP}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -1014,11 +1114,13 @@ function SetRow({
           onClick={onCheck}
           aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
           aria-pressed={set.concluida}
-          className={`tap-target flex size-11 items-center justify-center rounded-lg border transition-colors ${
+          className={cn(
+            "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
             set.concluida
               ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-muted text-muted-foreground"
-          }`}
+              : "border-border bg-muted text-muted-foreground",
+            justDone ? "set-pop" : "",
+          )}
         >
           <Check className="size-6" strokeWidth={3} />
         </button>
@@ -1153,6 +1255,34 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       >
         {t("Resume workout")}
       </Button>
+    </div>
+  );
+}
+
+/** Non-blocking tooltip used only on the user's first session. */
+function CoachMark({
+  text,
+  onDismiss,
+  t,
+}: {
+  text: string;
+  onDismiss: () => void;
+  t: any;
+}) {
+  return (
+    <div
+      role="note"
+      onClick={onDismiss}
+      className="motion-safe:animate-fade-in mt-2 flex items-start gap-2 rounded-xl border border-foreground/10 bg-surface-2 p-3"
+    >
+      <p className="flex-1 text-xs leading-snug text-muted-foreground">{text}</p>
+      <button
+        type="button"
+        onClick={onDismiss}
+        className="shrink-0 text-xs font-semibold text-primary"
+      >
+        {t("Got it")}
+      </button>
     </div>
   );
 }
