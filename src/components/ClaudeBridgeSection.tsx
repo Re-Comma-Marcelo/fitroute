@@ -259,12 +259,12 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       </div>
 
       <Step n={1} title={t("1 · Copy the address")} done={!!done["url"]} onToggle={() => toggle("url")}>
-        {target.unreachable ? (
+        {target.url && target.unreachable ? (
           <div className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
             <p className="min-w-0 text-xs leading-relaxed text-foreground">
               {t(
-                "You are on the editor preview. Claude cannot reach this address. Publish the app and use the published address.",
+                "You are on the editor preview. Use the URL below — it points to the published app.",
               )}
             </p>
           </div>
@@ -272,11 +272,6 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         {target.url ? (
           <>
             <p className="break-all font-mono text-xs text-foreground">{target.url}</p>
-            {target.unreachable ? (
-              <p className="text-xs text-muted-foreground">
-                {t("This is the published address — the one to paste into Claude.")}
-              </p>
-            ) : null}
             <Button
               type="button"
               variant="secondary"
@@ -286,12 +281,18 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
               <ClipboardCopy className="mr-2 size-4" /> {t("Copy URL")}
             </Button>
           </>
-        ) : (
-          <p className="text-xs text-muted-foreground">
-            {t("Publish the app, then open this screen on the published address to see the URL.")}
-          </p>
-        )}
+        ) : target.unreachable ? (
+          <div className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+            <p className="min-w-0 text-xs leading-relaxed text-foreground">
+              {t(
+                "You are on the editor preview. Claude cannot reach this address. Publish the app, open this screen on the published address, and the connector URL will appear here to copy.",
+              )}
+            </p>
+          </div>
+        ) : null}
       </Step>
+
 
       <Step
         n={2}
