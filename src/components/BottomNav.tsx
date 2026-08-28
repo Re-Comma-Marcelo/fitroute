@@ -1,6 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
 
 const tabs = [
   { to: "/inicio", label: "Home", icon: Home, accent: "" },
