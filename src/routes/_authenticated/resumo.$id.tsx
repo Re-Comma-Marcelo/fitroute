@@ -3,10 +3,11 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Trophy } from "lucide-react";
+import { Flame, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
-import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
+import { getWorkout, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
+import { weekStreak } from "@/lib/home-metrics";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
 import heroLogin from "@/assets/hero-login.jpg";
@@ -43,12 +44,15 @@ function SummaryPage() {
 
   const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });
   const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];
+  const streak = weekStreak(workoutsQuery.data ?? []);
+  const volume = workout?.volumeTotalKg ?? 0;
 
   return (
-    <div className="relative min-h-screen bg-background px-4 py-10">
+    <div className="route-enter relative min-h-screen bg-background px-4 py-10">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 overflow-hidden">
         <img
           src={heroLogin}
@@ -65,55 +69,74 @@ function SummaryPage() {
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
 
+        {/* Hero: the volume moved in this session. */}
+        <section className="mt-8" aria-label={t("Total volume")}>
+          <p className="label-caps">{t("Total volume")}</p>
+          <CountUp
+            value={volume}
+            format={formatKg}
+            className="num-hero mt-1 block text-train"
+            aria-label={formatKg(volume)}
+          />
+        </section>
+
         {prs.length ? (
           <section
             aria-label={t("New personal records")}
-            className="pr-pop mt-6 overflow-hidden rounded-3xl border border-success/40 bg-success-bg p-5"
+            className="mt-6 space-y-3"
           >
-            <div className="flex items-center gap-2 text-success">
-              <Trophy className="size-5" />
-              <p className="text-xs font-medium uppercase tracking-[0.02em]">
-                {prs.length > 1
-                  ? t("{count} new personal records", { count: prs.length })
-                  : t("New personal record")}
-              </p>
-            </div>
-            <ul className="mt-4 space-y-4">
-              {prs.map((pr) => {
-                const delta =
-                  pr.anteriorKg && pr.anteriorKg > 0
-                    ? Math.round((pr.pesoKg - pr.anteriorKg) * 10) / 10
-                    : 0;
-                return (
-                  <li key={pr.nome}>
-                    <p className="text-sm font-medium text-foreground">{pr.nome}</p>
-                    <CountUp
-                      value={pr.pesoKg}
-                      format={formatKg}
-                      className="num-hero block text-success"
-                    />
-
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {delta > 0
-                        ? t("{delta} over your previous best of {previous}", {
-                            delta: formatKg(delta),
-                            previous: formatKg(pr.anteriorKg ?? 0),
-                          })
-                        : t("First time logged at this load")}
+            {prs.map((pr, index) => {
+              const delta =
+                pr.anteriorKg && pr.anteriorKg > 0
+                  ? Math.round((pr.pesoKg - pr.anteriorKg) * 10) / 10
+                  : 0;
+              return (
+                <div
+                  key={pr.nome}
+                  className="pr-pop overflow-hidden rounded-3xl border border-success/40 bg-success-bg p-5"
+                  style={{ animationDelay: `${index * 90}ms` }}
+                >
+                  <div className="flex items-center gap-2 text-success">
+                    <Trophy className="size-5" />
+                    <p className="text-xs font-medium uppercase tracking-[0.02em]">
+                      {t("New personal record")}
                     </p>
-                  </li>
-                );
-              })}
-            </ul>
+                  </div>
+                  <p className="mt-3 text-sm font-medium text-foreground">{pr.nome}</p>
+                  <CountUp
+                    value={pr.pesoKg}
+                    format={formatKg}
+                    className="num-hero block text-success"
+                    aria-label={formatKg(pr.pesoKg)}
+                  />
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {delta > 0
+                      ? t("{delta} over your previous best of {previous}", {
+                          delta: formatKg(delta),
+                          previous: formatKg(pr.anteriorKg ?? 0),
+                        })
+                      : t("First time logged at this load")}
+                  </p>
+                </div>
+              );
+            })}
           </section>
         ) : null}
 
-        <dl className="mt-6 grid grid-cols-2 gap-3">
+        {streak > 0 ? (
+          <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-success">
+            <Flame className="size-4" />
+            {streak > 1
+              ? t("{count} weeks training in a row", { count: streak })
+              : t("First week training — keep it going")}
+          </p>
+        ) : null}
+
+        <dl className="mt-6 grid grid-cols-3 gap-3">
           <Stat
             label={t("Duration")}
             value={workout ? formatDurationShort(workout.duracaoSeg) : "—"}
           />
-          <Stat label={t("Total volume")} value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
           <Stat label={t("Sets")} value={String(sets.length)} />
           <Stat
             label={t("Exercises")}
@@ -129,17 +152,17 @@ function SummaryPage() {
 
         <div className="mt-8 space-y-3">
           <Button asChild className="h-14 w-full text-base font-semibold">
-            <Link to="/progresso/$id" params={{ id }}>
+            <Link to="/inicio">{t("Back to start")}</Link>
+          </Button>
+          <p className="text-center">
+            <Link
+              to="/progresso/$id"
+              params={{ id }}
+              className="text-sm font-semibold text-muted-foreground underline-offset-2"
+            >
               {t("View session details")}
             </Link>
-          </Button>
-          <Button
-            asChild
-            variant="ghost"
-            className="h-12 w-full text-sm font-medium text-muted-foreground"
-          >
-            <Link to="/treino">{t("Back to start")}</Link>
-          </Button>
+          </p>
         </div>
       </div>
     </div>
