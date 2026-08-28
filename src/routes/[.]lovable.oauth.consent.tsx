@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, supabaseConfig } from "@/integrations/supabase/client";
 import { useT } from "@/lib/i18n";
 import { APP_NAME, pageMeta } from "@/lib/route-meta";
 
