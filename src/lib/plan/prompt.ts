@@ -18,7 +18,8 @@ export function intakeSummary(intake: PlanIntake): string {
     "## Person",
     `- ${intake.age} y, ${intake.sex}, ${intake.heightCm} cm, ${intake.weightKg} kg`,
     `- Daily activity outside sport: ${intake.dailyActivity}`,
-    `- Experience: ${intake.experience}`,
+    `- Experience level (derived): ${intake.experience}`,
+    `- Training history: ${TRAINING_YEARS_LABEL[intake.trainingYears]}, consistency last 6 months: ${CONSISTENCY_LABEL[intake.consistency]}`,
     "",
     "## Goal",
     intake.goalMode === "number"
