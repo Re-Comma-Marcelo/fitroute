@@ -528,7 +528,7 @@ function SessionPage() {
           >
             <ChevronDown className="size-6" />
           </Button>
-          <h1 className="flex-1 truncate text-base font-bold">{sessionLabel(session)}</h1>
+          <h1 className="flex-1 truncate text-base font-semibold">{sessionLabel(session)}</h1>
           <Button
             variant="ghost"
             size="icon"
@@ -539,7 +539,7 @@ function SessionPage() {
             <Timer className="size-6" />
           </Button>
           <Button
-            className="tap-target h-11 bg-info px-4 font-bold text-info-foreground hover:bg-info/90"
+            className="tap-target h-11 bg-info px-4 font-semibold text-info-foreground hover:bg-info/90"
             disabled={finishing}
             onClick={requestFinish}
           >
@@ -579,7 +579,7 @@ function SessionPage() {
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-base font-bold leading-tight">{ex.nome}</p>
+                      <p className="text-base font-semibold leading-tight">{ex.nome}</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {t("{count}/{total} sets · target {min}-{max} reps", { count: feitas, total: validas, min: ex.repsMin, max: ex.repsMax })}
                       </p>
@@ -630,7 +630,7 @@ function SessionPage() {
               {aberto ? (
                 <div className="px-3 pb-3">
                   <div
-                    className={`${ROW_TOP} mb-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_TOP} mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
                     <span className="text-center">{t("Set")}</span>
                     <span>{t("Previous")}</span>
@@ -720,7 +720,7 @@ function SessionPage() {
             />
           ) : null}
           <Button
-            className="h-14 w-full text-base font-bold"
+            className="h-14 w-full text-base font-semibold"
             disabled={finishing}
             onClick={requestFinish}
           >
@@ -780,8 +780,8 @@ function SessionPage() {
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="px-3 py-2">
-      <dt className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className={`text-lg font-bold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
+      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</dt>
+      <dd className={`text-lg font-semibold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
     </div>
   );
 }
@@ -793,7 +793,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-bold text-primary"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
           {t("Weight increased")}
@@ -814,14 +814,14 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-bold text-info"
+          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-semibold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
           {t("Rest: {time}", { time: formatRest(value) })}
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t("Rest for this exercise")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
@@ -833,7 +833,7 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
                 onChange(op);
                 setOpen(false);
               }}
-              className={`tap-target rounded-lg border px-1 text-sm font-bold ${
+              className={`tap-target rounded-lg border px-1 text-sm font-semibold ${
                 op === value ? "border-info bg-info text-info-foreground" : "border-border bg-card"
               }`}
             >
@@ -855,7 +855,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
         <button
           type="button"
           aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
-          className={`tap-target h-11 w-full rounded-lg border text-xs font-bold tabular-nums ${
+          className={`tap-target h-11 w-full rounded-lg border text-xs font-semibold tabular-nums ${
             value ? "border-info/60 bg-info/15 text-info" : "border-border bg-muted text-muted-foreground"
           }`}
         >
@@ -863,7 +863,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
         </button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-56">
-        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t("RPE (optional)")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
@@ -875,7 +875,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
                 onChange(String(op));
                 setOpen(false);
               }}
-              className={`tap-target rounded-lg border text-sm font-bold ${
+              className={`tap-target rounded-lg border text-sm font-semibold ${
                 value === String(op)
                   ? "border-info bg-info text-info-foreground"
                   : "border-border bg-card"
@@ -887,7 +887,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
         </div>
         <Button
           variant="ghost"
-          className="mt-2 h-10 w-full text-xs font-bold text-muted-foreground"
+          className="mt-2 h-10 w-full text-xs font-semibold text-muted-foreground"
           onClick={() => {
             onChange("");
             setOpen(false);
@@ -970,7 +970,7 @@ function SetRow({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-bold ${
+              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold ${
                 aquecimento ? "text-warn" : ""
               }`}
               aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
@@ -1078,12 +1078,12 @@ function RestTimerBar({
             <Timer className="size-5" />
           </span>
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wide text-info/80">{t("Rest")}</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.02em] text-info/80">{t("Rest")}</p>
             <p
               role="timer"
               aria-live="off"
               className={cn(
-                "font-display text-2xl font-bold tabular-nums leading-none",
+                "num-big leading-none",
                 isLow ? "text-warn" : "text-info",
               )}
             >
@@ -1095,21 +1095,21 @@ function RestTimerBar({
         <div className="flex gap-1.5">
           <Button
             variant="secondary"
-            className="tap-target h-10 px-3 text-xs font-bold"
+            className="tap-target h-10 px-3 text-xs font-semibold"
             onClick={onSubtract}
           >
             -15s
           </Button>
           <Button
             variant="secondary"
-            className="tap-target h-10 px-3 text-xs font-bold"
+            className="tap-target h-10 px-3 text-xs font-semibold"
             onClick={onAdd}
           >
             +15s
           </Button>
           <Button
             variant="ghost"
-            className="tap-target h-10 px-3 text-xs font-bold text-muted-foreground"
+            className="tap-target h-10 px-3 text-xs font-semibold text-muted-foreground"
             onClick={onSkip}
           >
             <X className="size-4" />
@@ -1145,7 +1145,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
-      <h2 className="mt-6 text-center font-display text-3xl font-bold" aria-live="assertive">
+      <h2 className="mt-6 text-center font-display text-3xl font-semibold" aria-live="assertive">
         {t("Rest done")}
       </h2>
       <p className="mt-2 text-center text-base text-muted-foreground">
@@ -1153,7 +1153,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       </p>
       <Button
         ref={resumeRef}
-        className="mt-8 h-14 w-full max-w-xs text-base font-bold"
+        className="mt-8 h-14 w-full max-w-xs text-base font-semibold"
         onClick={onResume}
       >
         {t("Resume workout")}

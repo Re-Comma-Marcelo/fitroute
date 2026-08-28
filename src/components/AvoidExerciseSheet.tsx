@@ -92,7 +92,7 @@ export function AvoidExerciseSheet({
                   </span>
                   <span
                     className={cn(
-                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide",
+                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
                       selected
                         ? "bg-destructive text-destructive-foreground"
                         : "bg-muted text-muted-foreground",

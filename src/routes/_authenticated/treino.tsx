@@ -182,7 +182,7 @@ function TrainPage() {
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
           <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
           <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
-          <Button className="mt-3 w-full font-bold" onClick={() => navigate({ to: "/sessao" })}>
+          <Button className="mt-3 w-full font-semibold" onClick={() => navigate({ to: "/sessao" })}>
             <Play className="mr-2 size-4" /> {t("Resume workout")}
           </Button>
         </div>
@@ -192,7 +192,7 @@ function TrainPage() {
         <div className="flex items-end justify-between">
           <h2 className="label-caps">{t("Weekly goal")}</h2>
           <p className="font-display text-sm font-semibold tabular-nums">
-            <span className="text-primary">{doneThisWeek}</span>
+            <span className="text-train">{doneThisWeek}</span>
             <span className="text-muted-foreground">/{meta}</span>
           </p>
         </div>
@@ -204,7 +204,7 @@ function TrainPage() {
           {Array.from({ length: meta }, (_, i) => (
             <span
               key={i}
-              className={cn("h-1.5 flex-1 rounded-full", i < doneThisWeek ? "bg-primary" : "bg-muted")}
+              className={cn("h-1.5 flex-1 rounded-full", i < doneThisWeek ? "bg-train" : "bg-surface-3")}
             />
           ))}
         </div>
@@ -361,7 +361,7 @@ function RoutineCard({
         </div>
         <div className="min-w-0 flex-1">
           {recommended ? (
-            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-primary">
+            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
               <Sparkles className="size-3" /> {t("Recommended today")}
             </span>
           ) : null}
@@ -378,7 +378,7 @@ function RoutineCard({
                 <span
                   key={f.nome}
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                     f.insight.severity === "warning"
                       ? "bg-warn/15 text-warn"
                       : "bg-primary/15 text-primary",
@@ -474,7 +474,7 @@ function InsightBadge({ insight }: { insight: CoachInsight }) {
           type="button"
           aria-label={t("{title} — see details", { title: insight.title })}
           className={cn(
-            "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[10px] font-bold",
+            "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[10px] font-semibold",
             isWarning ? "bg-warn/15 text-warn" : "bg-primary/15 text-primary",
           )}
         >

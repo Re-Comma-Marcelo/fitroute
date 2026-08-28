@@ -78,7 +78,7 @@ function WorkoutDetail() {
         {workout ? (
           <div className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground first-letter:uppercase">{formatDateLong(workout.iniciadoEm)}</p>
-            <p className="mt-2 text-base font-bold">
+            <p className="mt-2 text-base font-semibold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
               {t("{count} sets", { count: sets.length })}
             </p>
@@ -101,7 +101,7 @@ function WorkoutDetail() {
 
           return (
             <section key={exId} className="rounded-xl border border-border bg-card p-4">
-              <h2 className="text-base font-bold">{exerciseName(exId)}</h2>
+              <h2 className="text-base font-semibold">{exerciseName(exId)}</h2>
               <ul className="mt-2 space-y-1 text-sm">
                 {exSets.map((s) => (
                   <li key={s.id} className="flex justify-between tabular-nums">
@@ -125,7 +125,7 @@ function WorkoutDetail() {
                       <YAxis stroke="var(--muted-foreground)" fontSize={11} width={46} tickMargin={4} />
                       <Tooltip
                         contentStyle={{
-                          background: "var(--popover)",
+                          background: "var(--surface-2)",
                           border: "1px solid var(--border)",
                           borderRadius: 12,
                           color: "var(--popover-foreground)",
@@ -135,9 +135,9 @@ function WorkoutDetail() {
                       <Line
                         type="monotone"
                         dataKey="pesoKg"
-                        stroke="var(--primary)"
+                        stroke="var(--train)"
                         strokeWidth={2.5}
-                        dot={{ r: 3, fill: "var(--primary)" }}
+                        dot={{ r: 3, fill: "var(--train)" }}
                       />
                     </LineChart>
                   </ResponsiveContainer>

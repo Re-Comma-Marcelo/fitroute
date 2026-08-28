@@ -47,7 +47,7 @@ export function SessionMiniPlayer() {
 
   return (
     <div className="z-40 shrink-0 px-3 pb-2">
-      <div className="shadow-elegant mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
         <Link
           to="/sessao"
           aria-label={t("Return to workout session")}
@@ -61,7 +61,7 @@ export function SessionMiniPlayer() {
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold">{sessionLabel(session)}</span>
-              <span className="ml-auto font-mono text-sm font-bold tabular-nums text-primary">
+              <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-primary">
                 {formatDuration(sessionElapsed(session))}
               </span>
             </span>

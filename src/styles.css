@@ -19,8 +19,9 @@
  */
 
 @theme inline {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -57,6 +58,15 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+  --color-surface-1: var(--card);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-train: var(--train);
+  --color-train-dim: var(--train-dim);
+  --color-diet: var(--diet);
+  --color-success: var(--success);
+  --color-success-bg: var(--success-bg);
+
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -68,55 +78,75 @@
 }
 
 :root {
-  /* Preto profundo com roxo sóbrio. Dark é o padrão do app. */
+  /* Iron Logger — dark-mode-first. Profundidade por luminância, nunca por sombra.
+   * Papéis exclusivos: roxo = marca/ação, laranja = dados de treino,
+   * teal = dados de nutrição, verde = sucesso/PR, vermelho = erro/alerta. */
   --radius: 1rem;
-  --background: oklch(0.13 0.012 300);
-  --foreground: oklch(0.97 0.004 300);
-  --card: oklch(0.175 0.016 300);
-  --card-foreground: oklch(0.97 0.004 300);
-  --popover: oklch(0.185 0.018 300);
-  --popover-foreground: oklch(0.97 0.004 300);
-  --primary: oklch(0.65 0.16 300);
-  --primary-foreground: oklch(0.99 0.004 300);
-  --secondary: oklch(0.235 0.018 300);
-  --secondary-foreground: oklch(0.97 0.004 300);
-  --muted: oklch(0.22 0.014 300);
-  --muted-foreground: oklch(0.68 0.016 300);
-  --accent: oklch(0.27 0.024 300);
-  --accent-foreground: oklch(0.97 0.004 300);
-  --destructive: oklch(0.6 0.18 18);
-  --destructive-foreground: oklch(0.98 0.004 300);
-  /* Lilás claro dos controles de descanso / ações secundárias fortes */
-  --info: oklch(0.76 0.11 292);
-  --info-foreground: oklch(0.16 0.03 300);
-  /* Âmbar discreto do aquecimento */
-  --warn: oklch(0.79 0.13 70);
-  --warn-foreground: oklch(0.19 0.03 70);
-  --border: oklch(1 0 0 / 9%);
-  --input: oklch(1 0 0 / 13%);
-  --ring: oklch(0.65 0.16 300);
-  --chart-1: oklch(0.68 0.17 300);
-  --chart-2: oklch(0.78 0.11 288);
-  --chart-3: oklch(0.58 0.16 318);
-  --chart-4: oklch(0.72 0.09 268);
-  --chart-5: oklch(0.86 0.06 300);
-  --sidebar: oklch(0.155 0.014 300);
-  --sidebar-foreground: oklch(0.97 0.004 300);
-  --sidebar-primary: oklch(0.65 0.16 300);
-  --sidebar-primary-foreground: oklch(0.99 0.004 300);
-  --sidebar-accent: oklch(0.235 0.018 300);
-  --sidebar-accent-foreground: oklch(0.97 0.004 300);
-  --sidebar-border: oklch(1 0 0 / 9%);
-  --sidebar-ring: oklch(0.65 0.16 300);
+  /* Superfícies */
+  --background: oklch(0.1493 0.0046 264.47); /* #0A0B0D */
+  --card: oklch(0.1809 0.0052 248.12); /* #101214 */
+  --surface-2: oklch(0.1989 0.0051 248.08); /* #141618 */
+  --surface-3: oklch(0.2256 0.0066 258.36); /* #1A1C1F */
+  /* Texto */
+  --foreground: oklch(0.9784 0.0011 197.14); /* #F7F8F8 */
+  --card-foreground: oklch(0.9784 0.0011 197.14);
+  --popover: oklch(0.1989 0.0051 248.08);
+  --popover-foreground: oklch(0.9784 0.0011 197.14);
+  --secondary: oklch(0.1989 0.0051 248.08);
+  --secondary-foreground: oklch(0.9784 0.0011 197.14);
+  --muted: oklch(0.2256 0.0066 258.36);
+  --muted-foreground: oklch(0.6488 0.0146 262.36); /* #8A8F98 */
+  --text-muted: oklch(0.4876 0.0108 258.36); /* #5C6066 */
+  --accent: oklch(0.2256 0.0066 258.36);
+  --accent-foreground: oklch(0.9784 0.0011 197.14);
+  /* Roxo — marca e ação (nunca em gráficos) */
+  --primary: oklch(0.599 0.2299 286.2); /* #7C5CFF */
+  --primary-foreground: oklch(1 0 0);
+  --primary-hover: oklch(0.6458 0.2024 288.48); /* #8D71FF */
+  --primary-pressed: oklch(0.5444 0.218 285.33); /* #6B4EE6 */
+  --ring: oklch(0.599 0.2299 286.2);
+  /* Controles fortes secundários herdam o roxo da marca */
+  --info: oklch(0.599 0.2299 286.2);
+  --info-foreground: oklch(1 0 0);
+  /* Laranja — dados de treino (nunca em botões) */
+  --train: oklch(0.7045 0.1926 39.23); /* #FF6B35 */
+  --train-dim: oklch(0.4162 0.1058 40.94); /* #7A3418 */
+  --warn: oklch(0.7045 0.1926 39.23);
+  --warn-foreground: oklch(0.1493 0.0046 264.47);
+  /* Teal — dados de nutrição (nunca em botões) */
+  --diet: oklch(0.776 0.1512 166.17); /* #2DD4A0 */
+  /* Verde — semântica positiva */
+  --success: oklch(0.8003 0.1821 151.71); /* #4ADE80 */
+  --success-bg: oklch(0.2888 0.0489 152.66); /* #16321F */
+  /* Vermelho — só texto/badge/toast de erro */
+  --destructive: oklch(0.6535 0.1954 26.84); /* #F0524A */
+  --destructive-foreground: oklch(1 0 0);
+  --border: oklch(1 0 0 / 6%);
+  --input: oklch(1 0 0 / 10%);
+  --chart-1: oklch(0.7045 0.1926 39.23);
+  --chart-2: oklch(0.776 0.1512 166.17);
+  --chart-3: oklch(0.86 0.1 168);
+  --chart-4: oklch(0.62 0.14 172);
+  --chart-5: oklch(0.4162 0.1058 40.94);
+  --sidebar: oklch(0.1809 0.0052 248.12);
+  --sidebar-foreground: oklch(0.9784 0.0011 197.14);
+  --sidebar-primary: oklch(0.599 0.2299 286.2);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.1989 0.0051 248.08);
+  --sidebar-accent-foreground: oklch(0.9784 0.0011 197.14);
+  --sidebar-border: oklch(1 0 0 / 6%);
+  --sidebar-ring: oklch(0.599 0.2299 286.2);
   --gradient-veil: linear-gradient(
     to top,
-    oklch(0.13 0.012 300) 6%,
-    oklch(0.13 0.012 300 / 92%) 34%,
-    oklch(0.13 0.012 300 / 45%) 70%,
-    oklch(0.13 0.012 300 / 15%) 100%
+    oklch(0.1493 0.0046 264.47) 6%,
+    oklch(0.1493 0.0046 264.47 / 92%) 34%,
+    oklch(0.1493 0.0046 264.47 / 45%) 70%,
+    oklch(0.1493 0.0046 264.47 / 15%) 100%
   );
-  --shadow-elegant: 0 24px 60px -32px oklch(0.4 0.16 300 / 55%);
+  /* Sem sombras decorativas: profundidade vem da luminância da superfície. */
+  --shadow-elegant: none;
 }
+
 
 @layer base {
   * {
@@ -127,6 +157,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-weight: 400;
+    font-feature-settings: "cv01", "ss03";
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -134,7 +166,16 @@
   h2,
   h3 {
     font-family: var(--font-display);
+    font-weight: 600;
     letter-spacing: -0.015em;
+  }
+
+  /* Todos os dados numéricos em tabular-nums */
+  .tabular-nums,
+  [class*="tabular-nums"],
+  input[type="number"],
+  time {
+    font-variant-numeric: tabular-nums;
   }
 
   input,
@@ -143,7 +184,16 @@
   button {
     font-size: 1rem;
   }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a,
+    button,
+    [role="button"] {
+      transition: transform 120ms ease-out;
+    }
+  }
 }
+
 
 /* Tipografia grande e alvos de toque de 44px mínimos */
 @utility tap-target {
@@ -162,16 +212,34 @@
 }
 
 @utility shadow-elegant {
-  box-shadow: var(--shadow-elegant);
+  box-shadow: none;
 }
+
+@utility num-hero {
+  font-size: 48px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility num-big {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+}
+
 
 @utility label-caps {
   font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
+
 
 /* ---- Standalone / installed app behaviour ---------------------------------
  * In standalone mode there is no browser chrome, so fixed bars sit on top of

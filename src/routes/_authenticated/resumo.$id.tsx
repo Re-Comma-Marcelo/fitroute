@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { CountUp } from "@/components/CountUp";
 import { getWorkout, getWorkoutSets } from "@/lib/data/workouts";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
@@ -67,11 +68,11 @@ function SummaryPage() {
         {prs.length ? (
           <section
             aria-label={t("New personal records")}
-            className="pr-pop shadow-elegant mt-6 overflow-hidden rounded-3xl border border-primary/40 bg-primary/10 p-5"
+            className="pr-pop mt-6 overflow-hidden rounded-3xl border border-success/40 bg-success-bg p-5"
           >
-            <div className="flex items-center gap-2 text-primary">
+            <div className="flex items-center gap-2 text-success">
               <Trophy className="size-5" />
-              <p className="text-xs font-bold uppercase tracking-[0.2em]">
+              <p className="text-xs font-medium uppercase tracking-[0.02em]">
                 {prs.length > 1
                   ? t("{count} new personal records", { count: prs.length })
                   : t("New personal record")}
@@ -85,10 +86,13 @@ function SummaryPage() {
                     : 0;
                 return (
                   <li key={pr.nome}>
-                    <p className="text-sm font-semibold text-foreground">{pr.nome}</p>
-                    <p className="font-display text-3xl font-semibold tabular-nums text-primary">
-                      {formatKg(pr.pesoKg)}
-                    </p>
+                    <p className="text-sm font-medium text-foreground">{pr.nome}</p>
+                    <CountUp
+                      value={pr.pesoKg}
+                      format={formatKg}
+                      className="num-hero block text-success"
+                    />
+
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {delta > 0
                         ? t("{delta} over your previous best of {previous}", {
@@ -117,7 +121,7 @@ function SummaryPage() {
         ) : null}
 
         <div className="mt-8 space-y-3">
-          <Button asChild className="shadow-elegant h-14 w-full text-base font-semibold">
+          <Button asChild className="h-14 w-full text-base font-semibold">
             <Link to="/progresso/$id" params={{ id }}>
               {t("View session details")}
             </Link>
@@ -135,7 +139,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-border bg-card p-4">
       <dt className="label-caps">{label}</dt>
-      <dd className="font-display mt-1 text-2xl font-semibold tabular-nums">{value}</dd>
+      <dd className="num-big mt-1">{value}</dd>
     </div>
   );
 }

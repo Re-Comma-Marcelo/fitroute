@@ -129,7 +129,7 @@ function ProgressPage() {
             <Flame
               className={cn(
                 "size-4 shrink-0",
-                consistency.streakWeeks > 0 ? "text-primary" : "text-muted-foreground",
+                consistency.streakWeeks > 0 ? "text-train" : "text-muted-foreground",
               )}
             />
             <p className="text-xs leading-snug text-muted-foreground">
@@ -143,7 +143,7 @@ function ProgressPage() {
               {consistency.streakWeeks > 0 ? (
                 <>
                   {" · "}
-                  <span className="font-semibold text-primary tabular-nums">
+                  <span className="font-semibold text-train tabular-nums">
                     {t("{streakWeeks}-week streak", {
                       streakWeeks: consistency.streakWeeks,
                     })}
