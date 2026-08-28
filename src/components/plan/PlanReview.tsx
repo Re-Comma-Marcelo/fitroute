@@ -89,7 +89,7 @@ export function PlanReview({
                     const exercise = exerciseById.get(ex.exerciseId);
                     return (
                       <div key={ex.exerciseId} className="flex items-center gap-3">
-                        <ExerciseThumb grupo={exercise?.grupo} nome={exercise?.nome} className="h-10 w-10 shrink-0" />
+                        <ExerciseThumb grupo={exercise?.grupoPrimario} nome={exercise?.nome} className="h-10 w-10 shrink-0" />
                         <div className="min-w-0">
                           <p className="truncate text-sm">{exercise?.nome ?? ex.exerciseId}</p>
                           <p className="text-xs text-muted-foreground">
