@@ -46,6 +46,11 @@ export interface PlanIntake {
   // Step 3 — training
   equipment: string[];
   gymDaysPerWeek: number;
+  /** How long they have been training — asked directly. */
+  trainingYears: TrainingYears;
+  /** How consistent the last 6 months were — asked directly. */
+  consistency: Consistency;
+  /** Derived from trainingYears + consistency, never asked. */
   experience: Experience;
   limitations: string;
   sports: SportEntry[];
