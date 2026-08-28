@@ -182,7 +182,7 @@ function PlanPage() {
 
   if (current && busy !== "plan") {
     return (
-      <AppShell>
+      <AppShell title={t("Get a plan")} hideHeader>
         <div className="space-y-5 px-4 pb-8 pt-6">
           <header className="space-y-1">
             <h1 className="text-2xl font-semibold tracking-tight">{t("Your plan")}</h1>
@@ -210,7 +210,7 @@ function PlanPage() {
   }
 
   return (
-    <AppShell>
+    <AppShell title={t("Get a plan")} hideHeader>
       <div className="space-y-5 px-4 pb-8 pt-6">
         <header className="space-y-2">
           <h1 className="text-2xl font-semibold tracking-tight">{t("Get a plan")}</h1>
