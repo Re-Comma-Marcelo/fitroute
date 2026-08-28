@@ -26,6 +26,8 @@ export type DailyActivity = "desk" | "onFeet" | "physical";
 export type WorkPattern = "regular" | "shifts" | "nights" | "travel";
 export type CookTime = "none" | "some" | "plenty";
 export type Experience = "beginner" | "intermediate" | "advanced";
+export type TrainingYears = "lt6m" | "6to12m" | "1to3y" | "3plus";
+export type Consistency = "barely" | "onOff" | "steady";
 export type Budget = "tight" | "normal" | "comfortable";
 export type TimeAdjust = "less" | "asIs" | "more";
 
