@@ -157,6 +157,8 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
+    font-weight: 400;
+    font-feature-settings: "cv01", "ss03";
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -164,7 +166,16 @@
   h2,
   h3 {
     font-family: var(--font-display);
+    font-weight: 600;
     letter-spacing: -0.015em;
+  }
+
+  /* Todos os dados numéricos em tabular-nums */
+  .tabular-nums,
+  [class*="tabular-nums"],
+  input[type="number"],
+  time {
+    font-variant-numeric: tabular-nums;
   }
 
   input,
@@ -173,7 +184,16 @@
   button {
     font-size: 1rem;
   }
+
+  @media (prefers-reduced-motion: no-preference) {
+    a,
+    button,
+    [role="button"] {
+      transition: transform 120ms ease-out;
+    }
+  }
 }
+
 
 /* Tipografia grande e alvos de toque de 44px mínimos */
 @utility tap-target {
