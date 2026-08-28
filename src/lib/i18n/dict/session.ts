@@ -70,6 +70,16 @@ export const dict: DictFragment = {
     "No records today — consistency also counts.": "Sem recordes hoje — a constância também conta.",
     "View session details": "Ver detalhes da sessão",
     "Back to start": "Voltar ao início",
+    "{done} of {total} sets completed": "{done} de {total} séries concluídas",
+    "Session progress": "Progresso da sessão",
+    "Adjust weight and reps, then tap ✓ when the set is done":
+      "Ajuste carga e reps e toque em ✓ ao terminar a série",
+    "When everything is done, finish here to save your workout":
+      "Ao terminar tudo, finalize aqui pra salvar seu treino",
+    "Got it": "Entendi",
+    "Exercise complete": "Exercício concluído",
+    "{count} weeks training in a row": "{count}ª semana seguida treinando",
+    "First week training — keep it going": "Primeira semana treinando — siga assim",
   },
   nl: {
     "Repeat set": "Set herhalen",
@@ -140,5 +150,15 @@ export const dict: DictFragment = {
     "No records today — consistency also counts.": "Geen records vandaag — consistentie telt ook.",
     "View session details": "Bekijk sessiedetails",
     "Back to start": "Terug naar begin",
+    "{done} of {total} sets completed": "{done} van {total} sets voltooid",
+    "Session progress": "Sessievoortgang",
+    "Adjust weight and reps, then tap ✓ when the set is done":
+      "Pas gewicht en reps aan en tik op ✓ als de set klaar is",
+    "When everything is done, finish here to save your workout":
+      "Als alles klaar is, rond hier af om je training op te slaan",
+    "Got it": "Begrepen",
+    "Exercise complete": "Oefening voltooid",
+    "{count} weeks training in a row": "{count}e week op rij getraind",
+    "First week training — keep it going": "Eerste week getraind — hou het vol",
   },
 };

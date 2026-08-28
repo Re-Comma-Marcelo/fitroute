@@ -23,6 +23,9 @@ import {
   sessionLabel,
 } from "@/lib/session-state";
 import { useT } from "@/lib/i18n";
+import { ProgressRing } from "@/components/ProgressRing";
+import { sessionSetsDone } from "@/lib/session-state";
+import { isSerieValida } from "@/lib/progression";
 
 /**
  * Floating session bar shown above the bottom nav on every tab.
@@ -44,6 +47,10 @@ export function SessionMiniPlayer() {
   if (!session) return null;
 
   const restLeft = restSecondsLeft(session);
+  const setsDone = sessionSetsDone(session);
+  const setsTotal = session.exercicios
+    .filter((ex) => !ex.pulado)
+    .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
 
   return (
     <div className="z-40 shrink-0 px-3 pb-2">
@@ -54,6 +61,7 @@ export function SessionMiniPlayer() {
           className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
+          <ProgressRing done={setsDone} total={setsTotal} size={20} stroke={2.5} showLabel={false} />
           <span className="relative flex size-2.5 shrink-0">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
