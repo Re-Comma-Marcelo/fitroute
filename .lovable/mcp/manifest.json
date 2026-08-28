@@ -112,9 +112,10 @@
       {
         "name": "create_week_diet",
         "title": "Plan a week of meals",
-        "description": "Fills Forja meal slots for one or more days from the meal library and returns an import code plus a readable summary. Call get_training_context first for valid mealId values.",
+        "description": "Writes meal slots for one or more days directly into the connected user's app, and also returns an import code as a fallback. Call get_training_context first for valid mealId values.",
         "annotations": {
-          "readOnlyHint": true,
+          "readOnlyHint": false,
+          "destructiveHint": false,
           "openWorldHint": false
         },
         "inputSchema": {
