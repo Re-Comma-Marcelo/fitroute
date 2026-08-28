@@ -16,7 +16,9 @@ import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBibliotecaRouteImport } from './routes/_authenticated/biblioteca'
 import { Route as AuthenticatedDietaRouteImport } from './routes/_authenticated/dieta'
+import { Route as AuthenticatedImportarRouteImport } from './routes/_authenticated/importar'
 import { Route as AuthenticatedInicioRouteImport } from './routes/_authenticated/inicio'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPlanoRouteImport } from './routes/_authenticated/plano'
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
@@ -68,9 +70,19 @@ const AuthenticatedDietaRoute = AuthenticatedDietaRouteImport.update({
   path: '/dieta',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedImportarRoute = AuthenticatedImportarRouteImport.update({
+  id: '/importar',
+  path: '/importar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedInicioRoute = AuthenticatedInicioRouteImport.update({
   id: '/inicio',
   path: '/inicio',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPerfilRoute = AuthenticatedPerfilRouteImport.update({
@@ -155,7 +167,9 @@ export interface FileRoutesByFullPath {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/dieta': typeof AuthenticatedDietaRouteWithChildren
+  '/importar': typeof AuthenticatedImportarRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
@@ -177,7 +191,9 @@ export interface FileRoutesByTo {
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/biblioteca': typeof AuthenticatedBibliotecaRoute
+  '/importar': typeof AuthenticatedImportarRoute
   '/inicio': typeof AuthenticatedInicioRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
   '/sessao': typeof AuthenticatedSessaoRoute
@@ -201,7 +217,9 @@ export interface FileRoutesById {
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/biblioteca': typeof AuthenticatedBibliotecaRoute
   '/_authenticated/dieta': typeof AuthenticatedDietaRouteWithChildren
+  '/_authenticated/importar': typeof AuthenticatedImportarRoute
   '/_authenticated/inicio': typeof AuthenticatedInicioRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/plano': typeof AuthenticatedPlanoRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
@@ -226,7 +244,9 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/biblioteca'
     | '/dieta'
+    | '/importar'
     | '/inicio'
+    | '/onboarding'
     | '/perfil'
     | '/plano'
     | '/progresso'
@@ -248,7 +268,9 @@ export interface FileRouteTypes {
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/biblioteca'
+    | '/importar'
     | '/inicio'
+    | '/onboarding'
     | '/perfil'
     | '/plano'
     | '/sessao'
@@ -271,7 +293,9 @@ export interface FileRouteTypes {
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/biblioteca'
     | '/_authenticated/dieta'
+    | '/_authenticated/importar'
     | '/_authenticated/inicio'
+    | '/_authenticated/onboarding'
     | '/_authenticated/perfil'
     | '/_authenticated/plano'
     | '/_authenticated/progresso'
@@ -349,11 +373,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDietaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/importar': {
+      id: '/_authenticated/importar'
+      path: '/importar'
+      fullPath: '/importar'
+      preLoaderRoute: typeof AuthenticatedImportarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/inicio': {
       id: '/_authenticated/inicio'
       path: '/inicio'
       fullPath: '/inicio'
       preLoaderRoute: typeof AuthenticatedInicioRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/perfil': {
@@ -491,7 +529,9 @@ const AuthenticatedProgressoRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedDietaRoute: typeof AuthenticatedDietaRouteWithChildren
+  AuthenticatedImportarRoute: typeof AuthenticatedImportarRoute
   AuthenticatedInicioRoute: typeof AuthenticatedInicioRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPlanoRoute: typeof AuthenticatedPlanoRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
@@ -504,7 +544,9 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBibliotecaRoute: AuthenticatedBibliotecaRoute,
   AuthenticatedDietaRoute: AuthenticatedDietaRouteWithChildren,
+  AuthenticatedImportarRoute: AuthenticatedImportarRoute,
   AuthenticatedInicioRoute: AuthenticatedInicioRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPlanoRoute: AuthenticatedPlanoRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,

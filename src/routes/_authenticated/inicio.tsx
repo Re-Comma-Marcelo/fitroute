@@ -16,6 +16,7 @@ import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkoutLog } from "@/lib/data/workouts";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { onboardingDone } from "@/lib/onboarding";
 import { loadActiveSession, sessionLabel } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
 import { formatFullDate, formatKg, formatNumber, relativeDays } from "@/lib/format";
@@ -82,6 +83,13 @@ export default function Inicio() {
   const hasData = workouts.some((w) => w.finalizadoEm);
   const prName =
     (pr && exercisesQ.data?.find((e) => e.id === pr.exerciseId)?.nome) || t("Latest PR");
+
+  // First-run: send brand-new accounts through onboarding once.
+  useEffect(() => {
+    if (!logQ.isSuccess || hasData || onboardingDone()) return;
+    navigate({ to: "/onboarding" });
+  }, [logQ.isSuccess, hasData, navigate]);
+
 
   const today = isoDate(new Date());
   const kcalToday = useMemo(() => totalsFor(planQ.data?.[today]).kcal, [planQ.data, today]);

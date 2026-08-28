@@ -1,8 +1,8 @@
 import { pageMeta } from "@/lib/route-meta";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Plus, X } from "lucide-react";
+import { ChevronDown, Import, Plus, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -26,6 +26,7 @@ import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
+import { resetOnboarding } from "@/lib/onboarding";
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -460,6 +461,9 @@ function ProfilePage() {
 
           <VibrationToggle />
 
+          <ImportAndQaSection />
+
+
           <GetAPlanCard />
 
           <ClaudeBridgeSection profile={profileQuery.data ?? form} />
@@ -642,6 +646,7 @@ function VibrationToggle() {
   const t = useT();
   const [on, setOn] = useState(true);
 
+
   useEffect(() => {
     setOn(hapticsEnabled());
   }, []);
@@ -663,6 +668,45 @@ function VibrationToggle() {
           if (next) hapticTick();
         }}
       />
+    </div>
+  );
+}
+
+function ImportAndQaSection() {
+  const t = useT();
+  const navigate = useNavigate();
+
+  return (
+    <div className="space-y-2">
+      <Link
+        to="/importar"
+        className="tap-target flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
+      >
+        <Import className="size-4 shrink-0 text-primary" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">{t("Import from Hevy")}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {t("Bring your history from another app.")}
+          </span>
+        </span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => {
+          resetOnboarding();
+          navigate({ to: "/onboarding" });
+        }}
+        className="tap-target flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left"
+      >
+        <RotateCcw className="size-4 shrink-0 text-muted-foreground" />
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold">{t("Review onboarding")}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {t("Replay the welcome flow and the session coach marks.")}
+          </span>
+        </span>
+      </button>
     </div>
   );
 }
