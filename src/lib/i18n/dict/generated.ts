@@ -225,19 +225,50 @@ export const dict: DictFragment = {
     "Claude / AI assistant": "Claude / AI-assistent",
     "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
       "Verbind de app met je eigen Claude-chat, vraag om een routine of een week maaltijden en importeer de code die je terugkrijgt.",
-    "1 · Connector URL": "1 · Connector-URL",
-    "In Claude: Settings → Connectors → Add custom connector, and paste this URL.":
-      "In Claude: Instellingen → Connectors → Aangepaste connector toevoegen en plak deze URL.",
+    "What Claude gets": "Wat Claude krijgt",
+    "read the app's exercise and meal libraries":
+      "de oefeningen- en maaltijdbibliotheek van de app lezen",
+    "build a workout routine": "een trainingsroutine opbouwen",
+    "plan a week of meals": "een week maaltijden plannen",
+    "log an observation for your coach": "een observatie voor je coach vastleggen",
+    "All four only read — none of them writes into the app on its own.":
+      "Alle vier lezen alleen — geen enkele schrijft zelf in de app.",
+    "1 · Copy the address": "1 · Het adres kopiëren",
+    "You are on the editor preview. Claude cannot reach this address. Publish the app and use the published address.":
+      "Je zit in de preview van de editor. Claude kan dit adres niet bereiken. Publiceer de app en gebruik het gepubliceerde adres.",
+    "This is the published address — the one to paste into Claude.":
+      "Dit is het gepubliceerde adres — dat plak je in Claude.",
+    "Publish the app, then open this screen on the published address to see the URL.":
+      "Publiceer de app en open dit scherm op het gepubliceerde adres om de URL te zien.",
     "Copy URL": "URL kopiëren",
     "Connector URL": "Connector-URL",
-    "2 · Your training context": "2 · Jouw trainingscontext",
-    "Paste this into the Claude chat first so it plans with your equipment, limits and recent sessions.":
-      "Plak dit eerst in de Claude-chat, zodat er wordt gepland met jouw materiaal, grenzen en recente sessies.",
+    "2 · Add it in Claude": "2 · Toevoegen in Claude",
+    'Customize → Connectors → "+" → Add custom connector → paste the URL → Add. You only do this once, and it works in Claude web, desktop and Cowork.':
+      'Customize → Connectors → "+" → Add custom connector → plak de URL → Add. Dit doe je één keer en het werkt in Claude web, desktop en Cowork.',
+    "3 · Turn it on in the chat": "3 · Aanzetten in het gesprek",
+    'In every new conversation you have to switch the connector on: the "+" button in the message box → Connectors → enable it. This is the step people forget.':
+      'In elk nieuw gesprek moet je de connector aanzetten: de "+" in het berichtvak → Connectors → zet hem aan. Dit is de stap die mensen vergeten.',
+    "4 · Test it": "4 · Testen",
+    "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
+      "Gebruik de tools van Iron Logger: lees mijn trainingscontext en maak een upper-body routine van 45 minuten met dumbbells en een barbell.",
+    "Copy the example": "Voorbeeld kopiëren",
+    "Example question": "Voorbeeldvraag",
+    "If the answer contains a code starting with FORJA1., it worked.":
+      "Staat er in het antwoord een code die met FORJA1. begint, dan is het gelukt.",
+    "5 · Import it back": "5 · Terug importeren",
+    "Nothing enters the app until you confirm — the tools only read and hand back a code.":
+      "Niets komt in de app zonder jouw bevestiging — de tools lezen alleen en geven een code terug.",
+    "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.":
+      "Dit lijkt geen Forja-code — kopieer het hele blok dat Claude gaf, inclusief het deel dat met FORJA1. begint.",
+    "Optional · your training context": "Optioneel · jouw trainingscontext",
+    "Optional — while the tools cannot read your data straight from the app, paste this into the chat so Claude plans with your equipment, your limits and your latest sessions.":
+      "Optioneel — zolang de tools jouw gegevens niet direct uit de app kunnen lezen, plak je dit in het gesprek zodat Claude plant met jouw materiaal, jouw grenzen en je laatste sessies.",
     "Copy my training context": "Mijn trainingscontext kopiëren",
     "Training context": "Trainingscontext",
-    "3 · Import from Claude": "3 · Importeren uit Claude",
+    "Cancel": "Annuleren",
     "Paste the FORJA1. code Claude returned…": "Plak de FORJA1.-code die Claude gaf…",
     "Preview import": "Import bekijken",
+
     "Apply": "Toepassen",
     "{label} copied": "{label} gekopieerd",
     "Could not copy — select the text manually.":
