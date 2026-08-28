@@ -124,37 +124,109 @@ export function PlanReview({
 
       <section className="space-y-2">
         <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <Utensils className="h-4 w-4" />
+          <span className="flex size-6 items-center justify-center rounded-md bg-accent/20 text-accent-foreground">
+            <Utensils className="h-3.5 w-3.5" />
+          </span>
           {t("Your food")}
         </h2>
-        <div className="rounded-xl border border-border/60 bg-card/40 p-4">
-          <p className="text-sm font-medium">
-            {t("{kcal} kcal · {p}g protein · {c}g carbs · {f}g fat", {
-              kcal: plan.diet.kcal,
-              p: plan.diet.proteinG,
-              c: plan.diet.carbsG,
-              f: plan.diet.fatG,
-            })}
-          </p>
-          <ul className="mt-3 space-y-2">
-            {plan.diet.meals.map((meal) => (
-              <li key={`${meal.slot}-${meal.mealId}`} className="text-sm">
-                <span className="text-muted-foreground">{t(meal.slot)}: </span>
-                {mealById.get(meal.mealId)?.name ?? meal.mealId}
-                <span className="block text-xs text-muted-foreground">{meal.why}</span>
-              </li>
-            ))}
-          </ul>
-          {plan.diet.sportDayNote ? (
-            <p className="mt-3 text-xs text-muted-foreground">{plan.diet.sportDayNote}</p>
-          ) : null}
-          <ul className="mt-3 space-y-1 text-xs text-muted-foreground">
-            {plan.diet.notes.map((note) => (
-              <li key={note}>{note}</li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground/80">{t(CONSULT_NOTE)}</p>
+
+        <div className="grid grid-cols-4 gap-1.5">
+          {MACROS.map((macro) => (
+            <div key={macro.label} className={cn("rounded-xl border p-2 text-center", macro.className)}>
+              <p className="text-sm font-semibold tabular-nums">
+                {macro.value(plan.diet)}
+                {macro.suffix}
+              </p>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{t(macro.label)}</p>
+            </div>
+          ))}
         </div>
+
+        <div className="space-y-1.5">
+          {plan.diet.meals.map((meal) => {
+            const key = `${meal.slot}-${meal.mealId}`;
+            const isOpen = openMeal === key;
+            const found = mealById.get(meal.mealId);
+            return (
+              <div key={key} className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
+                <button
+                  type="button"
+                  onClick={() => setOpenMeal(isOpen ? null : key)}
+                  aria-expanded={isOpen}
+                  className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {t(meal.slot)}
+                    </span>
+                    <span className="block truncate text-sm">{found?.name ?? meal.mealId}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    {found ? (
+                      <span className="text-xs tabular-nums text-muted-foreground">
+                        {t("{kcal} kcal · {p}g P", { kcal: found.kcal, p: found.proteinG })}
+                      </span>
+                    ) : null}
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 text-muted-foreground transition-transform",
+                        isOpen && "rotate-180",
+                      )}
+                    />
+                  </span>
+                </button>
+                {isOpen ? (
+                  <div className="space-y-2 border-t border-border/60 px-4 py-3">
+                    <p className="text-xs leading-relaxed text-muted-foreground">{meal.why}</p>
+                    {found?.ingredients.length ? (
+                      <ul className="space-y-0.5 text-xs text-muted-foreground/90">
+                        {found.ingredients.map((ing) => (
+                          <li key={ing.name} className="flex justify-between gap-2">
+                            <span>{ing.name}</span>
+                            <span className="tabular-nums">
+                              {ing.qty} {ing.unit}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+
+          {plan.diet.notes.length > 0 || plan.diet.sportDayNote ? (
+            <div className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
+              <button
+                type="button"
+                onClick={() => setOpenMeal(openMeal === NOTES_KEY ? null : NOTES_KEY)}
+                aria-expanded={openMeal === NOTES_KEY}
+                className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
+              >
+                <span className="text-sm">{t("Notes and adjustments")}</span>
+                <ChevronDown
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    openMeal === NOTES_KEY && "rotate-180",
+                  )}
+                />
+              </button>
+              {openMeal === NOTES_KEY ? (
+                <div className="space-y-2 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
+                  {plan.diet.sportDayNote ? <p>{plan.diet.sportDayNote}</p> : null}
+                  <ul className="space-y-1">
+                    {plan.diet.notes.map((note) => (
+                      <li key={note}>{note}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+
+        <p className="px-1 text-xs text-muted-foreground/80">{t(CONSULT_NOTE)}</p>
       </section>
 
       <section className="space-y-2">
