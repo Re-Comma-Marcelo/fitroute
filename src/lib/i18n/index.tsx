@@ -46,6 +46,7 @@ const FRAGMENTS: DictFragment[] = [
   progressDict,
   profileDict,
   coachDict,
+  planDict,
   generatedDict,
   metaDict,
   pwaDict,
