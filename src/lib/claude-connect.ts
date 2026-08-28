@@ -59,9 +59,10 @@ export function resolveConnectorTarget(origin: string | null): ConnectorTarget {
 
   // Preview/localhost: rely on the optional published-origin env variable.
   const configuredOrigin =
-    typeof import.meta.env !== "undefined" && import.meta.env.VITE_PUBLIC_APP_ORIGIN
-      ? String(import.meta.env.VITE_PUBLIC_APP_ORIGIN)
+    typeof import.meta.env !== "undefined" && import.meta.env["VITE_PUBLIC_APP_ORIGIN"]
+      ? String(import.meta.env["VITE_PUBLIC_APP_ORIGIN"])
       : undefined;
+
 
   if (configuredOrigin) {
     const published = normalizeOrigin(configuredOrigin);
