@@ -645,6 +645,7 @@ function VibrationToggle() {
   const t = useT();
   const [on, setOn] = useState(true);
 
+
   useEffect(() => {
     setOn(hapticsEnabled());
   }, []);
