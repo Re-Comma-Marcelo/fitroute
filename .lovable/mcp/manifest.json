@@ -14,8 +14,8 @@
     "tools": [
       {
         "name": "get_training_context",
-        "title": "Get Forja libraries",
-        "description": "Returns Forja's exercise library and meal library, plus how to build plans for this app. Call this first — routines and diets may only use these ids.",
+        "title": "Get Iron Logger context",
+        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
