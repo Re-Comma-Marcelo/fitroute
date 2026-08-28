@@ -431,22 +431,57 @@ function PlanPage() {
                   onChange={(e) => patch({ gymDaysPerWeek: Number(e.target.value) || 1 })}
                 />
               </Field>
-              <Field label={t("Experience")}>
+              <Field label={t("How long have you been training?")}>
                 <Select
-                  value={intake.experience}
-                  onValueChange={(v) => patch({ experience: v as PlanIntake["experience"] })}
+                  value={intake.trainingYears}
+                  onValueChange={(v) => {
+                    const trainingYears = v as PlanIntake["trainingYears"];
+                    patch({
+                      trainingYears,
+                      experience: deriveExperience(trainingYears, intake.consistency),
+                    });
+                  }}
                 >
                   <SelectTrigger className="h-11">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="beginner">{t("Beginner")}</SelectItem>
-                    <SelectItem value="intermediate">{t("Intermediate")}</SelectItem>
-                    <SelectItem value="advanced">{t("Advanced")}</SelectItem>
+                    {(Object.keys(TRAINING_YEARS_LABEL) as PlanIntake["trainingYears"][]).map((key) => (
+                      <SelectItem key={key} value={key}>
+                        {t(TRAINING_YEARS_LABEL[key])}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </Field>
             </div>
+
+            <Field label={t("How consistent were the last 6 months?")}>
+              <Select
+                value={intake.consistency}
+                onValueChange={(v) => {
+                  const consistency = v as PlanIntake["consistency"];
+                  patch({
+                    consistency,
+                    experience: deriveExperience(intake.trainingYears, consistency),
+                  });
+                }}
+              >
+                <SelectTrigger className="h-11">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(CONSISTENCY_LABEL) as PlanIntake["consistency"][]).map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {t(CONSISTENCY_LABEL[key])}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {t("That puts you around {level}.", { level: t(EXPERIENCE_LABEL[intake.experience]) })}
+              </p>
+            </Field>
 
             <Field label={t("Injuries or limitations")}>
               <Textarea
