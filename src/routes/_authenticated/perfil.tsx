@@ -460,6 +460,9 @@ function ProfilePage() {
 
           <VibrationToggle />
 
+          <ImportAndQaSection />
+
+
           <GetAPlanCard />
 
           <ClaudeBridgeSection profile={profileQuery.data ?? form} />
