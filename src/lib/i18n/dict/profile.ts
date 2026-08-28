@@ -77,7 +77,20 @@ export const dict: DictFragment = {
     "Signed in": "Conectado",
     "Sign out": "Sair",
     "Signing out…": "Saindo…",
+    "Your session expired. Sign in again and reopen this page from your assistant.":
+      "Sua sess\u00e3o expirou. Entre novamente e reabra esta p\u00e1gina pelo seu assistente.",
+    "Supabase is not configured in this build, so the connection cannot be approved. Set the Supabase URL and publishable key, then reload this page.":
+      "O Supabase n\u00e3o est\u00e1 configurado nesta vers\u00e3o, ent\u00e3o a conex\u00e3o n\u00e3o pode ser aprovada. Defina a URL e a chave public\u00e1vel do Supabase e recarregue esta p\u00e1gina.",
+    "This link is missing the authorization_id parameter. Start the connection again from your assistant.":
+      "Este link est\u00e1 sem o par\u00e2metro authorization_id. Inicie a conex\u00e3o novamente pelo seu assistente.",
+    "Supabase rejected the authorization (HTTP {status}): {message}":
+      "O Supabase recusou a autoriza\u00e7\u00e3o (HTTP {status}): {message}",
+    "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.":
+      "O Supabase aceitou a requisi\u00e7\u00e3o, mas n\u00e3o retornou uma URL de redirecionamento. Verifique se o servidor OAuth est\u00e1 habilitado neste projeto.",
+    "The authorization request could not be sent: {message}":
+      "N\u00e3o foi poss\u00edvel enviar a requisi\u00e7\u00e3o de autoriza\u00e7\u00e3o: {message}",
   },
+
   nl: {
     "Your name": "Je naam",
     Weight: "Gewicht",
