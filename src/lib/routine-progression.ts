@@ -29,5 +29,7 @@ export async function getRoutineSuggestions(
       return sugestao?.aumentou ? ([re.exerciseId, sugestao] as const) : null;
     }),
   );
-  return Object.fromEntries(entradas.filter((e): e is [string, ProgressionSuggestion] => e !== null));
+  return Object.fromEntries(
+    entradas.filter((e): e is [string, ProgressionSuggestion] => e !== null),
+  );
 }

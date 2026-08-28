@@ -1,11 +1,7 @@
 import { getExercise } from "@/lib/data/exercises";
 import { getLastSetsForExercise, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { suggestProgression } from "@/lib/progression";
-import {
-  isSameWeightForLastN,
-  perWorkoutStats,
-  rpeTrend,
-} from "./signals";
+import { isSameWeightForLastN, perWorkoutStats, rpeTrend } from "./signals";
 import type { CoachInsight } from "./types";
 import type { Routine, Workout, WorkoutSet } from "@/lib/types";
 
@@ -36,12 +32,8 @@ export async function getExerciseInsight(
   const history = allSets
     .filter((s) => s.exerciseId === re.exerciseId && s.concluida)
     .sort((a, b) => {
-      const da = new Date(
-        workouts.find((w) => w.id === a.workoutId)?.iniciadoEm ?? 0,
-      ).getTime();
-      const db = new Date(
-        workouts.find((w) => w.id === b.workoutId)?.iniciadoEm ?? 0,
-      ).getTime();
+      const da = new Date(workouts.find((w) => w.id === a.workoutId)?.iniciadoEm ?? 0).getTime();
+      const db = new Date(workouts.find((w) => w.id === b.workoutId)?.iniciadoEm ?? 0).getTime();
       return da - db || a.serieNum - b.serieNum;
     });
 

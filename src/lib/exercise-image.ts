@@ -10,11 +10,27 @@ const MAPA: { chaves: string[]; src: string }[] = [
   { chaves: ["chest", "peito", "peitoral"], src: peito },
   { chaves: ["back", "costas", "dorsal", "traps", "lats", "lat"], src: costas },
   {
-    chaves: ["quads", "hamstrings", "glutes", "calves", "legs", "adductor", "quadríceps", "posterior", "glúteo", "panturrilha", "perna", "adutor"],
+    chaves: [
+      "quads",
+      "hamstrings",
+      "glutes",
+      "calves",
+      "legs",
+      "adductor",
+      "quadríceps",
+      "posterior",
+      "glúteo",
+      "panturrilha",
+      "perna",
+      "adutor",
+    ],
     src: pernas,
   },
   { chaves: ["shoulders", "delts", "ombro", "deltoide"], src: ombros },
-  { chaves: ["biceps", "triceps", "forearms", "arms", "bíceps", "tríceps", "antebraço", "braço"], src: bracos },
+  {
+    chaves: ["biceps", "triceps", "forearms", "arms", "bíceps", "tríceps", "antebraço", "braço"],
+    src: bracos,
+  },
   { chaves: ["core", "abs", "abdomen", "obliques", "abdômen", "abdominal", "oblíquo"], src: core },
 ];
 

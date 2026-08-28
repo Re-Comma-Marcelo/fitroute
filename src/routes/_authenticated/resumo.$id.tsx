@@ -109,15 +109,22 @@ function SummaryPage() {
         ) : null}
 
         <dl className="mt-6 grid grid-cols-2 gap-3">
-          <Stat label={t("Duration")} value={workout ? formatDurationShort(workout.duracaoSeg) : "—"} />
+          <Stat
+            label={t("Duration")}
+            value={workout ? formatDurationShort(workout.duracaoSeg) : "—"}
+          />
           <Stat label={t("Total volume")} value={workout ? formatKg(workout.volumeTotalKg) : "—"} />
           <Stat label={t("Sets")} value={String(sets.length)} />
-          <Stat label={t("Exercises")} value={String(new Set(sets.map((s) => s.exerciseId)).size)} />
+          <Stat
+            label={t("Exercises")}
+            value={String(new Set(sets.map((s) => s.exerciseId)).size)}
+          />
         </dl>
 
-
         {workout?.notas ? (
-          <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">{workout.notas}</p>
+          <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">
+            {workout.notas}
+          </p>
         ) : null}
 
         <div className="mt-8 space-y-3">
@@ -126,7 +133,11 @@ function SummaryPage() {
               {t("View session details")}
             </Link>
           </Button>
-          <Button asChild variant="ghost" className="h-12 w-full text-sm font-medium text-muted-foreground">
+          <Button
+            asChild
+            variant="ghost"
+            className="h-12 w-full text-sm font-medium text-muted-foreground"
+          >
             <Link to="/treino">{t("Back to start")}</Link>
           </Button>
         </div>

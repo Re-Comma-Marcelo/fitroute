@@ -41,9 +41,7 @@ export function KeyLiftsSection({
           onClick={onAdd}
           className="w-full rounded-2xl border border-dashed border-border p-5 text-left"
         >
-          <p className="font-display text-sm font-semibold">
-            {t("Pick the lifts you care about")}
-          </p>
+          <p className="font-display text-sm font-semibold">{t("Pick the lifts you care about")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {t(
               "Track bench, squat or anything else and see whether the load is actually going up.",
@@ -65,35 +63,25 @@ export function KeyLiftsSection({
                 {trend ? (
                   <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
                     {trend.spanWeeks === 1
-                      ? t(
-                          "{firstWeight}kg → {lastWeight}kg · {spanWeeks} week · {date}",
-                          {
-                            firstWeight: trend.firstWeight,
-                            lastWeight: trend.lastWeight,
-                            spanWeeks: trend.spanWeeks,
-                            date: relativeDays(trend.lastDate),
-                          },
-                        )
-                      : t(
-                          "{firstWeight}kg → {lastWeight}kg · {spanWeeks} weeks · {date}",
-                          {
-                            firstWeight: trend.firstWeight,
-                            lastWeight: trend.lastWeight,
-                            spanWeeks: trend.spanWeeks,
-                            date: relativeDays(trend.lastDate),
-                          },
-                        )}
+                      ? t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} week · {date}", {
+                          firstWeight: trend.firstWeight,
+                          lastWeight: trend.lastWeight,
+                          spanWeeks: trend.spanWeeks,
+                          date: relativeDays(trend.lastDate),
+                        })
+                      : t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} weeks · {date}", {
+                          firstWeight: trend.firstWeight,
+                          lastWeight: trend.lastWeight,
+                          spanWeeks: trend.spanWeeks,
+                          date: relativeDays(trend.lastDate),
+                        })}
                   </p>
                 ) : (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {t("No sets logged yet")}
-                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{t("No sets logged yet")}</p>
                 )}
               </div>
 
-              {trend ? (
-                <Sparkline points={trend.points} direction={trend.direction} />
-              ) : null}
+              {trend ? <Sparkline points={trend.points} direction={trend.direction} /> : null}
               {trend ? <DirectionChip trend={trend} /> : null}
 
               <button
@@ -115,11 +103,7 @@ export function KeyLiftsSection({
 function DirectionChip({ trend }: { trend: LiftTrend }) {
   const diff = Math.round((trend.lastWeight - trend.firstWeight) * 10) / 10;
   const Icon =
-    trend.direction === "up"
-      ? TrendingUp
-      : trend.direction === "down"
-        ? TrendingDown
-        : Minus;
+    trend.direction === "up" ? TrendingUp : trend.direction === "down" ? TrendingDown : Minus;
   return (
     <span
       className={cn(
@@ -135,13 +119,7 @@ function DirectionChip({ trend }: { trend: LiftTrend }) {
   );
 }
 
-function Sparkline({
-  points,
-  direction,
-}: {
-  points: number[];
-  direction: LiftTrend["direction"];
-}) {
+function Sparkline({ points, direction }: { points: number[]; direction: LiftTrend["direction"] }) {
   if (points.length < 2) return null;
   const w = 44;
   const h = 20;
@@ -162,20 +140,8 @@ function Sparkline({
         ? "var(--destructive)"
         : "var(--muted-foreground)";
   return (
-    <svg
-      width={w}
-      height={h}
-      viewBox={`0 0 ${w} ${h}`}
-      className="shrink-0"
-      aria-hidden="true"
-    >
-      <path
-        d={d}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={1.75}
-        strokeLinecap="round"
-      />
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0" aria-hidden="true">
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" />
     </svg>
   );
 }

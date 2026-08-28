@@ -45,7 +45,6 @@ export function incrementoPara(equipamento: string): number {
   return equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
 }
 
-
 function media(valores: number[]): number | null {
   if (valores.length === 0) return null;
   return Math.round((valores.reduce((a, b) => a + b, 0) / valores.length) * 10) / 10;

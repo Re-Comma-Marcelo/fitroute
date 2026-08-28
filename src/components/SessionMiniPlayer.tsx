@@ -98,9 +98,7 @@ export function SessionMiniPlayer() {
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel className="tap-target">
-                {t("Keep training")}
-              </AlertDialogCancel>
+              <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
               <AlertDialogAction
                 className="tap-target bg-destructive text-destructive-foreground"
                 onClick={() => {

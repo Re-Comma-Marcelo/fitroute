@@ -5,7 +5,6 @@ import { BottomNav } from "./BottomNav";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
 import { useLanguageSync } from "@/lib/i18n/use-language-sync";
 
-
 export function AppShell({
   title,
   action,
@@ -55,9 +54,7 @@ export function AppShell({
       <BottomNav />
     </div>
   );
-
 }
-
 
 export function PageHeader({
   title,

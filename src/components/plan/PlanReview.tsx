@@ -31,7 +31,12 @@ const MACROS: {
   className: string;
 }[] = [
   { label: "kcal", suffix: "", value: (d) => d.kcal, className: "border-primary/30 bg-primary/10" },
-  { label: "Protein", suffix: "g", value: (d) => d.proteinG, className: "border-accent/30 bg-accent/10" },
+  {
+    label: "Protein",
+    suffix: "g",
+    value: (d) => d.proteinG,
+    className: "border-accent/30 bg-accent/10",
+  },
   { label: "Carbs", suffix: "g", value: (d) => d.carbsG, className: "border-border/60 bg-card/40" },
   { label: "Fat", suffix: "g", value: (d) => d.fatG, className: "border-border/60 bg-card/40" },
 ];
@@ -104,7 +109,10 @@ export function PlanReview({
                   </span>
                 </span>
                 <ChevronDown
-                  className={cn("h-4 w-4 shrink-0 text-muted-foreground transition-transform", isOpen && "rotate-180")}
+                  className={cn(
+                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                    isOpen && "rotate-180",
+                  )}
                 />
               </button>
               {isOpen ? (
@@ -114,7 +122,11 @@ export function PlanReview({
                     const exercise = exerciseById.get(ex.exerciseId);
                     return (
                       <div key={ex.exerciseId} className="flex items-center gap-3">
-                        <ExerciseThumb grupo={exercise?.grupoPrimario} nome={exercise?.nome} className="h-10 w-10 shrink-0" />
+                        <ExerciseThumb
+                          grupo={exercise?.grupoPrimario}
+                          nome={exercise?.nome}
+                          className="h-10 w-10 shrink-0"
+                        />
                         <div className="min-w-0">
                           <p className="truncate text-sm">{exercise?.nome ?? ex.exerciseId}</p>
                           <p className="text-xs text-muted-foreground">
@@ -125,7 +137,9 @@ export function PlanReview({
                               rest: ex.restSec,
                             })}
                           </p>
-                          {ex.note ? <p className="text-xs text-muted-foreground/80">{ex.note}</p> : null}
+                          {ex.note ? (
+                            <p className="text-xs text-muted-foreground/80">{ex.note}</p>
+                          ) : null}
                         </div>
                       </div>
                     );
@@ -147,12 +161,17 @@ export function PlanReview({
 
         <div className="grid grid-cols-4 gap-1.5">
           {MACROS.map((macro) => (
-            <div key={macro.label} className={cn("rounded-xl border p-2 text-center", macro.className)}>
+            <div
+              key={macro.label}
+              className={cn("rounded-xl border p-2 text-center", macro.className)}
+            >
               <p className="text-sm font-semibold tabular-nums">
                 {macro.value(plan.diet)}
                 {macro.suffix}
               </p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{t(macro.label)}</p>
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                {t(macro.label)}
+              </p>
             </div>
           ))}
         </div>
@@ -163,7 +182,10 @@ export function PlanReview({
             const isOpen = openMeal === key;
             const found = mealById.get(meal.mealId);
             return (
-              <div key={key} className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
+              <div
+                key={key}
+                className="overflow-hidden rounded-xl border border-border/60 bg-card/40"
+              >
                 <button
                   type="button"
                   onClick={() => setOpenMeal(isOpen ? null : key)}

@@ -26,10 +26,8 @@ export const dict: DictFragment = {
     "Diet plan · {n} day(s)": "Plano alimentar · {n} dia(s)",
     "Coach note · {kind}": "Nota do coach · {kind}",
     "Tags: {tags}": "Tags: {tags}",
-    'Added routine "{name}" with {n} exercises.':
-      'Rotina "{name}" adicionada com {n} exercícios.',
-    "Planned {n} meal(s) across {days} day(s).":
-      "{n} refeição(ões) planejada(s) em {days} dia(s).",
+    'Added routine "{name}" with {n} exercises.': 'Rotina "{name}" adicionada com {n} exercícios.',
+    "Planned {n} meal(s) across {days} day(s).": "{n} refeição(ões) planejada(s) em {days} dia(s).",
     "Coach note saved — your coach will reference it on Train.":
       "Nota salva — seu coach vai usá-la na tela de Treino.",
 
@@ -76,7 +74,7 @@ export const dict: DictFragment = {
     "Your average difficulty is rising while performance is flat. A lighter or deload session next time could help.":
       "Sua dificuldade média está subindo com o desempenho estável. Um treino mais leve ou um deload pode ajudar.",
     "Adjusting to your feedback": "Ajustando ao seu feedback",
-    "Stalled": "Estagnado",
+    Stalled: "Estagnado",
     "Same weight for three sessions running — aim for an extra rep or add load if form is clean.":
       "Mesmo peso por três sessões seguidas — busque uma repetição extra ou aumente a carga se a execução estiver limpa.",
 
@@ -127,20 +125,20 @@ export const dict: DictFragment = {
       "Opcional — enquanto as ferramentas não leem seus dados direto do app, cole isto na conversa para o Claude planejar com o seu equipamento, seus limites e suas últimas sessões.",
     "Copy my training context": "Copiar meu contexto de treino",
     "Training context": "Contexto de treino",
-    "Cancel": "Cancelar",
+    Cancel: "Cancelar",
     "Paste the FORJA1. code Claude returned…": "Cole o código FORJA1. que o Claude devolveu…",
     "Preview import": "Pré-visualizar importação",
 
-    "Apply": "Aplicar",
+    Apply: "Aplicar",
     "{label} copied": "{label} copiado",
     "Could not copy — select the text manually.":
       "Não foi possível copiar — selecione o texto manualmente.",
     "Import failed — check the code and try again.":
       "A importação falhou — confira o código e tente de novo.",
-    "mornings": "manhãs",
-    "middays": "meio-dia",
-    "afternoons": "tardes",
-    "evenings": "noites",
+    mornings: "manhãs",
+    middays: "meio-dia",
+    afternoons: "tardes",
+    evenings: "noites",
   },
   nl: {
     // ── progression.ts
@@ -162,10 +160,8 @@ export const dict: DictFragment = {
     "Diet plan · {n} day(s)": "Voedingsplan · {n} dag(en)",
     "Coach note · {kind}": "Coachnotitie · {kind}",
     "Tags: {tags}": "Tags: {tags}",
-    'Added routine "{name}" with {n} exercises.':
-      'Routine "{name}" toegevoegd met {n} oefeningen.',
-    "Planned {n} meal(s) across {days} day(s).":
-      "{n} maaltijd(en) gepland over {days} dag(en).",
+    'Added routine "{name}" with {n} exercises.': 'Routine "{name}" toegevoegd met {n} oefeningen.',
+    "Planned {n} meal(s) across {days} day(s).": "{n} maaltijd(en) gepland over {days} dag(en).",
     "Coach note saved — your coach will reference it on Train.":
       "Notitie opgeslagen — je coach gebruikt die op het Trainen-scherm.",
 
@@ -212,7 +208,7 @@ export const dict: DictFragment = {
     "Your average difficulty is rising while performance is flat. A lighter or deload session next time could help.":
       "Je gemiddelde zwaarte stijgt terwijl je prestatie vlak blijft. Een lichtere sessie of deload kan helpen.",
     "Adjusting to your feedback": "Aangepast aan jouw feedback",
-    "Stalled": "Stagneert",
+    Stalled: "Stagneert",
     "Same weight for three sessions running — aim for an extra rep or add load if form is clean.":
       "Drie sessies achter elkaar hetzelfde gewicht — ga voor een extra rep of meer gewicht als je techniek klopt.",
 
@@ -263,19 +259,19 @@ export const dict: DictFragment = {
       "Optioneel — zolang de tools jouw gegevens niet direct uit de app kunnen lezen, plak je dit in het gesprek zodat Claude plant met jouw materiaal, jouw grenzen en je laatste sessies.",
     "Copy my training context": "Mijn trainingscontext kopiëren",
     "Training context": "Trainingscontext",
-    "Cancel": "Annuleren",
+    Cancel: "Annuleren",
     "Paste the FORJA1. code Claude returned…": "Plak de FORJA1.-code die Claude gaf…",
     "Preview import": "Import bekijken",
 
-    "Apply": "Toepassen",
+    Apply: "Toepassen",
     "{label} copied": "{label} gekopieerd",
     "Could not copy — select the text manually.":
       "Kopiëren lukte niet — selecteer de tekst handmatig.",
     "Import failed — check the code and try again.":
       "Importeren mislukt — controleer de code en probeer opnieuw.",
-    "mornings": "ochtenden",
-    "middays": "middagen",
-    "afternoons": "namiddagen",
-    "evenings": "avonden",
+    mornings: "ochtenden",
+    middays: "middagen",
+    afternoons: "namiddagen",
+    evenings: "avonden",
   },
 };

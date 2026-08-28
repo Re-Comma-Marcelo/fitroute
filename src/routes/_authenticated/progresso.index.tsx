@@ -32,7 +32,8 @@ export const Route = createFileRoute("/_authenticated/progresso/")({
   head: () => ({
     meta: pageMeta({
       title: "Progress",
-      description: "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.",
+      description:
+        "See your training trajectory: weekly volume trend, key lift progression and coach plateau alerts.",
       ogDescription: "Weekly volume trend, tracked lift progression and session history.",
     }),
   }),
@@ -59,10 +60,7 @@ function ProgressPage() {
   const weeklyTarget = profileQuery.data?.metaTreinosSemana ?? 4;
 
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
-  const consistency = useMemo(
-    () => adherence(workouts, weeklyTarget),
-    [workouts, weeklyTarget],
-  );
+  const consistency = useMemo(() => adherence(workouts, weeklyTarget), [workouts, weeklyTarget]);
   const series = useMemo(() => weeklySeries(workouts, 8), [workouts]);
   const plateau = useMemo(
     () =>
@@ -180,8 +178,6 @@ function ProgressPage() {
           </Button>
         </div>
       ) : null}
-
-
 
       <ul className="space-y-2">
         {workouts.map((w) => (

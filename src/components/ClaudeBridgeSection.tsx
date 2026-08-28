@@ -1,14 +1,7 @@
 import { useT } from "@/lib/i18n";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  AlertTriangle,
-  Check,
-  ChevronDown,
-  ClipboardCopy,
-  Download,
-  Sparkles,
-} from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, ClipboardCopy, Download, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -193,7 +186,9 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       setError(
         raw.trim().includes("FORJA1.")
           ? t(result.error)
-          : t("That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1."),
+          : t(
+              "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.",
+            ),
       );
       setPending(null);
       return;
@@ -258,7 +253,12 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         </p>
       </div>
 
-      <Step n={1} title={t("1 · Copy the address")} done={!!done["url"]} onToggle={() => toggle("url")}>
+      <Step
+        n={1}
+        title={t("1 · Copy the address")}
+        done={!!done["url"]}
+        onToggle={() => toggle("url")}
+      >
         {target.url && target.unreachable ? (
           <div className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5">
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
@@ -293,7 +293,6 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         ) : null}
       </Step>
 
-
       <Step
         n={2}
         title={t("2 · Add it in Claude")}
@@ -320,12 +319,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         </p>
       </Step>
 
-      <Step
-        n={4}
-        title={t("4 · Test it")}
-        done={!!done["test"]}
-        onToggle={() => toggle("test")}
-      >
+      <Step n={4} title={t("4 · Test it")} done={!!done["test"]} onToggle={() => toggle("test")}>
         <p className="rounded-lg border border-border bg-muted/40 p-2.5 text-xs leading-relaxed text-foreground">
           {t(EXAMPLE_PROMPT)}
         </p>
@@ -344,7 +338,9 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
 
       <Step n={5} title={t("5 · Import it back")} done={!!done["import"]}>
         <p className="text-xs leading-relaxed text-muted-foreground">
-          {t("Nothing enters the app until you confirm — the tools only read and hand back a code.")}
+          {t(
+            "Nothing enters the app until you confirm — the tools only read and hand back a code.",
+          )}
         </p>
         <Label className="sr-only" htmlFor="claude-code">
           {t("5 · Import it back")}

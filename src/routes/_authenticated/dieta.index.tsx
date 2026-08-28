@@ -34,8 +34,10 @@ export const Route = createFileRoute("/_authenticated/dieta/")({
   head: () => ({
     meta: pageMeta({
       title: "Today's meals",
-      description: "See the meal that fits the time of day, with calories, macros and coach notes tied to your training load.",
-      ogDescription: "Time-aware meal suggestions with calories, macros and training-aware coach notes.",
+      description:
+        "See the meal that fits the time of day, with calories, macros and coach notes tied to your training load.",
+      ogDescription:
+        "Time-aware meal suggestions with calories, macros and training-aware coach notes.",
     }),
   }),
   component: TodayPage,
@@ -61,13 +63,23 @@ function TodayPage() {
   const schedule = scheduleQ.data;
   const slots = useMemo(() => (schedule ? activeSlots(schedule) : []), [schedule]);
   const currentSlot: MealSlot =
-    slot && slots.includes(slot) ? slot : schedule ? slotForTime(new Date(), schedule) : "breakfast";
+    slot && slots.includes(slot)
+      ? slot
+      : schedule
+        ? slotForTime(new Date(), schedule)
+        : "breakfast";
 
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
-  const mealsQ = useQuery({ queryKey: ["meals", currentSlot], queryFn: () => getMeals(currentSlot) });
+  const mealsQ = useQuery({
+    queryKey: ["meals", currentSlot],
+    queryFn: () => getMeals(currentSlot),
+  });
   const insightQ = useQuery({ queryKey: ["nutritionInsight"], queryFn: getNutritionInsight });
-  const tagsQ = useQuery({ queryKey: ["trainingTags", today], queryFn: () => getTrainingTags([today]) });
+  const tagsQ = useQuery({
+    queryKey: ["trainingTags", today],
+    queryFn: () => getTrainingTags([today]),
+  });
   const recentQ = useQuery({
     queryKey: ["trainingTags", "recent", today],
     queryFn: () => getTrainingTags(recentDates),
@@ -81,10 +93,7 @@ function TodayPage() {
     const days = recentQ.data ?? {};
     return recentDates.map((d) => days[d]).filter(Boolean) as TrainingTag[];
   }, [recentQ.data]);
-  const weekTotals = useMemo(
-    () => weekTotalsFor(planQ.data ?? {}, weekDates()),
-    [planQ.data],
-  );
+  const weekTotals = useMemo(() => weekTotalsFor(planQ.data ?? {}, weekDates()), [planQ.data]);
   const [detail, setDetail] = useState<Meal | null>(null);
 
   const plannedMeal = useMemo(
@@ -106,10 +115,7 @@ function TodayPage() {
 
   const ranked = useMemo(() => rankMeals(mealsQ.data ?? [], swapCtx), [mealsQ.data, swapCtx]);
   const options = useMemo(() => ranked.map((r) => r.meal), [ranked]);
-  const reasons = useMemo(
-    () => new Map(ranked.map((r) => [r.meal.id, r.reason])),
-    [ranked],
-  );
+  const reasons = useMemo(() => new Map(ranked.map((r) => [r.meal.id, r.reason])), [ranked]);
   const swap = useMemo(() => swapSuggestion(mealsQ.data ?? [], swapCtx), [mealsQ.data, swapCtx]);
 
   async function choose(mealId: string) {
@@ -150,7 +156,9 @@ function TodayPage() {
           >
             {t(SLOT_LABEL[s])}
             {schedule ? (
-              <span className="ml-1.5 font-normal opacity-60">{formatSlotTime(schedule[s].time)}</span>
+              <span className="ml-1.5 font-normal opacity-60">
+                {formatSlotTime(schedule[s].time)}
+              </span>
             ) : null}
           </button>
         ))}
@@ -181,7 +189,11 @@ function TodayPage() {
             </span>
           ) : null}
         </h2>
-        {tag ? <span className="text-xs text-muted-foreground">{t("Today: {tag}", { tag: t(tag) })}</span> : null}
+        {tag ? (
+          <span className="text-xs text-muted-foreground">
+            {t("Today: {tag}", { tag: t(tag) })}
+          </span>
+        ) : null}
       </div>
 
       {!options.length && !mealsQ.isLoading ? (
@@ -214,7 +226,6 @@ function TodayPage() {
           ))}
         </ul>
       )}
-
 
       <MealDetailSheet
         meal={detail}

@@ -20,9 +20,11 @@ export const isSupabaseConfigured = () => Boolean(config);
 
 function configFromWindow() {
   if (typeof window === "undefined") return null;
-  const injected = (window as unknown as {
-    __FORJA_SUPABASE__?: { url?: string; key?: string };
-  }).__FORJA_SUPABASE__;
+  const injected = (
+    window as unknown as {
+      __FORJA_SUPABASE__?: { url?: string; key?: string };
+    }
+  ).__FORJA_SUPABASE__;
   return injected?.url && injected?.key ? { url: injected.url, key: injected.key } : null;
 }
 

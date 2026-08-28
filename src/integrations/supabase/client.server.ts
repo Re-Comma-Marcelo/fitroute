@@ -8,10 +8,10 @@ export const supabaseAdmin = createClient<Database>(
   url ?? "https://placeholder.supabase.co",
   key ?? "placeholder-key",
   {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-  },
+    auth: {
+      autoRefreshToken: false,
+      persistSession: false,
+    },
   },
 );
 
@@ -22,4 +22,3 @@ export function assertSupabaseAdminConfigured() {
     );
   }
 }
-

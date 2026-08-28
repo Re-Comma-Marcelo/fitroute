@@ -18,7 +18,14 @@ export function Ring({
   const c = 2 * Math.PI * r;
   return (
     <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-      <circle cx={size / 2} cy={size / 2} r={r} strokeWidth={width} stroke="var(--surface-3)" fill="none" />
+      <circle
+        cx={size / 2}
+        cy={size / 2}
+        r={r}
+        strokeWidth={width}
+        stroke="var(--surface-3)"
+        fill="none"
+      />
       <circle
         cx={size / 2}
         cy={size / 2}
@@ -42,7 +49,12 @@ export function MacroRings({
 }) {
   const t = useT();
   const macros = [
-    { label: t("Protein"), current: totals.proteinG, target: targets.proteinG, color: "var(--diet)" },
+    {
+      label: t("Protein"),
+      current: totals.proteinG,
+      target: targets.proteinG,
+      color: "var(--diet)",
+    },
     { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
     { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
   ];
@@ -50,7 +62,12 @@ export function MacroRings({
     <div className="rounded-2xl border border-border bg-card p-5">
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
-          <Ring pct={totals.kcal / Math.max(1, targets.kcal)} color="var(--diet)" size={120} width={9} />
+          <Ring
+            pct={totals.kcal / Math.max(1, targets.kcal)}
+            color="var(--diet)"
+            size={120}
+            width={9}
+          />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             <span className="text-2xl font-semibold tabular-nums">{totals.kcal}</span>
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground">
@@ -67,7 +84,7 @@ export function MacroRings({
                   {m.current}/{m.target}g
                 </span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
                 <div
                   className="h-full rounded-full"
                   style={{
@@ -107,44 +124,46 @@ export function MealCard({
       }`}
     >
       <button type="button" onClick={onSelect} className="block w-full text-left">
-      <div className="relative h-32 w-full overflow-hidden">
-        <img
-          src={mealImage(slot)}
-          alt={meal.name}
-          loading="lazy"
-          width={768}
-          height={512}
-          className="h-full w-full object-cover brightness-110"
-        />
-        {selected ? (
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
-            <Check className="size-3" /> {t("Planned")}
-          </span>
-        ) : null}
-      </div>
-      <div className="p-3.5">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="text-sm font-semibold leading-snug">{meal.name}</h3>
-          <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {meal.kcal} kcal
-          </span>
+        <div className="relative h-32 w-full overflow-hidden">
+          <img
+            src={mealImage(slot)}
+            alt={meal.name}
+            loading="lazy"
+            width={768}
+            height={512}
+            className="h-full w-full object-cover brightness-110"
+          />
+          {selected ? (
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
+              <Check className="size-3" /> {t("Planned")}
+            </span>
+          ) : null}
         </div>
-        <p className="mt-1 text-xs tabular-nums text-muted-foreground">
-          {t("P")} {meal.proteinG}g · {t("C")} {meal.carbsG}g · {t("F")} {meal.fatG}g
-        </p>
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {meal.orderOut ? (
-            <Tag icon={<Truck className="size-3" />}>{t("Order out")}</Tag>
-          ) : (
-            <Tag icon={<Clock className="size-3" />}>{t("{prepMin} min", { prepMin: meal.prepMin })}</Tag>
-          )}
-          {meal.tags
-            .filter((t_tag) => t_tag !== "order-out")
-            .map((t_tag) => (
-              <Tag key={t_tag}>{t(t_tag.replace("-", " "))}</Tag>
-            ))}
-        </div>
-        {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
+        <div className="p-3.5">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="text-sm font-semibold leading-snug">{meal.name}</h3>
+            <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+              {meal.kcal} kcal
+            </span>
+          </div>
+          <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+            {t("P")} {meal.proteinG}g · {t("C")} {meal.carbsG}g · {t("F")} {meal.fatG}g
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {meal.orderOut ? (
+              <Tag icon={<Truck className="size-3" />}>{t("Order out")}</Tag>
+            ) : (
+              <Tag icon={<Clock className="size-3" />}>
+                {t("{prepMin} min", { prepMin: meal.prepMin })}
+              </Tag>
+            )}
+            {meal.tags
+              .filter((t_tag) => t_tag !== "order-out")
+              .map((t_tag) => (
+                <Tag key={t_tag}>{t(t_tag.replace("-", " "))}</Tag>
+              ))}
+          </div>
+          {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
         </div>
       </button>
       {onDetails ? (

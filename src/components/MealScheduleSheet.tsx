@@ -1,6 +1,12 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { useT } from "@/lib/i18n";
@@ -84,10 +90,18 @@ export function MealScheduleSheet({ open, onOpenChange, schedule }: Props) {
         </ul>
 
         <div className="mt-4 flex gap-2">
-          <Button variant="outline" className="tap-target flex-1" onClick={() => setDraft(DEFAULT_SCHEDULE)}>
+          <Button
+            variant="outline"
+            className="tap-target flex-1"
+            onClick={() => setDraft(DEFAULT_SCHEDULE)}
+          >
             {t("Reset")}
           </Button>
-          <Button className="tap-target flex-1" onClick={() => save.mutate()} disabled={save.isPending}>
+          <Button
+            className="tap-target flex-1"
+            onClick={() => save.mutate()}
+            disabled={save.isPending}
+          >
             {t("Save timing")}
           </Button>
         </div>

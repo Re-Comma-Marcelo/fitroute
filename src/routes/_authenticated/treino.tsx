@@ -4,15 +4,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import {
-  AlertTriangle,
-  ChevronDown,
-  Pencil,
-  Play,
-  Plus,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+import { AlertTriangle, ChevronDown, Pencil, Play, Plus, Sparkles, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { TodayCoachCard } from "@/components/TodayCoachCard";
@@ -163,7 +155,6 @@ function TrainPage() {
     }
   }
 
-
   return (
     <AppShell
       title={t("Train")}
@@ -204,7 +195,10 @@ function TrainPage() {
           {Array.from({ length: meta }, (_, i) => (
             <span
               key={i}
-              className={cn("h-1.5 flex-1 rounded-full", i < doneThisWeek ? "bg-train" : "bg-surface-3")}
+              className={cn(
+                "h-1.5 flex-1 rounded-full",
+                i < doneThisWeek ? "bg-train" : "bg-surface-3",
+              )}
             />
           ))}
         </div>
@@ -339,7 +333,10 @@ function RoutineCard({
       return { nome: ex.nome, insight };
     })
     .filter((v): v is { nome: string; insight: CoachInsight } => v !== null)
-    .sort((a, b) => (a.insight.severity === "warning" ? -1 : 1) - (b.insight.severity === "warning" ? -1 : 1))
+    .sort(
+      (a, b) =>
+        (a.insight.severity === "warning" ? -1 : 1) - (b.insight.severity === "warning" ? -1 : 1),
+    )
     .slice(0, 2);
 
   return (
@@ -369,7 +366,10 @@ function RoutineCard({
           <p className="mt-0.5 text-xs text-muted-foreground">
             {t("{count} exercises", { count: r.exercicios.length })} ·{" "}
             {last
-              ? t("last {time} · {duration}", { time: relativeDays(last.iniciadoEm), duration: formatDurationShort(last.duracaoSeg) })
+              ? t("last {time} · {duration}", {
+                  time: relativeDays(last.iniciadoEm),
+                  duration: formatDurationShort(last.duracaoSeg),
+                })
               : t("never trained")}
           </p>
           {flags.length && !open ? (
@@ -391,7 +391,10 @@ function RoutineCard({
           ) : null}
         </div>
         <ChevronDown
-          className={cn("size-5 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+          className={cn(
+            "size-5 shrink-0 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
 
@@ -412,7 +415,11 @@ function RoutineCard({
                       ) : null}
                     </div>
                     <p className="text-xs text-muted-foreground/80">
-                      {t("{count} sets · {min}-{max} reps", { count: re.seriesAlvo, min: re.repsMin, max: re.repsMax })}
+                      {t("{count} sets · {min}-{max} reps", {
+                        count: re.seriesAlvo,
+                        min: re.repsMin,
+                        max: re.repsMax,
+                      })}
                     </p>
                   </div>
                 </li>

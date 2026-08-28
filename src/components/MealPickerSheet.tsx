@@ -37,7 +37,11 @@ export function MealPickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         <SheetHeader className="text-left">
-          <SheetTitle>{slot ? t("Choose {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() }) : t("Choose a meal")}</SheetTitle>
+          <SheetTitle>
+            {slot
+              ? t("Choose {slot}", { slot: t(SLOT_LABEL[slot]).toLowerCase() })
+              : t("Choose a meal")}
+          </SheetTitle>
         </SheetHeader>
 
         <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">

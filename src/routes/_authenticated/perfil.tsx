@@ -235,9 +235,7 @@ function ProfilePage() {
                 id="weight"
                 inputMode="decimal"
                 value={String(form.pesoKg)}
-                onChange={(e) =>
-                  patch({ pesoKg: Number(e.target.value.replace(",", ".")) || 0 })
-                }
+                onChange={(e) => patch({ pesoKg: Number(e.target.value.replace(",", ".")) || 0 })}
                 className="numeric-field tap-target h-12 text-base"
               />
             </div>
@@ -480,7 +478,7 @@ function ProfilePage() {
 
       {dirty ? (
         <div className="fixed inset-x-0 bottom-24 z-40 px-4">
-          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 shadow-lg backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 backdrop-blur">
             <p className="min-w-0 flex-1 pl-1 text-xs font-semibold text-muted-foreground">
               {t("Unsaved changes")}
             </p>
@@ -551,10 +549,15 @@ function Section({
           <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
         </span>
         <ChevronDown
-          className={cn("size-4 shrink-0 text-muted-foreground transition-transform", open && "rotate-180")}
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
-      {open ? <div className="space-y-4 border-t border-border/50 px-4 py-4">{children}</div> : null}
+      {open ? (
+        <div className="space-y-4 border-t border-border/50 px-4 py-4">{children}</div>
+      ) : null}
     </section>
   );
 }

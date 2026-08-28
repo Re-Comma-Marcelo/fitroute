@@ -88,7 +88,10 @@ export const SPORT_PRESETS: SportPreset[] = [
 ];
 
 export function presetFor(kind: string): SportPreset {
-  return SPORT_PRESETS.find((p) => p.kind === kind) ?? (SPORT_PRESETS[SPORT_PRESETS.length - 1] as SportPreset);
+  return (
+    SPORT_PRESETS.find((p) => p.kind === kind) ??
+    (SPORT_PRESETS[SPORT_PRESETS.length - 1] as SportPreset)
+  );
 }
 
 const INTENSITY_WEIGHT: Record<Intensity, number> = { low: 0.6, moderate: 1, high: 1.35 };

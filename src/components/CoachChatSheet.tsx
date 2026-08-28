@@ -1,13 +1,7 @@
 import { useState } from "react";
 import { useT } from "@/lib/i18n";
 import { ChevronRight, MessageSquare, Send } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { askCoach } from "@/lib/coach/chat";
@@ -52,7 +46,7 @@ export function CoachChatButton({
         type="button"
         className={
           className ??
-          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm"
+          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary"
         }
         aria-label={t("Ask your coach")}
       >
@@ -90,7 +84,9 @@ function ChatPanel() {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "coach",
-      text: t("What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition."),
+      text: t(
+        "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
+      ),
       insights: [],
     },
   ]);
@@ -105,10 +101,7 @@ function ChatPanel() {
     setMessages((m) => [...m, { role: "user", text: question, insights: [] }]);
     setLoading(true);
     const { answer, insights } = await askCoach(question);
-    setMessages((m) => [
-      ...m,
-      { role: "coach", text: answer, insights: insights.slice(0, 2) },
-    ]);
+    setMessages((m) => [...m, { role: "coach", text: answer, insights: insights.slice(0, 2) }]);
     setLoading(false);
   }
 
@@ -116,10 +109,7 @@ function ChatPanel() {
     <div className="flex h-[70vh] flex-col">
       <div className="flex-1 space-y-4 overflow-y-auto py-3 pr-1">
         {messages.map((msg, i) => (
-          <div
-            key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-          >
+          <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                 msg.role === "user"
