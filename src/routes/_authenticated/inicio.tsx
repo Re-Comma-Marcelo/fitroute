@@ -118,7 +118,7 @@ export default function Inicio() {
         {/* Header */}
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
-            <h1 className="font-display text-2xl font-bold tracking-tight">
+            <h1 className="font-display text-2xl font-semibold tracking-tight">
               {greeting},{" "}
               {isLoading ? (
                 <Skeleton className="inline-block h-6 w-24 align-middle" />
@@ -175,7 +175,7 @@ export default function Inicio() {
         {/* Insights */}
         {!isLoading && coach?.insights && coach.insights.length > 0 && (
           <div className="space-y-2">
-            <h2 className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <h2 className="px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("Coach notes")}
             </h2>
             <div className="grid gap-2">
@@ -189,7 +189,7 @@ export default function Inicio() {
                       : "border-l-info bg-info/10",
                   )}
                 >
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {insight.title}
                   </p>
                   <p className="mt-0.5 text-sm leading-snug">{insight.body}</p>
@@ -213,7 +213,7 @@ export default function Inicio() {
         {/* Routines */}
         <section>
           <div className="mb-3 flex items-center justify-between px-1">
-            <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("Routines")}
             </h2>
             <Link
@@ -239,7 +239,7 @@ export default function Inicio() {
 
         {/* Recent sessions */}
         <section>
-          <h2 className="mb-3 px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <h2 className="mb-3 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {t("Recent sessions")}
           </h2>
           {isLoading ? (
@@ -281,10 +281,10 @@ function Metric({
         <Icon className="size-4 text-muted-foreground" />
       </div>
       <div>
-        <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           {label}
         </p>
-        <p className="text-sm font-bold tabular-nums">{value}</p>
+        <p className="text-sm font-semibold tabular-nums">{value}</p>
       </div>
     </div>
   );
@@ -332,7 +332,7 @@ function BodyGoalCard({ profile }: { profile: Profile | undefined }) {
       <div className="mt-2 flex items-end justify-between gap-3">
         <div>
           <p className="text-xs text-muted-foreground">{t("Current")}</p>
-          <p className="font-display text-3xl font-bold tabular-nums">
+          <p className="font-display text-3xl font-semibold tabular-nums">
             {fmtKgLocale(current)} <span className="text-sm font-semibold text-muted-foreground">kg</span>
           </p>
         </div>
@@ -392,11 +392,11 @@ function TodayCard({
             <Flame className="size-4" />
             {t("Session in progress")}
           </div>
-          <h2 className="mt-2 font-display text-xl font-bold">{sessionLabel(active)}</h2>
+          <h2 className="mt-2 font-display text-xl font-semibold">{sessionLabel(active)}</h2>
           <p className="text-sm text-muted-foreground">
             {t("Tap resume to keep going where you left off.")}
           </p>
-          <Button onClick={onStart} className="mt-4 w-full font-bold">
+          <Button onClick={onStart} className="mt-4 w-full font-semibold">
             <Timer className="mr-2 size-4" /> {t("Resume workout")}
           </Button>
         </div>
@@ -411,11 +411,11 @@ function TodayCard({
           <Moon className="size-4" />
           {t("Today's training")}
         </div>
-        <h2 className="mt-2 font-display text-xl font-bold">{t("Rest day")}</h2>
+        <h2 className="mt-2 font-display text-xl font-semibold">{t("Rest day")}</h2>
         <p className="text-sm leading-snug text-muted-foreground">
           {t("Use it to recover. Hydrate and sleep well.")}
         </p>
-        <Button onClick={onStart} variant="outline" className="mt-4 w-full font-bold">
+        <Button onClick={onStart} variant="outline" className="mt-4 w-full font-semibold">
           <Dumbbell className="mr-2 size-4" /> {t("Train anyway")}
         </Button>
       </Card>
@@ -429,13 +429,13 @@ function TodayCard({
           <MessageSquare className="size-4" />
           {t("Today's training")}
         </div>
-        <h2 className="mt-2 font-display text-xl font-bold">
+        <h2 className="mt-2 font-display text-xl font-semibold">
           {recommendation?.title ?? t("Start a workout")}
         </h2>
         <p className="text-sm leading-snug text-muted-foreground">
           {recommendation?.reason ?? t("Pick a routine and start logging.")}
         </p>
-        <Button onClick={onStart} className="mt-4 w-full font-bold">
+        <Button onClick={onStart} className="mt-4 w-full font-semibold">
           <Dumbbell className="mr-2 size-4" />
           {recommendation?.routineId ? t("Start recommended") : t("Start blank workout")}
         </Button>
@@ -462,14 +462,14 @@ function WeeklyGoalCard({
     <Card className="rounded-2xl border-border bg-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {t("Weekly goal")}
           </p>
-          <p className="mt-0.5 text-lg font-bold">
+          <p className="mt-0.5 text-lg font-semibold">
             {t("{sessions}/{target} sessions", { sessions, target })}
           </p>
         </div>
-        <Button onClick={onStart} variant="outline" className="h-10 font-bold">
+        <Button onClick={onStart} variant="outline" className="h-10 font-semibold">
           {active ? t("Resume") : t("Train")}
         </Button>
       </div>
@@ -534,7 +534,7 @@ function SessionRow({ workout }: { workout: Awaited<ReturnType<typeof getWorkout
         </p>
       </div>
       <div className="text-right">
-        <p className="text-sm font-bold tabular-nums">{formatKg(workout.volumeTotalKg)}</p>
+        <p className="text-sm font-semibold tabular-nums">{formatKg(workout.volumeTotalKg)}</p>
         <p className="text-[10px] text-muted-foreground">{t("volume")}</p>
       </div>
     </Link>
@@ -655,7 +655,7 @@ function CheckInForm({ onSaved }: { onSaved: () => void }) {
           className="min-h-[60px] w-full rounded-xl border border-border bg-card p-3 text-sm"
         />
       </div>
-      <Button type="submit" className="w-full font-bold" disabled={saving}>
+      <Button type="submit" className="w-full font-semibold" disabled={saving}>
         {t("Save check-in")}
       </Button>
     </form>

@@ -167,7 +167,7 @@ function LibraryPage() {
           {detail ? (
             <div className="space-y-4 px-4 pb-6">
               <div className="flex flex-wrap gap-2">
-                <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">
+                <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
                 </span>
                 {detail.gruposSecundarios.map((g) => (
@@ -180,14 +180,14 @@ function LibraryPage() {
                 </span>
               </div>
               <div>
-                <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("Execution")}
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
               {para ? (
                 <Button
-                  className="h-14 w-full text-base font-bold"
+                  className="h-14 w-full text-base font-semibold"
                   onClick={() => {
                     setPendingExercise(detail.id);
                     goBack();

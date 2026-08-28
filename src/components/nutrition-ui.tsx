@@ -52,7 +52,7 @@ export function MacroRings({
         <div className="relative shrink-0">
           <Ring pct={totals.kcal / Math.max(1, targets.kcal)} color="var(--diet)" size={120} width={9} />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold tabular-nums">{totals.kcal}</span>
+            <span className="text-2xl font-semibold tabular-nums">{totals.kcal}</span>
             <span className="text-[10px] font-medium tracking-wide text-muted-foreground">
               {t("of {kcal} kcal", { kcal: targets.kcal })}
             </span>

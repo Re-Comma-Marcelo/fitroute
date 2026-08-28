@@ -61,7 +61,7 @@ export function SessionMiniPlayer() {
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm font-semibold">{sessionLabel(session)}</span>
-              <span className="ml-auto font-mono text-sm font-bold tabular-nums text-primary">
+              <span className="ml-auto font-mono text-sm font-semibold tabular-nums text-primary">
                 {formatDuration(sessionElapsed(session))}
               </span>
             </span>

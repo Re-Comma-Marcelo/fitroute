@@ -192,7 +192,7 @@ function RoutineEditor() {
           />
         </div>
 
-        <h2 className="pt-2 text-sm font-bold uppercase tracking-wide text-muted-foreground">
+        <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {t("Exercises ({count})", { count: routine.exercicios.length })}
         </h2>
 
@@ -201,7 +201,7 @@ function RoutineEditor() {
             <p className="text-sm text-muted-foreground">
               {t("No exercises yet. Add the first one from the library.")}
             </p>
-            <Button className="mt-4 h-12 w-full font-bold" onClick={openLibrary}>
+            <Button className="mt-4 h-12 w-full font-semibold" onClick={openLibrary}>
               <Plus className="mr-1 size-5" /> {t("Add exercise")}
             </Button>
           </div>
@@ -225,7 +225,7 @@ function RoutineEditor() {
                   <span className="tap-target flex cursor-grab items-center justify-center text-muted-foreground">
                     <GripVertical className="size-5" />
                   </span>
-                  <p className="flex-1 text-base font-bold leading-tight">
+                  <p className="flex-1 text-base font-semibold leading-tight">
                     {nomes[rex.exerciseId] ?? t("Exercise")}
                   </p>
                   <Button
@@ -310,7 +310,7 @@ function RoutineEditor() {
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto max-w-md">
-          <Button className="h-14 w-full text-base font-bold" disabled={saving} onClick={handleSave}>
+          <Button className="h-14 w-full text-base font-semibold" disabled={saving} onClick={handleSave}>
             {t("Save routine")}
           </Button>
         </div>
@@ -331,7 +331,7 @@ function NumField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <Input

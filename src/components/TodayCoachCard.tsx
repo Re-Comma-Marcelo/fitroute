@@ -97,7 +97,7 @@ export function TodayCoachCard({
 
           <div className="space-y-2">
             <Button
-              className="h-12 w-full font-bold"
+              className="h-12 w-full font-semibold"
               disabled={busy || !model.routineId}
               onClick={() => onStart({})}
             >
@@ -132,7 +132,7 @@ export function TodayCoachCard({
                     type="button"
                     onClick={() => setSwapFor(f.exerciseId)}
                     className={cn(
-                      "rounded-full border px-2.5 py-1 text-[11px] font-bold",
+                      "rounded-full border px-2.5 py-1 text-[11px] font-semibold",
                       swapFor === f.exerciseId
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border text-muted-foreground",

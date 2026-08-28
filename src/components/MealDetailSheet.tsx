@@ -143,7 +143,7 @@ export function MealDetailSheet({
           <div className="absolute inset-0" style={{ background: "var(--gradient-veil)" }} />
           <div className="absolute bottom-3 left-4 right-4">
             <p className="label-caps text-xs text-muted-foreground">{t(SLOT_LABEL[slot])}</p>
-            <h2 className="font-display text-xl font-bold leading-tight">{meal.name}</h2>
+            <h2 className="font-display text-xl font-semibold leading-tight">{meal.name}</h2>
           </div>
         </div>
 
@@ -300,7 +300,7 @@ export function MealDetailSheet({
             </section>
           )}
 
-          <Button onClick={onToggle} className="w-full font-bold" variant={planned ? "outline" : "default"}>
+          <Button onClick={onToggle} className="w-full font-semibold" variant={planned ? "outline" : "default"}>
             {planned ? (
               t("Remove from today")
             ) : (

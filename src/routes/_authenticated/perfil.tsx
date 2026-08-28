@@ -495,7 +495,7 @@ function ProfilePage() {
             <Button
               type="button"
               disabled={saving}
-              className="tap-target h-10 px-4 text-sm font-bold"
+              className="tap-target h-10 px-4 text-sm font-semibold"
               onClick={save}
             >
               {saving ? t("Saving…") : t("Save")}

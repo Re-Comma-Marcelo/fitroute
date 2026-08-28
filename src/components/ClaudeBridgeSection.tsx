@@ -83,13 +83,13 @@ function Step({
         <span
           aria-hidden
           className={cn(
-            "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold",
+            "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
             done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
           )}
         >
           {done ? <Check className="size-3.5" /> : n}
         </span>
-        <p className="min-w-0 flex-1 break-words text-sm font-bold text-foreground">{title}</p>
+        <p className="min-w-0 flex-1 break-words text-sm font-semibold text-foreground">{title}</p>
         {onToggle ? (
           <button
             type="button"
@@ -232,7 +232,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           <Sparkles className="size-4" />
         </span>
         <div className="min-w-0">
-          <h2 className="text-sm font-bold text-foreground">{t("Claude / AI assistant")}</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t("Claude / AI assistant")}</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {t(
               "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
@@ -367,7 +367,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         ) : null}
         {pending ? (
           <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/[0.06] p-3">
-            <p className="text-sm font-bold text-foreground">{pending.preview.title}</p>
+            <p className="text-sm font-semibold text-foreground">{pending.preview.title}</p>
             <ul className="space-y-1 text-xs text-muted-foreground">
               {pending.preview.lines.map((l, i) => (
                 <li key={i}>{l}</li>
@@ -412,7 +412,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           onClick={() => setShowContext((v) => !v)}
           aria-expanded={showContext}
         >
-          <span className="min-w-0 text-xs font-bold text-foreground">
+          <span className="min-w-0 text-xs font-semibold text-foreground">
             {t("Optional · your training context")}
           </span>
           <ChevronDown
