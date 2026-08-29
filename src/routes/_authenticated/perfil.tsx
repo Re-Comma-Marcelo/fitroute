@@ -120,7 +120,9 @@ function ProfilePage() {
   const [form, setForm] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [avoidOpen, setAvoidOpen] = useState(false);
+  const [photoMenu, setPhotoMenu] = useState(false);
   const email = useAccountEmail();
+
 
   useEffect(() => {
     if (profileQuery.data && !form) setForm(profileQuery.data);
