@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { toast } from "sonner";
+
 import { getProfile, saveProfile } from "@/lib/data/profile";
 import type { Profile } from "@/lib/types";
 
@@ -24,8 +26,10 @@ export function useLanguageSync() {
           if (current.idioma === next) return;
           const saved = await saveProfile({ ...current, idioma: next });
           queryClient.setQueryData(["profile"], saved);
-        } catch {
-          // Offline or signed out: the local preference still applies.
+        } catch (error) {
+          // The local preference still applies, but do not hide a failing write.
+          console.error("[language] could not persist the language", error);
+          toast.error("Could not save your language preference.");
         }
       })();
     });
