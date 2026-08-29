@@ -11,6 +11,7 @@ import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -62,8 +63,10 @@ function TodayPage() {
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
   const schedule = scheduleQ.data;
   const slots = useMemo(() => (schedule ? activeSlots(schedule) : []), [schedule]);
+  // A slot the user picked wins, even while the schedule is refetching —
+  // otherwise the tab snaps back to breakfast under them.
   const currentSlot: MealSlot =
-    slot && slots.includes(slot)
+    slot && (slots.length === 0 || slots.includes(slot))
       ? slot
       : schedule
         ? slotForTime(new Date(), schedule)
@@ -120,8 +123,12 @@ function TodayPage() {
 
   async function choose(mealId: string) {
     const current = day?.[currentSlot];
-    await setPlannedMeal(today, currentSlot, current === mealId ? null : mealId);
-    qc.invalidateQueries({ queryKey: ["weekPlan"] });
+    try {
+      await setPlannedMeal(today, currentSlot, current === mealId ? null : mealId);
+    } catch {
+      toast.error(t("Could not save this meal. Try again."));
+    }
+    void qc.invalidateQueries({ queryKey: ["weekPlan"] });
   }
 
   const note = (meal: Meal) => reasons.get(meal.id);

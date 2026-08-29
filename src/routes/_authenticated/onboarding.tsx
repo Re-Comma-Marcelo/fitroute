@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Dumbbell, Flame, Import, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight, Dumbbell, Flame, Import, Loader2, Sparkles, Trophy } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -52,9 +52,11 @@ function OnboardingPage() {
   const [step, setStep] = useState<Step>("value");
   const [answers, setAnswers] = useState<Partial<StarterAnswers>>({});
   const [creating, setCreating] = useState(false);
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setReducedMotion(Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
+  }, []);
 
   const finish = () => {
     markOnboardingDone();
@@ -87,7 +89,8 @@ function OnboardingPage() {
     }
   }
 
-  const questionIndex = step === "goal" ? 1 : step === "frequency" ? 2 : step === "experience" ? 3 : 0;
+  const questionIndex =
+    step === "goal" ? 1 : step === "frequency" ? 2 : step === "experience" ? 3 : 0;
   // Endowed progress: the bar never starts empty.
   const progressPct = questionIndex > 0 ? 25 + questionIndex * 20 : 0;
 
@@ -118,7 +121,9 @@ function OnboardingPage() {
                 <CountUp value={DEMO_VOLUME} format={(n) => formatNumber(n)} />
                 <span className="ml-1 text-base font-semibold">kg</span>
               </p>
-              <p className="mt-1 text-xs font-semibold text-success">+12% {t("vs last week")}</p>
+              <p className="mt-1 text-xs font-semibold text-success">
+                {t("+{pct}% vs last week", { pct: formatNumber(12) })}
+              </p>
 
               <div className="mt-4 grid grid-flow-col grid-rows-7 gap-1">
                 {DEMO_CELLS.map((level, i) => (
@@ -126,11 +131,7 @@ function OnboardingPage() {
                     key={i}
                     className={cn(
                       "size-3 rounded-[3px]",
-                      level === 0
-                        ? "bg-surface-3"
-                        : level === 1
-                          ? "bg-train/40"
-                          : "bg-train",
+                      level === 0 ? "bg-surface-3" : level === 1 ? "bg-train/40" : "bg-train",
                     )}
                   />
                 ))}
@@ -286,11 +287,7 @@ function OnboardingPage() {
               </ul>
             </Card>
 
-            <Button
-              className="tap-target mt-5 w-full"
-              disabled={creating}
-              onClick={useThisRoutine}
-            >
+            <Button className="tap-target mt-5 w-full" disabled={creating} onClick={useThisRoutine}>
               {creating ? t("Creating…") : t("Use this routine")}
             </Button>
             <Button
@@ -303,6 +300,27 @@ function OnboardingPage() {
             >
               {t("Build it myself")}
             </Button>
+            <SkipLink onSkip={finish} />
+          </section>
+        ) : null}
+
+        {step === "plan" && !plan ? (
+          <section className="pt-10 text-center">
+            <Loader2 className="mx-auto size-6 animate-spin text-primary motion-reduce:animate-none" />
+            <p className="mt-4 text-sm font-semibold">
+              {exercisesQ.isError
+                ? t("We could not load the exercise library.")
+                : t("Building your plan")}
+            </p>
+            {exercisesQ.isError ? (
+              <Button
+                variant="outline"
+                className="tap-target mt-4 w-full"
+                onClick={() => void exercisesQ.refetch()}
+              >
+                {t("Try again")}
+              </Button>
+            ) : null}
             <SkipLink onSkip={finish} />
           </section>
         ) : null}

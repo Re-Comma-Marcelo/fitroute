@@ -3,6 +3,12 @@ import type { DictFragment } from "../types";
 /** Onboarding flow + Hevy importer. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "This export has no weight column — sets will import without load.":
+      "Esta exportação não tem coluna de peso — as séries serão importadas sem carga.",
+    "Try again": "Tentar de novo",
+    "We could not load the exercise library.":
+      "Não foi possível carregar a biblioteca de exercícios.",
+    "+{pct}% vs last week": "+{pct}% vs. semana passada",
     Welcome: "Bem-vindo",
     "Your training, turned into visible progress": "Seu treino, transformado em progresso visível",
     "Every set you log feeds a dashboard like this one.":
@@ -32,8 +38,7 @@ export const dict: DictFragment = {
     "Training for a while": "Já treino há um tempo",
     Advanced: "Avançado",
     "Building your plan": "Montando seu plano",
-    "Matching volume and rest to your answers.":
-      "Ajustando volume e descanso às suas respostas.",
+    "Matching volume and rest to your answers.": "Ajustando volume e descanso às suas respostas.",
     "Suggested routine": "Rotina sugerida",
     "{sets} sets · {min}-{max} reps": "{sets} séries · {min}-{max} repetições",
     "Use this routine": "Usar esta rotina",
@@ -80,6 +85,11 @@ export const dict: DictFragment = {
     "Bring your history from another app.": "Traga seu histórico de outro app.",
   },
   nl: {
+    "This export has no weight column — sets will import without load.":
+      "Deze export heeft geen gewichtskolom — sets worden zonder gewicht geïmporteerd.",
+    "Try again": "Probeer opnieuw",
+    "We could not load the exercise library.": "We konden de oefeningenbibliotheek niet laden.",
+    "+{pct}% vs last week": "+{pct}% t.o.v. vorige week",
     Welcome: "Welkom",
     "Your training, turned into visible progress": "Jouw training, omgezet in zichtbare progressie",
     "Every set you log feeds a dashboard like this one.":

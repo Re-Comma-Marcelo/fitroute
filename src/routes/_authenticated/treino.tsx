@@ -104,11 +104,16 @@ function TrainPage() {
     return [rec, ...routines.filter((r) => r.id !== rec.id)];
   }, [routines, coach?.recommendedRoutineId]);
 
-  function lastOfRoutine(routineId: string) {
-    return workouts
-      .filter((w) => w.routineId === routineId)
-      .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
-  }
+  // One pass over the history instead of a filter+sort per routine card.
+  const lastByRoutine = useMemo(() => {
+    const map = new Map<string, (typeof workouts)[number]>();
+    for (const w of workouts) {
+      if (!w.routineId) continue;
+      const current = map.get(w.routineId);
+      if (!current || w.iniciadoEm > current.iniciadoEm) map.set(w.routineId, w);
+    }
+    return map;
+  }, [workouts]);
 
   async function startRoutine(routineId: string, opts: { deload?: boolean } = {}) {
     if (active) {
@@ -277,7 +282,7 @@ function TrainPage() {
               key={r.id}
               r={r}
               exercises={exercises}
-              last={lastOfRoutine(r.id)}
+              last={lastByRoutine.get(r.id)}
               insights={insights[r.id] ?? {}}
               recommended={r.id === coach?.recommendedRoutineId}
               isChoice={r.id === activeChoiceId}

@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -61,7 +62,11 @@ function WeekPage() {
         <button
           type="button"
           onClick={async () => {
-            await autoFillWeek();
+            try {
+              await autoFillWeek();
+            } catch {
+              toast.error(t("Could not update the week plan. Try again."));
+            }
             refresh();
           }}
           className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
@@ -71,7 +76,11 @@ function WeekPage() {
         <button
           type="button"
           onClick={async () => {
-            await clearWeek();
+            try {
+              await clearWeek();
+            } catch {
+              toast.error(t("Could not update the week plan. Try again."));
+            }
             refresh();
           }}
           aria-label={t("Clear week")}
@@ -141,7 +150,11 @@ function WeekPage() {
         onOpenChange={(open) => !open && setEditing(null)}
         onPick={async (mealId) => {
           if (!editing) return;
-          await setPlannedMeal(editing.date, editing.slot, mealId);
+          try {
+            await setPlannedMeal(editing.date, editing.slot, mealId);
+          } catch {
+            toast.error(t("Could not update the week plan. Try again."));
+          }
           setEditing(null);
           refresh();
         }}

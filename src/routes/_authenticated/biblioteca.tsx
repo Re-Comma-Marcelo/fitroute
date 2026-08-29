@@ -142,7 +142,21 @@ function LibraryPage() {
               </Button>
             </li>
           ))}
-          {!lista.length && !exercisesQuery.isLoading ? (
+          {exercisesQuery.isError ? (
+            <li className="px-4 py-8 text-center text-sm text-muted-foreground">
+              <p className="font-display text-sm font-semibold text-foreground">
+                {t("Could not load the exercise library.")}
+              </p>
+              <Button
+                variant="outline"
+                className="tap-target mt-3"
+                onClick={() => void exercisesQuery.refetch()}
+              >
+                {t("Try again")}
+              </Button>
+            </li>
+          ) : null}
+          {!lista.length && !exercisesQuery.isLoading && !exercisesQuery.isError ? (
             <li className="px-4 py-8 text-center text-sm text-muted-foreground">
               <p className="font-display text-sm font-semibold text-foreground">
                 {t("No exercises found.")}

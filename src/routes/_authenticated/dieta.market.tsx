@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBasket, Truck } from "lucide-react";
-import { formatCurrency, formatWeekdayShort } from "@/lib/format";
+import { toast } from "sonner";
+import { formatCurrency, formatNumber, formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -138,7 +139,14 @@ function MarketPage() {
                       <li key={item.key}>
                         <button
                           type="button"
-                          onClick={() => setChecked(toggleCheckedItem(item.key))}
+                          onClick={() =>
+                            setChecked(
+                              toggleCheckedItem(item.key, (revert) => {
+                                setChecked(revert);
+                                toast.error(t("Could not save the shopping list. Try again."));
+                              }),
+                            )
+                          }
                           className="tap-target flex w-full items-center gap-3 text-left"
                         >
                           <span
@@ -156,7 +164,7 @@ function MarketPage() {
                             {item.name}
                           </span>
                           <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                            {Math.round(item.qty * 10) / 10} {item.unit}
+                            {formatNumber(Math.round(item.qty * 10) / 10)} {item.unit}
                             <span className="block text-[11px] text-muted-foreground/70">
                               ~{formatCurrency(estimateItemPrice(item))}
                             </span>

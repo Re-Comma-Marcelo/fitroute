@@ -31,14 +31,21 @@ function SummaryPage() {
   const [prs, setPrs] = useState<PrEntry[]>([]);
 
   useEffect(() => {
+    const key = `forja.resumo.${id}`;
     try {
-      const raw = window.localStorage.getItem(`forja.resumo.${id}`);
+      const raw = window.localStorage.getItem(key);
       const parsed = raw ? ((JSON.parse(raw).prs ?? []) as PrEntry[]) : [];
       setPrs(parsed);
       // Celebrate the record once, when the summary first appears.
       if (parsed.length) hapticSuccess();
     } catch {
       setPrs([]);
+    }
+    // Consumed once: keep localStorage from accumulating one key per workout.
+    try {
+      window.localStorage.removeItem(key);
+    } catch {
+      /* storage unavailable */
     }
   }, [id]);
 
@@ -81,10 +88,7 @@ function SummaryPage() {
         </section>
 
         {prs.length ? (
-          <section
-            aria-label={t("New personal records")}
-            className="mt-6 space-y-3"
-          >
+          <section aria-label={t("New personal records")} className="mt-6 space-y-3">
             {prs.map((pr, index) => {
               const delta =
                 pr.anteriorKg && pr.anteriorKg > 0

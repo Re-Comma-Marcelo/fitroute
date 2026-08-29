@@ -37,16 +37,26 @@ function RoutineEditor() {
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const loaded = useRef(false);
 
   useEffect(() => {
     if (loaded.current) return;
     loaded.current = true;
 
-    getExercises().then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))));
+    getExercises()
+      .then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))))
+      .catch(() => setNomes({}));
 
-    const draftRaw = typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
-    const draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
+    let draft: Routine | null = null;
+    try {
+      const draftRaw =
+        typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
+      draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
+    } catch {
+      draft = null;
+    }
     const pending = takePendingExercise();
 
     async function init() {
@@ -66,8 +76,9 @@ function RoutineEditor() {
       }
       setRoutine(base);
     }
-    init();
-  }, [id]);
+    setLoadError(false);
+    init().catch(() => setLoadError(true));
+  }, [id, reloadKey]);
 
   // Keep an in-progress draft so leaving the screen (or bouncing through the
   // library) never loses edits. Cleared on a successful save or delete.
@@ -75,6 +86,26 @@ function RoutineEditor() {
     if (!routine || !loaded.current) return;
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
   }, [routine]);
+
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+        <p className="text-sm font-semibold">{t("Could not load this routine.")}</p>
+        <Button
+          className="tap-target w-full max-w-xs"
+          onClick={() => {
+            loaded.current = false;
+            setReloadKey((k) => k + 1);
+          }}
+        >
+          {t("Try again")}
+        </Button>
+        <Button variant="ghost" className="tap-target" onClick={() => navigate({ to: "/treino" })}>
+          {t("Back to training")}
+        </Button>
+      </div>
+    );
+  }
 
   if (!routine) return <div className="min-h-screen bg-background" />;
 

@@ -2,6 +2,10 @@ import type { DictFragment } from "../types";
 
 export const dict: DictFragment = {
   pt: {
+    "Could not add the exercise. Try again.":
+      "Não foi possível adicionar o exercício. Tente novamente.",
+    "Rest already running": "Descanso já em andamento",
+    Restart: "Reiniciar",
     "Could not save the workout. It is still stored on this device — try again in a moment.":
       "Não foi possível salvar o treino. Ele continua guardado neste aparelho — tente novamente em instantes.",
     "Repeat set": "Repetir série",
@@ -82,6 +86,9 @@ export const dict: DictFragment = {
     "First week training — keep it going": "Primeira semana treinando — siga assim",
   },
   nl: {
+    "Could not add the exercise. Try again.": "Kon de oefening niet toevoegen. Probeer opnieuw.",
+    "Rest already running": "Rust loopt al",
+    Restart: "Opnieuw starten",
     "Repeat set": "Set herhalen",
     "Decrease weight": "Gewicht verlagen",
     "Increase weight": "Gewicht verhogen",

@@ -208,16 +208,21 @@ function SessionPage() {
     // Exercise chosen from library during session
     const pending = takePendingExercise();
     if (pending) {
-      buildActiveExercise(pending).then((built) => {
-        if (!built) return;
-        setSession((prev) => {
-          if (!prev) return prev;
-          const next = { ...prev, exercicios: [...prev.exercicios, built] };
-          next.atual = next.exercicios.length - 1;
-          saveActiveSession(next);
-          return next;
-        });
-      });
+      buildActiveExercise(pending)
+        .then((built) => {
+          if (!built) {
+            toast.error(t("Could not add the exercise. Try again."));
+            return;
+          }
+          setSession((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev, exercicios: [...prev.exercicios, built] };
+            next.atual = next.exercicios.length - 1;
+            saveActiveSession(next);
+            return next;
+          });
+        })
+        .catch(() => toast.error(t("Could not add the exercise. Try again.")));
     }
   }, []);
 
@@ -245,15 +250,27 @@ function SessionPage() {
       wakeLock?: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> };
     };
     if (!nav.wakeLock) return;
-    let sentinel: { release: () => Promise<void> } | null = null;
+    type Sentinel = {
+      release: () => Promise<void>;
+      addEventListener?: (type: "release", cb: () => void) => void;
+    };
+    let sentinel: Sentinel | null = null;
     let cancelled = false;
     const acquire = () => {
       if (document.visibilityState !== "visible") return;
       nav
         .wakeLock!.request("screen")
         .then((s) => {
-          if (cancelled) void s.release().catch(() => {});
-          else sentinel = s;
+          if (cancelled) {
+            void s.release().catch(() => {});
+            return;
+          }
+          sentinel = s as Sentinel;
+          // The OS can drop the lock on its own; re-acquire while still visible.
+          sentinel.addEventListener?.("release", () => {
+            sentinel = null;
+            if (!cancelled) acquire();
+          });
         })
         .catch(() => {});
     };
@@ -268,6 +285,18 @@ function SessionPage() {
       void sentinel?.release().catch(() => {});
     };
   }, [hasSession]);
+
+  /** Warn before closing the tab while sets are typed but not confirmed. */
+  const unsavedSets = session ? filledUncheckedSets(session) : 0;
+  useEffect(() => {
+    if (unsavedSets === 0) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [unsavedSets]);
 
   /** Bring the newly opened exercise into view when a card auto-advances. */
   useEffect(() => {
@@ -588,7 +617,19 @@ function SessionPage() {
             size="icon"
             className="tap-target text-info"
             aria-label={t("Open rest timer")}
-            onClick={() => startRest(currentRest)}
+            onClick={() => {
+              // Never silently wipe a rest already counting down.
+              if (restLeft > 0) {
+                toast(t("Rest already running"), {
+                  action: {
+                    label: t("Restart"),
+                    onClick: () => startRest(currentRest),
+                  },
+                });
+                return;
+              }
+              startRest(currentRest);
+            }}
           >
             <Timer className="size-6" />
           </Button>
@@ -1263,15 +1304,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
 }
 
 /** Non-blocking tooltip used only on the user's first session. */
-function CoachMark({
-  text,
-  onDismiss,
-  t,
-}: {
-  text: string;
-  onDismiss: () => void;
-  t: any;
-}) {
+function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void; t: any }) {
   return (
     <div
       role="note"
