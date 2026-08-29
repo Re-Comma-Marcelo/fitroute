@@ -32,6 +32,8 @@ export interface Profile {
   checkInMode: CheckInMode;
   /** UI language: 'en' | 'pt' | 'nl'. */
   idioma: Lang;
+  /** Profile photo (data URL or remote URL). */
+  avatarUrl?: string;
   /** Body goal — target bodyweight and the horizon for it. */
   pesoInicialKg?: number;
   pesoMetaKg?: number;
