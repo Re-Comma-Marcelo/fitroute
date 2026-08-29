@@ -58,11 +58,28 @@ export function restSecondsLeft(session: ActiveSession | null): number {
 const KEY = "forja.activeSession.v1";
 const PENDING_EX_KEY = "forja.pendingExercise.v1";
 
+/** Guards against sessions saved by an older app version (missing arrays crash renders). */
+function isValidSession(value: unknown): value is ActiveSession {
+  if (!value || typeof value !== "object") return false;
+  const s = value as Partial<ActiveSession>;
+  if (typeof s.id !== "string" || typeof s.iniciadoEm !== "string") return false;
+  if (!Array.isArray(s.exercicios)) return false;
+  return s.exercicios.every(
+    (ex) => ex && typeof ex === "object" && Array.isArray((ex as ActiveExercise).sets),
+  );
+}
+
 export function loadActiveSession(): ActiveSession | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as ActiveSession) : null;
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (!isValidSession(parsed)) {
+      window.localStorage.removeItem(KEY);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
