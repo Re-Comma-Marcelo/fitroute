@@ -76,8 +76,9 @@ function RoutineEditor() {
       }
       setRoutine(base);
     }
-    init();
-  }, [id]);
+    setLoadError(false);
+    init().catch(() => setLoadError(true));
+  }, [id, reloadKey]);
 
   // Keep an in-progress draft so leaving the screen (or bouncing through the
   // library) never loses edits. Cleared on a successful save or delete.
