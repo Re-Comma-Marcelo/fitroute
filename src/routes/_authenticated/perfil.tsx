@@ -98,7 +98,7 @@ function ProfilePage() {
   const dirty = useMemo(
     () =>
       Boolean(form && profileQuery.data) &&
-      JSON.stringify(form) !== JSON.stringify(profileQuery.data),
+      profileSnapshot(form) !== profileSnapshot(profileQuery.data!),
     [form, profileQuery.data],
   );
 
