@@ -250,15 +250,27 @@ function SessionPage() {
       wakeLock?: { request: (type: "screen") => Promise<{ release: () => Promise<void> }> };
     };
     if (!nav.wakeLock) return;
-    let sentinel: { release: () => Promise<void> } | null = null;
+    type Sentinel = {
+      release: () => Promise<void>;
+      addEventListener?: (type: "release", cb: () => void) => void;
+    };
+    let sentinel: Sentinel | null = null;
     let cancelled = false;
     const acquire = () => {
       if (document.visibilityState !== "visible") return;
       nav
         .wakeLock!.request("screen")
         .then((s) => {
-          if (cancelled) void s.release().catch(() => {});
-          else sentinel = s;
+          if (cancelled) {
+            void s.release().catch(() => {});
+            return;
+          }
+          sentinel = s as Sentinel;
+          // The OS can drop the lock on its own; re-acquire while still visible.
+          sentinel.addEventListener?.("release", () => {
+            sentinel = null;
+            if (!cancelled) acquire();
+          });
         })
         .catch(() => {});
     };
