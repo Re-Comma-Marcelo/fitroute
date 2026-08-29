@@ -87,7 +87,7 @@ export default function Inicio() {
   // First-run: send brand-new accounts through onboarding once.
   useEffect(() => {
     if (!logQ.isSuccess || hasData || onboardingDone()) return;
-    navigate({ to: "/onboarding" });
+    navigate({ to: "/onboarding", replace: true });
   }, [logQ.isSuccess, hasData, navigate]);
 
 
