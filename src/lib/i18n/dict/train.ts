@@ -3,7 +3,6 @@ import type { DictFragment } from "../types";
 export const dict: DictFragment = {
   pt: {
     "Could not load this routine.": "Não foi possível carregar esta rotina.",
-    "Try again": "Tentar de novo",
     "Could not start the session. Check your connection and try again.":
       "Não foi possível iniciar a sessão. Verifique sua conexão e tente novamente.",
     "Could not save the routine. Check your connection and try again.":
@@ -41,7 +40,6 @@ export const dict: DictFragment = {
   },
   nl: {
     "Could not load this routine.": "Kon deze routine niet laden.",
-    "Try again": "Probeer opnieuw",
     "Could not start the session. Check your connection and try again.":
       "Kon de sessie niet starten. Controleer je verbinding en probeer opnieuw.",
     "Could not save the routine. Check your connection and try again.":

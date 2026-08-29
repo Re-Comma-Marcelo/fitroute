@@ -4,7 +4,6 @@ import type { DictFragment } from "../types";
 export const dict: DictFragment = {
   pt: {
     "Could not load the exercise library.": "Não foi possível carregar a biblioteca de exercícios.",
-    "Try again": "Tentar de novo",
     "Choose exercise": "Escolher exercício",
     Library: "Biblioteca",
     Back: "Voltar",
@@ -74,7 +73,6 @@ export const dict: DictFragment = {
   },
   nl: {
     "Could not load the exercise library.": "Kon de oefeningenbibliotheek niet laden.",
-    "Try again": "Probeer opnieuw",
     "Choose exercise": "Kies oefening",
     Library: "Bibliotheek",
     Back: "Terug",
