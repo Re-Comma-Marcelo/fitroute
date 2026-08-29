@@ -233,25 +233,55 @@ function ProfilePage() {
         <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
       }
     >
-      {/* Identity header */}
+      {/* Identity header — photo-led, one metadata line */}
       <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3.5">
           <div className="relative shrink-0">
-            <label
-              htmlFor="avatar"
-              className="tap-target grid size-14 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-xl font-semibold text-primary"
-              aria-label={t("Change photo")}
-            >
-              {form.avatarUrl ? (
-                <img
-                  src={form.avatarUrl}
-                  alt={t("Profile photo")}
-                  className="size-full object-cover"
-                />
-              ) : (
-                (form.nome || "?").trim().charAt(0).toUpperCase()
-              )}
-            </label>
+            {form.avatarUrl ? (
+              <Popover open={photoMenu} onOpenChange={setPhotoMenu}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("Change photo")}
+                    className="tap-target grid size-16 place-items-center overflow-hidden rounded-2xl bg-primary/15"
+                  >
+                    <img
+                      src={form.avatarUrl}
+                      alt={t("Profile photo")}
+                      className="size-full object-cover"
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-44 p-1.5">
+                  <label
+                    htmlFor="avatar"
+                    className="tap-target flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium hover:bg-muted/60"
+                  >
+                    <Camera className="size-4 text-primary" />
+                    {t("Change photo")}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      patch({ avatarUrl: "" });
+                      setPhotoMenu(false);
+                    }}
+                    className="tap-target flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted/60"
+                  >
+                    <Trash2 className="size-4" />
+                    {t("Remove photo")}
+                  </button>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <label
+                htmlFor="avatar"
+                aria-label={t("Add photo")}
+                className="tap-target grid size-16 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-2xl font-semibold text-primary"
+              >
+                {(form.nome || "?").trim().charAt(0).toUpperCase()}
+              </label>
+            )}
             <input
               id="avatar"
               type="file"
@@ -260,6 +290,7 @@ function ProfilePage() {
               onChange={(e) => {
                 void pickPhoto(e.target.files?.[0]);
                 e.target.value = "";
+                setPhotoMenu(false);
               }}
             />
             <span className="pointer-events-none absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border border-border bg-card text-primary">
@@ -271,42 +302,20 @@ function ProfilePage() {
               {form.nome || t("Your name")}
             </p>
             <p className="truncate text-xs text-muted-foreground">{email ?? t("Signed in")}</p>
-            <div className="mt-1 flex items-center gap-3">
-              <label
-                htmlFor="avatar"
-                className="cursor-pointer text-xs font-medium text-primary underline-offset-2 hover:underline"
-              >
-                {form.avatarUrl ? t("Change photo") : t("Add photo")}
-              </label>
-              {form.avatarUrl ? (
-                <button
-                  type="button"
-                  onClick={() => patch({ avatarUrl: "" })}
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <Trash2 className="size-3" />
-                  {t("Remove photo")}
-                </button>
-              ) : null}
-            </div>
+            <p className="mt-1.5 truncate text-xs font-medium tabular-nums text-muted-foreground">
+              {[
+                `${form.pesoKg} kg`,
+                `${form.alturaCm} cm`,
+                t(goalLabel),
+                t("{n}x / week", { n: String(form.metaTreinosSemana) }),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
           </div>
         </div>
-
-        <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <Stat label={t("Weight")} value={`${form.pesoKg} kg`} />
-          <Stat label={t("Height")} value={`${form.alturaCm} cm`} />
-          <Stat label={t("Goal")} value={t(goalLabel)} />
-        </dl>
-
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <Tag>{t("{n}x / week", { n: String(form.metaTreinosSemana) })}</Tag>
-          <Tag>{t("{n} min", { n: String(form.sessionLengthMin) })}</Tag>
-          <Tag>{t(timeLabel)}</Tag>
-          {form.equipment.length > 0 ? (
-            <Tag>{t("{n} equipment", { n: String(form.equipment.length) })}</Tag>
-          ) : null}
-        </div>
       </section>
+
 
       <form
         className="mt-4 space-y-3"
