@@ -75,7 +75,11 @@ function WeekPage() {
         <button
           type="button"
           onClick={async () => {
-            await clearWeek();
+            try {
+              await clearWeek();
+            } catch {
+              toast.error(t("Could not update the week plan. Try again."));
+            }
             refresh();
           }}
           aria-label={t("Clear week")}
