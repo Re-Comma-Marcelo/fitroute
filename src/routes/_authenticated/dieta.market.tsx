@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Check, ShoppingBasket, Truck } from "lucide-react";
 import { toast } from "sonner";
-import { formatCurrency, formatWeekdayShort } from "@/lib/format";
+import { formatCurrency, formatNumber, formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
@@ -164,7 +164,7 @@ function MarketPage() {
                             {item.name}
                           </span>
                           <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                            {Math.round(item.qty * 10) / 10} {item.unit}
+                            {formatNumber(Math.round(item.qty * 10) / 10)} {item.unit}
                             <span className="block text-[11px] text-muted-foreground/70">
                               ~{formatCurrency(estimateItemPrice(item))}
                             </span>
