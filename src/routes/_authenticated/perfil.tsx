@@ -72,6 +72,35 @@ const times: { value: PreferredTime; label: string }[] = [
 const EQUIPMENT_OPTIONS = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight"];
 const REASON_SUGGESTIONS = ["Shoulder pain", "Knee pain", "Lower back", "No equipment"];
 
+/**
+ * Stable string form of a profile: keys sorted and array fields normalized so
+ * key/element order can never fake an "unsaved changes" state.
+ */
+function profileSnapshot(profile: Profile): string {
+  const normalized: Record<string, unknown> = {};
+  for (const key of Object.keys(profile).sort()) {
+    const value = (profile as unknown as Record<string, unknown>)[key];
+    if (Array.isArray(value)) {
+      normalized[key] = [...value]
+        .map((item) =>
+          item && typeof item === "object"
+            ? JSON.stringify(
+                Object.fromEntries(
+                  Object.entries(item as Record<string, unknown>).sort(([a], [b]) =>
+                    a.localeCompare(b),
+                  ),
+                ),
+              )
+            : String(item),
+        )
+        .sort();
+    } else {
+      normalized[key] = value ?? null;
+    }
+  }
+  return JSON.stringify(normalized);
+}
+
 function useAccountEmail() {
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
