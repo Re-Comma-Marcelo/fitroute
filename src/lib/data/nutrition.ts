@@ -294,13 +294,21 @@ export function getCheckedItems(): string[] {
   return [...checkedCache];
 }
 
-export function toggleCheckedItem(key: string): string[] {
+/**
+ * Optimistic toggle. If persistence fails, the cache is rolled back and
+ * `onError` runs so the UI can warn and re-render the real state.
+ */
+export function toggleCheckedItem(key: string, onError?: (revert: string[]) => void): string[] {
+  const previous = [...checkedCache];
   const current = new Set(checkedCache);
   const checked = !current.has(key);
   if (checked) current.add(key);
   else current.delete(key);
   checkedCache = [...current];
-  void persistCheckedItem({ data: { key, checked } });
+  persistCheckedItem({ data: { key, checked } }).catch(() => {
+    checkedCache = previous;
+    onError?.([...previous]);
+  });
   return [...checkedCache];
 }
 
