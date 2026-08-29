@@ -61,7 +61,11 @@ function WeekPage() {
         <button
           type="button"
           onClick={async () => {
-            await autoFillWeek();
+            try {
+              await autoFillWeek();
+            } catch {
+              toast.error(t("Could not update the week plan. Try again."));
+            }
             refresh();
           }}
           className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
