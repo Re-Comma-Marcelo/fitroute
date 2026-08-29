@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Import, Plus, RotateCcw, X } from "lucide-react";
+import { Camera, ChevronDown, Import, Plus, RotateCcw, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getProfile, saveProfile } from "@/lib/data/profile";
+import { getProfile, invalidateProfileCache, saveProfile } from "@/lib/data/profile";
+import { fileToAvatarDataUrl } from "@/lib/avatar";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
 import { CoachChatButton } from "@/components/CoachChatSheet";
@@ -117,13 +118,33 @@ function ProfilePage() {
     setSaving(true);
     try {
       await saveProfile(form!);
+      invalidateProfileCache();
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success(t("Profile saved"));
-    } catch {
-      // Keep the form untouched so nothing typed is lost.
-      toast.error(t("Could not save your profile. Try again."));
+    } catch (error) {
+      // Keep the form untouched so nothing typed is lost, but surface the real
+      // reason: a schema or permission problem is otherwise invisible.
+      console.error("[profile] save failed", error);
+      const detail = errorDetail(error);
+      toast.error(t("Could not save your profile. Try again."), {
+        description: detail ?? undefined,
+      });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function pickPhoto(file: File | null | undefined) {
+    if (!file) return;
+    try {
+      patch({ avatarUrl: await fileToAvatarDataUrl(file) });
+    } catch (error) {
+      console.error("[profile] photo failed", error);
+      toast.error(
+        (error as Error).message === "too-large"
+          ? t("That image is too large. Pick one under 8 MB.")
+          : t("Could not read that image. Try another one."),
+      );
     }
   }
 
@@ -183,14 +204,59 @@ function ProfilePage() {
       {/* Identity header */}
       <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
         <div className="flex items-center gap-3">
-          <span className="grid size-14 shrink-0 place-items-center rounded-2xl bg-primary/15 font-display text-xl font-semibold text-primary">
-            {(form.nome || "?").trim().charAt(0).toUpperCase()}
-          </span>
+          <div className="relative shrink-0">
+            <label
+              htmlFor="avatar"
+              className="tap-target grid size-14 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-xl font-semibold text-primary"
+              aria-label={t("Change photo")}
+            >
+              {form.avatarUrl ? (
+                <img
+                  src={form.avatarUrl}
+                  alt={t("Profile photo")}
+                  className="size-full object-cover"
+                />
+              ) : (
+                (form.nome || "?").trim().charAt(0).toUpperCase()
+              )}
+            </label>
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              onChange={(e) => {
+                void pickPhoto(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            <span className="pointer-events-none absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border border-border bg-card text-primary">
+              <Camera className="size-3.5" />
+            </span>
+          </div>
           <div className="min-w-0">
             <p className="truncate font-display text-lg font-semibold leading-tight">
               {form.nome || t("Your name")}
             </p>
             <p className="truncate text-xs text-muted-foreground">{email ?? t("Signed in")}</p>
+            <div className="mt-1 flex items-center gap-3">
+              <label
+                htmlFor="avatar"
+                className="cursor-pointer text-xs font-medium text-primary underline-offset-2 hover:underline"
+              >
+                {form.avatarUrl ? t("Change photo") : t("Add photo")}
+              </label>
+              {form.avatarUrl ? (
+                <button
+                  type="button"
+                  onClick={() => patch({ avatarUrl: "" })}
+                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <Trash2 className="size-3" />
+                  {t("Remove photo")}
+                </button>
+              ) : null}
+            </div>
           </div>
         </div>
 
@@ -712,4 +778,17 @@ function ImportAndQaSection() {
       </button>
     </div>
   );
+}
+
+/** Short, human-readable reason from a server-function / PostgREST failure. */
+function errorDetail(error: unknown): string | null {
+  const raw =
+    error instanceof Error
+      ? error.message
+      : typeof error === "string"
+        ? error
+        : (error as { message?: string } | null)?.message;
+  if (!raw) return null;
+  const text = raw.trim();
+  return text.length > 180 ? `${text.slice(0, 180)}\u2026` : text;
 }
