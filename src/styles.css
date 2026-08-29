@@ -157,6 +157,27 @@
     border-color: var(--color-border);
   }
 
+  html {
+    /* Thin, muted scrollbar: the default system bar reads as a bright stripe on dark. */
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--color-border) 80%, transparent) transparent;
+    scrollbar-gutter: stable;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklab, var(--color-border) 85%, transparent);
+    border-radius: 9999px;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
@@ -165,6 +186,7 @@
     font-feature-settings: "cv01", "ss03";
     -webkit-tap-highlight-color: transparent;
   }
+
 
   h1,
   h2,
