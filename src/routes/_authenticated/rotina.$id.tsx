@@ -37,13 +37,17 @@ function RoutineEditor() {
   const [nomes, setNomes] = useState<Record<string, string>>({});
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
   const loaded = useRef(false);
 
   useEffect(() => {
     if (loaded.current) return;
     loaded.current = true;
 
-    getExercises().then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))));
+    getExercises()
+      .then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))))
+      .catch(() => setNomes({}));
 
     const draftRaw = typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
     const draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
