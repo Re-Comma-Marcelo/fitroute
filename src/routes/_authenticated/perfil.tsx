@@ -119,6 +119,9 @@ function ProfilePage() {
       await saveProfile(form!);
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
       toast.success(t("Profile saved"));
+    } catch {
+      // Keep the form untouched so nothing typed is lost.
+      toast.error(t("Could not save your profile. Try again."));
     } finally {
       setSaving(false);
     }
