@@ -55,7 +55,13 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
   );
 
   const cells = useMemo<HeatCell[]>(
-    () => (built ? heatmap(built.items.map((i) => i.workout), 12) : []),
+    () =>
+      built
+        ? heatmap(
+            built.items.map((i) => i.workout),
+            12,
+          )
+        : [],
     [built],
   );
 
@@ -214,9 +220,7 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
               {unresolved.map((title) => (
                 <li key={title}>
                   <p className="truncate text-sm font-semibold">{title}</p>
-                  <Select
-                    onValueChange={(value) => setMapping((m) => ({ ...m, [title]: value }))}
-                  >
+                  <Select onValueChange={(value) => setMapping((m) => ({ ...m, [title]: value }))}>
                     <SelectTrigger className="tap-target mt-1.5 h-11 w-full">
                       <SelectValue placeholder={t("Choose an exercise")} />
                     </SelectTrigger>
@@ -287,7 +291,9 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
       <h2 className="mt-3 text-lg font-semibold">{t("History imported")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {t("{saved} workout(s) added.", { saved: result.saved })}
-        {result.failed > 0 ? ` ${t("{failed} could not be saved.", { failed: result.failed })}` : ""}
+        {result.failed > 0
+          ? ` ${t("{failed} could not be saved.", { failed: result.failed })}`
+          : ""}
       </p>
       <Button type="button" className="tap-target mt-4 w-full" onClick={() => onFinished?.()}>
         {t("Go to dashboard")}

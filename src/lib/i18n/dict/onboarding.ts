@@ -3,6 +3,8 @@ import type { DictFragment } from "../types";
 /** Onboarding flow + Hevy importer. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "This export has no weight column — sets will import without load.":
+      "Esta exportação não tem coluna de peso — as séries serão importadas sem carga.",
     "Try again": "Tentar de novo",
     "We could not load the exercise library.":
       "Não foi possível carregar a biblioteca de exercícios.",
@@ -83,6 +85,8 @@ export const dict: DictFragment = {
     "Bring your history from another app.": "Traga seu histórico de outro app.",
   },
   nl: {
+    "This export has no weight column — sets will import without load.":
+      "Deze export heeft geen gewichtskolom — sets worden zonder gewicht geïmporteerd.",
     "Try again": "Probeer opnieuw",
     "We could not load the exercise library.": "We konden de oefeningenbibliotheek niet laden.",
     "+{pct}% vs last week": "+{pct}% t.o.v. vorige week",
