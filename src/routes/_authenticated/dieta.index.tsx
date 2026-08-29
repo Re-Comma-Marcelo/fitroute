@@ -120,8 +120,12 @@ function TodayPage() {
 
   async function choose(mealId: string) {
     const current = day?.[currentSlot];
-    await setPlannedMeal(today, currentSlot, current === mealId ? null : mealId);
-    qc.invalidateQueries({ queryKey: ["weekPlan"] });
+    try {
+      await setPlannedMeal(today, currentSlot, current === mealId ? null : mealId);
+    } catch {
+      toast.error(t("Could not save this meal. Try again."));
+    }
+    void qc.invalidateQueries({ queryKey: ["weekPlan"] });
   }
 
   const note = (meal: Meal) => reasons.get(meal.id);

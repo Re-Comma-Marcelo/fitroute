@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -149,7 +150,11 @@ function WeekPage() {
         onOpenChange={(open) => !open && setEditing(null)}
         onPick={async (mealId) => {
           if (!editing) return;
-          await setPlannedMeal(editing.date, editing.slot, mealId);
+          try {
+            await setPlannedMeal(editing.date, editing.slot, mealId);
+          } catch {
+            toast.error(t("Could not update the week plan. Try again."));
+          }
           setEditing(null);
           refresh();
         }}
