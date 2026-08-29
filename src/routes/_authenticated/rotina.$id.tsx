@@ -87,6 +87,26 @@ function RoutineEditor() {
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
   }, [routine]);
 
+  if (loadError) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center">
+        <p className="text-sm font-semibold">{t("Could not load this routine.")}</p>
+        <Button
+          className="tap-target w-full max-w-xs"
+          onClick={() => {
+            loaded.current = false;
+            setReloadKey((k) => k + 1);
+          }}
+        >
+          {t("Try again")}
+        </Button>
+        <Button variant="ghost" className="tap-target" onClick={() => navigate({ to: "/treino" })}>
+          {t("Back to training")}
+        </Button>
+      </div>
+    );
+  }
+
   if (!routine) return <div className="min-h-screen bg-background" />;
 
   function patch(next: Partial<Routine>) {
