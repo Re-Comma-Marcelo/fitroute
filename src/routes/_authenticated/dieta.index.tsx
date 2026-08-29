@@ -11,6 +11,7 @@ import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
