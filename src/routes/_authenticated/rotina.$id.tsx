@@ -49,8 +49,14 @@ function RoutineEditor() {
       .then((all) => setNomes(Object.fromEntries(all.map((e) => [e.id, e.nome]))))
       .catch(() => setNomes({}));
 
-    const draftRaw = typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
-    const draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
+    let draft: Routine | null = null;
+    try {
+      const draftRaw =
+        typeof window !== "undefined" ? window.localStorage.getItem(DRAFT_KEY) : null;
+      draft = draftRaw ? (JSON.parse(draftRaw) as Routine) : null;
+    } catch {
+      draft = null;
+    }
     const pending = takePendingExercise();
 
     async function init() {
