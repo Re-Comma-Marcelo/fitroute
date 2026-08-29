@@ -26,6 +26,8 @@ import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 import { resetOnboarding } from "@/lib/onboarding";
 
@@ -118,7 +120,9 @@ function ProfilePage() {
   const [form, setForm] = useState<Profile | null>(null);
   const [saving, setSaving] = useState(false);
   const [avoidOpen, setAvoidOpen] = useState(false);
+  const [photoMenu, setPhotoMenu] = useState(false);
   const email = useAccountEmail();
+
 
   useEffect(() => {
     if (profileQuery.data && !form) setForm(profileQuery.data);
@@ -233,25 +237,55 @@ function ProfilePage() {
         <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
       }
     >
-      {/* Identity header */}
+      {/* Identity header — photo-led, one metadata line */}
       <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3.5">
           <div className="relative shrink-0">
-            <label
-              htmlFor="avatar"
-              className="tap-target grid size-14 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-xl font-semibold text-primary"
-              aria-label={t("Change photo")}
-            >
-              {form.avatarUrl ? (
-                <img
-                  src={form.avatarUrl}
-                  alt={t("Profile photo")}
-                  className="size-full object-cover"
-                />
-              ) : (
-                (form.nome || "?").trim().charAt(0).toUpperCase()
-              )}
-            </label>
+            {form.avatarUrl ? (
+              <Popover open={photoMenu} onOpenChange={setPhotoMenu}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label={t("Change photo")}
+                    className="tap-target grid size-16 place-items-center overflow-hidden rounded-2xl bg-primary/15"
+                  >
+                    <img
+                      src={form.avatarUrl}
+                      alt={t("Profile photo")}
+                      className="size-full object-cover"
+                    />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-44 p-1.5">
+                  <label
+                    htmlFor="avatar"
+                    className="tap-target flex cursor-pointer items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium hover:bg-muted/60"
+                  >
+                    <Camera className="size-4 text-primary" />
+                    {t("Change photo")}
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      patch({ avatarUrl: "" });
+                      setPhotoMenu(false);
+                    }}
+                    className="tap-target flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-sm font-medium text-muted-foreground hover:bg-muted/60"
+                  >
+                    <Trash2 className="size-4" />
+                    {t("Remove photo")}
+                  </button>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <label
+                htmlFor="avatar"
+                aria-label={t("Add photo")}
+                className="tap-target grid size-16 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-2xl font-semibold text-primary"
+              >
+                {(form.nome || "?").trim().charAt(0).toUpperCase()}
+              </label>
+            )}
             <input
               id="avatar"
               type="file"
@@ -260,6 +294,7 @@ function ProfilePage() {
               onChange={(e) => {
                 void pickPhoto(e.target.files?.[0]);
                 e.target.value = "";
+                setPhotoMenu(false);
               }}
             />
             <span className="pointer-events-none absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border border-border bg-card text-primary">
@@ -271,45 +306,22 @@ function ProfilePage() {
               {form.nome || t("Your name")}
             </p>
             <p className="truncate text-xs text-muted-foreground">{email ?? t("Signed in")}</p>
-            <div className="mt-1 flex items-center gap-3">
-              <label
-                htmlFor="avatar"
-                className="cursor-pointer text-xs font-medium text-primary underline-offset-2 hover:underline"
-              >
-                {form.avatarUrl ? t("Change photo") : t("Add photo")}
-              </label>
-              {form.avatarUrl ? (
-                <button
-                  type="button"
-                  onClick={() => patch({ avatarUrl: "" })}
-                  className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-                >
-                  <Trash2 className="size-3" />
-                  {t("Remove photo")}
-                </button>
-              ) : null}
-            </div>
+            <p className="mt-1.5 truncate text-xs font-medium tabular-nums text-muted-foreground">
+              {[
+                `${form.pesoKg} kg`,
+                `${form.alturaCm} cm`,
+                t(goalLabel),
+                t("{n}x / week", { n: String(form.metaTreinosSemana) }),
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
           </div>
         </div>
-
-        <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
-          <Stat label={t("Weight")} value={`${form.pesoKg} kg`} />
-          <Stat label={t("Height")} value={`${form.alturaCm} cm`} />
-          <Stat label={t("Goal")} value={t(goalLabel)} />
-        </dl>
-
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          <Tag>{t("{n}x / week", { n: String(form.metaTreinosSemana) })}</Tag>
-          <Tag>{t("{n} min", { n: String(form.sessionLengthMin) })}</Tag>
-          <Tag>{t(timeLabel)}</Tag>
-          {form.equipment.length > 0 ? (
-            <Tag>{t("{n} equipment", { n: String(form.equipment.length) })}</Tag>
-          ) : null}
-        </div>
       </section>
-
       <form
-        className="mt-4 space-y-3"
+        className="mt-4 space-y-3 pb-24"
+
         onSubmit={(e) => {
           e.preventDefault();
           save();
@@ -400,7 +412,16 @@ function ProfilePage() {
           />
         </Section>
 
-        <Section title={t("Training model")} subtitle={t("How the coach plans your week")}>
+        <Section
+          title={t("Training model")}
+          subtitle={t("How the coach plans your week")}
+          summary={[
+            t("{n}x / week", { n: String(form.metaTreinosSemana) }),
+            t("{n} min", { n: String(form.sessionLengthMin) }),
+            t(timeLabel),
+          ].join(" · ")}
+        >
+
           <Segmented
             label={t("Weekly training target")}
             columns={6}
@@ -453,7 +474,16 @@ function ProfilePage() {
           </div>
         </Section>
 
-        <Section title={t("Limits & check-in")} subtitle={t("What the coach should work around")}>
+        <Section
+          title={t("Limits & check-in")}
+          subtitle={t("What the coach should work around")}
+          summary={
+            form.avoidExercises.length > 0
+              ? t("{n} exercises to avoid", { n: String(form.avoidExercises.length) })
+              : undefined
+          }
+        >
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>{t("Exercises to avoid")}</Label>
@@ -535,7 +565,12 @@ function ProfilePage() {
           />
         </Section>
 
-        <Section title={t("App")} subtitle={t("Language, integrations and account")}>
+        <Section
+          title={t("App")}
+          subtitle={t("Language, integrations and account")}
+          summary={LANGS.find((l) => l.value === lang)?.label}
+        >
+
           <div className="space-y-2">
             <Label>{t("Language")}</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -610,33 +645,17 @@ function ProfilePage() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl bg-muted/40 py-2">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-0.5 truncate px-1 text-sm font-semibold tabular-nums">{value}</dd>
-    </div>
-  );
-}
-
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
-      {children}
-    </span>
-  );
-}
 
 function Section({
   title,
   subtitle,
+  summary,
   defaultOpen = false,
   children,
 }: {
   title: string;
   subtitle: string;
+  summary?: string | undefined;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
@@ -651,8 +670,11 @@ function Section({
       >
         <span className="min-w-0 flex-1">
           <span className="block font-display text-sm font-semibold">{title}</span>
-          <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {!open && summary ? summary : subtitle}
+          </span>
         </span>
+
         <ChevronDown
           className={cn(
             "size-4 shrink-0 text-muted-foreground transition-transform",
