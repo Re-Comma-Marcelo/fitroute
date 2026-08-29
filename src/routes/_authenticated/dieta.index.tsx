@@ -63,8 +63,10 @@ function TodayPage() {
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
   const schedule = scheduleQ.data;
   const slots = useMemo(() => (schedule ? activeSlots(schedule) : []), [schedule]);
+  // A slot the user picked wins, even while the schedule is refetching —
+  // otherwise the tab snaps back to breakfast under them.
   const currentSlot: MealSlot =
-    slot && slots.includes(slot)
+    slot && (slots.length === 0 || slots.includes(slot))
       ? slot
       : schedule
         ? slotForTime(new Date(), schedule)
