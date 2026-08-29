@@ -208,16 +208,21 @@ function SessionPage() {
     // Exercise chosen from library during session
     const pending = takePendingExercise();
     if (pending) {
-      buildActiveExercise(pending).then((built) => {
-        if (!built) return;
-        setSession((prev) => {
-          if (!prev) return prev;
-          const next = { ...prev, exercicios: [...prev.exercicios, built] };
-          next.atual = next.exercicios.length - 1;
-          saveActiveSession(next);
-          return next;
-        });
-      });
+      buildActiveExercise(pending)
+        .then((built) => {
+          if (!built) {
+            toast.error(t("Could not add the exercise. Try again."));
+            return;
+          }
+          setSession((prev) => {
+            if (!prev) return prev;
+            const next = { ...prev, exercicios: [...prev.exercicios, built] };
+            next.atual = next.exercicios.length - 1;
+            saveActiveSession(next);
+            return next;
+          });
+        })
+        .catch(() => toast.error(t("Could not add the exercise. Try again.")));
     }
   }, []);
 
