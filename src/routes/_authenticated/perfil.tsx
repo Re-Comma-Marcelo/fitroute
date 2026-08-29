@@ -623,11 +623,13 @@ function ProfilePage() {
 function Section({
   title,
   subtitle,
+  summary,
   defaultOpen = false,
   children,
 }: {
   title: string;
   subtitle: string;
+  summary?: string;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
@@ -642,8 +644,11 @@ function Section({
       >
         <span className="min-w-0 flex-1">
           <span className="block font-display text-sm font-semibold">{title}</span>
-          <span className="block truncate text-xs text-muted-foreground">{subtitle}</span>
+          <span className="block truncate text-xs text-muted-foreground">
+            {!open && summary ? summary : subtitle}
+          </span>
         </span>
+
         <ChevronDown
           className={cn(
             "size-4 shrink-0 text-muted-foreground transition-transform",
