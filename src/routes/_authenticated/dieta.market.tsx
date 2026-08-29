@@ -138,7 +138,14 @@ function MarketPage() {
                       <li key={item.key}>
                         <button
                           type="button"
-                          onClick={() => setChecked(toggleCheckedItem(item.key))}
+                          onClick={() =>
+                            setChecked(
+                              toggleCheckedItem(item.key, (revert) => {
+                                setChecked(revert);
+                                toast.error(t("Could not save the shopping list. Try again."));
+                              }),
+                            )
+                          }
                           className="tap-target flex w-full items-center gap-3 text-left"
                         >
                           <span
