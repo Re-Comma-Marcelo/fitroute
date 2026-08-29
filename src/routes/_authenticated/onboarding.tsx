@@ -310,6 +310,27 @@ function OnboardingPage() {
             <SkipLink onSkip={finish} />
           </section>
         ) : null}
+
+        {step === "plan" && !plan ? (
+          <section className="pt-10 text-center">
+            <Loader2 className="mx-auto size-6 animate-spin text-primary motion-reduce:animate-none" />
+            <p className="mt-4 text-sm font-semibold">
+              {exercisesQ.isError
+                ? t("We could not load the exercise library.")
+                : t("Building your plan")}
+            </p>
+            {exercisesQ.isError ? (
+              <Button
+                variant="outline"
+                className="tap-target mt-4 w-full"
+                onClick={() => void exercisesQ.refetch()}
+              >
+                {t("Try again")}
+              </Button>
+            ) : null}
+            <SkipLink onSkip={finish} />
+          </section>
+        ) : null}
       </div>
     </div>
   );
