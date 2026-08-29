@@ -72,6 +72,35 @@ const times: { value: PreferredTime; label: string }[] = [
 const EQUIPMENT_OPTIONS = ["Barbell", "Dumbbells", "Machine", "Cable", "Bodyweight"];
 const REASON_SUGGESTIONS = ["Shoulder pain", "Knee pain", "Lower back", "No equipment"];
 
+/**
+ * Stable string form of a profile: keys sorted and array fields normalized so
+ * key/element order can never fake an "unsaved changes" state.
+ */
+function profileSnapshot(profile: Profile): string {
+  const normalized: Record<string, unknown> = {};
+  for (const key of Object.keys(profile).sort()) {
+    const value = (profile as unknown as Record<string, unknown>)[key];
+    if (Array.isArray(value)) {
+      normalized[key] = [...value]
+        .map((item) =>
+          item && typeof item === "object"
+            ? JSON.stringify(
+                Object.fromEntries(
+                  Object.entries(item as Record<string, unknown>).sort(([a], [b]) =>
+                    a.localeCompare(b),
+                  ),
+                ),
+              )
+            : String(item),
+        )
+        .sort();
+    } else {
+      normalized[key] = value ?? null;
+    }
+  }
+  return JSON.stringify(normalized);
+}
+
 function useAccountEmail() {
   const [email, setEmail] = useState<string | null>(null);
   useEffect(() => {
@@ -98,7 +127,7 @@ function ProfilePage() {
   const dirty = useMemo(
     () =>
       Boolean(form && profileQuery.data) &&
-      JSON.stringify(form) !== JSON.stringify(profileQuery.data),
+      profileSnapshot(form!) !== profileSnapshot(profileQuery.data!),
     [form, profileQuery.data],
   );
 
@@ -117,9 +146,12 @@ function ProfilePage() {
   async function save() {
     setSaving(true);
     try {
-      await saveProfile(form!);
+      const saved = await saveProfile(form!);
       invalidateProfileCache();
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      // Align the form with what the database actually returned, otherwise the
+      // sticky "unsaved changes" bar keeps showing after a successful save.
+      setForm(saved);
       toast.success(t("Profile saved"));
     } catch (error) {
       // Keep the form untouched so nothing typed is lost, but surface the real
