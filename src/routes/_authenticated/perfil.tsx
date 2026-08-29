@@ -117,9 +117,12 @@ function ProfilePage() {
   async function save() {
     setSaving(true);
     try {
-      await saveProfile(form!);
+      const saved = await saveProfile(form!);
       invalidateProfileCache();
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      // Align the form with what the database actually returned, otherwise the
+      // sticky "unsaved changes" bar keeps showing after a successful save.
+      setForm(saved);
       toast.success(t("Profile saved"));
     } catch (error) {
       // Keep the form untouched so nothing typed is lost, but surface the real
