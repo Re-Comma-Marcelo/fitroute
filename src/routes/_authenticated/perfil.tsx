@@ -26,6 +26,8 @@ import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 import { resetOnboarding } from "@/lib/onboarding";
 
