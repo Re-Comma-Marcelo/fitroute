@@ -474,7 +474,16 @@ function ProfilePage() {
           </div>
         </Section>
 
-        <Section title={t("Limits & check-in")} subtitle={t("What the coach should work around")}>
+        <Section
+          title={t("Limits & check-in")}
+          subtitle={t("What the coach should work around")}
+          summary={
+            form.avoidExercises.length > 0
+              ? t("{n} exercises to avoid", { n: String(form.avoidExercises.length) })
+              : undefined
+          }
+        >
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>{t("Exercises to avoid")}</Label>
