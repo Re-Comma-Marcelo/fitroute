@@ -565,7 +565,12 @@ function ProfilePage() {
           />
         </Section>
 
-        <Section title={t("App")} subtitle={t("Language, integrations and account")}>
+        <Section
+          title={t("App")}
+          subtitle={t("Language, integrations and account")}
+          summary={LANGS.find((l) => l.value === lang)?.label}
+        >
+
           <div className="space-y-2">
             <Label>{t("Language")}</Label>
             <div className="grid grid-cols-3 gap-2">
