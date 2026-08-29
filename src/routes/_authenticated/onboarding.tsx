@@ -52,9 +52,11 @@ function OnboardingPage() {
   const [step, setStep] = useState<Step>("value");
   const [answers, setAnswers] = useState<Partial<StarterAnswers>>({});
   const [creating, setCreating] = useState(false);
-  const reducedMotion =
-    typeof window !== "undefined" &&
-    Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const [reducedMotion, setReducedMotion] = useState(false);
+
+  useEffect(() => {
+    setReducedMotion(Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches));
+  }, []);
 
   const finish = () => {
     markOnboardingDone();
