@@ -20,6 +20,11 @@ const FALLBACK: Profile = {
 
 let cache: Profile | null = null;
 
+/** Drop the in-memory copy so the next read hits the database. */
+export function invalidateProfileCache() {
+  cache = null;
+}
+
 export async function getProfile(): Promise<Profile> {
   if (cache) return cache;
   const found = await fetchProfile();
