@@ -1304,15 +1304,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
 }
 
 /** Non-blocking tooltip used only on the user's first session. */
-function CoachMark({
-  text,
-  onDismiss,
-  t,
-}: {
-  text: string;
-  onDismiss: () => void;
-  t: any;
-}) {
+function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void; t: any }) {
   return (
     <div
       role="note"

@@ -88,10 +88,7 @@ function SummaryPage() {
         </section>
 
         {prs.length ? (
-          <section
-            aria-label={t("New personal records")}
-            className="mt-6 space-y-3"
-          >
+          <section aria-label={t("New personal records")} className="mt-6 space-y-3">
             {prs.map((pr, index) => {
               const delta =
                 pr.anteriorKg && pr.anteriorKg > 0

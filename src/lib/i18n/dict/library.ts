@@ -3,6 +3,7 @@ import type { DictFragment } from "../types";
 /** Translations for the library area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Try again": "Tentar de novo",
     "Could not load the exercise library.": "Não foi possível carregar a biblioteca de exercícios.",
     "Choose exercise": "Escolher exercício",
     Library: "Biblioteca",
@@ -72,6 +73,7 @@ export const dict: DictFragment = {
     "Unsupported code contents.": "Conteúdo de código não suportado.",
   },
   nl: {
+    "Try again": "Probeer opnieuw",
     "Could not load the exercise library.": "Kon de oefeningenbibliotheek niet laden.",
     "Choose exercise": "Kies oefening",
     Library: "Bibliotheek",

@@ -3,7 +3,8 @@ import type { DictFragment } from "../types";
 /** Translations for the profile area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
-    "Could not save your profile. Try again.": "Não foi possível salvar seu perfil. Tente novamente.",
+    "Could not save your profile. Try again.":
+      "Não foi possível salvar seu perfil. Tente novamente.",
     "Your name": "Seu nome",
     Weight: "Peso",
     Height: "Altura",

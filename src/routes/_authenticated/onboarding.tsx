@@ -89,7 +89,8 @@ function OnboardingPage() {
     }
   }
 
-  const questionIndex = step === "goal" ? 1 : step === "frequency" ? 2 : step === "experience" ? 3 : 0;
+  const questionIndex =
+    step === "goal" ? 1 : step === "frequency" ? 2 : step === "experience" ? 3 : 0;
   // Endowed progress: the bar never starts empty.
   const progressPct = questionIndex > 0 ? 25 + questionIndex * 20 : 0;
 
@@ -130,11 +131,7 @@ function OnboardingPage() {
                     key={i}
                     className={cn(
                       "size-3 rounded-[3px]",
-                      level === 0
-                        ? "bg-surface-3"
-                        : level === 1
-                          ? "bg-train/40"
-                          : "bg-train",
+                      level === 0 ? "bg-surface-3" : level === 1 ? "bg-train/40" : "bg-train",
                     )}
                   />
                 ))}
@@ -290,11 +287,7 @@ function OnboardingPage() {
               </ul>
             </Card>
 
-            <Button
-              className="tap-target mt-5 w-full"
-              disabled={creating}
-              onClick={useThisRoutine}
-            >
+            <Button className="tap-target mt-5 w-full" disabled={creating} onClick={useThisRoutine}>
               {creating ? t("Creating…") : t("Use this routine")}
             </Button>
             <Button
