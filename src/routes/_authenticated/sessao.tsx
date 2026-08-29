@@ -617,7 +617,19 @@ function SessionPage() {
             size="icon"
             className="tap-target text-info"
             aria-label={t("Open rest timer")}
-            onClick={() => startRest(currentRest)}
+            onClick={() => {
+              // Never silently wipe a rest already counting down.
+              if (restLeft > 0) {
+                toast(t("Rest already running"), {
+                  action: {
+                    label: t("Restart"),
+                    onClick: () => startRest(currentRest),
+                  },
+                });
+                return;
+              }
+              startRest(currentRest);
+            }}
           >
             <Timer className="size-6" />
           </Button>
