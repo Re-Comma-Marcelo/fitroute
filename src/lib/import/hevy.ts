@@ -203,6 +203,9 @@ export function parseHevyCsv(csv: string): HevyParseResult {
     return { workouts: [], skippedRows: 0, titles: [], warnings: ["MISSING_COLUMNS"] };
   }
 
+  // No weight column at all means every set would import at 0 kg: worth saying so.
+  if (idx.kg < 0 && idx.lbs < 0) warnings.push("NO_WEIGHT_COLUMN");
+
   const get = (row: string[], at: number) => (at >= 0 ? row[at] : undefined);
   const byKey = new Map<string, ParsedWorkout>();
   const titles: string[] = [];

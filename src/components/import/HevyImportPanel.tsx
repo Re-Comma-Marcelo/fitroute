@@ -16,6 +16,7 @@ import { getExercises } from "@/lib/data/exercises";
 import { getWorkoutLog, saveWorkout } from "@/lib/data/workouts";
 import { formatDate, formatNumber } from "@/lib/format";
 import { heatmap, type HeatCell } from "@/lib/home-metrics";
+import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import {
   IGNORE_MARKER,
@@ -72,6 +73,9 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
       if (next.workouts.length === 0) {
         setError(t("No workouts found in this file."));
         return;
+      }
+      if (next.warnings.includes("NO_WEIGHT_COLUMN")) {
+        toast.warning(t("This export has no weight column — sets will import without load."));
       }
       setParsed(next);
       setMapping(resolveExerciseMapping(next.titles, library));
