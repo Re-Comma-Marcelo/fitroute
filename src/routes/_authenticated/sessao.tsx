@@ -286,6 +286,18 @@ function SessionPage() {
     };
   }, [hasSession]);
 
+  /** Warn before closing the tab while sets are typed but not confirmed. */
+  const unsavedSets = session ? filledUncheckedSets(session) : 0;
+  useEffect(() => {
+    if (unsavedSets === 0) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [unsavedSets]);
+
   /** Bring the newly opened exercise into view when a card auto-advances. */
   useEffect(() => {
     if (scrollTo === null) return;
