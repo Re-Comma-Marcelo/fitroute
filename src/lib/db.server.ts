@@ -99,7 +99,7 @@ export const fromProfile = (p: Row, userId: string) => ({
   preferred_time: p["preferredTime"],
   check_in_mode: p["checkInMode"],
   idioma: p["idioma"] ?? "en",
-  avatar_url: p["avatarUrl"] ?? null,
+  avatar_url: p["avatarUrl"] || null,
   peso_inicial_kg: p["pesoInicialKg"] ?? null,
   peso_meta_kg: p["pesoMetaKg"] ?? null,
   meta_iniciada_em: p["metaIniciadaEm"] ?? null,

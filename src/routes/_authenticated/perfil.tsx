@@ -249,7 +249,7 @@ function ProfilePage() {
               {form.avatarUrl ? (
                 <button
                   type="button"
-                  onClick={() => patch({ avatarUrl: undefined })}
+                  onClick={() => patch({ avatarUrl: "" })}
                   className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <Trash2 className="size-3" />
