@@ -319,10 +319,9 @@ function ProfilePage() {
           </div>
         </div>
       </section>
-
-
       <form
-        className="mt-4 space-y-3"
+        className="mt-4 space-y-3 pb-24"
+
         onSubmit={(e) => {
           e.preventDefault();
           save();
