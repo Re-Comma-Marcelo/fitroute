@@ -655,7 +655,7 @@ function Section({
 }: {
   title: string;
   subtitle: string;
-  summary?: string;
+  summary?: string | undefined;
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
