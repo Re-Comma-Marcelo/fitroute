@@ -3,6 +3,9 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Could not update the week plan. Try again.": "Não foi possível atualizar o plano da semana. Tente novamente.",
+    "Could not save this meal. Try again.": "Não foi possível salvar esta refeição. Tente novamente.",
+    "Could not save the shopping list. Try again.": "Não foi possível salvar a lista de compras. Tente novamente.",
     Nutrition: "Nutrição",
     Today: "Hoje",
     Week: "Semana",
@@ -102,6 +105,9 @@ export const dict: DictFragment = {
     F: "F",
   },
   nl: {
+    "Could not update the week plan. Try again.": "Kon het weekplan niet bijwerken. Probeer opnieuw.",
+    "Could not save this meal. Try again.": "Kon deze maaltijd niet opslaan. Probeer opnieuw.",
+    "Could not save the shopping list. Try again.": "Kon de boodschappenlijst niet opslaan. Probeer opnieuw.",
     "Fat carries most of the calories, so digestion is slower — good further from training.":
       "Vet levert de meeste calorieën, dus de vertering is langzamer — goed verder van de training.",
     "Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.":

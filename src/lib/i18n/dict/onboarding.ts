@@ -3,6 +3,9 @@ import type { DictFragment } from "../types";
 /** Onboarding flow + Hevy importer. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "We could not load the exercise library.": "Não foi possível carregar a biblioteca de exercícios.",
+    "Try again": "Tentar de novo",
+    "+{pct}% vs last week": "+{pct}% vs. semana passada",
     Welcome: "Bem-vindo",
     "Your training, turned into visible progress": "Seu treino, transformado em progresso visível",
     "Every set you log feeds a dashboard like this one.":
@@ -80,6 +83,9 @@ export const dict: DictFragment = {
     "Bring your history from another app.": "Traga seu histórico de outro app.",
   },
   nl: {
+    "We could not load the exercise library.": "We konden de oefeningenbibliotheek niet laden.",
+    "Try again": "Probeer opnieuw",
+    "+{pct}% vs last week": "+{pct}% t.o.v. vorige week",
     Welcome: "Welkom",
     "Your training, turned into visible progress": "Jouw training, omgezet in zichtbare progressie",
     "Every set you log feeds a dashboard like this one.":
