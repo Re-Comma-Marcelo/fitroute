@@ -412,7 +412,16 @@ function ProfilePage() {
           />
         </Section>
 
-        <Section title={t("Training model")} subtitle={t("How the coach plans your week")}>
+        <Section
+          title={t("Training model")}
+          subtitle={t("How the coach plans your week")}
+          summary={[
+            t("{n}x / week", { n: String(form.metaTreinosSemana) }),
+            t("{n} min", { n: String(form.sessionLengthMin) }),
+            t(timeLabel),
+          ].join(" · ")}
+        >
+
           <Segmented
             label={t("Weekly training target")}
             columns={6}
