@@ -120,7 +120,9 @@ function OnboardingPage() {
                 <CountUp value={DEMO_VOLUME} format={(n) => formatNumber(n)} />
                 <span className="ml-1 text-base font-semibold">kg</span>
               </p>
-              <p className="mt-1 text-xs font-semibold text-success">+12% {t("vs last week")}</p>
+              <p className="mt-1 text-xs font-semibold text-success">
+                {t("+{pct}% vs last week", { pct: formatNumber(12) })}
+              </p>
 
               <div className="mt-4 grid grid-flow-col grid-rows-7 gap-1">
                 {DEMO_CELLS.map((level, i) => (
