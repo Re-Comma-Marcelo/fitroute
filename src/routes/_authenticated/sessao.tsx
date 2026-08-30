@@ -383,6 +383,16 @@ function SessionPage() {
     });
   }
 
+  /** True when a later exercise belongs to the same superset block. */
+  function supersetChain(state: ActiveSession, exIdx: number): boolean {
+    if (!state.routineId) return false;
+    return hasNextInBlock(
+      state.routineId,
+      state.exercicios.map((e) => e.exerciseId),
+      exIdx,
+    );
+  }
+
   function toggleSet(exIdx: number, setIdx: number) {
     unlockAudio();
     let descanso = 0;
