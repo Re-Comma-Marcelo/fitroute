@@ -64,9 +64,19 @@ export function relativeDays(iso: string): string {
   return weeks === 1 ? translator("1 week ago") : translator("{weeks} weeks ago", { weeks });
 }
 
-export function formatKg(value: number): string {
-  const rounded = Math.round(value * 10) / 10;
-  return `${rounded.toLocaleString(currentLocale)} kg`;
+/**
+ * A training load, always stored in kg, shown in the user's chosen unit.
+ * Pass `{ unit: false }` for the bare number.
+ */
+export function formatKg(value: number, opts: { unit?: boolean } = {}): string {
+  const shown = toDisplayWeight(value);
+  const number = shown.toLocaleString(currentLocale, { maximumFractionDigits: 1 });
+  return opts.unit === false ? number : `${number} ${unitLabel()}`;
+}
+
+/** Just the unit suffix ("kg" / "lb") for labels and placeholders. */
+export function weightUnitLabel(): string {
+  return unitLabel();
 }
 
 /** Active locale, for the rare caller that needs Intl directly. */
