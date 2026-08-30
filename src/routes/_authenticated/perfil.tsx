@@ -2,7 +2,17 @@ import { pageMeta } from "@/lib/route-meta";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { Camera, ChevronDown, Import, Plus, RotateCcw, Trash2, X } from "lucide-react";
+import {
+  Camera,
+  ChevronDown,
+  Download,
+  Import,
+  Plus,
+  RotateCcw,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -30,6 +40,20 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 import { resetOnboarding } from "@/lib/onboarding";
+import { useWeightUnit } from "@/lib/use-weight-unit";
+import {
+  ensureRestPermission,
+  notificationsSupported,
+  restNotifyEnabled,
+  setRestNotifyEnabled,
+} from "@/lib/rest-notification";
+import {
+  backupFileName,
+  buildBackup,
+  buildWorkoutsCsv,
+  downloadFile,
+  restoreBackup,
+} from "@/lib/backup";
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
