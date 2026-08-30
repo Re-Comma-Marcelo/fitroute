@@ -38,7 +38,11 @@ function stripFence(text: string): string {
  * One JSON generation against the Lovable AI Gateway. Streams on the wire (long
  * reasoning-style generations otherwise get severed) but resolves once.
  */
-export async function generateJson<T>(prompt: string, schema: z.ZodType<T>): Promise<T> {
+export async function generateJson<T>(
+  prompt: string,
+  schema: z.ZodType<T>,
+  imageDataUrl?: string,
+): Promise<T> {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) {
     throw new PlanAiError(401, "AI is not configured for this app yet.");
@@ -48,11 +52,24 @@ export async function generateJson<T>(prompt: string, schema: z.ZodType<T>): Pro
   try {
     const result = streamText({
       model: provider(apiKey)(MODEL),
-      prompt,
       maxRetries: 1,
+      ...(imageDataUrl
+        ? {
+            messages: [
+              {
+                role: "user" as const,
+                content: [
+                  { type: "text" as const, text: prompt },
+                  { type: "image" as const, image: imageDataUrl },
+                ],
+              },
+            ],
+          }
+        : { prompt }),
     });
     text = await result.text;
   } catch (error) {
+
     const status = Number(
       (error as { statusCode?: number; status?: number })?.statusCode ??
         (error as { status?: number })?.status ??
