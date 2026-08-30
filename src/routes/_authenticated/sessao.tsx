@@ -38,7 +38,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticRestDone, hapticTick } from "@/lib/haptics";
-import { formatDuration, formatKg, formatRest } from "@/lib/format";
+import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
+import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
+import { usesPlates } from "@/lib/plates";
+import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
+import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
 import {
   clearActiveSession,
