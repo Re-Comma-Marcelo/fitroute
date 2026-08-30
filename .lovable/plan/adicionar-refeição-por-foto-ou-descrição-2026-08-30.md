@@ -1,6 +1,6 @@
 # Adicionar refeição por foto ou descrição
 
-Na aba Diet, um botão "Add meal" abre um fluxo onde você descreve a refeição ("arroz, feijão, 200g de frango grelhado") **ou** tira/escolhe uma foto do prato. A IA estima calorias, proteína, carboidrato, gordura e a lista de ingredientes; você revisa e ajusta os números antes de salvar. Ao salvar, a refeição entra no slot escolhido (hoje, por padrão) e conta nos anéis do dia, na semana e — se tiver ingredientes — na lista de mercado.
+Na aba Diet, um botão "Add meal" pode ser apenas um botão de mais no canto inferior direito abre um fluxo onde você descreve a refeição ("arroz, feijão, 200g de frango grelhado") **ou** tira/escolhe uma foto do prato. A IA estima calorias, proteína, carboidrato, gordura e a lista de ingredientes; você revisa e ajusta os números antes de salvar. Ao salvar, a refeição entra no slot escolhido (hoje, por padrão) e conta nos anéis do dia, na semana e — se tiver ingredientes — na lista de mercado.
 
 ## Fluxo
 
