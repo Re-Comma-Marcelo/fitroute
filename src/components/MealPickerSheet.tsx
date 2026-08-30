@@ -5,6 +5,7 @@ import { SLOT_LABEL, getMeals } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
 import type { MealSlot } from "@/lib/nutrition-types";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 
 const FILTERS = ["all", "high-protein", "high-carb", "light", "quick", "order-out"] as const;
 
@@ -14,12 +15,15 @@ export function MealPickerSheet({
   selectedMealId,
   onOpenChange,
   onPick,
+  onAddMeal,
 }: {
   open: boolean;
   slot: MealSlot | null;
   selectedMealId?: string | undefined;
   onOpenChange: (open: boolean) => void;
   onPick: (mealId: string | null) => void;
+  /** Opens the "create a meal with AI" flow, when the host provides one. */
+  onAddMeal?: () => void;
 }) {
   const t = useT();
   const [filter, setFilter] = useState<(typeof FILTERS)[number]>("all");
@@ -60,6 +64,16 @@ export function MealPickerSheet({
             </button>
           ))}
         </div>
+
+        {onAddMeal ? (
+          <button
+            type="button"
+            onClick={onAddMeal}
+            className="tap-target mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-diet/50 text-xs font-semibold text-diet"
+          >
+            <Plus className="size-4" /> {t("Add a meal")}
+          </button>
+        ) : null}
 
         <ul className="mt-3 space-y-3 pb-6">
           {selectedMealId ? (

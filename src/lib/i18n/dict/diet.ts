@@ -3,6 +3,41 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Review the estimate": "Revisar a estimativa",
+    "Describe it": "Descrever",
+    "Use a photo": "Usar foto",
+    "Take or pick a photo": "Tirar ou escolher uma foto",
+    "The AI reads the plate and estimates the portions.": "A IA lê o prato e estima as porções.",
+    "Choose another photo": "Escolher outra foto",
+    "Anything to add? (optional)": "Quer acrescentar algo? (opcional)",
+    "What did you eat?": "O que você comeu?",
+    "200 g grilled chicken, rice, black beans and a salad":
+      "200 g de frango grelhado, arroz, feijão preto e salada",
+    "Estimate nutrition": "Estimar nutrição",
+    "Estimating…": "Estimando…",
+    "AI estimate": "Estimativa da IA",
+    "confidence: {level}": "confiança: {level}",
+    low: "baixa",
+    medium: "média",
+    high: "alta",
+    "Meal name": "Nome da refeição",
+    "Meal slot": "Momento da refeição",
+    "Add ingredient": "Adicionar ingrediente",
+    Ingredient: "Ingrediente",
+    Quantity: "Quantidade",
+    Unit: "Unidade",
+    Remove: "Remover",
+    Back: "Voltar",
+    "Save to {slot}": "Salvar em {slot}",
+    "Meal added": "Refeição adicionada",
+    "That photo is too large.": "Essa foto é muito grande.",
+    "Could not read that photo.": "Não foi possível ler essa foto.",
+    "Could not estimate this meal. Try again.":
+      "Não foi possível estimar esta refeição. Tente novamente.",
+    "Describe the meal first.": "Descreva a refeição primeiro.",
+    "Meal photo": "Foto da refeição",
+    "Add a photo of the meal.": "Adicione uma foto da refeição.",
+    "That photo is too large. Try a smaller one.": "Essa foto é muito grande. Tente uma menor.",
     "Could not update the week plan. Try again.":
       "Não foi possível atualizar o plano da semana. Tente novamente.",
     "Could not save this meal. Try again.":
@@ -108,6 +143,7 @@ export const dict: DictFragment = {
     F: "F",
   },
   nl: {
+    "Estimating…": "Schatten…",
     "Could not update the week plan. Try again.":
       "Kon het weekplan niet bijwerken. Probeer opnieuw.",
     "Could not save this meal. Try again.": "Kon deze maaltijd niet opslaan. Probeer opnieuw.",

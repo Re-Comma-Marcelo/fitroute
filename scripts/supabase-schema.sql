@@ -132,6 +132,23 @@ create table if not exists public.meal_schedule (
   primary key (user_id, slot)
 );
 
+create table if not exists public.custom_meals (
+  id text primary key,
+  user_id text not null,
+  nome text not null,
+  slots text[] not null default '{}',
+  kcal integer not null default 0,
+  protein_g integer not null default 0,
+  carbs_g integer not null default 0,
+  fat_g integer not null default 0,
+  prep_min integer not null default 0,
+  tags text[] not null default '{}',
+  ingredients jsonb not null default '[]'::jsonb,
+  order_out boolean not null default false,
+  source text not null default 'text',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.shopping_checked (
   user_id text not null default 'demo',
   item_key text not null,
@@ -156,6 +173,7 @@ create index if not exists workouts_iniciado_em_idx on public.workouts (iniciado
 create index if not exists workout_sets_workout_id_idx on public.workout_sets (workout_id);
 create index if not exists workout_sets_exercise_id_idx on public.workout_sets (exercise_id);
 create index if not exists coach_notes_user_id_idx on public.coach_notes (user_id);
+create index if not exists custom_meals_user_id_idx on public.custom_meals (user_id);
 
 -- Grants + RLS ---------------------------------------------------------------
 -- service_role only: the app reaches the database exclusively through server
@@ -167,7 +185,7 @@ begin
   foreach t in array array[
     'profiles','exercises','routines','routine_exercises','workouts',
     'workout_sets','coach_notes','meal_plan','meal_schedule',
-    'shopping_checked','tracked_lifts'
+    'shopping_checked','tracked_lifts','custom_meals'
   ]
   loop
     execute format('grant all on public.%I to service_role', t);

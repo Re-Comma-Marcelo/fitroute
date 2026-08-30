@@ -421,4 +421,61 @@ export const persistTrackedLift = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const fetchCustomMeals = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, toCustomMeal, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("custom_meals")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false }),
+  );
+  return (rows as Record<string, unknown>[]).map(toCustomMeal);
+});
+
+export const persistCustomMeal = createServerFn({ method: "POST" })
+  .inputValidator((data: { meal: Record<string, unknown>; source?: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, toCustomMeal, uid, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const m = data.meal;
+    const row = unwrap(
+      await db()
+        .from("custom_meals")
+        .upsert(
+          {
+            id: (m["id"] as string) || uid("cm"),
+            user_id: userId,
+            nome: m["name"],
+            slots: m["slots"] ?? [],
+            kcal: Math.round(Number(m["kcal"] ?? 0)),
+            protein_g: Math.round(Number(m["proteinG"] ?? 0)),
+            carbs_g: Math.round(Number(m["carbsG"] ?? 0)),
+            fat_g: Math.round(Number(m["fatG"] ?? 0)),
+            prep_min: Math.round(Number(m["prepMin"] ?? 0)),
+            tags: m["tags"] ?? [],
+            ingredients: m["ingredients"] ?? [],
+            order_out: Boolean(m["orderOut"]),
+            source: data.source ?? "text",
+          },
+          { onConflict: "id" },
+        )
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return toCustomMeal(row);
+  });
+
+export const deleteCustomMeal = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db().from("custom_meals").delete().eq("user_id", userId).eq("id", data.id).select("id"),
+    );
+    return { ok: true };
+  });
+
 export type { MealSlot };

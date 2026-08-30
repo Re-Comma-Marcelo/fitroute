@@ -4,10 +4,11 @@ import { Button } from "@/components/ui/button";
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, Sparkles } from "lucide-react";
+import { Clock, Plus, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
+import { AddMealSheet } from "@/components/AddMealSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
@@ -58,6 +59,7 @@ function TodayPage() {
   }, []);
   const [slot, setSlot] = useState<MealSlot | null>(null);
   const [timingOpen, setTimingOpen] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const qc = useQueryClient();
 
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
@@ -179,6 +181,10 @@ function TodayPage() {
         </button>
       </nav>
 
+      <Button variant="outline" className="tap-target mt-3 w-full" onClick={() => setAddOpen(true)}>
+        <Plus className="mr-1.5 size-4" /> {t("Add a meal")}
+      </Button>
+
       {swap ? (
         <MealSwapCard
           suggestion={swap}
@@ -247,6 +253,16 @@ function TodayPage() {
         onToggle={async () => {
           if (detail) await choose(detail.id);
           setDetail(null);
+        }}
+      />
+      <AddMealSheet
+        open={addOpen}
+        onOpenChange={setAddOpen}
+        defaultSlot={currentSlot}
+        onCreated={async (meal) => {
+          await setPlannedMeal(today, currentSlot, meal.id);
+          void qc.invalidateQueries({ queryKey: ["meals"] });
+          void qc.invalidateQueries({ queryKey: ["weekPlan"] });
         }}
       />
       {schedule ? (

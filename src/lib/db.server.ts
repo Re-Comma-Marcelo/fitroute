@@ -159,3 +159,19 @@ export const toCoachNote = (r: Row) => ({
   content: String(r["content"] ?? ""),
   tags: (r["tags"] ?? []) as string[],
 });
+
+export const toCustomMeal = (r: Row) => ({
+  id: String(r["id"]),
+  name: String(r["nome"] ?? ""),
+  slots: (r["slots"] ?? []) as string[],
+  kcal: Number(r["kcal"] ?? 0),
+  proteinG: Number(r["protein_g"] ?? 0),
+  carbsG: Number(r["carbs_g"] ?? 0),
+  fatG: Number(r["fat_g"] ?? 0),
+  prepMin: Number(r["prep_min"] ?? 0),
+  tags: (r["tags"] ?? []) as string[],
+  ingredients: (r["ingredients"] ?? []) as { name: string; qty: number; unit: string; aisle: string }[],
+  orderOut: Boolean(r["order_out"]),
+  custom: true as const,
+  source: (r["source"] ?? "text") as string,
+});
