@@ -546,7 +546,8 @@ function SessionPage() {
 
       for (let i = 0; i < target.exercicios.length; i++) {
         const ex = target.exercicios[i]!;
-        const pr = await getPersonalRecord(ex.exerciseId);
+        // Offline the PR lookup can fail; a missing PR must not block the save.
+        const pr = await getPersonalRecord(ex.exerciseId).catch(() => 0);
         let melhor = 0;
         ex.sets.forEach((s) => {
           if (!s.concluida) return;
