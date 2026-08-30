@@ -573,19 +573,24 @@ function SessionPage() {
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
       }
 
-      await saveWorkout(
-        {
-          id: target.id,
-          ...(target.routineId ? { routineId: target.routineId } : {}),
-          iniciadoEm: target.iniciadoEm,
-          finalizadoEm: new Date().toISOString(),
-          duracaoSeg,
-          volumeTotalKg: Math.round(volume),
-          notas: target.notas,
-          origem: target.routineId ? "rotina" : "branco",
-        },
-        sets,
-      );
+      const workout = {
+        id: target.id,
+        ...(target.routineId ? { routineId: target.routineId } : {}),
+        iniciadoEm: target.iniciadoEm,
+        finalizadoEm: new Date().toISOString(),
+        duracaoSeg,
+        volumeTotalKg: Math.round(volume),
+        notas: target.notas,
+        origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
+      };
+
+      // Offline: queue it locally and let the app sync when the connection is back.
+      if (isOffline()) {
+        enqueueWorkout(workout, sets);
+        toast.success(t("Saved on this device — it will sync when you are back online."));
+      } else {
+        await saveWorkout(workout, sets);
+      }
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
@@ -593,6 +598,7 @@ function SessionPage() {
           JSON.stringify({ prs, series: sets.length }),
         );
       }
+      cancelRestNotification();
       clearActiveSession();
       navigate({ to: "/resumo/$id", params: { id: target.id } });
     } catch {
