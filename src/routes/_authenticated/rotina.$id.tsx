@@ -325,6 +325,27 @@ function RoutineEditor() {
                   placeholder={t("Exercise notes")}
                   className="mt-2 h-11 text-sm"
                 />
+                {idx > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleSuperset(idx)}
+                    aria-pressed={Boolean(groupLabels[rex.exerciseId])}
+                    className={`tap-target mt-2 inline-flex items-center gap-2 rounded-full px-3 text-xs font-semibold ${
+                      groupLabels[rex.exerciseId]
+                        ? "bg-train/15 text-train"
+                        : "bg-surface-3 text-muted-foreground"
+                    }`}
+                  >
+                    <Link2 className="size-3.5" />
+                    {groupLabels[rex.exerciseId]
+                      ? t("Superset {label}", { label: groupLabels[rex.exerciseId] ?? "" })
+                      : t("Superset with the exercise above")}
+                  </button>
+                ) : groupLabels[rex.exerciseId] ? (
+                  <p className="mt-2 inline-flex rounded-full bg-train/15 px-3 py-1 text-xs font-semibold text-train">
+                    {t("Superset {label}", { label: groupLabels[rex.exerciseId] ?? "" })}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>
