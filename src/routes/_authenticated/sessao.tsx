@@ -41,6 +41,8 @@ import { hapticRestDone, hapticTick } from "@/lib/haptics";
 import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
+import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { useWeightUnit } from "@/lib/use-weight-unit";
 import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
 import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
