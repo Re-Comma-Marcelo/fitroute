@@ -66,13 +66,13 @@ export function MealPickerSheet({
         </div>
 
         {onAddMeal ? (
-        <button
-          type="button"
-          onClick={onAddMeal}
-          className="tap-target mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-diet/50 text-xs font-semibold text-diet"
-        >
-          <Plus className="size-4" /> {t("Add a meal")}
-        </button>
+          <button
+            type="button"
+            onClick={onAddMeal}
+            className="tap-target mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-diet/50 text-xs font-semibold text-diet"
+          >
+            <Plus className="size-4" /> {t("Add a meal")}
+          </button>
         ) : null}
 
         <ul className="mt-3 space-y-3 pb-6">

@@ -181,11 +181,7 @@ function TodayPage() {
         </button>
       </nav>
 
-      <Button
-        variant="outline"
-        className="tap-target mt-3 w-full"
-        onClick={() => setAddOpen(true)}
-      >
+      <Button variant="outline" className="tap-target mt-3 w-full" onClick={() => setAddOpen(true)}>
         <Plus className="mr-1.5 size-4" /> {t("Add a meal")}
       </Button>
 

@@ -473,12 +473,7 @@ export const deleteCustomMeal = createServerFn({ method: "POST" })
     const { db, requireUserId, unwrap } = await import("./db.server");
     const userId = await requireUserId();
     unwrap(
-      await db()
-        .from("custom_meals")
-        .delete()
-        .eq("user_id", userId)
-        .eq("id", data.id)
-        .select("id"),
+      await db().from("custom_meals").delete().eq("user_id", userId).eq("id", data.id).select("id"),
     );
     return { ok: true };
   });

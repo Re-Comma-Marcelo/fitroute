@@ -382,7 +382,9 @@ function SlotPicker({ slot, setSlot }: { slot: MealSlot; setSlot: (s: MealSlot) 
             type="button"
             onClick={() => setSlot(s)}
             className={`tap-target shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors ${
-              s === slot ? "border-diet bg-diet/10 text-diet" : "border-border text-muted-foreground"
+              s === slot
+                ? "border-diet bg-diet/10 text-diet"
+                : "border-border text-muted-foreground"
             }`}
           >
             {t(SLOT_LABEL[s])}
