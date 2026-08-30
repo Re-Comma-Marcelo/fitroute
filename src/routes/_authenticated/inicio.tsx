@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Dumbbell, Timer, Trophy } from "lucide-react";
+import { Check, ChevronRight, Dumbbell, Search, Timer, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
