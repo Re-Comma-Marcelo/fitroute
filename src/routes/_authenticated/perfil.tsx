@@ -595,7 +595,13 @@ function ProfilePage() {
             </div>
           </div>
 
+          <UnitToggle />
+
           <VibrationToggle />
+
+          <RestNotifyToggle />
+
+          <DataBackupSection />
 
           <ImportAndQaSection />
 
