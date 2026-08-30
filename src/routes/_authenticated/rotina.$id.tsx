@@ -1,10 +1,10 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getExercises } from "@/lib/data/exercises";
 import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/lib/data/routines";
 import { takePendingExercise } from "@/lib/session-state";
+import { blockLabels, nextGroupLetter, setSuperset, supersetsFor } from "@/lib/supersets";
 import type { Routine } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
@@ -39,7 +40,15 @@ function RoutineEditor() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [groupVersion, setGroupVersion] = useState(0);
   const loaded = useRef(false);
+
+  const groupLabels = useMemo(
+    () => (routine ? blockLabels(routine.id, routine.exercicios.map((e) => e.exerciseId)) : {}),
+    // groupVersion forces a recompute after a local superset change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [routine, groupVersion],
+  );
 
   useEffect(() => {
     if (loaded.current) return;
