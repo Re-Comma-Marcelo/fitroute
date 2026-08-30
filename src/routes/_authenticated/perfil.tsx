@@ -801,6 +801,173 @@ function VibrationToggle() {
   );
 }
 
+/** Loads are always stored in kg; this only changes what you read and type. */
+function UnitToggle() {
+  const t = useT();
+  const { unit, setUnit } = useWeightUnit();
+
+  return (
+    <div className="space-y-2">
+      <Label>{t("Weight unit")}</Label>
+      <div className="grid grid-cols-2 gap-2">
+        {(["kg", "lb"] as const).map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => setUnit(option)}
+            className={cn(
+              "tap-target rounded-xl border px-2 py-3 text-sm font-semibold transition-colors",
+              unit === option
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border bg-card text-muted-foreground",
+            )}
+          >
+            {option === "kg" ? t("Kilograms (kg)") : t("Pounds (lb)")}
+          </button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t("Your history is converted, never rewritten.")}
+      </p>
+    </div>
+  );
+}
+
+function RestNotifyToggle() {
+  const t = useT();
+  const [on, setOn] = useState(false);
+  const [supported, setSupported] = useState(true);
+
+  useEffect(() => {
+    setSupported(notificationsSupported());
+    setOn(restNotifyEnabled());
+  }, []);
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
+      <div>
+        <Label htmlFor="rest-notify">{t("Rest notifications")}</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {supported
+            ? t("Get a notification when rest ends, even with the app in the background.")
+            : t("This device does not support notifications.")}
+        </p>
+      </div>
+      <Switch
+        id="rest-notify"
+        disabled={!supported}
+        checked={on}
+        onCheckedChange={(next) => {
+          if (!next) {
+            setOn(false);
+            setRestNotifyEnabled(false);
+            return;
+          }
+          void ensureRestPermission().then((granted) => {
+            setOn(granted);
+            setRestNotifyEnabled(granted);
+            if (!granted) toast.error(t("Notifications are blocked in your browser settings."));
+          });
+        }}
+      />
+    </div>
+  );
+}
+
+function DataBackupSection() {
+  const t = useT();
+  const queryClient = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  async function exportJson() {
+    setBusy(true);
+    try {
+      const backup = await buildBackup();
+      downloadFile(backupFileName("json"), JSON.stringify(backup, null, 2), "application/json");
+    } catch {
+      toast.error(t("Could not export your data. Try again in a moment."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function exportCsv() {
+    setBusy(true);
+    try {
+      downloadFile(backupFileName("csv"), await buildWorkoutsCsv(), "text/csv");
+    } catch {
+      toast.error(t("Could not export your data. Try again in a moment."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function importJson(file: File | null | undefined) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const result = await restoreBackup(await file.text());
+      invalidateProfileCache();
+      await queryClient.invalidateQueries();
+      toast.success(
+        t("Restored {routines} routine(s) and {workouts} workout(s).", {
+          routines: result.routines,
+          workouts: result.workouts,
+        }),
+      );
+      if (result.errors.length) {
+        toast.error(t("{n} item(s) could not be restored.", { n: result.errors.length }));
+      }
+    } catch {
+      toast.error(t("This file is not an Iron Logger backup."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="space-y-2 rounded-xl border border-border bg-card px-4 py-3">
+      <div>
+        <Label>{t("Your data")}</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {t("Export a full backup or a spreadsheet of every set you logged.")}
+        </p>
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={busy}
+          className="tap-target"
+          onClick={() => void exportJson()}
+        >
+          <Download className="mr-2 size-4" /> {t("Backup")}
+        </Button>
+        <Button
+          type="button"
+          variant="secondary"
+          disabled={busy}
+          className="tap-target"
+          onClick={() => void exportCsv()}
+        >
+          <Download className="mr-2 size-4" /> {t("CSV")}
+        </Button>
+      </div>
+      <label className="tap-target flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border px-3 py-3 text-sm font-semibold text-muted-foreground">
+        <Upload className="size-4 shrink-0" />
+        {t("Restore from a backup file")}
+        <input
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          disabled={busy}
+          onChange={(e) => void importJson(e.target.files?.[0])}
+        />
+      </label>
+    </div>
+  );
+}
+
 function ImportAndQaSection() {
   const t = useT();
   const navigate = useNavigate();
