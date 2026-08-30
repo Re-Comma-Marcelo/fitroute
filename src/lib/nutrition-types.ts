@@ -32,6 +32,10 @@ export interface Meal {
   ingredients: MealIngredient[];
   /** Ordered out / delivery — does not contribute to the shopping list. */
   orderOut?: boolean;
+  /** Created by the user (AI estimate from a description or a photo). */
+  custom?: boolean;
+  /** How a custom meal was created. */
+  source?: "text" | "photo";
 }
 
 /** Week plan keyed by ISO date (yyyy-mm-dd) -> slot -> mealId. */

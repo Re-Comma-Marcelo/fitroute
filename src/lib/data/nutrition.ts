@@ -1,7 +1,10 @@
 import { formatTimeOfDay } from "../format";
 import {
+  deleteCustomMeal,
+  fetchCustomMeals,
   fetchNutritionState,
   persistCheckedItem,
+  persistCustomMeal,
   persistMealSchedule,
   persistPlannedMeals,
 } from "../forja.functions";
@@ -40,13 +43,18 @@ export const DEFAULT_SCHEDULE: MealSchedule = {
 let scheduleCache: MealSchedule = structuredClone(DEFAULT_SCHEDULE);
 let planCache: WeekPlan = {};
 let checkedCache: string[] = [];
+let customCache: Meal[] = [];
 let hydrated = false;
 let hydrating: Promise<void> | null = null;
 
 async function hydrate(): Promise<void> {
   if (hydrated) return;
   if (!hydrating) {
-    hydrating = fetchNutritionState().then((state) => {
+    hydrating = Promise.all([
+      fetchNutritionState(),
+      fetchCustomMeals().catch(() => [] as unknown[]),
+    ]).then(([state, custom]) => {
+      customCache = (custom as unknown[]).map((m) => ({ ...(m as Meal), custom: true }));
       planCache = (state.plan ?? {}) as WeekPlan;
       checkedCache = state.checked ?? [];
       const raw = (state.schedule ?? {}) as Partial<
@@ -132,13 +140,40 @@ export function weekDates(ref = new Date()): string[] {
   });
 }
 
+/** Mock library plus the user's own meals (custom first). */
+export function allMeals(): Meal[] {
+  return [...customCache, ...meals];
+}
+
 export async function getMeals(slot?: MealSlot): Promise<Meal[]> {
-  const list = slot ? meals.filter((m) => m.slots.includes(slot)) : meals;
+  await hydrate();
+  const list = slot ? allMeals().filter((m) => m.slots.includes(slot)) : allMeals();
   return list.map((m) => ({ ...m }));
 }
 
 export async function getMeal(id: string): Promise<Meal | undefined> {
-  return meals.find((m) => m.id === id);
+  await hydrate();
+  return allMeals().find((m) => m.id === id);
+}
+
+/** Saves an AI-estimated meal to the user's library. */
+export async function createCustomMeal(
+  meal: Omit<Meal, "id">,
+  source: "text" | "photo",
+): Promise<Meal> {
+  await hydrate();
+  const saved = (await persistCustomMeal({
+    data: { meal: meal as unknown as Record<string, unknown>, source },
+  })) as unknown as Meal;
+  const normalized: Meal = { ...saved, custom: true, source };
+  customCache = [normalized, ...customCache.filter((m) => m.id !== normalized.id)];
+  return normalized;
+}
+
+export async function removeCustomMeal(id: string): Promise<void> {
+  await hydrate();
+  await deleteCustomMeal({ data: { id } });
+  customCache = customCache.filter((m) => m.id !== id);
 }
 
 export async function getWeekPlan(): Promise<WeekPlan> {
@@ -177,7 +212,7 @@ export async function autoFillWeek(ref = new Date()): Promise<WeekPlan> {
     activeSlots().forEach((slot, si) => {
       if (day[slot]) return;
       const options = pickForTag(
-        meals.filter((m) => m.slots.includes(slot) && !m.orderOut),
+        allMeals().filter((m) => m.slots.includes(slot) && !m.orderOut),
         tags[date],
       );
       const chosen = options[(di * 3 + si) % Math.max(1, options.length)];
@@ -240,7 +275,7 @@ export function totalsFor(day: Partial<Record<MealSlot, string>> | undefined): D
   const t: DayTotals = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
   if (!day) return t;
   for (const slot of MEAL_SLOTS) {
-    const meal = meals.find((m) => m.id === day[slot]);
+    const meal = allMeals().find((m) => m.id === day[slot]);
     if (!meal) continue;
     t.kcal += meal.kcal;
     t.proteinG += meal.proteinG;
@@ -270,7 +305,7 @@ export async function getShoppingList(dates: string[]): Promise<{
     const day = planCache[date];
     if (!day) continue;
     for (const slot of MEAL_SLOTS) {
-      const meal = meals.find((m) => m.id === day[slot]);
+      const meal = allMeals().find((m) => m.id === day[slot]);
       if (!meal) continue;
       if (meal.orderOut) {
         orderOut.push({ date, slot, meal });
