@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
+import { AddMealSheet } from "@/components/AddMealSheet";
 import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
@@ -42,6 +43,7 @@ function WeekPage() {
   const today = isoDate(new Date());
   const qc = useQueryClient();
   const [editing, setEditing] = useState<{ date: string; slot: MealSlot } | null>(null);
+  const [adding, setAdding] = useState<{ date: string; slot: MealSlot } | null>(null);
 
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
   const mealsQ = useQuery({ queryKey: ["meals", undefined], queryFn: () => getMeals() });
@@ -148,6 +150,10 @@ function WeekPage() {
         slot={editing?.slot ?? null}
         selectedMealId={editing ? planQ.data?.[editing.date]?.[editing.slot] : undefined}
         onOpenChange={(open) => !open && setEditing(null)}
+        onAddMeal={() => {
+          setAdding(editing);
+          setEditing(null);
+        }}
         onPick={async (mealId) => {
           if (!editing) return;
           try {
@@ -156,6 +162,24 @@ function WeekPage() {
             toast.error(t("Could not update the week plan. Try again."));
           }
           setEditing(null);
+          refresh();
+        }}
+      />
+
+      <AddMealSheet
+        open={Boolean(adding)}
+        onOpenChange={(open) => !open && setAdding(null)}
+        defaultSlot={adding?.slot ?? "lunch"}
+        onCreated={async (meal) => {
+          if (adding) {
+            try {
+              await setPlannedMeal(adding.date, adding.slot, meal.id);
+            } catch {
+              toast.error(t("Could not update the week plan. Try again."));
+            }
+          }
+          setAdding(null);
+          void qc.invalidateQueries({ queryKey: ["meals"] });
           refresh();
         }}
       />
