@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useEffect, useRef } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
+import { PendingSync } from "./PendingSync";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
 import { useLanguageSync } from "@/lib/i18n/use-language-sync";
 
