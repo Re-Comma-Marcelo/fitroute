@@ -41,6 +41,7 @@ import { hapticRestDone, hapticTick } from "@/lib/haptics";
 import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
+import { blockLabels, hasNextInBlock } from "@/lib/supersets";
 import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
@@ -398,7 +399,8 @@ function SessionPage() {
       if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
       if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
       set.concluida = true;
-      descanso = ex.descansoSeg;
+      // Inside a superset you move straight to the next exercise: no rest yet.
+      descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
       const todasFeitas = ex.sets.every((x) => x.concluida);
       completou = todasFeitas;
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
@@ -699,7 +701,14 @@ function SessionPage() {
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-base font-semibold leading-tight">{ex.nome}</p>
+                      <p className="flex items-center gap-2 text-base font-semibold leading-tight">
+                        {blockLabel[ex.exerciseId] ? (
+                          <span className="shrink-0 rounded-md bg-train/15 px-1.5 py-0.5 text-[11px] font-bold text-train">
+                            {blockLabel[ex.exerciseId]}
+                          </span>
+                        ) : null}
+                        <span className="min-w-0 truncate">{ex.nome}</span>
+                      </p>
                       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span className="font-semibold tabular-nums text-train">
                           {feitas}/{validas}
