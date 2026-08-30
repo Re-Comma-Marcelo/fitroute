@@ -633,6 +633,12 @@ function SessionPage() {
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
   const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
+  const blockLabel: Record<string, string> = session.routineId
+    ? blockLabels(
+        session.routineId,
+        session.exercicios.map((e) => e.exerciseId),
+      )
+    : {};
 
   return (
     <div className="min-h-screen bg-background pb-44">
