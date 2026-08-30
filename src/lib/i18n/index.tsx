@@ -24,6 +24,7 @@ import { dict as progressDict } from "./dict/progress";
 import { dict as pwaDict } from "./dict/pwa";
 import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
+import { dict as toolsDict } from "./dict/tools";
 import { dict as trainDict } from "./dict/train";
 import {
   DEFAULT_LANG,
@@ -53,7 +54,7 @@ const FRAGMENTS: DictFragment[] = [
   metaDict,
   pwaDict,
   onboardingDict,
-
+  toolsDict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {
