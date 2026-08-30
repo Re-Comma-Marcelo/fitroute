@@ -3,6 +3,39 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Review the estimate": "Revisar a estimativa",
+    "Describe it": "Descrever",
+    "Use a photo": "Usar foto",
+    "Take or pick a photo": "Tirar ou escolher uma foto",
+    "The AI reads the plate and estimates the portions.": "A IA l\u00ea o prato e estima as por\u00e7\u00f5es.",
+    "Choose another photo": "Escolher outra foto",
+    "Anything to add? (optional)": "Quer acrescentar algo? (opcional)",
+    "What did you eat?": "O que voc\u00ea comeu?",
+    "200 g grilled chicken, rice, black beans and a salad": "200 g de frango grelhado, arroz, feij\u00e3o preto e salada",
+    "Estimate nutrition": "Estimar nutri\u00e7\u00e3o",
+    "Estimating\u2026": "Estimando\u2026",
+    "AI estimate": "Estimativa da IA",
+    "confidence: {level}": "confian\u00e7a: {level}",
+    "low": "baixa",
+    "medium": "m\u00e9dia",
+    "high": "alta",
+    "Meal name": "Nome da refei\u00e7\u00e3o",
+    "Meal slot": "Momento da refei\u00e7\u00e3o",
+    "Add ingredient": "Adicionar ingrediente",
+    "Ingredient": "Ingrediente",
+    "Quantity": "Quantidade",
+    "Unit": "Unidade",
+    "Remove": "Remover",
+    "Back": "Voltar",
+    "Save to {slot}": "Salvar em {slot}",
+    "Meal added": "Refei\u00e7\u00e3o adicionada",
+    "That photo is too large.": "Essa foto \u00e9 muito grande.",
+    "Could not read that photo.": "N\u00e3o foi poss\u00edvel ler essa foto.",
+    "Could not estimate this meal. Try again.": "N\u00e3o foi poss\u00edvel estimar esta refei\u00e7\u00e3o. Tente novamente.",
+    "Describe the meal first.": "Descreva a refei\u00e7\u00e3o primeiro.",
+    "Meal photo": "Foto da refei\u00e7\u00e3o",
+    "Add a photo of the meal.": "Adicione uma foto da refei\u00e7\u00e3o.",
+    "That photo is too large. Try a smaller one.": "Essa foto \u00e9 muito grande. Tente uma menor.",
     "Could not update the week plan. Try again.":
       "Não foi possível atualizar o plano da semana. Tente novamente.",
     "Could not save this meal. Try again.":
@@ -108,6 +141,7 @@ export const dict: DictFragment = {
     F: "F",
   },
   nl: {
+    "Estimating\u2026": "Schatten\u2026",
     "Could not update the week plan. Try again.":
       "Kon het weekplan niet bijwerken. Probeer opnieuw.",
     "Could not save this meal. Try again.": "Kon deze maaltijd niet opslaan. Probeer opnieuw.",
