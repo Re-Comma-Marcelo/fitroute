@@ -1,3 +1,5 @@
+import { toDisplayWeight, unitLabel } from "./units";
+
 export function formatDuration(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
   const h = Math.floor(s / 3600);
