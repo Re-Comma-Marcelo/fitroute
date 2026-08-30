@@ -131,6 +131,23 @@ function RoutineEditor() {
     });
   }
 
+  /** Link an exercise to the one above it, or break it out of its block. */
+  function toggleSuperset(idx: number) {
+    if (!routine) return;
+    const current = routine.exercicios[idx];
+    const previous = routine.exercicios[idx - 1];
+    if (!current || !previous) return;
+    const groups = supersetsFor(routine.id);
+    if (groups[current.exerciseId]) {
+      setSuperset(routine.id, current.exerciseId, null);
+    } else {
+      const group = groups[previous.exerciseId] ?? nextGroupLetter(routine.id);
+      setSuperset(routine.id, previous.exerciseId, group);
+      setSuperset(routine.id, current.exerciseId, group);
+    }
+    setGroupVersion((v) => v + 1);
+  }
+
   function openLibrary() {
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
     navigate({ to: "/biblioteca", search: { para: "rotina", rotinaId: id } });
