@@ -1175,7 +1175,7 @@ function SetRow({
           {set.antPeso !== null && set.antReps !== null ? (
             <>
               <span className="block truncate tabular-nums">
-                {set.antPeso}kg x {set.antReps}
+                {formatKg(set.antPeso)} x {set.antReps}
               </span>
               <span className="block truncate tabular-nums">
                 {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
@@ -1211,8 +1211,8 @@ function SetRow({
           value={set.pesoKg}
           onChange={(e) => onField("pesoKg", e.target.value)}
           inputMode="decimal"
-          placeholder={t("kg")}
-          aria-label={t("Weight in kg")}
+          placeholder={weightUnitLabel()}
+          aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
