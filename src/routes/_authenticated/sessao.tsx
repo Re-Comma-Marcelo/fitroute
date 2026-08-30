@@ -746,6 +746,18 @@ function SessionPage() {
                       value={ex.descansoSeg}
                       onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                     />
+                    {usesPlates(ex.equipamento) ? (
+                      <PlateCalculatorSheet
+                        targetKg={
+                          Number(
+                            ex.sets.find((s) => !s.concluida)?.pesoKg ||
+                              ex.sets.find((s) => !s.concluida)?.sugPeso ||
+                              ex.sets[0]?.pesoKg ||
+                              0,
+                          ) || 0
+                        }
+                      />
+                    ) : null}
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
                 </div>
