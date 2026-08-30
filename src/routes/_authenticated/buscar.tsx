@@ -67,13 +67,13 @@ function SearchPage() {
         }),
       );
     (mealsQuery.data ?? [])
-      .filter((m) => m.nome.toLowerCase().includes(term))
+      .filter((m) => m.name.toLowerCase().includes(term))
       .slice(0, 20)
       .forEach((m) =>
         out.push({
           kind: "meal",
           id: m.id,
-          title: m.nome,
+          title: m.name,
           subtitle: t("{kcal} kcal", { kcal: Math.round(m.kcal) }),
         }),
       );
