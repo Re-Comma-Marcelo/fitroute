@@ -45,6 +45,7 @@ export function AppShell({
           </div>
         </header>
       )}
+      <PendingSync />
       <main
         ref={mainRef}
         className={`route-enter mx-auto w-full max-w-md flex-1 overflow-y-auto px-4 pb-6 ${hideHeader ? "pt-6" : "pt-2"}`}
