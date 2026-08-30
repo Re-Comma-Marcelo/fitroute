@@ -77,7 +77,9 @@ export function AddMealSheet({
       const res =
         source === "photo" && photo
           ? await estimateMealFromPhoto({
-              data: { imageDataUrl: photo, note: description.trim() || undefined },
+              data: description.trim()
+                ? { imageDataUrl: photo, note: description.trim() }
+                : { imageDataUrl: photo },
             })
           : await estimateMealFromText({ data: { description } });
       if (!res.ok) {
