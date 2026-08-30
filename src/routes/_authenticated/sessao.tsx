@@ -1232,8 +1232,9 @@ function SetRow({
       <div className={ROW_STEP}>
         <StepButton dir="down" label={t("Decrease weight")} onClick={() => stepKg(-passoKg)} />
         <Input
-          value={set.pesoKg}
-          onChange={(e) => onField("pesoKg", e.target.value)}
+          value={shownWeight}
+          onChange={(e) => writeWeight(e.target.value)}
+          onBlur={() => setDraft(null)}
           inputMode="decimal"
           placeholder={weightUnitLabel()}
           aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
