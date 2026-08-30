@@ -82,7 +82,7 @@ function SearchPage() {
 
   function open(hit: Hit) {
     if (hit.kind === "routine") navigate({ to: "/rotina/$id", params: { id: hit.id } });
-    else if (hit.kind === "exercise") navigate({ to: "/biblioteca" });
+    else if (hit.kind === "exercise") navigate({ to: "/biblioteca", search: {} });
     else navigate({ to: "/dieta" });
   }
 
