@@ -1,10 +1,10 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { ArrowLeft, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getExercises } from "@/lib/data/exercises";
 import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/lib/data/routines";
 import { takePendingExercise } from "@/lib/session-state";
+import { blockLabels, nextGroupLetter, setSuperset, supersetsFor } from "@/lib/supersets";
 import type { Routine } from "@/lib/types";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
@@ -39,7 +40,15 @@ function RoutineEditor() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [groupVersion, setGroupVersion] = useState(0);
   const loaded = useRef(false);
+
+  const groupLabels = useMemo(
+    () => (routine ? blockLabels(routine.id, routine.exercicios.map((e) => e.exerciseId)) : {}),
+    // groupVersion forces a recompute after a local superset change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [routine, groupVersion],
+  );
 
   useEffect(() => {
     if (loaded.current) return;
@@ -129,6 +138,23 @@ function RoutineEditor() {
       exercicios.splice(to, 0, item!);
       return { ...prev, exercicios: exercicios.map((e, i) => ({ ...e, ordem: i })) };
     });
+  }
+
+  /** Link an exercise to the one above it, or break it out of its block. */
+  function toggleSuperset(idx: number) {
+    if (!routine) return;
+    const current = routine.exercicios[idx];
+    const previous = routine.exercicios[idx - 1];
+    if (!current || !previous) return;
+    const groups = supersetsFor(routine.id);
+    if (groups[current.exerciseId]) {
+      setSuperset(routine.id, current.exerciseId, null);
+    } else {
+      const group = groups[previous.exerciseId] ?? nextGroupLetter(routine.id);
+      setSuperset(routine.id, previous.exerciseId, group);
+      setSuperset(routine.id, current.exerciseId, group);
+    }
+    setGroupVersion((v) => v + 1);
   }
 
   function openLibrary() {
@@ -325,6 +351,27 @@ function RoutineEditor() {
                   placeholder={t("Exercise notes")}
                   className="mt-2 h-11 text-sm"
                 />
+                {idx > 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleSuperset(idx)}
+                    aria-pressed={Boolean(groupLabels[rex.exerciseId])}
+                    className={`tap-target mt-2 inline-flex items-center gap-2 rounded-full px-3 text-xs font-semibold ${
+                      groupLabels[rex.exerciseId]
+                        ? "bg-train/15 text-train"
+                        : "bg-surface-3 text-muted-foreground"
+                    }`}
+                  >
+                    <Link2 className="size-3.5" />
+                    {groupLabels[rex.exerciseId]
+                      ? t("Superset {label}", { label: groupLabels[rex.exerciseId] ?? "" })
+                      : t("Superset with the exercise above")}
+                  </button>
+                ) : groupLabels[rex.exerciseId] ? (
+                  <p className="mt-2 inline-flex rounded-full bg-train/15 px-3 py-1 text-xs font-semibold text-train">
+                    {t("Superset {label}", { label: groupLabels[rex.exerciseId] ?? "" })}
+                  </p>
+                ) : null}
               </li>
             ))}
           </ul>

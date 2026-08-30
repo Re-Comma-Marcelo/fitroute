@@ -38,7 +38,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticRestDone, hapticTick } from "@/lib/haptics";
-import { formatDuration, formatKg, formatRest } from "@/lib/format";
+import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
+import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
+import { usesPlates } from "@/lib/plates";
+import { blockLabels, hasNextInBlock } from "@/lib/supersets";
+import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { useWeightUnit } from "@/lib/use-weight-unit";
+import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
+import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
 import {
   clearActiveSession,
@@ -358,10 +365,32 @@ function SessionPage() {
   function startRest(segundos: number) {
     if (segundos <= 0) return;
     update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+    // Backgrounded phones stop running timers; a notification still lands.
+    scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
   }
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
-    update((s) => ({ ...s, rest: s.rest ? mutate(s.rest) : null }));
+    update((s) => {
+      const next = s.rest ? mutate(s.rest) : null;
+      if (!next) cancelRestNotification();
+      else
+        scheduleRestNotification(
+          Math.max(0, next.endsAt - Date.now()),
+          t("Rest is over"),
+          t("Time for your next set."),
+        );
+      return { ...s, rest: next };
+    });
+  }
+
+  /** True when a later exercise belongs to the same superset block. */
+  function supersetChain(state: ActiveSession, exIdx: number): boolean {
+    if (!state.routineId) return false;
+    return hasNextInBlock(
+      state.routineId,
+      state.exercicios.map((e) => e.exerciseId),
+      exIdx,
+    );
   }
 
   function toggleSet(exIdx: number, setIdx: number) {
@@ -380,7 +409,8 @@ function SessionPage() {
       if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
       if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
       set.concluida = true;
-      descanso = ex.descansoSeg;
+      // Inside a superset you move straight to the next exercise: no rest yet.
+      descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
       const todasFeitas = ex.sets.every((x) => x.concluida);
       completou = todasFeitas;
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
@@ -530,7 +560,8 @@ function SessionPage() {
 
       for (let i = 0; i < target.exercicios.length; i++) {
         const ex = target.exercicios[i]!;
-        const pr = await getPersonalRecord(ex.exerciseId);
+        // Offline the PR lookup can fail; a missing PR must not block the save.
+        const pr = await getPersonalRecord(ex.exerciseId).catch(() => 0);
         let melhor = 0;
         ex.sets.forEach((s) => {
           if (!s.concluida) return;
@@ -557,19 +588,24 @@ function SessionPage() {
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
       }
 
-      await saveWorkout(
-        {
-          id: target.id,
-          ...(target.routineId ? { routineId: target.routineId } : {}),
-          iniciadoEm: target.iniciadoEm,
-          finalizadoEm: new Date().toISOString(),
-          duracaoSeg,
-          volumeTotalKg: Math.round(volume),
-          notas: target.notas,
-          origem: target.routineId ? "rotina" : "branco",
-        },
-        sets,
-      );
+      const workout = {
+        id: target.id,
+        ...(target.routineId ? { routineId: target.routineId } : {}),
+        iniciadoEm: target.iniciadoEm,
+        finalizadoEm: new Date().toISOString(),
+        duracaoSeg,
+        volumeTotalKg: Math.round(volume),
+        notas: target.notas,
+        origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
+      };
+
+      // Offline: queue it locally and let the app sync when the connection is back.
+      if (isOffline()) {
+        enqueueWorkout(workout, sets);
+        toast.success(t("Saved on this device — it will sync when you are back online."));
+      } else {
+        await saveWorkout(workout, sets);
+      }
 
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
@@ -577,6 +613,7 @@ function SessionPage() {
           JSON.stringify({ prs, series: sets.length }),
         );
       }
+      cancelRestNotification();
       clearActiveSession();
       navigate({ to: "/resumo/$id", params: { id: target.id } });
     } catch {
@@ -596,6 +633,12 @@ function SessionPage() {
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
   const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
+  const blockLabel: Record<string, string> = session.routineId
+    ? blockLabels(
+        session.routineId,
+        session.exercicios.map((e) => e.exerciseId),
+      )
+    : {};
 
   return (
     <div className="min-h-screen bg-background pb-44">
@@ -674,7 +717,14 @@ function SessionPage() {
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
                     <div className="min-w-0 flex-1">
-                      <p className="text-base font-semibold leading-tight">{ex.nome}</p>
+                      <p className="flex items-center gap-2 text-base font-semibold leading-tight">
+                        {blockLabel[ex.exerciseId] ? (
+                          <span className="shrink-0 rounded-md bg-train/15 px-1.5 py-0.5 text-[11px] font-bold text-train">
+                            {blockLabel[ex.exerciseId]}
+                          </span>
+                        ) : null}
+                        <span className="min-w-0 truncate">{ex.nome}</span>
+                      </p>
                       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                         <span className="font-semibold tabular-nums text-train">
                           {feitas}/{validas}
@@ -723,6 +773,18 @@ function SessionPage() {
                       value={ex.descansoSeg}
                       onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                     />
+                    {usesPlates(ex.equipamento) ? (
+                      <PlateCalculatorSheet
+                        targetKg={
+                          Number(
+                            ex.sets.find((s) => !s.concluida)?.pesoKg ||
+                              ex.sets.find((s) => !s.concluida)?.sugPeso ||
+                              ex.sets[0]?.pesoKg ||
+                              0,
+                          ) || 0
+                        }
+                      />
+                    ) : null}
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
                   </div>
                 </div>
@@ -1090,11 +1152,35 @@ function SetRow({
 }) {
   const aquecimento = !isSerieValida(set);
   const passoKg = incrementoPara(exercise.equipamento);
+  const { unit } = useWeightUnit();
+  /** Weight is always stored in kg; the field shows the user's unit. */
+  const [draft, setDraft] = useState<string | null>(null);
+  const shownWeight =
+    draft ??
+    (set.pesoKg === ""
+      ? ""
+      : String(Math.round(toDisplayWeight(Number(set.pesoKg) || 0, unit) * 100) / 100));
 
-  function stepKg(delta: number) {
-    const atual = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
-    const next = Math.max(0, Math.round((atual + delta) * 100) / 100);
-    onField("pesoKg", String(next));
+  function writeWeight(displayValue: string) {
+    setDraft(displayValue);
+    if (displayValue.trim() === "") {
+      onField("pesoKg", "");
+      return;
+    }
+    const parsed = Number(displayValue.replace(",", "."));
+    if (Number.isNaN(parsed)) return;
+    onField("pesoKg", String(Math.round(fromDisplayWeight(parsed, unit) * 1000) / 1000));
+  }
+
+  function stepKg(deltaKg: number) {
+    const atualKg = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
+    const step = displayStep(deltaKg, unit);
+    const nextDisplay = Math.max(
+      0,
+      Math.round((toDisplayWeight(atualKg, unit) + step) * 100) / 100,
+    );
+    setDraft(String(nextDisplay));
+    onField("pesoKg", String(Math.round(fromDisplayWeight(nextDisplay, unit) * 1000) / 1000));
   }
 
   function stepReps(delta: number) {
@@ -1140,7 +1226,7 @@ function SetRow({
           {set.antPeso !== null && set.antReps !== null ? (
             <>
               <span className="block truncate tabular-nums">
-                {set.antPeso}kg x {set.antReps}
+                {formatKg(set.antPeso)} x {set.antReps}
               </span>
               <span className="block truncate tabular-nums">
                 {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
@@ -1173,11 +1259,12 @@ function SetRow({
       <div className={ROW_STEP}>
         <StepButton dir="down" label={t("Decrease weight")} onClick={() => stepKg(-passoKg)} />
         <Input
-          value={set.pesoKg}
-          onChange={(e) => onField("pesoKg", e.target.value)}
+          value={shownWeight}
+          onChange={(e) => writeWeight(e.target.value)}
+          onBlur={() => setDraft(null)}
           inputMode="decimal"
-          placeholder={t("kg")}
-          aria-label={t("Weight in kg")}
+          placeholder={weightUnitLabel()}
+          aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />

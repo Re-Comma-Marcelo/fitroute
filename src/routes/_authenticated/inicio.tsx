@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Dumbbell, Timer, Trophy } from "lucide-react";
+import { Check, ChevronRight, Dumbbell, Search, Timer, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -123,7 +123,16 @@ export default function Inicio() {
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{formatFullDate(new Date())}</p>
           </div>
-          <CoachChatButton />
+          <div className="flex shrink-0 items-center gap-1">
+            <Link
+              to="/buscar"
+              aria-label={t("Search")}
+              className="tap-target flex size-11 items-center justify-center rounded-full bg-surface-3 text-muted-foreground"
+            >
+              <Search className="size-5" />
+            </Link>
+            <CoachChatButton />
+          </div>
         </header>
 
         <VolumeHero loading={isLoading} hasData={hasData} volume={volume} />
