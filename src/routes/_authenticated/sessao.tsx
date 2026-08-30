@@ -1125,11 +1125,35 @@ function SetRow({
 }) {
   const aquecimento = !isSerieValida(set);
   const passoKg = incrementoPara(exercise.equipamento);
+  const { unit } = useWeightUnit();
+  /** Weight is always stored in kg; the field shows the user's unit. */
+  const [draft, setDraft] = useState<string | null>(null);
+  const shownWeight =
+    draft ??
+    (set.pesoKg === ""
+      ? ""
+      : String(Math.round(toDisplayWeight(Number(set.pesoKg) || 0, unit) * 100) / 100));
 
-  function stepKg(delta: number) {
-    const atual = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
-    const next = Math.max(0, Math.round((atual + delta) * 100) / 100);
-    onField("pesoKg", String(next));
+  function writeWeight(displayValue: string) {
+    setDraft(displayValue);
+    if (displayValue.trim() === "") {
+      onField("pesoKg", "");
+      return;
+    }
+    const parsed = Number(displayValue.replace(",", "."));
+    if (Number.isNaN(parsed)) return;
+    onField("pesoKg", String(Math.round(fromDisplayWeight(parsed, unit) * 1000) / 1000));
+  }
+
+  function stepKg(deltaKg: number) {
+    const atualKg = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
+    const step = displayStep(deltaKg, unit);
+    const nextDisplay = Math.max(
+      0,
+      Math.round((toDisplayWeight(atualKg, unit) + step) * 100) / 100,
+    );
+    setDraft(String(nextDisplay));
+    onField("pesoKg", String(Math.round(fromDisplayWeight(nextDisplay, unit) * 1000) / 1000));
   }
 
   function stepReps(delta: number) {
