@@ -362,10 +362,22 @@ function SessionPage() {
   function startRest(segundos: number) {
     if (segundos <= 0) return;
     update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+    // Backgrounded phones stop running timers; a notification still lands.
+    scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
   }
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
-    update((s) => ({ ...s, rest: s.rest ? mutate(s.rest) : null }));
+    update((s) => {
+      const next = s.rest ? mutate(s.rest) : null;
+      if (!next) cancelRestNotification();
+      else
+        scheduleRestNotification(
+          Math.max(0, next.endsAt - Date.now()),
+          t("Rest is over"),
+          t("Time for your next set."),
+        );
+      return { ...s, rest: next };
+    });
   }
 
   function toggleSet(exIdx: number, setIdx: number) {
