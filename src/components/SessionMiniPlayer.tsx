@@ -81,7 +81,13 @@ export function SessionMiniPlayer() {
           className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
-          <ProgressRing done={setsDone} total={setsTotal} size={20} stroke={2.5} showLabel={false} />
+          <ProgressRing
+            done={setsDone}
+            total={setsTotal}
+            size={20}
+            stroke={2.5}
+            showLabel={false}
+          />
           <span className="relative flex size-2.5 shrink-0">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex size-2.5 rounded-full bg-primary" />

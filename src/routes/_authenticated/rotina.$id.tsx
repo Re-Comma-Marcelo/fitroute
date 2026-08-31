@@ -4,15 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import {
-  ArrowLeft,
-  ChevronDown,
-  ChevronUp,
-  GripVertical,
-  Link2,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ArrowLeft, ChevronDown, ChevronUp, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -52,7 +44,13 @@ function RoutineEditor() {
   const loaded = useRef(false);
 
   const groupLabels = useMemo(
-    () => (routine ? blockLabels(routine.id, routine.exercicios.map((e) => e.exerciseId)) : {}),
+    () =>
+      routine
+        ? blockLabels(
+            routine.id,
+            routine.exercicios.map((e) => e.exerciseId),
+          )
+        : {},
     // groupVersion forces a recompute after a local superset change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [routine, groupVersion],
@@ -167,7 +165,10 @@ function RoutineEditor() {
 
   function openLibrary() {
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
-    navigate({ to: "/biblioteca", search: { para: "rotina", rotinaId: id, exercicioId: undefined } });
+    navigate({
+      to: "/biblioteca",
+      search: { para: "rotina", rotinaId: id, exercicioId: undefined },
+    });
   }
 
   async function handleSave() {

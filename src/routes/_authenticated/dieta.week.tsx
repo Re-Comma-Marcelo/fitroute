@@ -118,8 +118,8 @@ function WeekPage() {
 
               <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
                 <span className="font-semibold text-foreground">{totals.kcal}</span>
-                {targets ? `/${targets.kcal}` : ""} kcal · P {totals.proteinG}g · C{" "}
-                {totals.carbsG}g · F {totals.fatG}g
+                {targets ? `/${targets.kcal}` : ""} kcal · P {totals.proteinG}g · C {totals.carbsG}g
+                · F {totals.fatG}g
               </p>
               {targets ? (
                 <div

@@ -152,7 +152,6 @@ function ProfilePage() {
   const [weightText, setWeightText] = useState<string | null>(null);
   useEffect(() => setWeightText(null), [weightUnit]);
 
-
   useEffect(() => {
     if (profileQuery.data && !form) setForm(profileQuery.data);
   }, [profileQuery.data, form]);
@@ -460,7 +459,6 @@ function ProfilePage() {
             t(timeLabel),
           ].join(" · ")}
         >
-
           <Segmented
             label={t("Weekly training target")}
             columns={6}
@@ -522,7 +520,6 @@ function ProfilePage() {
               : undefined
           }
         >
-
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>{t("Exercises to avoid")}</Label>
@@ -609,7 +606,6 @@ function ProfilePage() {
           subtitle={t("Language, integrations and account")}
           summary={LANGS.find((l) => l.value === lang)?.label}
         >
-
           <div className="space-y-2">
             <Label>{t("Language")}</Label>
             <div className="grid grid-cols-3 gap-2">
@@ -643,7 +639,6 @@ function ProfilePage() {
           <DataBackupSection />
 
           <ImportAndQaSection />
-
 
           <GetAPlanCard />
 
@@ -689,7 +684,6 @@ function ProfilePage() {
     </AppShell>
   );
 }
-
 
 function Section({
   title,
@@ -813,7 +807,6 @@ function AccountSection({ email }: { email: string | null }) {
 function VibrationToggle() {
   const t = useT();
   const [on, setOn] = useState(true);
-
 
   useEffect(() => {
     setOn(hapticsEnabled());

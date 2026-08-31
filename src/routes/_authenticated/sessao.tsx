@@ -208,22 +208,19 @@ function SessionPage() {
    * recreated. Used by every keystroke, where a full structuredClone of the
    * session was the main source of input lag on long workouts.
    */
-  const patchSet = useCallback(
-    (exIdx: number, setIdx: number, patch: Partial<ActiveSet>) => {
-      setSession((prev) => {
-        if (!prev) return prev;
-        const ex = prev.exercicios[exIdx];
-        const set = ex?.sets[setIdx];
-        if (!ex || !set) return prev;
-        const sets = ex.sets.map((s, i) => (i === setIdx ? { ...s, ...patch } : s));
-        const exercicios = prev.exercicios.map((e, i) => (i === exIdx ? { ...ex, sets } : e));
-        const next = { ...prev, exercicios };
-        saveActiveSession(next);
-        return next;
-      });
-    },
-    [],
-  );
+  const patchSet = useCallback((exIdx: number, setIdx: number, patch: Partial<ActiveSet>) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const ex = prev.exercicios[exIdx];
+      const set = ex?.sets[setIdx];
+      if (!ex || !set) return prev;
+      const sets = ex.sets.map((s, i) => (i === setIdx ? { ...s, ...patch } : s));
+      const exercicios = prev.exercicios.map((e, i) => (i === exIdx ? { ...ex, sets } : e));
+      const next = { ...prev, exercicios };
+      saveActiveSession(next);
+      return next;
+    });
+  }, []);
 
   const hasSession = !!session;
 
@@ -878,7 +875,10 @@ function SessionPage() {
           variant="secondary"
           className="h-12 w-full font-semibold"
           onClick={() =>
-            navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined, exercicioId: undefined } })
+            navigate({
+              to: "/biblioteca",
+              search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
+            })
           }
         >
           <Plus className="mr-1 size-5" /> {t("Add exercise")}

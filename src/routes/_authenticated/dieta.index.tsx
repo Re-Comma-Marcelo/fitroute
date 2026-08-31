@@ -139,7 +139,8 @@ function TodayPage() {
   // Without this the empty state showed up mid-load and looked like an empty plan.
   const loadError = scheduleQ.isError || planQ.isError || targetsQ.isError || mealsQ.isError;
   const firstLoad =
-    !loadError && (scheduleQ.isLoading || planQ.isLoading || targetsQ.isLoading || mealsQ.isLoading);
+    !loadError &&
+    (scheduleQ.isLoading || planQ.isLoading || targetsQ.isLoading || mealsQ.isLoading);
 
   if (loadError) {
     return (
