@@ -3,6 +3,7 @@ import type { DictFragment } from "../types";
 /** Translations for the coach area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "I can answer what to train today, what’s stalled, and recovery or nutrition questions. For open-ended coaching, connect Claude to this app in Profile → AI assistant — it reads your real training data over MCP.": "Posso responder o que treinar hoje, o que está travado e dúvidas de recuperação ou nutrição. Para conversas abertas, conecte o Claude ao app em Perfil → assistente de IA — ele lê seus dados reais de treino via MCP.",
     "Your pick": "Sua escolha",
     "Coach · today": "Treinador · hoje",
     "See why": "Veja o porquê",
@@ -37,6 +38,7 @@ export const dict: DictFragment = {
     Cancel: "Cancelar",
   },
   nl: {
+    "I can answer what to train today, what’s stalled, and recovery or nutrition questions. For open-ended coaching, connect Claude to this app in Profile → AI assistant — it reads your real training data over MCP.": "Ik kan zeggen wat je vandaag moet trainen, wat vastloopt en vragen over herstel of voeding. Voor open coaching verbind je Claude met deze app via Profiel → AI-assistent — die leest je echte trainingsdata via MCP.",
     "Your pick": "Jouw keuze",
     "Coach · today": "Coach · vandaag",
     "See why": "Zie waarom",

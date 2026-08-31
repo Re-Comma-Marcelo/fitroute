@@ -119,9 +119,11 @@ export async function askCoach(question: string): Promise<{
     };
   }
 
+  // Open-ended reasoning happens in Claude over the MCP connector, which can
+  // read and write the same data. In-app answers stay grounded and heuristic.
   return {
     answer: tx(
-      "I can’t reason about that yet. Ask me what to train today, what’s stalled, or about recovery and nutrition.",
+      "I can answer what to train today, what’s stalled, and recovery or nutrition questions. For open-ended coaching, connect Claude to this app in Profile → AI assistant — it reads your real training data over MCP.",
     ),
     insights: [],
   };
