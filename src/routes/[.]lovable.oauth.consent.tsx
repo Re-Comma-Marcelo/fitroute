@@ -77,7 +77,16 @@ function ConsentPage() {
           );
           return;
         }
-        if (data && !("authorization_id" in data)) {
+        if (!data) {
+          setState("ready");
+          setError(
+            t(
+              "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.",
+            ),
+          );
+          return;
+        }
+        if (!("authorization_id" in data)) {
           // Already consented before: hand control straight back to the client.
           window.location.replace(data.redirect_url);
           return;
@@ -85,6 +94,7 @@ function ConsentPage() {
         setClient({ name: data.client?.name ?? "", uri: data.client?.uri });
         setScopes(data.scope ? data.scope.split(/\s+/).filter(Boolean) : []);
         setState("ready");
+
       } catch (cause) {
         if (!alive) return;
         setState("ready");
