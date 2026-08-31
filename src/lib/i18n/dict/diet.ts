@@ -3,6 +3,9 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Could not load today's meals.": "Não foi possível carregar as refeições de hoje.",
+    "Try again": "Tentar de novo",
+    "Calories against the daily target": "Calorias em relação à meta diária",
     "Review the estimate": "Revisar a estimativa",
     "Describe it": "Descrever",
     "Use a photo": "Usar foto",
@@ -143,6 +146,9 @@ export const dict: DictFragment = {
     F: "F",
   },
   nl: {
+    "Could not load today's meals.": "Kon de maaltijden van vandaag niet laden.",
+    "Try again": "Probeer opnieuw",
+    "Calories against the daily target": "Calorieën ten opzichte van het dagdoel",
     "Estimating…": "Schatten…",
     "Could not update the week plan. Try again.":
       "Kon het weekplan niet bijwerken. Probeer opnieuw.",
