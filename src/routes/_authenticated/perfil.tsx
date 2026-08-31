@@ -41,6 +41,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 import { resetOnboarding } from "@/lib/onboarding";
 import { useWeightUnit } from "@/lib/use-weight-unit";
+import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import {
   ensureRestPermission,
   notificationsSupported,
@@ -332,7 +333,7 @@ function ProfilePage() {
             <p className="truncate text-xs text-muted-foreground">{email ?? t("Signed in")}</p>
             <p className="mt-1.5 truncate text-xs font-medium tabular-nums text-muted-foreground">
               {[
-                `${form.pesoKg} kg`,
+                `${toDisplayWeight(form.pesoKg, weightUnit)} ${weightUnit}`,
                 `${form.alturaCm} cm`,
                 t(goalLabel),
                 t("{n}x / week", { n: String(form.metaTreinosSemana) }),
@@ -368,12 +369,22 @@ function ProfilePage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="weight">{t("Weight (kg)")}</Label>
+              <Label htmlFor="weight">
+                {weightUnit === "lb" ? t("Weight (lb)") : t("Weight (kg)")}
+              </Label>
               <Input
                 id="weight"
                 inputMode="decimal"
-                value={String(form.pesoKg)}
-                onChange={(e) => patch({ pesoKg: Number(e.target.value.replace(",", ".")) || 0 })}
+                value={weightText ?? String(toDisplayWeight(form.pesoKg, weightUnit))}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  setWeightText(raw);
+                  // Storage stays in kilograms; only the field speaks the user's unit.
+                  patch({
+                    pesoKg: fromDisplayWeight(Number(raw.replace(",", ".")) || 0, weightUnit),
+                  });
+                }}
+                onBlur={() => setWeightText(null)}
                 className="numeric-field tap-target h-12 text-base"
               />
             </div>
