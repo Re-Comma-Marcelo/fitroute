@@ -167,7 +167,7 @@ function RoutineEditor() {
 
   function openLibrary() {
     window.localStorage.setItem(DRAFT_KEY, JSON.stringify(routine));
-    navigate({ to: "/biblioteca", search: { para: "rotina", rotinaId: id } });
+    navigate({ to: "/biblioteca", search: { para: "rotina", rotinaId: id, exercicioId: undefined } });
   }
 
   async function handleSave() {

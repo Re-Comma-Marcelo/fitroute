@@ -878,7 +878,7 @@ function SessionPage() {
           variant="secondary"
           className="h-12 w-full font-semibold"
           onClick={() =>
-            navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
+            navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined, exercicioId: undefined } })
           }
         >
           <Plus className="mr-1 size-5" /> {t("Add exercise")}
