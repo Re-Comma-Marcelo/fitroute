@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -92,6 +92,12 @@ function ChatPanel() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
+
+  // Keep the newest message in view (long answers otherwise land off-screen).
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loading]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -145,6 +151,7 @@ function ChatPanel() {
             </div>
           </div>
         )}
+        <div ref={endRef} />
       </div>
       <form onSubmit={submit} className="flex items-center gap-2 pt-2">
         <Input

@@ -3,6 +3,7 @@ import type { DictFragment } from "../types";
 /** Translations for the profile area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Weight (lb)": "Peso (lb)",
     "Could not save your profile. Try again.":
       "Não foi possível salvar seu perfil. Tente novamente.",
     "Your name": "Seu nome",
@@ -80,8 +81,10 @@ export const dict: DictFragment = {
     "Change photo": "Alterar foto",
     "Remove photo": "Remover foto",
     "Profile photo": "Foto do perfil",
-    "That image is too large. Pick one under 8 MB.": "Essa imagem \u00e9 muito grande. Escolha uma com menos de 8 MB.",
-    "Could not read that image. Try another one.": "N\u00e3o foi poss\u00edvel ler essa imagem. Tente outra.",
+    "That image is too large. Pick one under 8 MB.":
+      "Essa imagem \u00e9 muito grande. Escolha uma com menos de 8 MB.",
+    "Could not read that image. Try another one.":
+      "N\u00e3o foi poss\u00edvel ler essa imagem. Tente outra.",
     "Could not save your language preference.": "N\u00e3o foi poss\u00edvel salvar seu idioma.",
     Account: "Conta",
     "Signed in": "Conectado",
@@ -109,10 +112,10 @@ export const dict: DictFragment = {
       "O Supabase aceitou a requisi\u00e7\u00e3o, mas n\u00e3o retornou uma URL de redirecionamento. Verifique se o servidor OAuth est\u00e1 habilitado neste projeto.",
     "The authorization request could not be sent: {message}":
       "N\u00e3o foi poss\u00edvel enviar a requisi\u00e7\u00e3o de autoriza\u00e7\u00e3o: {message}",
-
   },
 
   nl: {
+    "Weight (lb)": "Gewicht (lb)",
     "Could not save your profile. Try again.": "Kon je profiel niet opslaan. Probeer opnieuw.",
     "Your name": "Je naam",
     Weight: "Gewicht",
@@ -189,8 +192,10 @@ export const dict: DictFragment = {
     "Change photo": "Foto wijzigen",
     "Remove photo": "Foto verwijderen",
     "Profile photo": "Profielfoto",
-    "That image is too large. Pick one under 8 MB.": "Die afbeelding is te groot. Kies er een onder 8 MB.",
-    "Could not read that image. Try another one.": "Kon die afbeelding niet lezen. Probeer een andere.",
+    "That image is too large. Pick one under 8 MB.":
+      "Die afbeelding is te groot. Kies er een onder 8 MB.",
+    "Could not read that image. Try another one.":
+      "Kon die afbeelding niet lezen. Probeer een andere.",
     "Could not save your language preference.": "Kon je taalvoorkeur niet opslaan.",
     Account: "Account",
     "Signed in": "Ingelogd",
@@ -218,6 +223,5 @@ export const dict: DictFragment = {
       "Supabase accepteerde het verzoek maar gaf geen redirect-URL terug. Controleer of de OAuth-server is ingeschakeld voor dit project.",
     "The authorization request could not be sent: {message}":
       "Het autorisatieverzoek kon niet worden verzonden: {message}",
-
   },
 };

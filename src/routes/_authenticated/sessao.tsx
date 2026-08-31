@@ -37,7 +37,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { hapticRestDone, hapticTick } from "@/lib/haptics";
+import { hapticTick } from "@/lib/haptics";
+import { unlockRestAudio } from "@/lib/rest-audio";
+import { useRestExpiry } from "@/lib/use-rest-expiry";
 import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
@@ -97,31 +99,6 @@ const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-
 const ROW_STEP =
   "grid grid-cols-[44px_minmax(3rem,1fr)_44px_44px_minmax(3rem,1fr)_44px] items-center gap-0.5";
 
-function playRestBeep(audioCtxRef: React.MutableRefObject<AudioContext | null>) {
-  if (typeof window === "undefined") return;
-  try {
-    const Ctx =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-    if (!Ctx) return;
-    const ctx = audioCtxRef.current ?? new Ctx();
-    audioCtxRef.current = ctx;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.15);
-    gain.gain.setValueAtTime(0.25, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.25);
-  } catch {
-    // ignore
-  }
-}
-
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -152,7 +129,6 @@ function SessionPage() {
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
 
@@ -160,18 +136,7 @@ function SessionPage() {
 
   /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
   const unlockAudio = useCallback(() => {
-    if (typeof window === "undefined") return;
-    try {
-      const Ctx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-      if (!Ctx) return;
-      const ctx = audioCtxRef.current ?? new Ctx();
-      audioCtxRef.current = ctx;
-      if (ctx.state === "suspended") void ctx.resume();
-    } catch {
-      // ignore
-    }
+    unlockRestAudio();
   }, []);
 
   /** Clear the persisted rest countdown (it is consumed once and never re-fires). */
@@ -184,26 +149,22 @@ function SessionPage() {
     });
   }, []);
 
-  // Prominent rest timer: sound + vibration + full-screen overlay when done.
+  /**
+   * Prominent rest timer: sound + vibration + full-screen overlay when done.
+   * The same expiry hook runs in the mini-player, so the countdown also clears
+   * itself (with feedback) when you navigate to another tab while resting.
+   */
+  const onRestExpired = useCallback(
+    (live: boolean) => {
+      clearRest();
+      if (live) setRestFinished(true);
+    },
+    [clearRest],
+  );
+  useRestExpiry(restEndsAt, onRestExpired);
   useEffect(() => {
-    if (!restEndsAt) return;
-    const msLeft = restEndsAt - Date.now();
-
-    // Rest that ran out while the app was closed/backgrounded: drop it silently.
-    if (msLeft <= 0) {
-      clearRest();
-      return;
-    }
-
-    setRestFinished(false);
-    const id = setTimeout(() => {
-      clearRest();
-      setRestFinished(true);
-      playRestBeep(audioCtxRef);
-      hapticRestDone();
-    }, msLeft);
-    return () => clearTimeout(id);
-  }, [restEndsAt, clearRest]);
+    if (restEndsAt) setRestFinished(false);
+  }, [restEndsAt]);
 
   useEffect(() => {
     if (loadedRef.current) return;
@@ -237,6 +198,25 @@ function SessionPage() {
     setSession((prev) => {
       if (!prev) return prev;
       const next = mutate(structuredClone(prev));
+      saveActiveSession(next);
+      return next;
+    });
+  }, []);
+
+  /**
+   * Shallow immutable set patch: only the touched exercise/set objects are
+   * recreated. Used by every keystroke, where a full structuredClone of the
+   * session was the main source of input lag on long workouts.
+   */
+  const patchSet = useCallback((exIdx: number, setIdx: number, patch: Partial<ActiveSet>) => {
+    setSession((prev) => {
+      if (!prev) return prev;
+      const ex = prev.exercicios[exIdx];
+      const set = ex?.sets[setIdx];
+      if (!ex || !set) return prev;
+      const sets = ex.sets.map((s, i) => (i === setIdx ? { ...s, ...patch } : s));
+      const exercicios = prev.exercicios.map((e, i) => (i === exIdx ? { ...ex, sets } : e));
+      const next = { ...prev, exercicios };
       saveActiveSession(next);
       return next;
     });
@@ -432,10 +412,7 @@ function SessionPage() {
     field: "pesoKg" | "reps" | "rpe",
     value: string,
   ) {
-    update((s) => {
-      s.exercicios[exIdx]!.sets[setIdx]![field] = value;
-      return s;
-    });
+    patchSet(exIdx, setIdx, { [field]: value });
   }
 
   function setTipo(exIdx: number, setIdx: number, tipo: TipoSerie) {
@@ -588,6 +565,13 @@ function SessionPage() {
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
       }
 
+      // Per-exercise notes would otherwise be dropped: fold them into the
+      // workout note so they show up on the workout detail screen.
+      const exerciseNotes = target.exercicios
+        .filter((ex) => ex.notas.trim() !== "")
+        .map((ex) => `${ex.nome}: ${ex.notas.trim()}`);
+      const notas = [target.notas.trim(), ...exerciseNotes].filter(Boolean).join("\n");
+
       const workout = {
         id: target.id,
         ...(target.routineId ? { routineId: target.routineId } : {}),
@@ -595,7 +579,7 @@ function SessionPage() {
         finalizadoEm: new Date().toISOString(),
         duracaoSeg,
         volumeTotalKg: Math.round(volume),
-        notas: target.notas,
+        notas,
         origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
       };
 
@@ -891,7 +875,10 @@ function SessionPage() {
           variant="secondary"
           className="h-12 w-full font-semibold"
           onClick={() =>
-            navigate({ to: "/biblioteca", search: { para: "sessao", rotinaId: undefined } })
+            navigate({
+              to: "/biblioteca",
+              search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
+            })
           }
         >
           <Plus className="mr-1 size-5" /> {t("Add exercise")}

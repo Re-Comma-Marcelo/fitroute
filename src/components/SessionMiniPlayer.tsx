@@ -1,5 +1,5 @@
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { useCallback, useEffect, useState } from "react";
 import { ChevronUp, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -18,6 +18,7 @@ import {
   currentExerciseName,
   loadActiveSession,
   restSecondsLeft,
+  saveActiveSession,
   sessionElapsed,
   type ActiveSession,
   sessionLabel,
@@ -26,6 +27,8 @@ import { useT } from "@/lib/i18n";
 import { ProgressRing } from "@/components/ProgressRing";
 import { sessionSetsDone } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
+import { useRestExpiry } from "@/lib/use-rest-expiry";
+import { cancelRestNotification } from "@/lib/rest-notification";
 
 /**
  * Floating session bar shown above the bottom nav on every tab.
@@ -35,6 +38,7 @@ import { isSerieValida } from "@/lib/progression";
 export function SessionMiniPlayer() {
   const navigate = useNavigate();
   const t = useT();
+  const location = useLocation();
   const [session, setSession] = useState<ActiveSession | null>(null);
 
   useEffect(() => {
@@ -43,6 +47,22 @@ export function SessionMiniPlayer() {
     const id = setInterval(sync, 1000);
     return () => clearInterval(id);
   }, []);
+
+  /**
+   * The session screen owns rest feedback while it is open; everywhere else the
+   * mini-player clears the countdown (with sound + vibration) so it never gets
+   * stuck at 0:00 just because you switched tabs.
+   */
+  const onSessionScreen = location.pathname.startsWith("/sessao");
+  const clearRest = useCallback(() => {
+    const current = loadActiveSession();
+    if (!current?.rest) return;
+    const next = { ...current, rest: null };
+    saveActiveSession(next);
+    cancelRestNotification();
+    setSession(next);
+  }, []);
+  useRestExpiry(session?.rest?.endsAt ?? null, clearRest, !onSessionScreen);
 
   if (!session) return null;
 
@@ -61,7 +81,13 @@ export function SessionMiniPlayer() {
           className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
-          <ProgressRing done={setsDone} total={setsTotal} size={20} stroke={2.5} showLabel={false} />
+          <ProgressRing
+            done={setsDone}
+            total={setsTotal}
+            size={20}
+            stroke={2.5}
+            showLabel={false}
+          />
           <span className="relative flex size-2.5 shrink-0">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
             <span className="relative inline-flex size-2.5 rounded-full bg-primary" />

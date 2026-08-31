@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock, Plus, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
+import { Skeleton } from "@/components/ui/skeleton";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
@@ -134,6 +135,48 @@ function TodayPage() {
   }
 
   const note = (meal: Meal) => reasons.get(meal.id);
+
+  // Without this the empty state showed up mid-load and looked like an empty plan.
+  const loadError = scheduleQ.isError || planQ.isError || targetsQ.isError || mealsQ.isError;
+  const firstLoad =
+    !loadError &&
+    (scheduleQ.isLoading || planQ.isLoading || targetsQ.isLoading || mealsQ.isLoading);
+
+  if (loadError) {
+    return (
+      <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center">
+        <p className="font-display text-sm font-semibold">{t("Could not load today's meals.")}</p>
+        <Button
+          variant="outline"
+          className="tap-target mt-3"
+          onClick={() => {
+            void scheduleQ.refetch();
+            void planQ.refetch();
+            void targetsQ.refetch();
+            void mealsQ.refetch();
+          }}
+        >
+          {t("Try again")}
+        </Button>
+      </div>
+    );
+  }
+
+  if (firstLoad) {
+    return (
+      <div className="space-y-4" aria-busy="true">
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <div className="flex gap-2">
+          <Skeleton className="h-11 w-24 rounded-full" />
+          <Skeleton className="h-11 w-24 rounded-full" />
+          <Skeleton className="h-11 w-24 rounded-full" />
+        </div>
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+      </div>
+    );
+  }
 
   return (
     <>
