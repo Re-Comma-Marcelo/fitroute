@@ -204,9 +204,20 @@ export const dict: DictFragment = {
       "In deze link ontbreekt de parameter authorization_id. Start de verbinding opnieuw via je assistent.",
     "Supabase rejected the authorization (HTTP {status}): {message}":
       "Supabase heeft de autorisatie geweigerd (HTTP {status}): {message}",
+    "Supabase rejected the authorization: {message}":
+      "Supabase heeft de autorisatie geweigerd: {message}",
+    "Supabase could not register the denial: {message}":
+      "Supabase kon de weigering niet registreren: {message}",
+    "Supabase could not load this authorization request: {message}":
+      "Supabase kon dit autorisatieverzoek niet laden: {message}",
+    "{client} wants to access your account": "{client} wil toegang tot je account",
+    "{client} is requesting access to your Iron Logger data. Review the permissions below before allowing it.":
+      "{client} vraagt toegang tot je Iron Logger-gegevens. Bekijk de rechten hieronder voordat je toestemming geeft.",
+    "Requested permissions": "Gevraagde rechten",
     "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.":
       "Supabase accepteerde het verzoek maar gaf geen redirect-URL terug. Controleer of de OAuth-server is ingeschakeld voor dit project.",
     "The authorization request could not be sent: {message}":
       "Het autorisatieverzoek kon niet worden verzonden: {message}",
+
   },
 };
