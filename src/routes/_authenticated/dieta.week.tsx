@@ -112,10 +112,34 @@ function WeekPage() {
                   ) : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {t(tagsQ.data?.[date] ?? "Rest")} · {totals.kcal}
-                  {targets ? `/${targets.kcal}` : ""} kcal · P {totals.proteinG}g
+                  {t(tagsQ.data?.[date] ?? "Rest")}
                 </span>
               </div>
+
+              <p className="mt-1 text-[11px] tabular-nums text-muted-foreground">
+                <span className="font-semibold text-foreground">{totals.kcal}</span>
+                {targets ? `/${targets.kcal}` : ""} kcal · P {totals.proteinG}g · C{" "}
+                {totals.carbsG}g · F {totals.fatG}g
+              </p>
+              {targets ? (
+                <div
+                  className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-3"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={targets.kcal}
+                  aria-valuenow={totals.kcal}
+                  aria-label={t("Calories against the daily target")}
+                >
+                  <div
+                    className={`h-full rounded-full ${
+                      totals.kcal > targets.kcal * 1.1 ? "bg-warn" : "bg-primary"
+                    }`}
+                    style={{
+                      width: `${Math.min(100, Math.round((totals.kcal / Math.max(1, targets.kcal)) * 100))}%`,
+                    }}
+                  />
+                </div>
+              ) : null}
               <ul className="mt-2.5 space-y-1.5">
                 {activeSlots().map((slot) => {
                   const name = mealName(day?.[slot]);
