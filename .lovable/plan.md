@@ -24,7 +24,7 @@ O `Textarea` de nota por exercício é capturado em `ActiveExercise.notas`, mas 
 
 O `askCoach()` é uma cadeia de `if/else` com `asks("today", "treinar", "vandaag", …)`. Cada branch retorna uma string fixa. O posicionamento do app é "an AI trainer that adapts to your actual life", mas o chat não raciocina — não há LLM, não há contexto do usuário além de dados pré-computados. Perguntas fora das palavras-chave recebem "I can't reason about that yet."
 
-**Correção:** usar o Lovable AI Gateway (Gemini) com o contexto do usuário (perfil, última sessão, rotina do dia, insights de platô) como system prompt, mantendo o fallback atual como guardrail. Frontend puro se a chamada for via server fn existente.
+**Correção:** usar o conector MCP do Claude com o contexto do usuário (perfil, última sessão, rotina do dia, insights de platô) como system prompt, mantendo o fallback atual como guardrail. Frontend puro se a chamada for via server fn existente.
 
 ## 4. Busca global: resultado de exercício não leva ao exercício
 
