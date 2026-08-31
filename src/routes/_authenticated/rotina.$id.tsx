@@ -288,18 +288,20 @@ function RoutineEditor() {
                     size="icon"
                     className="tap-target"
                     aria-label={t("Move up")}
+                    disabled={idx === 0}
                     onClick={() => move(idx, idx - 1)}
                   >
-                    ↑
+                    <ChevronUp className="size-5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="tap-target"
                     aria-label={t("Move down")}
+                    disabled={idx === routine.exercicios.length - 1}
                     onClick={() => move(idx, idx + 1)}
                   >
-                    ↓
+                    <ChevronDown className="size-5" />
                   </Button>
                   <Button
                     variant="ghost"

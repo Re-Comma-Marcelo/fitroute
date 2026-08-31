@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
 import { ArrowLeft, Info, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
     para: search["para"] as "sessao" | "rotina" | undefined,
     rotinaId: search["rotinaId"] as string | undefined,
+    exercicioId: search["exercicioId"] as string | undefined,
   }),
   head: () => ({
     meta: pageMeta({
@@ -32,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
 function LibraryPage() {
   const t = useT();
   const navigate = useNavigate();
-  const { para, rotinaId } = useSearch({ from: "/_authenticated/biblioteca" });
+  const { para, rotinaId, exercicioId } = useSearch({ from: "/_authenticated/biblioteca" });
   const [q, setQ] = useState("");
   const [grupo, setGrupo] = useState<string | null>(null);
   const [equip, setEquip] = useState<string | null>(null);
@@ -41,6 +42,13 @@ function LibraryPage() {
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
   const equipQuery = useQuery({ queryKey: ["equipments"], queryFn: getEquipments });
+
+  /** Coming from global search: open the exercise the user actually searched for. */
+  useEffect(() => {
+    if (!exercicioId || para) return;
+    const found = (exercisesQuery.data ?? []).find((e) => e.id === exercicioId);
+    if (found) setDetail(found);
+  }, [exercicioId, para, exercisesQuery.data]);
 
   const lista = useMemo(() => {
     const all = exercisesQuery.data ?? [];
