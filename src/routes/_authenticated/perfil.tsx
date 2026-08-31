@@ -147,6 +147,10 @@ function ProfilePage() {
   const [avoidOpen, setAvoidOpen] = useState(false);
   const [photoMenu, setPhotoMenu] = useState(false);
   const email = useAccountEmail();
+  /** Body weight is entered in the user's preferred unit but always stored in kg. */
+  const { unit: weightUnit } = useWeightUnit();
+  const [weightText, setWeightText] = useState<string | null>(null);
+  useEffect(() => setWeightText(null), [weightUnit]);
 
 
   useEffect(() => {
