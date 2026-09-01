@@ -3,6 +3,22 @@ import type { DictFragment } from "../types";
 /** Strings added by the session/library/progress upgrade round. */
 export const dict: DictFragment = {
   pt: {
+    "Your history": "Seu histórico",
+    "e1RM {value}": "1RM est. {value}",
+    "Body weight": "Peso corporal",
+    "Weight logged.": "Peso registrado.",
+    "Could not log your weight. Check the value and try again.":
+      "Não foi possível registrar o peso. Confira o valor e tente de novo.",
+    "Could not load your weight log.": "Não foi possível carregar seu histórico de peso.",
+    "Today in {unit}": "Hoje em {unit}",
+    Log: "Registrar",
+    "Log your weight a few times to see the trend line.":
+      "Registre seu peso algumas vezes para ver a linha de tendência.",
+    "Previous month": "Mês anterior",
+    "Next month": "Mês seguinte",
+    "Planned days": "Dias planejados",
+    "Days you pick here make this routine today's suggestion on Home.":
+      "Os dias marcados aqui fazem esta rotina ser a sugestão de hoje na Home.",
     "Could not load this data.": "Não foi possível carregar estes dados.",
     "Check your connection — your logged data is safe.":
       "Verifique sua conexão — seus dados registrados estão seguros.",
@@ -55,6 +71,22 @@ export const dict: DictFragment = {
     "Could not share this summary.": "Não foi possível compartilhar este resumo.",
   },
   nl: {
+    "Your history": "Jouw geschiedenis",
+    "e1RM {value}": "gesch. 1RM {value}",
+    "Body weight": "Lichaamsgewicht",
+    "Weight logged.": "Gewicht opgeslagen.",
+    "Could not log your weight. Check the value and try again.":
+      "Kon je gewicht niet opslaan. Controleer de waarde en probeer het opnieuw.",
+    "Could not load your weight log.": "Kon je gewichtsgeschiedenis niet laden.",
+    "Today in {unit}": "Vandaag in {unit}",
+    Log: "Opslaan",
+    "Log your weight a few times to see the trend line.":
+      "Log je gewicht een paar keer om de trendlijn te zien.",
+    "Previous month": "Vorige maand",
+    "Next month": "Volgende maand",
+    "Planned days": "Geplande dagen",
+    "Days you pick here make this routine today's suggestion on Home.":
+      "De dagen die je hier kiest maken deze routine de suggestie van vandaag op Home.",
     "Could not load this data.": "Kon deze gegevens niet laden.",
     "Check your connection — your logged data is safe.":
       "Controleer je verbinding — je gelogde gegevens zijn veilig.",
