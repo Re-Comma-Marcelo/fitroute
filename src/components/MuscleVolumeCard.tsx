@@ -28,7 +28,7 @@ export function MuscleVolumeCard({ rows }: { rows: MuscleVolumeRow[] }) {
                     <span
                       className={cn(
                         "ml-2",
-                        delta > 0 && "text-emerald-400",
+                        delta > 0 && "text-success",
                         delta < 0 && "text-destructive",
                       )}
                     >

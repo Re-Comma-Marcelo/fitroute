@@ -50,7 +50,7 @@ export function SessionDiffCard({
                 <span
                   className={cn(
                     "ml-2",
-                    (weightDelta || volumeDelta) > 0 && "text-emerald-400",
+                    (weightDelta || volumeDelta) > 0 && "text-success",
                     (weightDelta || volumeDelta) < 0 && "text-destructive",
                   )}
                 >
