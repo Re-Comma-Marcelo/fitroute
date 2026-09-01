@@ -35,8 +35,12 @@ import {
   getWorkout,
   getWorkoutSets,
   getWorkouts,
+  getWorkoutLog,
   saveWorkout,
 } from "@/lib/data/workouts";
+import { compareWithPreviousRun } from "@/lib/session-compare";
+import { SessionDiffCard } from "@/components/SessionDiffCard";
+import { timeUnderTension } from "@/lib/muscle-volume";
 import {
   formatDate,
   formatDateLong,
@@ -72,6 +76,7 @@ function WorkoutDetail() {
   const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const allWorkoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
 
   const sets = setsQuery.data ?? [];
   const exerciseIds = [...new Set(sets.map((s) => s.exerciseId))];
@@ -250,6 +255,11 @@ function WorkoutDetail() {
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
               {t("{count} sets", { count: sets.length })}
             </p>
+            {tut > 0 ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t("Time under tension")}: {t("{seconds}s in timed sets", { seconds: tut })}
+              </p>
+            ) : null}
             {editing ? (
               <Textarea
                 value={draftNotes}
@@ -261,6 +271,10 @@ function WorkoutDetail() {
               <p className="mt-2 text-sm">{workout.notas}</p>
             ) : null}
           </div>
+        ) : null}
+
+        {diff ? (
+          <SessionDiffCard diff={diff} nameOf={exerciseName} />
         ) : null}
 
         {exerciseIds.map((exId, i) => {
