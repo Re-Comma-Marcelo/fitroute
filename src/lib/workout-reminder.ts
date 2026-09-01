@@ -4,7 +4,7 @@
  * the schedule lives in localStorage and is re-armed on every app load.
  */
 
-import { ensureNotificationPermission, notificationsSupported } from "@/lib/rest-notification";
+import { notificationsSupported } from "@/lib/rest-notification";
 import type { Routine } from "@/lib/types";
 
 const KEY = "forja.reminder.v1";
