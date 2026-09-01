@@ -26,6 +26,7 @@ import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
 import { dict as trainDict } from "./dict/train";
+import { dict as upgradesDict } from "./dict/upgrades";
 import {
   DEFAULT_LANG,
   LANGS,
@@ -43,6 +44,7 @@ const FRAGMENTS: DictFragment[] = [
   shellDict,
   homeDict,
   trainDict,
+  upgradesDict,
   sessionDict,
   libraryDict,
   dietDict,
