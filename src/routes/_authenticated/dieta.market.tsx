@@ -101,7 +101,13 @@ function MarketPage() {
         ))}
       </nav>
 
-      {total === 0 ? (
+      {listQ.isError ? (
+        <QueryError
+          className="mt-4"
+          message={t("Could not load your shopping list.")}
+          onRetry={() => void listQ.refetch()}
+        />
+      ) : total === 0 ? (
         <section className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
           <ShoppingBasket className="size-9 text-muted-foreground" />
           <h2 className="mt-3 text-base font-semibold">{t("Nothing to buy yet")}</h2>
