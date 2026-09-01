@@ -162,7 +162,13 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    registerAppServiceWorker();
+    const t = (source: string) => translate(currentLangFromStorage(), source);
+    registerAppServiceWorker((apply) => {
+      toast(t("New version available"), {
+        duration: Infinity,
+        action: { label: t("Update"), onClick: apply },
+      });
+    });
   }, []);
 
   useEffect(() => {
