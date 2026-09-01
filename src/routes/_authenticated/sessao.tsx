@@ -1294,6 +1294,7 @@ function SetRow({
   t: any;
 }) {
   const aquecimento = !isSerieValida(set);
+  const tempo = isSerieTempo(set);
   const passoKg = incrementoPara(exercise.equipamento);
   const { unit } = useWeightUnit();
   /** Weight is always stored in kg; the field shows the user's unit. */
