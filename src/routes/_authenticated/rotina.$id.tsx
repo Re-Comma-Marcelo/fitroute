@@ -15,7 +15,10 @@ import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/li
 import { takePendingExercise } from "@/lib/session-state";
 import { blockLabels, nextGroupLetter, setSuperset, supersetsFor } from "@/lib/supersets";
 import type { Routine } from "@/lib/types";
-import { formatWeekdayShort } from "@/lib/format";
+import { formatWeekdayShort, formatKg } from "@/lib/format";
+import { getRoutineSuggestions } from "@/lib/routine-progression";
+import { getLastSetsForExercise } from "@/lib/data/workouts";
+import { isSerieDeCarga } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
@@ -44,6 +47,45 @@ function RoutineEditor() {
   const [reloadKey, setReloadKey] = useState(0);
   const [groupVersion, setGroupVersion] = useState(0);
   const loaded = useRef(false);
+  /** Last logged top weight per exercise, plus the coach's suggested next load. */
+  const [hints, setHints] = useState<Record<string, { last: number; suggested?: number }>>({});
+
+  const exerciseIdsKey = (routine?.exercicios ?? []).map((e) => e.exerciseId).join(",");
+  useEffect(() => {
+    if (!routine) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const suggestions = await getRoutineSuggestions(routine);
+        const entries = await Promise.all(
+          routine.exercicios.map(async (re) => {
+            const sets = await getLastSetsForExercise(re.exerciseId);
+            const last = sets.filter(isSerieDeCarga).reduce((m, s) => Math.max(m, s.pesoKg), 0);
+            if (last <= 0) return null;
+            const sug = suggestions[re.exerciseId];
+            return [
+              re.exerciseId,
+              { last, ...(sug ? { suggested: sug.pesoSugerido } : {}) },
+            ] as const;
+          }),
+        );
+        if (!cancelled) {
+          setHints(
+            Object.fromEntries(
+              entries.filter((e): e is NonNullable<typeof e> => e !== null),
+            ) as Record<string, { last: number; suggested?: number }>,
+          );
+        }
+      } catch {
+        if (!cancelled) setHints({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseIdsKey]);
+
 
   const groupLabels = useMemo(
     () =>
@@ -327,9 +369,21 @@ function RoutineEditor() {
                   <span className="tap-target flex cursor-grab items-center justify-center text-muted-foreground">
                     <GripVertical className="size-5" />
                   </span>
-                  <p className="flex-1 text-base font-semibold leading-tight">
-                    {nomes[rex.exerciseId] ?? t("Exercise")}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold leading-tight">
+                      {nomes[rex.exerciseId] ?? t("Exercise")}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {hints[rex.exerciseId]
+                        ? t("Last {weight} · suggested {suggested}", {
+                            weight: formatKg(hints[rex.exerciseId]!.last),
+                            suggested: formatKg(
+                              hints[rex.exerciseId]!.suggested ?? hints[rex.exerciseId]!.last,
+                            ),
+                          })
+                        : t("No load logged yet")}
+                    </p>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"

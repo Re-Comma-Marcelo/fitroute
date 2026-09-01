@@ -7,7 +7,10 @@ import { Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
-import { getWorkout, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
+import { getWorkout, getWorkouts, getWorkoutLog, getWorkoutSets } from "@/lib/data/workouts";
+import { getExercises } from "@/lib/data/exercises";
+import { compareWithPreviousRun } from "@/lib/session-compare";
+import { SessionDiffCard } from "@/components/SessionDiffCard";
 import { weekStreak } from "@/lib/home-metrics";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
@@ -57,12 +60,19 @@ function SummaryPage() {
   const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
+  const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const [sharing, setSharing] = useState(false);
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];
   const streak = weekStreak(workoutsQuery.data ?? []);
   const volume = workout?.volumeTotalKg ?? 0;
+
+  const diff =
+    workout && logQuery.data
+      ? compareWithPreviousRun(workout, sets, workoutsQuery.data ?? [], logQuery.data.sets)
+      : null;
 
   const routineName =
     (workout?.routineId
@@ -186,6 +196,17 @@ function SummaryPage() {
             value={String(new Set(sets.map((s) => s.exerciseId)).size)}
           />
         </dl>
+
+        {diff ? (
+          <div className="mt-6">
+            <SessionDiffCard
+              diff={diff}
+              nameOf={(exId) =>
+                (exercisesQuery.data ?? []).find((e) => e.id === exId)?.nome ?? t("Exercise")
+              }
+            />
+          </div>
+        ) : null}
 
         {workout?.notas ? (
           <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">

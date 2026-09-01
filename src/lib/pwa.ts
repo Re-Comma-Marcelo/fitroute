@@ -43,15 +43,60 @@ async function unregisterAppWorkers() {
   }
 }
 
-export function registerAppServiceWorker() {
+/** Reloads once the new worker takes control, so the user lands on fresh HTML. */
+function watchForActivation() {
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (reloading) return;
+    reloading = true;
+    window.location.reload();
+  });
+}
+
+export function registerAppServiceWorker(onUpdateReady?: (apply: () => void) => void) {
   if (typeof navigator === "undefined" || !("serviceWorker" in navigator)) return;
   if (isRefusedContext()) {
     void unregisterAppWorkers();
     return;
   }
   window.addEventListener("load", () => {
-    void navigator.serviceWorker.register(SW_URL, { scope: "/" }).catch(() => {
-      // offline support is best-effort
-    });
+    void navigator.serviceWorker
+      .register(SW_URL, { scope: "/" })
+      .then((registration) => {
+        if (!onUpdateReady) return;
+        watchForActivation();
+
+        const notify = (worker: ServiceWorker | null) => {
+          if (!worker) return;
+          onUpdateReady(() => {
+            // Ask a waiting worker to take over; reload covers workers that
+            // already skipped waiting on their own.
+            try {
+              worker.postMessage({ type: "SKIP_WAITING" });
+            } catch {
+              // ignore
+            }
+            window.setTimeout(() => window.location.reload(), 300);
+          });
+        };
+
+        // A newer build was already waiting when this tab opened.
+        if (registration.waiting && navigator.serviceWorker.controller) {
+          notify(registration.waiting);
+        }
+
+        registration.addEventListener("updatefound", () => {
+          const installing = registration.installing;
+          if (!installing) return;
+          installing.addEventListener("statechange", () => {
+            if (installing.state === "installed" && navigator.serviceWorker.controller) {
+              notify(registration.waiting ?? installing);
+            }
+          });
+        });
+      })
+      .catch(() => {
+        // offline support is best-effort
+      });
   });
 }

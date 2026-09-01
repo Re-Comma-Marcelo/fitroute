@@ -38,6 +38,7 @@ import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
 import { swapCandidates } from "@/lib/coach/swap";
 import { cn } from "@/lib/utils";
+import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import type { CoachInsight } from "@/lib/coach/types";
 import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
@@ -317,7 +318,7 @@ function TrainPage() {
               onToggle={() => setExpanded((prev) => (prev === r.id ? null : r.id))}
               active={!!active}
               loading={loading}
-              onStart={() => startRoutine(r.id)}
+              onStart={(opts) => startRoutine(r.id, opts ?? {})}
               onPick={() => pickRoutine(r.id)}
               onDuplicate={() => void duplicate(r.id, r.nome)}
               t={t}
@@ -355,7 +356,7 @@ function RoutineCard({
   onToggle: () => void;
   active: boolean;
   loading: string | null;
-  onStart: () => void;
+  onStart: (opts?: { deload?: boolean }) => void;
   onPick: () => void;
   onDuplicate: () => void;
   t: any;
@@ -400,6 +401,7 @@ function RoutineCard({
           <p className="font-display text-lg font-semibold leading-tight">{r.nome}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {t("{count} exercises", { count: r.exercicios.length })} ·{" "}
+            {t("~{minutes} min", { minutes: estimateRoutineMinutes(r) })} ·{" "}
             {last
               ? t("last {time} · {duration}", {
                   time: relativeDays(last.iniciadoEm),
@@ -467,9 +469,17 @@ function RoutineCard({
               variant={isChoice ? "default" : "secondary"}
               className="h-12 w-full font-semibold"
               disabled={loading !== null || active}
-              onClick={onStart}
+              onClick={() => onStart()}
             >
               {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-10 w-full text-xs font-semibold text-muted-foreground"
+              disabled={loading !== null || active}
+              onClick={() => onStart({ deload: true })}
+            >
+              {t("Start lighter (deload)")}
             </Button>
             <div className="grid grid-cols-2 gap-2">
               <Button

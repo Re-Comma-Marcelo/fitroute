@@ -22,6 +22,7 @@ import { dict as planDict } from "./dict/plan";
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
 import { dict as pwaDict } from "./dict/pwa";
+import { dict as round10Dict } from "./dict/round10";
 import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
@@ -57,6 +58,7 @@ const FRAGMENTS: DictFragment[] = [
   pwaDict,
   onboardingDict,
   toolsDict,
+  round10Dict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {

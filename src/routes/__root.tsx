@@ -16,6 +16,7 @@ import { configureSupabase, supabase } from "../integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 import { LanguageProvider, currentLangFromStorage, translate } from "../lib/i18n";
 import { registerAppServiceWorker } from "../lib/pwa";
+import { toast } from "sonner";
 
 function NotFoundComponent() {
   const t = (source: string) => translate(currentLangFromStorage(), source);
@@ -162,7 +163,13 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
-    registerAppServiceWorker();
+    const t = (source: string) => translate(currentLangFromStorage(), source);
+    registerAppServiceWorker((apply) => {
+      toast(t("New version available"), {
+        duration: Infinity,
+        action: { label: t("Update"), onClick: apply },
+      });
+    });
   }, []);
 
   useEffect(() => {
