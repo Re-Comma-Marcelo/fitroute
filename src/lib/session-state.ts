@@ -1,5 +1,10 @@
 import { tx } from "./format";
-import { isSerieValida, type PrevSet, type ProgressionSuggestion } from "./progression";
+import {
+  isSerieDeCarga,
+  isSerieValida,
+  type PrevSet,
+  type ProgressionSuggestion,
+} from "./progression";
 import type { TipoSerie } from "./types";
 
 export interface ActiveSet {
