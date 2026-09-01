@@ -375,15 +375,12 @@ function RoutineEditor() {
                     </p>
                     <p className="mt-0.5 text-[11px] text-muted-foreground">
                       {hints[rex.exerciseId]
-                        ? hints[rex.exerciseId]!.suggested
-                          ? t("Last {weight} · suggested {suggested}", {
-                              weight: formatKg(hints[rex.exerciseId]!.last),
-                              suggested: formatKg(hints[rex.exerciseId]!.suggested!),
-                            })
-                          : t("Last {weight} · suggested {suggested}", {
-                              weight: formatKg(hints[rex.exerciseId]!.last),
-                              suggested: formatKg(hints[rex.exerciseId]!.last),
-                            })
+                        ? t("Last {weight} · suggested {suggested}", {
+                            weight: formatKg(hints[rex.exerciseId]!.last),
+                            suggested: formatKg(
+                              hints[rex.exerciseId]!.suggested ?? hints[rex.exerciseId]!.last,
+                            ),
+                          })
                         : t("No load logged yet")}
                     </p>
                   </div>
