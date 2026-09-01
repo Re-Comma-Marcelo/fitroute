@@ -100,21 +100,15 @@ export const persistRoutine = createServerFn({ method: "POST" })
     const client = db();
     const r = data.routine;
     const id = r.id || uid("r");
-    unwrap(
-      await client
-        .from("routines")
-        .upsert(
-          {
-            id,
-            user_id: DEMO_USER_ID,
-            nome: r.nome,
-            descricao: r.descricao,
-            dias_semana: r.diasSemana ?? [],
-          },
-          { onConflict: "id" },
-        )
-        .select("id"),
-    );
+    const base = { id, user_id: DEMO_USER_ID, nome: r.nome, descricao: r.descricao };
+    // dias_semana comes from a later migration; fall back when it is missing.
+    const withDays = await client
+      .from("routines")
+      .upsert({ ...base, dias_semana: r.diasSemana ?? [] }, { onConflict: "id" })
+      .select("id");
+    if (withDays.error) {
+      unwrap(await client.from("routines").upsert(base, { onConflict: "id" }).select("id"));
+    }
     unwrap(await client.from("routine_exercises").delete().eq("routine_id", id).select("id"));
     const exercicios = r.exercicios.map((e, i) => ({ ...e, ordem: i, id: e.id || uid("rex") }));
     if (exercicios.length) {
