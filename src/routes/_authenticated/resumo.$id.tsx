@@ -3,13 +3,17 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Flame, Trophy } from "lucide-react";
+import { Flame, Share2, Trophy } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { getWorkout, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { weekStreak } from "@/lib/home-metrics";
 import { formatDurationShort, formatKg } from "@/lib/format";
 import { hapticSuccess } from "@/lib/haptics";
+import { shareSummary } from "@/lib/share-summary";
+import { formatDateLong } from "@/lib/format";
+import { getRoutines } from "@/lib/data/routines";
 import heroLogin from "@/assets/hero-login.jpg";
 
 export const Route = createFileRoute("/_authenticated/resumo/$id")({
@@ -52,11 +56,46 @@ function SummaryPage() {
   const workoutQuery = useQuery({ queryKey: ["workout", id], queryFn: () => getWorkout(id) });
   const setsQuery = useQuery({ queryKey: ["workoutSets", id], queryFn: () => getWorkoutSets(id) });
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
+  const [sharing, setSharing] = useState(false);
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];
   const streak = weekStreak(workoutsQuery.data ?? []);
   const volume = workout?.volumeTotalKg ?? 0;
+
+  const routineName =
+    (workout?.routineId
+      ? (routinesQuery.data ?? []).find((r) => r.id === workout.routineId)?.nome
+      : null) ?? t("Blank workout");
+
+  /** Renders a card and hands it to the OS share sheet (or downloads it). */
+  async function share() {
+    if (!workout) return;
+    setSharing(true);
+    const outcome = await shareSummary(
+      {
+        routineName,
+        dateLabel: formatDateLong(workout.iniciadoEm),
+        volumeLabel: formatKg(volume),
+        durationLabel: formatDurationShort(workout.duracaoSeg),
+        sets: sets.length,
+        exercises: new Set(sets.map((s) => s.exerciseId)).size,
+        prs: prs.map((p) => ({ nome: p.nome, pesoKg: p.pesoKg })),
+      },
+      {
+        volume: t("Volume"),
+        duration: t("Duration"),
+        sets: t("Sets"),
+        exercises: t("Exercises"),
+        prs: t("Personal records"),
+        footer: t("Logged with Iron Logger"),
+      },
+    );
+    setSharing(false);
+    if (outcome === "downloaded") toast.success(t("Summary card saved to your device."));
+    if (outcome === "failed") toast.error(t("Could not share this summary."));
+  }
 
   return (
     <div className="route-enter relative min-h-screen bg-background px-4 py-10">
@@ -155,6 +194,14 @@ function SummaryPage() {
         ) : null}
 
         <div className="mt-8 space-y-3">
+          <Button
+            variant="secondary"
+            className="h-14 w-full text-base font-semibold"
+            disabled={!workout || sharing}
+            onClick={() => void share()}
+          >
+            <Share2 className="mr-2 size-5" /> {t("Share summary")}
+          </Button>
           <Button asChild className="h-14 w-full text-base font-semibold">
             <Link to="/inicio">{t("Back to start")}</Link>
           </Button>

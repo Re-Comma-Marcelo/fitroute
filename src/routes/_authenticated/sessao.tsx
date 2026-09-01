@@ -3,9 +3,13 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  ArrowDown,
+  ArrowUp,
   Check,
   ChevronDown,
+  History,
   MoreVertical,
+  Replace,
   Minus,
   Plus,
   RotateCcw,
@@ -26,6 +30,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { QueryError } from "@/components/QueryError";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,7 +46,7 @@ import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
-import { formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
+import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
 import { blockLabels, hasNextInBlock } from "@/lib/supersets";
@@ -61,6 +67,8 @@ import {
   sessionSetsDone,
   sessionVolume,
   takePendingExercise,
+  takePendingReplaceSlot,
+  setPendingReplaceSlot,
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
@@ -69,7 +77,12 @@ import {
 } from "@/lib/session-state";
 import { incrementoPara, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
-import { getPersonalRecord, getWorkouts, saveWorkout } from "@/lib/data/workouts";
+import {
+  getExerciseHistory,
+  getPersonalRecord,
+  getWorkouts,
+  saveWorkout,
+} from "@/lib/data/workouts";
 import { ProgressRing } from "@/components/ProgressRing";
 import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
@@ -127,6 +140,7 @@ function SessionPage() {
   const [justSet, setJustSet] = useState<string | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
+  const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
@@ -175,6 +189,7 @@ function SessionPage() {
     if (!loaded) return;
     // Exercise chosen from library during session
     const pending = takePendingExercise();
+    const slot = takePendingReplaceSlot();
     if (pending) {
       buildActiveExercise(pending)
         .then((built) => {
@@ -184,6 +199,13 @@ function SessionPage() {
           }
           setSession((prev) => {
             if (!prev) return prev;
+            // Coming from "Replace exercise": swap in place, keeping the order.
+            if (slot !== null && prev.exercicios[slot]) {
+              const exercicios = prev.exercicios.map((e, i) => (i === slot ? built : e));
+              const next = { ...prev, exercicios, atual: slot };
+              saveActiveSession(next);
+              return next;
+            }
             const next = { ...prev, exercicios: [...prev.exercicios, built] };
             next.atual = next.exercicios.length - 1;
             saveActiveSession(next);
@@ -491,6 +513,30 @@ function SessionPage() {
     });
   }
 
+  /** Reorder the remaining work without leaving the session. */
+  function moveExercise(exIdx: number, dir: -1 | 1) {
+    const target = exIdx + dir;
+    update((s) => {
+      if (target < 0 || target >= s.exercicios.length) return s;
+      const exercicios = [...s.exercicios];
+      const [moved] = exercicios.splice(exIdx, 1);
+      exercicios.splice(target, 0, moved!);
+      const atual = s.atual === exIdx ? target : s.atual === target ? exIdx : s.atual;
+      return { ...s, exercicios, atual };
+    });
+    hapticTick();
+    setScrollTo(target);
+  }
+
+  /** Send the user to the library and swap the picked exercise into this slot. */
+  function replaceExercise(exIdx: number) {
+    setPendingReplaceSlot(exIdx);
+    navigate({
+      to: "/biblioteca",
+      search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
+    });
+  }
+
   function skipExercise(exIdx: number) {
     update((s) => {
       s.exercicios[exIdx]!.pulado = !s.exercicios[exIdx]!.pulado;
@@ -791,6 +837,21 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> {t("Add set")}
                     </DropdownMenuItem>
+                    <DropdownMenuItem disabled={exIdx === 0} onClick={() => moveExercise(exIdx, -1)}>
+                      <ArrowUp className="mr-2 size-4" /> {t("Move up")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={exIdx === session.exercicios.length - 1}
+                      onClick={() => moveExercise(exIdx, 1)}
+                    >
+                      <ArrowDown className="mr-2 size-4" /> {t("Move down")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
+                      <Replace className="mr-2 size-4" /> {t("Replace exercise")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setHistoryFor(ex)}>
+                      <History className="mr-2 size-4" /> {t("Exercise history")}
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive"
                       onClick={() => removeExercise(exIdx)}
@@ -957,8 +1018,98 @@ function SessionPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      <ExerciseHistorySheet
+        exercise={historyFor}
+        onClose={() => setHistoryFor(null)}
+      />
+
       {restFinished ? <RestFinishedOverlay onResume={() => setRestFinished(false)} /> : null}
     </div>
+  );
+}
+
+/** Enter jumps to the next numeric field so a whole set is one thumb flow. */
+function focusNextField(event: React.KeyboardEvent<HTMLInputElement>) {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  const fields = Array.from(document.querySelectorAll<HTMLInputElement>("input.numeric-field"));
+  const next = fields[fields.indexOf(event.currentTarget) + 1];
+  next?.focus();
+  next?.select();
+}
+
+/** Last loads for one exercise, opened from the exercise menu during a session. */
+function ExerciseHistorySheet({
+  exercise,
+  onClose,
+}: {
+  exercise: ActiveExercise | null;
+  onClose: () => void;
+}) {
+  const t = useT();
+  const { unit } = useWeightUnit();
+  const historyQuery = useQuery({
+    queryKey: ["exercise-history", exercise?.exerciseId],
+    enabled: !!exercise,
+    queryFn: () => getExerciseHistory(exercise!.exerciseId),
+  });
+  const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const dates = new Map((workoutsQuery.data ?? []).map((w) => [w.id, w.iniciadoEm]));
+
+  const byWorkout = new Map<string, WorkoutSet[]>();
+  for (const set of historyQuery.data ?? []) {
+    const list = byWorkout.get(set.workoutId) ?? [];
+    list.push(set);
+    byWorkout.set(set.workoutId, list);
+  }
+  const sessions = [...byWorkout.entries()]
+    .sort((a, b) => (dates.get(b[0]) ?? "").localeCompare(dates.get(a[0]) ?? ""))
+    .slice(0, 6);
+
+  return (
+    <Sheet open={exercise !== null} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="bottom" className="max-h-[75vh] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="text-lg">{exercise?.nome}</SheetTitle>
+        </SheetHeader>
+        <div className="space-y-3 px-4 pb-8">
+          {historyQuery.isLoading ? (
+            <p className="text-sm text-muted-foreground">{t("Loading…")}</p>
+          ) : historyQuery.isError ? (
+            <QueryError onRetry={() => void historyQuery.refetch()} />
+          ) : sessions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {t("No history for this exercise yet — today is the baseline.")}
+            </p>
+          ) : (
+            sessions.map(([workoutId, sets]) => (
+              <div key={workoutId} className="rounded-xl border border-border bg-card p-3">
+                <p className="text-xs font-semibold text-muted-foreground">
+                  {dates.get(workoutId) ? formatDateLong(dates.get(workoutId)!) : t("Session")}
+                </p>
+                <ul className="mt-1.5 space-y-0.5">
+                  {sets
+                    .slice()
+                    .sort((a, b) => a.serieNum - b.serieNum)
+                    .map((set) => (
+                      <li key={set.id} className="text-sm tabular-nums">
+                        <span className="text-muted-foreground">{set.serieNum}.</span>{" "}
+                        {toDisplayWeight(set.pesoKg, unit)} {unit} x {set.reps}
+                        {set.rpe ? (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            {t("@ {rpe} rpe", { rpe: set.rpe })}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))
+          )}
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -1250,6 +1401,8 @@ function SetRow({
           onChange={(e) => writeWeight(e.target.value)}
           onBlur={() => setDraft(null)}
           inputMode="decimal"
+          enterKeyHint="next"
+          onKeyDown={focusNextField}
           placeholder={weightUnitLabel()}
           aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
@@ -1260,6 +1413,8 @@ function SetRow({
           value={set.reps}
           onChange={(e) => onField("reps", e.target.value)}
           inputMode="numeric"
+          enterKeyHint="next"
+          onKeyDown={focusNextField}
           placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
           aria-label={t("Reps")}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"

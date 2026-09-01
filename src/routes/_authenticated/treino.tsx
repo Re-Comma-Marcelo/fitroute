@@ -2,17 +2,27 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, ChevronDown, Pencil, Play, Plus, Sparkles, TrendingUp } from "lucide-react";
+import {
+  AlertTriangle,
+  ChevronDown,
+  Copy,
+  Pencil,
+  Play,
+  Plus,
+  Sparkles,
+  TrendingUp,
+} from "lucide-react";
 import { AppShell } from "@/components/AppShell";
+import { QueryError } from "@/components/QueryError";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { TodayCoachCard } from "@/components/TodayCoachCard";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
-import { getRoutines } from "@/lib/data/routines";
+import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
 import type { Exercise, Routine, Workout } from "@/lib/types";
 import { getWorkouts } from "@/lib/data/workouts";
 import { formatDurationShort, relativeDays } from "@/lib/format";
@@ -52,6 +62,7 @@ function weekStart() {
 function TrainPage() {
   const t = useT();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [active, setActive] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [choice, setChoice] = useState<string | null>(null);
@@ -146,6 +157,17 @@ function TrainPage() {
     saveTodayChoice(routineId);
     setChoice(routineId);
     setSwaps({});
+  }
+
+  /** Copy a routine so a variation can be edited without touching the original. */
+  async function duplicate(routineId: string, nome: string) {
+    try {
+      const copy = await duplicateRoutine(routineId, t("{name} (copy)", { name: nome }));
+      await queryClient.invalidateQueries({ queryKey: ["routines"] });
+      if (copy) navigate({ to: "/rotina/$id", params: { id: copy.id } });
+    } catch {
+      toast.error(t("Could not duplicate the routine. Try again."));
+    }
   }
 
   async function startBlank() {
@@ -254,7 +276,12 @@ function TrainPage() {
 
       <h2 className="label-caps mt-8 mb-3">{t("My routines")}</h2>
 
-      {routinesQuery.isLoading ? (
+      {routinesQuery.isError ? (
+        <QueryError
+          message={t("Could not load your routines.")}
+          onRetry={() => void routinesQuery.refetch()}
+        />
+      ) : routinesQuery.isLoading ? (
         <div className="space-y-3">
           {[0, 1].map((i) => (
             <div key={i} className="h-28 animate-pulse rounded-2xl bg-card" />
@@ -292,6 +319,7 @@ function TrainPage() {
               loading={loading}
               onStart={() => startRoutine(r.id)}
               onPick={() => pickRoutine(r.id)}
+              onDuplicate={() => void duplicate(r.id, r.nome)}
               t={t}
             />
           ))}
@@ -314,6 +342,7 @@ function RoutineCard({
   loading,
   onStart,
   onPick,
+  onDuplicate,
   t,
 }: {
   r: Routine;
@@ -328,6 +357,7 @@ function RoutineCard({
   loading: string | null;
   onStart: () => void;
   onPick: () => void;
+  onDuplicate: () => void;
   t: any;
 }) {
   const flags = r.exercicios
@@ -456,6 +486,13 @@ function RoutineCard({
                 </Link>
               </Button>
             </div>
+            <Button
+              variant="ghost"
+              className="h-10 w-full text-xs font-semibold text-muted-foreground"
+              onClick={onDuplicate}
+            >
+              <Copy className="mr-1.5 size-3.5" /> {t("Duplicate routine")}
+            </Button>
           </div>
         </>
       ) : null}

@@ -37,6 +37,17 @@ import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { formatDateLong } from "@/lib/format";
 
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
 import { resetOnboarding } from "@/lib/onboarding";
@@ -53,7 +64,9 @@ import {
   buildBackup,
   buildWorkoutsCsv,
   downloadFile,
+  previewBackup,
   restoreBackup,
+  type BackupPreview,
 } from "@/lib/backup";
 
 import { supabase } from "@/integrations/supabase/client";
@@ -910,6 +923,8 @@ function DataBackupSection() {
   const t = useT();
   const queryClient = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [pending, setPending] = useState<{ raw: string; preview: BackupPreview } | null>(null);
+  const [includeProfile, setIncludeProfile] = useState(true);
 
   async function exportJson() {
     setBusy(true);
@@ -934,11 +949,23 @@ function DataBackupSection() {
     }
   }
 
-  async function importJson(file: File | null | undefined) {
+  /** Step 1: read the file and show what it would overwrite. */
+  async function pickFile(file: File | null | undefined) {
     if (!file) return;
+    try {
+      const raw = await file.text();
+      setPending({ raw, preview: previewBackup(raw) });
+    } catch {
+      toast.error(t("This file is not an Iron Logger backup."));
+    }
+  }
+
+  /** Step 2: the user confirmed the summary. */
+  async function importJson(raw: string, includeProfile: boolean) {
+    setPending(null);
     setBusy(true);
     try {
-      const result = await restoreBackup(await file.text());
+      const result = await restoreBackup(raw, { includeProfile });
       invalidateProfileCache();
       await queryClient.invalidateQueries();
       toast.success(
@@ -993,9 +1020,52 @@ function DataBackupSection() {
           accept="application/json,.json"
           className="hidden"
           disabled={busy}
-          onChange={(e) => void importJson(e.target.files?.[0])}
+          onChange={(e) => {
+            void pickFile(e.target.files?.[0]);
+            e.target.value = "";
+          }}
         />
       </label>
+
+      <AlertDialog open={pending !== null} onOpenChange={(open) => !open && setPending(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("Restore this backup?")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {pending
+                ? t(
+                    "Exported {date}. It contains {routines} routine(s), {workouts} workout(s) and {sets} set(s). Items with the same id are overwritten.",
+                    {
+                      date: formatDateLong(pending.preview.exportedAt),
+                      routines: pending.preview.routines,
+                      workouts: pending.preview.workouts,
+                      sets: pending.preview.sets,
+                    },
+                  )
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          {pending?.preview.hasProfile ? (
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={includeProfile}
+                onChange={(e) => setIncludeProfile(e.target.checked)}
+              />
+              {t("Also overwrite my profile")}
+            </label>
+          ) : null}
+          <AlertDialogFooter>
+            <AlertDialogCancel className="tap-target">{t("Cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              className="tap-target"
+              onClick={() => pending && void importJson(pending.raw, includeProfile)}
+            >
+              {t("Restore")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

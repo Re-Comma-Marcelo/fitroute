@@ -108,6 +108,23 @@ export function takePendingExercise(): string | null {
   return value;
 }
 
+const PENDING_SLOT_KEY = "forja.pendingSlot.v1";
+
+/** Index of the session exercise that the next library pick should replace. */
+export function setPendingReplaceSlot(index: number) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(PENDING_SLOT_KEY, String(index));
+}
+
+export function takePendingReplaceSlot(): number | null {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(PENDING_SLOT_KEY);
+  window.localStorage.removeItem(PENDING_SLOT_KEY);
+  if (raw === null) return null;
+  const parsed = Number(raw);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
 export function makeSets(
   quantidade: number,
   anteriores: PrevSet[],

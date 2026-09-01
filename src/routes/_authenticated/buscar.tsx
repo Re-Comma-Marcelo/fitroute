@@ -1,8 +1,8 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ArrowLeft, Dumbbell, ListChecks, Salad, Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, Clock, Dumbbell, ListChecks, Salad, Search } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +10,12 @@ import { getExercises } from "@/lib/data/exercises";
 import { getRoutines } from "@/lib/data/routines";
 import { getMeals } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
+import { QueryError } from "@/components/QueryError";
+import {
+  clearRecentSearches,
+  getRecentSearches,
+  rememberSearch,
+} from "@/lib/recent-searches";
 
 export const Route = createFileRoute("/_authenticated/buscar")({
   head: () => ({
@@ -27,10 +33,36 @@ type Hit =
   | { kind: "routine"; id: string; title: string; subtitle: string }
   | { kind: "meal"; id: string; title: string; subtitle: string };
 
+function Shortcut({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof Dumbbell;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="tap-target flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left text-sm font-semibold"
+    >
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-muted-foreground">
+        <Icon className="size-4" />
+      </span>
+      {label}
+    </button>
+  );
+}
+
 function SearchPage() {
   const t = useT();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
+  const [recents, setRecents] = useState<string[]>([]);
+
+  useEffect(() => setRecents(getRecentSearches()), []);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
@@ -80,7 +112,16 @@ function SearchPage() {
     return out;
   }, [q, exercisesQuery.data, routinesQuery.data, mealsQuery.data, t]);
 
+  const failed = exercisesQuery.isError || routinesQuery.isError || mealsQuery.isError;
+
+  function retry() {
+    void exercisesQuery.refetch();
+    void routinesQuery.refetch();
+    void mealsQuery.refetch();
+  }
+
   function open(hit: Hit) {
+    rememberSearch(q);
     if (hit.kind === "routine") navigate({ to: "/rotina/$id", params: { id: hit.id } });
     else if (hit.kind === "exercise")
       navigate({
@@ -122,10 +163,71 @@ function SearchPage() {
           />
         </div>
 
-        {q.trim().length < 2 ? (
-          <p className="text-sm text-muted-foreground">
-            {t("Type at least two letters to search.")}
-          </p>
+        {failed ? (
+          <QueryError onRetry={retry} />
+        ) : q.trim().length < 2 ? (
+          <div className="space-y-5">
+            {recents.length ? (
+              <section>
+                <div className="flex items-center justify-between">
+                  <p className="label-caps">{t("Recent searches")}</p>
+                  <button
+                    type="button"
+                    className="text-xs font-semibold text-muted-foreground"
+                    onClick={() => {
+                      clearRecentSearches();
+                      setRecents([]);
+                    }}
+                  >
+                    {t("Clear")}
+                  </button>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {recents.map((term) => (
+                    <button
+                      key={term}
+                      type="button"
+                      onClick={() => setQ(term)}
+                      className="tap-target inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium"
+                    >
+                      <Clock className="size-3.5 text-muted-foreground" />
+                      {term}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            <section>
+              <p className="label-caps">{t("Jump to")}</p>
+              <div className="mt-2 grid gap-2">
+                <Shortcut
+                  icon={ListChecks}
+                  label={t("My routines")}
+                  onClick={() => navigate({ to: "/treino" })}
+                />
+                <Shortcut
+                  icon={Dumbbell}
+                  label={t("Exercise library")}
+                  onClick={() =>
+                    navigate({
+                      to: "/biblioteca",
+                      search: { para: undefined, rotinaId: undefined, exercicioId: undefined },
+                    })
+                  }
+                />
+                <Shortcut
+                  icon={Salad}
+                  label={t("Today's meals")}
+                  onClick={() => navigate({ to: "/dieta" })}
+                />
+              </div>
+            </section>
+
+            <p className="text-xs text-muted-foreground">
+              {t("Type at least two letters to search.")}
+            </p>
+          </div>
         ) : hits.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("Nothing found for “{q}”.", { q })}</p>
         ) : (

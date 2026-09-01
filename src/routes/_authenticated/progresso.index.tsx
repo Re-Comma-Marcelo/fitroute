@@ -10,6 +10,7 @@ import { ProgressTrendChart } from "@/components/ProgressTrendChart";
 import { TrackedLiftPickerSheet } from "@/components/TrackedLiftPickerSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { QueryError } from "@/components/QueryError";
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
@@ -44,6 +45,8 @@ function ProgressPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [weeks, setWeeks] = useState<4 | 8 | 12>(8);
+  const [routineFilter, setRoutineFilter] = useState<string | null>(null);
 
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
@@ -52,16 +55,26 @@ function ProgressPage() {
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const trackedQuery = useQuery({ queryKey: ["tracked-lifts"], queryFn: getTrackedLifts });
 
-  const workouts = workoutsQuery.data ?? [];
+  const allWorkouts = workoutsQuery.data ?? [];
   const sets = logQuery.data?.sets ?? [];
   const routines = routinesQuery.data ?? [];
   const exercises = exercisesQuery.data ?? [];
   const trackedIds = trackedQuery.data ?? [];
   const weeklyTarget = profileQuery.data?.metaTreinosSemana ?? 4;
 
+  /** Filters scope every metric below: one routine and a rolling week window. */
+  const workouts = useMemo(() => {
+    const since = Date.now() - weeks * 7 * 24 * 60 * 60 * 1000;
+    return allWorkouts.filter(
+      (w) =>
+        (!routineFilter || w.routineId === routineFilter) &&
+        new Date(w.iniciadoEm).getTime() >= since,
+    );
+  }, [allWorkouts, routineFilter, weeks]);
+
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
   const consistency = useMemo(() => adherence(workouts, weeklyTarget), [workouts, weeklyTarget]);
-  const series = useMemo(() => weeklySeries(workouts, 8), [workouts]);
+  const series = useMemo(() => weeklySeries(workouts, weeks), [workouts, weeks]);
   const plateau = useMemo(
     () =>
       trackedIds.length && workouts.length && sets.length
@@ -90,6 +103,42 @@ function ProgressPage() {
 
   return (
     <AppShell title={t("Progress")}>
+      {workoutsQuery.isError || logQuery.isError ? (
+        <QueryError
+          message={t("Could not load your progress.")}
+          onRetry={() => {
+            void workoutsQuery.refetch();
+            void logQuery.refetch();
+          }}
+        />
+      ) : null}
+
+      <div className="mb-4 space-y-2">
+        <div className="flex gap-2">
+          {([4, 8, 12] as const).map((option) => (
+            <Chip key={option} active={weeks === option} onClick={() => setWeeks(option)}>
+              {t("{weeks}w", { weeks: option })}
+            </Chip>
+          ))}
+        </div>
+        {routines.length > 1 ? (
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            <Chip active={routineFilter === null} onClick={() => setRoutineFilter(null)}>
+              {t("All routines")}
+            </Chip>
+            {routines.map((r) => (
+              <Chip
+                key={r.id}
+                active={routineFilter === r.id}
+                onClick={() => setRoutineFilter(r.id)}
+              >
+                {r.nome}
+              </Chip>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
       {loading ? (
         <div className="space-y-3">
           <Skeleton className="h-20 w-full rounded-2xl" />
@@ -211,6 +260,31 @@ function ProgressPage() {
         onToggle={(id, tracked) => void toggleLift(id, tracked)}
       />
     </AppShell>
+  );
+}
+
+function Chip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "tap-target shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors",
+        active
+          ? "border-primary/60 bg-primary/15 text-primary"
+          : "border-border bg-card text-muted-foreground",
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

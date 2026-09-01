@@ -44,6 +44,22 @@ export async function saveRoutine(routine: Routine): Promise<Routine> {
   return saved;
 }
 
+/** Copy an existing routine (new ids, "{name} (copy)") so it can be tweaked freely. */
+export async function duplicateRoutine(id: string, copyLabel: string): Promise<Routine | null> {
+  const source = await getRoutine(id);
+  if (!source) return null;
+  const copy: Routine = {
+    ...source,
+    id: `rot_${Math.random().toString(36).slice(2, 10)}`,
+    nome: copyLabel,
+    exercicios: source.exercicios.map((ex) => ({
+      ...ex,
+      id: `rex_${Math.random().toString(36).slice(2, 10)}`,
+    })),
+  };
+  return saveRoutine(copy);
+}
+
 export async function deleteRoutine(id: string): Promise<void> {
   await removeRoutine({ data: { id } });
   cache = (cache ?? []).filter((r) => r.id !== id);
