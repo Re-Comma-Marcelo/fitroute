@@ -68,7 +68,16 @@ export function registerAppServiceWorker(onUpdateReady?: (apply: () => void) => 
 
         const notify = (worker: ServiceWorker | null) => {
           if (!worker) return;
-          onUpdateReady(() => worker.postMessage({ type: "SKIP_WAITING" }));
+          onUpdateReady(() => {
+            // Ask a waiting worker to take over; reload covers workers that
+            // already skipped waiting on their own.
+            try {
+              worker.postMessage({ type: "SKIP_WAITING" });
+            } catch {
+              // ignore
+            }
+            window.setTimeout(() => window.location.reload(), 300);
+          });
         };
 
         // A newer build was already waiting when this tab opened.
