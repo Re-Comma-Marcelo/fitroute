@@ -135,6 +135,17 @@ export default function Inicio() {
           </div>
         </header>
 
+        {loadFailed ? (
+          <QueryError
+            message={t("Could not load your dashboard.")}
+            onRetry={() => {
+              void profileQ.refetch();
+              void routinesQ.refetch();
+              void logQ.refetch();
+            }}
+          />
+        ) : null}
+
         <VolumeHero loading={isLoading} hasData={hasData} volume={volume} />
 
         <HeatmapSection
