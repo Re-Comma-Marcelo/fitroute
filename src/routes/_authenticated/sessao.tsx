@@ -1413,18 +1413,26 @@ function SetRow({
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
-        <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
+        <StepButton
+          dir="down"
+          label={tempo ? t("Decrease seconds") : t("Decrease reps")}
+          onClick={() => stepReps(tempo ? -5 : -1)}
+        />
         <Input
           value={set.reps}
           onChange={(e) => onField("reps", e.target.value)}
           inputMode="numeric"
           enterKeyHint="next"
           onKeyDown={focusNextField}
-          placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-          aria-label={t("Reps")}
+          placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
+          aria-label={tempo ? t("Seconds") : t("Reps")}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
-        <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
+        <StepButton
+          dir="up"
+          label={tempo ? t("Increase seconds") : t("Increase reps")}
+          onClick={() => stepReps(tempo ? 5 : 1)}
+        />
       </div>
     </li>
   );
