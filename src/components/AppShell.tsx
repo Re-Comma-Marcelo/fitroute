@@ -5,6 +5,10 @@ import { BottomNav } from "./BottomNav";
 import { PendingSync } from "./PendingSync";
 import { SessionMiniPlayer } from "./SessionMiniPlayer";
 import { useLanguageSync } from "@/lib/i18n/use-language-sync";
+import { useQuery } from "@tanstack/react-query";
+import { getRoutines } from "@/lib/data/routines";
+import { armReminder } from "@/lib/workout-reminder";
+import { useT } from "@/lib/i18n";
 
 export function AppShell({
   title,
@@ -26,6 +30,18 @@ export function AppShell({
    * keying <main> by pathname threw away children state (accordions, filters,
    * scroll position) on every navigation.
    */
+  const t = useT();
+  const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
+
+  // Local reminder for planned training days; re-armed whenever routines load.
+  useEffect(() => {
+    const routines = routinesQuery.data;
+    if (!routines) return;
+    return armReminder(routines, (routine) =>
+      t("Time to train — {routine} is planned for today.", { routine }),
+    );
+  }, [routinesQuery.data, t]);
+
   useEffect(() => {
     const node = mainRef.current;
     if (!node) return;
