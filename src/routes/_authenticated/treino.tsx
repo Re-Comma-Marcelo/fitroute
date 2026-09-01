@@ -38,6 +38,7 @@ import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
 import { swapCandidates } from "@/lib/coach/swap";
 import { cn } from "@/lib/utils";
+import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import type { CoachInsight } from "@/lib/coach/types";
 import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
@@ -400,6 +401,7 @@ function RoutineCard({
           <p className="font-display text-lg font-semibold leading-tight">{r.nome}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {t("{count} exercises", { count: r.exercicios.length })} ·{" "}
+            {t("~{minutes} min", { minutes: estimateRoutineMinutes(r) })} ·{" "}
             {last
               ? t("last {time} · {duration}", {
                   time: relativeDays(last.iniciadoEm),
