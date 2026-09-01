@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountUp } from "@/components/CountUp";
+import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
 import { useT } from "@/lib/i18n";
 import { getExercises } from "@/lib/data/exercises";
