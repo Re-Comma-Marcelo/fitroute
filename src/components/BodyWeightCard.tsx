@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QueryError } from "@/components/QueryError";
 import { getBodyWeightLog, logBodyWeight } from "@/lib/data/body-weight";
-import { formatDate } from "@/lib/format";
+import { formatDate, weightUnitLabel } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { fromDisplayWeight, toDisplayWeight, weightUnitLabel } from "@/lib/units";
+import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 
 /**
