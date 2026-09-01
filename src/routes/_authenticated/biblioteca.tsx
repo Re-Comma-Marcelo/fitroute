@@ -314,6 +314,14 @@ function LibraryPage() {
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("Your history")}
+                </h3>
+                <div className="mt-2">
+                  <ExerciseHistoryCard exerciseId={detail.id} />
+                </div>
+              </div>
               {para ? (
                 <Button
                   className="h-14 w-full text-base font-semibold"
