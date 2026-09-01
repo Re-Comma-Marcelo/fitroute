@@ -1354,7 +1354,7 @@ function SetRow({
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
+            {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
               <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
                 {typeName[tipo]}
               </DropdownMenuItem>
