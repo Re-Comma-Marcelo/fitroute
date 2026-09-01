@@ -45,6 +45,7 @@ import {
   weightUnitLabel,
 } from "@/lib/format";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { setE1rm } from "@/lib/e1rm";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { useT } from "@/lib/i18n";
 import type { WorkoutSet } from "@/lib/types";
