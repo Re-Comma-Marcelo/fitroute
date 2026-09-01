@@ -68,6 +68,8 @@ export default function Inicio() {
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
 
   const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
+  /** A failed fetch must read as an error, never as "you have no data yet". */
+  const loadFailed = profileQ.isError || routinesQ.isError || logQ.isError;
 
   const workouts = useMemo(() => logQ.data?.workouts ?? [], [logQ.data]);
   const sets = useMemo(() => logQ.data?.sets ?? [], [logQ.data]);
