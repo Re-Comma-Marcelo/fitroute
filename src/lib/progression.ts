@@ -40,6 +40,19 @@ export function isSerieValida(set: { tipoSerie: TipoSerie }): boolean {
   return set.tipoSerie !== "aquecimento";
 }
 
+/**
+ * Série de carga: conta para volume, e1RM e progressão.
+ * Séries por tempo guardam segundos em `reps`, então ficam fora dessas contas.
+ */
+export function isSerieDeCarga(set: { tipoSerie: TipoSerie }): boolean {
+  return set.tipoSerie !== "aquecimento" && set.tipoSerie !== "tempo";
+}
+
+/** Séries por tempo (isometria/cardio): `reps` são segundos. */
+export function isSerieTempo(set: { tipoSerie: TipoSerie }): boolean {
+  return set.tipoSerie === "tempo";
+}
+
 /** +2 kg for dumbbells (1 kg per side); +2.5 kg for barbell, machine and cable. */
 export function incrementoPara(equipamento: string): number {
   return equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
@@ -55,7 +68,7 @@ function fmt(n: number): string {
 }
 
 export function suggestProgression(input: ProgressionInput): ProgressionSuggestion | null {
-  const validas = input.anteriores.filter(isSerieValida);
+  const validas = input.anteriores.filter(isSerieDeCarga);
   if (validas.length === 0) return null;
 
   const pesoAnterior = validas.reduce((max, s) => Math.max(max, s.pesoKg), 0);

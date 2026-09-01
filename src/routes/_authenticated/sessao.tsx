@@ -11,6 +11,8 @@ import {
   MoreVertical,
   Replace,
   Minus,
+  Pause,
+  Play,
   Plus,
   RotateCcw,
   SkipForward,
@@ -64,8 +66,11 @@ import {
   restSecondsLeft,
   saveActiveSession,
   serieLabel,
+  sessionElapsed,
   sessionSetsDone,
   sessionVolume,
+  isSessionPaused,
+  togglePause,
   takePendingExercise,
   takePendingReplaceSlot,
   setPendingReplaceSlot,
@@ -75,7 +80,7 @@ import {
   type RestState,
   sessionLabel,
 } from "@/lib/session-state";
-import { incrementoPara, isSerieValida } from "@/lib/progression";
+import { incrementoPara, isSerieTempo, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
 import {
   getExerciseHistory,
@@ -128,6 +133,7 @@ function SessionPage() {
     normal: t("Normal"),
     falha: t("Failure"),
     drop: t("Drop set"),
+    tempo: t("Timed set"),
   };
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
@@ -361,7 +367,8 @@ function SessionPage() {
     );
   }
 
-  const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
+  const elapsed = sessionElapsed(session);
+  const paused = isSessionPaused(session);
   const restLeft = restSecondsLeft(session);
 
   function startRest(segundos: number) {
@@ -715,10 +722,39 @@ function SessionPage() {
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
+          <div className="flex items-center justify-center gap-1 px-1 py-2">
+            <div className="min-w-0">
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("Duration")}
+              </dt>
+              <dd
+                className={cn(
+                  "font-mono text-lg font-semibold tabular-nums",
+                  paused && "text-muted-foreground",
+                )}
+              >
+                {formatDuration(elapsed)}
+              </dd>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="tap-target shrink-0"
+              aria-label={paused ? t("Resume clock") : t("Pause clock")}
+              aria-pressed={paused}
+              onClick={() => update((s) => togglePause(s))}
+            >
+              {paused ? <Play className="size-5" /> : <Pause className="size-5" />}
+            </Button>
+          </div>
           <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
           <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
+        {paused ? (
+          <p className="mx-auto max-w-md px-3 pb-2 text-center text-[11px] font-semibold text-muted-foreground">
+            {t("Clock paused — logging still works.")}
+          </p>
+        ) : null}
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
@@ -1289,6 +1325,7 @@ function SetRow({
   t: any;
 }) {
   const aquecimento = !isSerieValida(set);
+  const tempo = isSerieTempo(set);
   const passoKg = incrementoPara(exercise.equipamento);
   const { unit } = useWeightUnit();
   /** Weight is always stored in kg; the field shows the user's unit. */
@@ -1340,16 +1377,18 @@ function SetRow({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold ${
-                aquecimento ? "text-warn" : ""
-              }`}
+              className={cn(
+                "tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold",
+                aquecimento && "text-warn",
+                tempo && "text-info",
+              )}
               aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
             >
-              {label}
+              {tempo ? `${label}s` : label}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            {(["aquecimento", "normal", "falha", "drop"] as TipoSerie[]).map((tipo) => (
+            {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
               <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
                 {typeName[tipo]}
               </DropdownMenuItem>
@@ -1408,18 +1447,26 @@ function SetRow({
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
         <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
-        <StepButton dir="down" label={t("Decrease reps")} onClick={() => stepReps(-1)} />
+        <StepButton
+          dir="down"
+          label={tempo ? t("Decrease seconds") : t("Decrease reps")}
+          onClick={() => stepReps(tempo ? -5 : -1)}
+        />
         <Input
           value={set.reps}
           onChange={(e) => onField("reps", e.target.value)}
           inputMode="numeric"
           enterKeyHint="next"
           onKeyDown={focusNextField}
-          placeholder={`${exercise.repsMin}-${exercise.repsMax}`}
-          aria-label={t("Reps")}
+          placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
+          aria-label={tempo ? t("Seconds") : t("Reps")}
           className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
         />
-        <StepButton dir="up" label={t("Increase reps")} onClick={() => stepReps(1)} />
+        <StepButton
+          dir="up"
+          label={tempo ? t("Increase seconds") : t("Increase reps")}
+          onClick={() => stepReps(tempo ? 5 : 1)}
+        />
       </div>
     </li>
   );

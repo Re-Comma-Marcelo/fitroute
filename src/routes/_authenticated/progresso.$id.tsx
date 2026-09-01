@@ -45,6 +45,7 @@ import {
   weightUnitLabel,
 } from "@/lib/format";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { setE1rm } from "@/lib/e1rm";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { useT } from "@/lib/i18n";
 import type { WorkoutSet } from "@/lib/types";
@@ -308,6 +309,11 @@ function WorkoutDetail() {
                       <span className="font-semibold">
                         {formatKg(s.pesoKg)} × {s.reps}
                         {s.rpe ? ` · RPE ${s.rpe}` : ""}
+                        {setE1rm(s) > 0 ? (
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            {t("e1RM {value}", { value: formatKg(setE1rm(s)) })}
+                          </span>
+                        ) : null}
                       </span>
                     )}
                   </li>

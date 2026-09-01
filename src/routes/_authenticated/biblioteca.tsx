@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
 import { QueryError } from "@/components/QueryError";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -313,6 +314,14 @@ function LibraryPage() {
                   {t("Execution")}
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                  {t("Your history")}
+                </h3>
+                <div className="mt-2">
+                  <ExerciseHistoryCard exerciseId={detail.id} />
+                </div>
               </div>
               {para ? (
                 <Button

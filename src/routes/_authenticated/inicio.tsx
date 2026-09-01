@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountUp } from "@/components/CountUp";
+import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
 import { useT } from "@/lib/i18n";
 import { getExercises } from "@/lib/data/exercises";
@@ -68,6 +69,8 @@ export default function Inicio() {
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
 
   const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
+  /** A failed fetch must read as an error, never as "you have no data yet". */
+  const loadFailed = profileQ.isError || routinesQ.isError || logQ.isError;
 
   const workouts = useMemo(() => logQ.data?.workouts ?? [], [logQ.data]);
   const sets = useMemo(() => logQ.data?.sets ?? [], [logQ.data]);
@@ -134,6 +137,17 @@ export default function Inicio() {
             <CoachChatButton />
           </div>
         </header>
+
+        {loadFailed ? (
+          <QueryError
+            message={t("Could not load your dashboard.")}
+            onRetry={() => {
+              void profileQ.refetch();
+              void routinesQ.refetch();
+              void logQ.refetch();
+            }}
+          />
+        ) : null}
 
         <VolumeHero loading={isLoading} hasData={hasData} volume={volume} />
 

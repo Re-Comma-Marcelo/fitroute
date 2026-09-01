@@ -42,13 +42,13 @@ Interrupção real (ligação, fila na máquina) infla a duração e polui a mé
 
 **Correção:** pausar/retomar acumulando tempo ativo, com estado visível no header e no mini-player.
 
-## 6. Atalhos no descanso: −30s / +30s / pular
+## 6. Atalhos no descanso: −15s / +15s / pular
 
 **Onde:** `src/routes/_authenticated/sessao.tsx:367` — o descanso só inicia com o valor do exercício.
 
 Se o descanso ficou curto ou longo, a única saída é abrir o seletor do exercício e mudar o padrão.
 
-**Correção:** botões de ±30s e "pular" na barra de descanso, sem alterar o padrão da rotina.
+**Correção:** botões de ±15s e "pular" na barra de descanso, sem alterar o padrão da rotina.
 
 ## 7. Séries por tempo (prancha, cardio, isometria)
 
@@ -66,15 +66,7 @@ O sheet de histórico existe só dentro da sessão. Fora do treino não há como
 
 **Correção:** reaproveitar o histórico da sessão no detalhe da biblioteca, com PR, e1RM e mini gráfico.
 
-## 9. Aviso de nova versão do app instalado
-
-**Onde:** `src/lib/pwa.ts` — o registro não escuta `updatefound`/`controllerchange`.
-
-Instalado na tela inicial, o app pode servir uma build antiga por dias.
-
-**Correção:** detectar worker em `waiting` e mostrar toast "Nova versão — atualizar" com `skipWaiting` + reload. Mexe no service worker.
-
-## 10. Histórico do Progresso sem calendário
+## 9.  Histórico do Progresso sem calendário
 
 **Onde:** `src/routes/_authenticated/progresso.index.tsx:231` — o histórico é uma lista linear.
 
@@ -84,12 +76,11 @@ Achar "o treino de duas quartas atrás" exige rolar. A Home tem heatmap, o Progr
 
 ## Notas técnicas
 
-- Itens 2, 3, 5, 6, 8, 10 são puramente cliente/UI.
+- Itens 2, 3, 5, 6, 8, 9 são puramente cliente/UI.
 - Itens 1, 4, 7 pedem persistência nova (coluna/tabela no seu Supabase) — confirmo antes.
-- Item 9 altera o registro do service worker.
 - Strings novas vão para `src/lib/i18n/dict/*` em pt/nl, zero hardcoded.
 - Nenhuma mudança de auth ou MCP.
 
 ## Ordem sugerida
 
-2 → 6 → 3 → 5 → 8 → 10 → 1 → 4 → 7 → 9
+2 → 6 → 3 → 5 → 8 → 9 → 1 → 4 → 7 

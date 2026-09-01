@@ -3,7 +3,8 @@ import type { Lang } from "./i18n/types";
 export type Sexo = "masculino" | "feminino" | "outro";
 export type NivelAtividade = "sedentario" | "leve" | "moderado" | "intenso" | "atleta";
 export type Objetivo = "cutting" | "manutencao" | "bulking";
-export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop";
+/** "tempo" = timed set (plank, carry, cardio): reps holds seconds, weight is optional. */
+export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop" | "tempo";
 export type OrigemTreino = "rotina" | "branco";
 
 export type PreferredTime = "morning" | "midday" | "afternoon" | "evening";
@@ -70,6 +71,15 @@ export interface Routine {
   nome: string;
   descricao: string;
   exercicios: RoutineExercise[];
+  /** Planned weekdays, 0 = Sunday … 6 = Saturday. Empty means unscheduled. */
+  diasSemana?: number[];
+}
+
+/** One body-weight measurement, keyed by ISO date (one per day). */
+export interface BodyWeightEntry {
+  id: string;
+  data: string;
+  pesoKg: number;
 }
 
 export interface Workout {

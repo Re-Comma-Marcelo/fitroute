@@ -1,5 +1,10 @@
 import { tx } from "./format";
-import { isSerieValida, type PrevSet, type ProgressionSuggestion } from "./progression";
+import {
+  isSerieDeCarga,
+  isSerieValida,
+  type PrevSet,
+  type ProgressionSuggestion,
+} from "./progression";
 import type { TipoSerie } from "./types";
 
 export interface ActiveSet {
@@ -47,6 +52,10 @@ export interface ActiveSession {
   atual: number;
   /** Rest countdown, persisted so it survives navigation/unmount. */
   rest?: RestState | null;
+  /** Epoch ms when the clock was paused (null/absent = running). */
+  pausadoEm?: number | null;
+  /** Seconds already spent paused, accumulated across pauses. */
+  pausadoAcumSeg?: number;
 }
 
 /** Seconds left on the persisted rest countdown (0 when idle/finished). */
@@ -164,14 +173,14 @@ export function serieLabel(sets: ActiveSet[], index: number): string {
   return String(sets.slice(0, index + 1).filter(isSerieValida).length);
 }
 
-/** Volume ignora aquecimento. */
+/** Volume ignora aquecimento e séries por tempo. */
 export function sessionVolume(session: ActiveSession): number {
   return session.exercicios.reduce(
     (total, ex) =>
       total +
       ex.sets.reduce(
         (sub, s) =>
-          s.concluida && isSerieValida(s)
+          s.concluida && isSerieDeCarga(s)
             ? sub + (Number(s.pesoKg) || 0) * (Number(s.reps) || 0)
             : sub,
         0,
@@ -187,8 +196,29 @@ export function sessionSetsDone(session: ActiveSession): number {
   );
 }
 
+/** Wall clock since the session started, ignoring the time it spent paused. */
 export function sessionElapsed(session: ActiveSession): number {
-  return Math.max(0, Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000));
+  const start = new Date(session.iniciadoEm).getTime();
+  const end = session.pausadoEm ?? Date.now();
+  const bruto = Math.floor((end - start) / 1000);
+  return Math.max(0, bruto - (session.pausadoAcumSeg ?? 0));
+}
+
+export function isSessionPaused(session: ActiveSession | null): boolean {
+  return Boolean(session?.pausadoEm);
+}
+
+/** Toggle pause, folding the paused stretch into the accumulator on resume. */
+export function togglePause(session: ActiveSession): ActiveSession {
+  if (session.pausadoEm) {
+    const extra = Math.max(0, Math.floor((Date.now() - session.pausadoEm) / 1000));
+    return {
+      ...session,
+      pausadoEm: null,
+      pausadoAcumSeg: (session.pausadoAcumSeg ?? 0) + extra,
+    };
+  }
+  return { ...session, pausadoEm: Date.now() };
 }
 
 /** Index of the exercise being executed: current one if pending, else first pending. */

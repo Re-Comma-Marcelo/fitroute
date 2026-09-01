@@ -11,6 +11,8 @@ import { TrackedLiftPickerSheet } from "@/components/TrackedLiftPickerSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { QueryError } from "@/components/QueryError";
+import { BodyWeightCard } from "@/components/BodyWeightCard";
+import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
@@ -211,6 +213,11 @@ function ProgressPage() {
           />
         </>
       )}
+
+      <div className="mt-6 space-y-3">
+        <BodyWeightCard />
+        {allWorkouts.length ? <WorkoutCalendar workouts={workouts} /> : null}
+      </div>
 
       <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>
 

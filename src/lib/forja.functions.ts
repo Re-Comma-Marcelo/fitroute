@@ -85,6 +85,7 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
     id: String(r["id"]),
     nome: String(r["nome"]),
     descricao: String(r["descricao"] ?? ""),
+    diasSemana: ((r["dias_semana"] ?? []) as number[]).map(Number),
     exercicios: items
       .filter((i: Record<string, unknown>) => i["routine_id"] === r["id"])
       .map(toRoutineExercise),
@@ -99,15 +100,15 @@ export const persistRoutine = createServerFn({ method: "POST" })
     const client = db();
     const r = data.routine;
     const id = r.id || uid("r");
-    unwrap(
-      await client
-        .from("routines")
-        .upsert(
-          { id, user_id: DEMO_USER_ID, nome: r.nome, descricao: r.descricao },
-          { onConflict: "id" },
-        )
-        .select("id"),
-    );
+    const base = { id, user_id: DEMO_USER_ID, nome: r.nome, descricao: r.descricao };
+    // dias_semana comes from a later migration; fall back when it is missing.
+    const withDays = await client
+      .from("routines")
+      .upsert({ ...base, dias_semana: r.diasSemana ?? [] }, { onConflict: "id" })
+      .select("id");
+    if (withDays.error) {
+      unwrap(await client.from("routines").upsert(base, { onConflict: "id" }).select("id"));
+    }
     unwrap(await client.from("routine_exercises").delete().eq("routine_id", id).select("id"));
     const exercicios = r.exercicios.map((e, i) => ({ ...e, ordem: i, id: e.id || uid("rex") }));
     if (exercicios.length) {
@@ -479,3 +480,39 @@ export const deleteCustomMeal = createServerFn({ method: "POST" })
   });
 
 export type { MealSlot };
+
+export const fetchBodyWeightLog = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db().from("body_weight_log").select("*").eq("user_id", userId).order("data"),
+  ) as Record<string, unknown>[];
+  return rows.map((r) => ({
+    id: String(r["id"]),
+    data: String(r["data"]),
+    pesoKg: Number(r["peso_kg"] ?? 0),
+  }));
+});
+
+export const persistBodyWeight = createServerFn({ method: "POST" })
+  .inputValidator((data: { data: string; pesoKg: number }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const row = unwrap(
+      await db()
+        .from("body_weight_log")
+        .upsert(
+          {
+            id: `${userId}:${data.data}`,
+            user_id: userId,
+            data: data.data,
+            peso_kg: data.pesoKg,
+          },
+          { onConflict: "user_id,data" },
+        )
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return { id: String(row["id"]), data: String(row["data"]), pesoKg: Number(row["peso_kg"]) };
+  });
