@@ -318,7 +318,7 @@ function TrainPage() {
               onToggle={() => setExpanded((prev) => (prev === r.id ? null : r.id))}
               active={!!active}
               loading={loading}
-              onStart={() => startRoutine(r.id)}
+              onStart={(opts) => startRoutine(r.id, opts ?? {})}
               onPick={() => pickRoutine(r.id)}
               onDuplicate={() => void duplicate(r.id, r.nome)}
               t={t}
@@ -356,7 +356,7 @@ function RoutineCard({
   onToggle: () => void;
   active: boolean;
   loading: string | null;
-  onStart: () => void;
+  onStart: (opts?: { deload?: boolean }) => void;
   onPick: () => void;
   onDuplicate: () => void;
   t: any;
@@ -469,9 +469,17 @@ function RoutineCard({
               variant={isChoice ? "default" : "secondary"}
               className="h-12 w-full font-semibold"
               disabled={loading !== null || active}
-              onClick={onStart}
+              onClick={() => onStart()}
             >
               {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}
+            </Button>
+            <Button
+              variant="ghost"
+              className="h-10 w-full text-xs font-semibold text-muted-foreground"
+              disabled={loading !== null || active}
+              onClick={() => onStart({ deload: true })}
+            >
+              {t("Start lighter (deload)")}
             </Button>
             <div className="grid grid-cols-2 gap-2">
               <Button
