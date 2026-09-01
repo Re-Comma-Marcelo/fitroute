@@ -25,11 +25,6 @@ export function AppShell({
   const { pathname } = useLocation();
   const mainRef = useRef<HTMLElement>(null);
 
-  /**
-   * Replay the entry animation on route change without remounting the tree —
-   * keying <main> by pathname threw away children state (accordions, filters,
-   * scroll position) on every navigation.
-   */
   const t = useT();
   const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
 
