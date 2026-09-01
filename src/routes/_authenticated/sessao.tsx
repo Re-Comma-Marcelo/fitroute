@@ -131,6 +131,7 @@ function SessionPage() {
     normal: t("Normal"),
     falha: t("Failure"),
     drop: t("Drop set"),
+    tempo: t("Timed set"),
   };
   const navigate = useNavigate();
   const [session, setSession] = useState<ActiveSession | null>(null);
