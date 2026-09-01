@@ -11,6 +11,8 @@ import {
   MoreVertical,
   Replace,
   Minus,
+  Pause,
+  Play,
   Plus,
   RotateCcw,
   SkipForward,
