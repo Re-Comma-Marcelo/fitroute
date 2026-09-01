@@ -15,7 +15,10 @@ import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/li
 import { takePendingExercise } from "@/lib/session-state";
 import { blockLabels, nextGroupLetter, setSuperset, supersetsFor } from "@/lib/supersets";
 import type { Routine } from "@/lib/types";
-import { formatWeekdayShort } from "@/lib/format";
+import { formatWeekdayShort, formatKg } from "@/lib/format";
+import { getRoutineSuggestions } from "@/lib/routine-progression";
+import { getLastSetsForExercise } from "@/lib/data/workouts";
+import { isSerieDeCarga } from "@/lib/progression";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
@@ -327,9 +330,24 @@ function RoutineEditor() {
                   <span className="tap-target flex cursor-grab items-center justify-center text-muted-foreground">
                     <GripVertical className="size-5" />
                   </span>
-                  <p className="flex-1 text-base font-semibold leading-tight">
-                    {nomes[rex.exerciseId] ?? t("Exercise")}
-                  </p>
+                  <div className="flex-1">
+                    <p className="text-base font-semibold leading-tight">
+                      {nomes[rex.exerciseId] ?? t("Exercise")}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">
+                      {hints[rex.exerciseId]
+                        ? hints[rex.exerciseId]!.suggested
+                          ? t("Last {weight} · suggested {suggested}", {
+                              weight: formatKg(hints[rex.exerciseId]!.last),
+                              suggested: formatKg(hints[rex.exerciseId]!.suggested!),
+                            })
+                          : t("Last {weight} · suggested {suggested}", {
+                              weight: formatKg(hints[rex.exerciseId]!.last),
+                              suggested: formatKg(hints[rex.exerciseId]!.last),
+                            })
+                        : t("No load logged yet")}
+                    </p>
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
