@@ -64,8 +64,11 @@ import {
   restSecondsLeft,
   saveActiveSession,
   serieLabel,
+  sessionElapsed,
   sessionSetsDone,
   sessionVolume,
+  isSessionPaused,
+  togglePause,
   takePendingExercise,
   takePendingReplaceSlot,
   setPendingReplaceSlot,
@@ -75,7 +78,7 @@ import {
   type RestState,
   sessionLabel,
 } from "@/lib/session-state";
-import { incrementoPara, isSerieValida } from "@/lib/progression";
+import { incrementoPara, isSerieTempo, isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
 import {
   getExerciseHistory,
