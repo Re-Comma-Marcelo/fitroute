@@ -47,6 +47,45 @@ function RoutineEditor() {
   const [reloadKey, setReloadKey] = useState(0);
   const [groupVersion, setGroupVersion] = useState(0);
   const loaded = useRef(false);
+  /** Last logged top weight per exercise, plus the coach's suggested next load. */
+  const [hints, setHints] = useState<Record<string, { last: number; suggested?: number }>>({});
+
+  const exerciseIdsKey = (routine?.exercicios ?? []).map((e) => e.exerciseId).join(",");
+  useEffect(() => {
+    if (!routine) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const suggestions = await getRoutineSuggestions(routine);
+        const entries = await Promise.all(
+          routine.exercicios.map(async (re) => {
+            const sets = await getLastSetsForExercise(re.exerciseId);
+            const last = sets.filter(isSerieDeCarga).reduce((m, s) => Math.max(m, s.pesoKg), 0);
+            if (last <= 0) return null;
+            const sug = suggestions[re.exerciseId];
+            return [
+              re.exerciseId,
+              { last, ...(sug ? { suggested: sug.pesoSugerido } : {}) },
+            ] as const;
+          }),
+        );
+        if (!cancelled) {
+          setHints(
+            Object.fromEntries(
+              entries.filter((e): e is NonNullable<typeof e> => e !== null),
+            ) as Record<string, { last: number; suggested?: number }>,
+          );
+        }
+      } catch {
+        if (!cancelled) setHints({});
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exerciseIdsKey]);
+
 
   const groupLabels = useMemo(
     () =>
