@@ -37,6 +37,11 @@ export function AppShell({
     );
   }, [routinesQuery.data, t]);
 
+  /**
+   * Replay the entry animation on route change without remounting the tree —
+   * keying <main> by pathname threw away children state (accordions, filters,
+   * scroll position) on every navigation.
+   */
   useEffect(() => {
     const node = mainRef.current;
     if (!node) return;
