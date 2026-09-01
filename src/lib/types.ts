@@ -71,6 +71,15 @@ export interface Routine {
   nome: string;
   descricao: string;
   exercicios: RoutineExercise[];
+  /** Planned weekdays, 0 = Sunday … 6 = Saturday. Empty means unscheduled. */
+  diasSemana?: number[];
+}
+
+/** One body-weight measurement, keyed by ISO date (one per day). */
+export interface BodyWeightEntry {
+  id: string;
+  data: string;
+  pesoKg: number;
 }
 
 export interface Workout {
