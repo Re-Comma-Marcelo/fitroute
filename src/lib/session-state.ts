@@ -47,6 +47,10 @@ export interface ActiveSession {
   atual: number;
   /** Rest countdown, persisted so it survives navigation/unmount. */
   rest?: RestState | null;
+  /** Epoch ms when the clock was paused (null/absent = running). */
+  pausadoEm?: number | null;
+  /** Seconds already spent paused, accumulated across pauses. */
+  pausadoAcumSeg?: number;
 }
 
 /** Seconds left on the persisted rest countdown (0 when idle/finished). */
