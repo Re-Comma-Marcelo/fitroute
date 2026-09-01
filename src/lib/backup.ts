@@ -99,6 +99,27 @@ function isBackup(value: unknown): value is BackupFile {
   return b.app === "iron-logger" && Array.isArray(b.routines) && Array.isArray(b.workouts);
 }
 
+export interface BackupPreview {
+  exportedAt: string;
+  routines: number;
+  workouts: number;
+  sets: number;
+  hasProfile: boolean;
+}
+
+/** Read a backup file without writing anything, so the restore can be confirmed. */
+export function previewBackup(raw: string): BackupPreview {
+  const parsed: unknown = JSON.parse(raw);
+  if (!isBackup(parsed)) throw new Error("not-a-backup");
+  return {
+    exportedAt: parsed.exportedAt,
+    routines: parsed.routines.length,
+    workouts: parsed.workouts.length,
+    sets: Array.isArray(parsed.sets) ? parsed.sets.length : 0,
+    hasProfile: !!parsed.profile,
+  };
+}
+
 /**
  * Restore a backup. Existing ids are overwritten (upsert), anything unknown is
  * reported instead of silently dropped.
