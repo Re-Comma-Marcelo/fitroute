@@ -68,7 +68,7 @@ function fmt(n: number): string {
 }
 
 export function suggestProgression(input: ProgressionInput): ProgressionSuggestion | null {
-  const validas = input.anteriores.filter(isSerieValida);
+  const validas = input.anteriores.filter(isSerieDeCarga);
   if (validas.length === 0) return null;
 
   const pesoAnterior = validas.reduce((max, s) => Math.max(max, s.pesoKg), 0);
