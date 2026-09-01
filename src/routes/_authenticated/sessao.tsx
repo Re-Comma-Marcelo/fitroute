@@ -722,12 +722,14 @@ function SessionPage() {
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <div className="flex items-center justify-center gap-1 border-r border-border px-1 py-2">
+          <div className="flex items-center justify-center gap-1 px-1 py-2">
             <div className="min-w-0">
-              <dt className="label-caps">{t("Duration")}</dt>
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("Duration")}
+              </dt>
               <dd
                 className={cn(
-                  "num-mono text-base font-semibold tabular-nums",
+                  "font-mono text-lg font-semibold tabular-nums",
                   paused && "text-muted-foreground",
                 )}
               >
