@@ -256,6 +256,42 @@ function RoutineEditor() {
           />
         </div>
 
+        <div className="space-y-2">
+          <Label>{t("Planned days")}</Label>
+          <div className="flex gap-1">
+            {Array.from({ length: 7 }, (_, day) => {
+              const active = (routine.diasSemana ?? []).includes(day);
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() =>
+                    patch({
+                      diasSemana: active
+                        ? (routine.diasSemana ?? []).filter((d) => d !== day)
+                        : [...(routine.diasSemana ?? []), day].sort((a, b) => a - b),
+                    })
+                  }
+                  className={cn(
+                    "tap-target flex-1 rounded-xl border px-0 py-2 text-xs font-semibold capitalize transition-colors",
+                    active
+                      ? "border-primary/60 bg-primary/15 text-primary"
+                      : "border-border bg-card text-muted-foreground",
+                  )}
+                >
+                  {formatWeekdayShort(new Date(2024, 0, 7 + day)).slice(0, 2)}
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {t("Days you pick here make this routine today's suggestion on Home.")}
+          </p>
+        </div>
+
+
+
         <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {t("Exercises ({count})", { count: routine.exercicios.length })}
         </h2>
