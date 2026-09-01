@@ -212,6 +212,11 @@ function ProgressPage() {
         </>
       )}
 
+      <div className="mt-6 space-y-3">
+        <BodyWeightCard />
+        {allWorkouts.length ? <WorkoutCalendar workouts={workouts} /> : null}
+      </div>
+
       <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>
 
       {!workouts.length && !loading ? (
