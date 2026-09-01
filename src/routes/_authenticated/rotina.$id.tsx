@@ -15,6 +15,8 @@ import { deleteRoutine, getRoutine, newRoutineExercise, saveRoutine } from "@/li
 import { takePendingExercise } from "@/lib/session-state";
 import { blockLabels, nextGroupLetter, setSuperset, supersetsFor } from "@/lib/supersets";
 import type { Routine } from "@/lib/types";
+import { formatWeekdayShort } from "@/lib/format";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
