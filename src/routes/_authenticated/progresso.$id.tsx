@@ -308,6 +308,11 @@ function WorkoutDetail() {
                       <span className="font-semibold">
                         {formatKg(s.pesoKg)} × {s.reps}
                         {s.rpe ? ` · RPE ${s.rpe}` : ""}
+                        {setE1rm(s) > 0 ? (
+                          <span className="ml-2 font-normal text-muted-foreground">
+                            {t("e1RM {value}", { value: formatKg(setE1rm(s)) })}
+                          </span>
+                        ) : null}
                       </span>
                     )}
                   </li>
