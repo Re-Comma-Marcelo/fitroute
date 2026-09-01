@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { QueryError } from "@/components/QueryError";
 import { BodyWeightCard } from "@/components/BodyWeightCard";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
+import { MuscleVolumeCard } from "@/components/MuscleVolumeCard";
+import { CoachNotesCard } from "@/components/CoachNotesCard";
+import { muscleVolumeComparison } from "@/lib/muscle-volume";
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
@@ -75,6 +78,10 @@ function ProgressPage() {
   }, [allWorkouts, routineFilter, weeks]);
 
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
+  const muscleRows = useMemo(
+    () => muscleVolumeComparison(workouts, sets, exercises),
+    [workouts, sets, exercises],
+  );
   const consistency = useMemo(() => adherence(workouts, weeklyTarget), [workouts, weeklyTarget]);
   const series = useMemo(() => weeklySeries(workouts, weeks), [workouts, weeks]);
   const plateau = useMemo(
@@ -204,6 +211,8 @@ function ProgressPage() {
 
           <ProgressTrendChart data={series} />
 
+          <MuscleVolumeCard rows={muscleRows} />
+
           {plateau ? <PlateauCoachCard flag={plateau} /> : null}
 
           <KeyLiftsSection
@@ -216,6 +225,7 @@ function ProgressPage() {
 
       <div className="mt-6 space-y-3">
         <BodyWeightCard />
+        <CoachNotesCard />
         {allWorkouts.length ? <WorkoutCalendar workouts={workouts} /> : null}
       </div>
 
