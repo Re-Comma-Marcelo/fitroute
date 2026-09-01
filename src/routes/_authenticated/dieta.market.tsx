@@ -15,6 +15,7 @@ import {
 } from "@/lib/data/nutrition";
 import { estimateItemPrice, estimateTotalPrice } from "@/lib/data/prices";
 import type { ShoppingItem } from "@/lib/nutrition-types";
+import { QueryError } from "@/components/QueryError";
 
 export const Route = createFileRoute("/_authenticated/dieta/market")({
   head: () => ({
