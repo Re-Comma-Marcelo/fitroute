@@ -85,6 +85,7 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
     id: String(r["id"]),
     nome: String(r["nome"]),
     descricao: String(r["descricao"] ?? ""),
+    diasSemana: ((r["dias_semana"] ?? []) as number[]).map(Number),
     exercicios: items
       .filter((i: Record<string, unknown>) => i["routine_id"] === r["id"])
       .map(toRoutineExercise),
@@ -103,7 +104,13 @@ export const persistRoutine = createServerFn({ method: "POST" })
       await client
         .from("routines")
         .upsert(
-          { id, user_id: DEMO_USER_ID, nome: r.nome, descricao: r.descricao },
+          {
+            id,
+            user_id: DEMO_USER_ID,
+            nome: r.nome,
+            descricao: r.descricao,
+            dias_semana: r.diasSemana ?? [],
+          },
           { onConflict: "id" },
         )
         .select("id"),
