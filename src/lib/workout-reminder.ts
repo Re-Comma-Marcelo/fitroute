@@ -38,9 +38,17 @@ export function setReminder(next: ReminderSettings) {
   window.localStorage.setItem(KEY, JSON.stringify(next));
 }
 
+/** Ask for permission on a real user gesture, then persist the schedule. */
 export async function enableReminder(time: string): Promise<boolean> {
   if (!notificationsSupported()) return false;
-  const granted = await ensureNotificationPermission();
+  let granted = Notification.permission === "granted";
+  if (!granted && Notification.permission !== "denied") {
+    try {
+      granted = (await Notification.requestPermission()) === "granted";
+    } catch {
+      granted = false;
+    }
+  }
   if (!granted) return false;
   setReminder({ enabled: true, time });
   return true;
