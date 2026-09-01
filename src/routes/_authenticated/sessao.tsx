@@ -722,10 +722,37 @@ function SessionPage() {
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
-          <HeaderStat label={t("Duration")} value={formatDuration(elapsed)} mono />
+          <div className="flex items-center justify-center gap-1 border-r border-border px-1 py-2">
+            <div className="min-w-0">
+              <dt className="label-caps">{t("Duration")}</dt>
+              <dd
+                className={cn(
+                  "num-mono text-base font-semibold tabular-nums",
+                  paused && "text-muted-foreground",
+                )}
+              >
+                {formatDuration(elapsed)}
+              </dd>
+            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="tap-target shrink-0"
+              aria-label={paused ? t("Resume clock") : t("Pause clock")}
+              aria-pressed={paused}
+              onClick={() => update((s) => togglePause(s))}
+            >
+              {paused ? <Play className="size-5" /> : <Pause className="size-5" />}
+            </Button>
+          </div>
           <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
           <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
+        {paused ? (
+          <p className="mx-auto max-w-md px-3 pb-2 text-center text-[11px] font-semibold text-muted-foreground">
+            {t("Clock paused — logging still works.")}
+          </p>
+        ) : null}
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
