@@ -68,6 +68,8 @@ import {
   restoreBackup,
   type BackupPreview,
 } from "@/lib/backup";
+import { backupIsStale, markBackupExported } from "@/lib/backup-reminder";
+import { WorkoutReminderSection } from "@/components/WorkoutReminderSection";
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -649,6 +651,7 @@ function ProfilePage() {
 
           <RestNotifyToggle />
 
+          <WorkoutReminderSection />
           <DataBackupSection />
 
           <ImportAndQaSection />
@@ -925,12 +928,18 @@ function DataBackupSection() {
   const [busy, setBusy] = useState(false);
   const [pending, setPending] = useState<{ raw: string; preview: BackupPreview } | null>(null);
   const [includeProfile, setIncludeProfile] = useState(true);
+  const [stale, setStale] = useState(false);
+
+  // localStorage read stays out of render so SSR and hydration agree.
+  useEffect(() => setStale(backupIsStale()), []);
 
   async function exportJson() {
     setBusy(true);
     try {
       const backup = await buildBackup();
       downloadFile(backupFileName("json"), JSON.stringify(backup, null, 2), "application/json");
+      markBackupExported();
+      setStale(false);
     } catch {
       toast.error(t("Could not export your data. Try again in a moment."));
     } finally {
@@ -992,6 +1001,11 @@ function DataBackupSection() {
           {t("Export a full backup or a spreadsheet of every set you logged.")}
         </p>
       </div>
+      {stale ? (
+        <p className="rounded-lg border border-warn/40 bg-warn/10 px-3 py-2 text-xs leading-snug text-muted-foreground">
+          {t("You have no recent backup. Export your data — it takes one tap.")}
+        </p>
+      ) : null}
       <div className="grid grid-cols-2 gap-2">
         <Button
           type="button"
