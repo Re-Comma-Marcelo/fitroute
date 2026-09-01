@@ -1346,12 +1346,14 @@ function SetRow({
           <DropdownMenuTrigger asChild>
             <button
               type="button"
-              className={`tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold ${
-                aquecimento ? "text-warn" : ""
-              }`}
+              className={cn(
+                "tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold",
+                aquecimento && "text-warn",
+                tempo && "text-info",
+              )}
               aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
             >
-              {label}
+              {tempo ? `${label}s` : label}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
