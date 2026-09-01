@@ -365,7 +365,8 @@ function SessionPage() {
     );
   }
 
-  const elapsed = Math.floor((Date.now() - new Date(session.iniciadoEm).getTime()) / 1000);
+  const elapsed = sessionElapsed(session);
+  const paused = isSessionPaused(session);
   const restLeft = restSecondsLeft(session);
 
   function startRest(segundos: number) {
