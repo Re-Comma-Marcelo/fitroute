@@ -17,7 +17,7 @@ import { useWeightUnit } from "@/lib/use-weight-unit";
  */
 export function BodyWeightCard() {
   const t = useT();
-  const unit = useWeightUnit();
+  const { unit } = useWeightUnit();
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState("");
 
