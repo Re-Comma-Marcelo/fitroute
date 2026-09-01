@@ -24,7 +24,7 @@ export function SessionDiffCard({
         <span
           className={cn(
             "font-semibold",
-            diff.volumeDelta > 0 && "text-emerald-400",
+            diff.volumeDelta > 0 && "text-success",
             diff.volumeDelta < 0 && "text-destructive",
           )}
         >
