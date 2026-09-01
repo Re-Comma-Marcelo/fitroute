@@ -3,7 +3,8 @@ import type { Lang } from "./i18n/types";
 export type Sexo = "masculino" | "feminino" | "outro";
 export type NivelAtividade = "sedentario" | "leve" | "moderado" | "intenso" | "atleta";
 export type Objetivo = "cutting" | "manutencao" | "bulking";
-export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop";
+/** "tempo" = timed set (plank, carry, cardio): reps holds seconds, weight is optional. */
+export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop" | "tempo";
 export type OrigemTreino = "rotina" | "branco";
 
 export type PreferredTime = "morning" | "midday" | "afternoon" | "evening";
