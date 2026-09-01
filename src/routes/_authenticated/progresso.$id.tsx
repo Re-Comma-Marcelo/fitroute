@@ -107,6 +107,12 @@ function WorkoutDetail() {
     allWorkoutsQuery.data?.find((w) => w.id === workoutId)?.iniciadoEm ?? "";
 
   const workout = workoutQuery.data;
+  const tut = timeUnderTension(sets);
+  const diff =
+    workout && logQuery.data
+      ? compareWithPreviousRun(workout, sets, allWorkoutsQuery.data ?? [], logQuery.data.sets)
+      : null;
+
 
   function patchDraft(setId: string, field: "pesoKg" | "reps", raw: string) {
     const parsed = Number(raw.replace(",", "."));
