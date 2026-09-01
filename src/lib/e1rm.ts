@@ -1,5 +1,5 @@
 import type { WorkoutSet } from "./types";
-import { isSerieValida } from "./progression";
+import { isSerieDeCarga } from "./progression";
 
 /**
  * Estimated one-rep max (Epley). Pure helper: 80kg x 5 and 85kg x 3 are both
@@ -12,7 +12,7 @@ export function e1rm(pesoKg: number, reps: number): number {
 }
 
 export function setE1rm(set: Pick<WorkoutSet, "pesoKg" | "reps" | "tipoSerie">): number {
-  if (!isSerieValida(set)) return 0;
+  if (!isSerieDeCarga(set)) return 0;
   return e1rm(set.pesoKg, set.reps);
 }
 
