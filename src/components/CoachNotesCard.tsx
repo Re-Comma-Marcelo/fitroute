@@ -80,9 +80,19 @@ export function CoachNotesCard() {
           </li>
         ))}
       </ul>
+      {notes.length > 5 ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="tap-target mt-2 text-xs font-semibold text-primary"
+        >
+          {showAll ? t("Show less") : t("Show all {count} notes", { count: notes.length })}
+        </button>
+      ) : null}
       {notes.length === 0 ? (
         <p className="mt-2 text-xs text-muted-foreground">{t("No notes in this filter yet.")}</p>
       ) : null}
+
     </section>
   );
 }
