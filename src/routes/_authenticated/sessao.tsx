@@ -112,12 +112,13 @@ const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 /**
- * Row 1: set type | previous | RPE | check. Row 2: -/kg/+ and -/reps/+ steppers.
- * Every tap target is 44px and the tracks fit 320-430px with no horizontal scroll.
+ * One line per set: type | previous | kg | reps | RPE | check.
+ * Fine weight/rep stepping lives in a long-press popover so the row stays single-line.
+ * Every tap target is at least 40px and the track fits 320-430px with no horizontal scroll.
  */
-const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
-const ROW_STEP =
-  "grid grid-cols-[44px_minmax(3rem,1fr)_44px_44px_minmax(3rem,1fr)_44px] items-center gap-0.5";
+const ROW_GRID =
+  "grid grid-cols-[40px_minmax(0,1fr)_58px_50px_40px_44px] items-center gap-1 sm:gap-1.5";
+
 
 function useTick(active: boolean) {
   const [, setN] = useState(0);
