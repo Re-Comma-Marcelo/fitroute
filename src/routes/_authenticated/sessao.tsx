@@ -962,25 +962,26 @@ function SessionPage() {
                       t={t}
                     />
                   ) : null}
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-1 flex items-center gap-1">
                     <Button
                       variant="ghost"
-                      className="h-11 justify-center text-sm font-semibold text-muted-foreground"
+                      className="h-10 px-2 text-xs font-semibold text-muted-foreground"
                       onClick={() => addSet(exIdx)}
                     >
-                      <Plus className="mr-1 size-4" /> {t("Add set")}
+                      <Plus className="mr-1 size-3.5" /> {t("Add set")}
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-11 justify-center text-sm font-semibold text-info"
+                      className="h-10 px-2 text-xs font-semibold text-info"
                       disabled={
                         !ex.sets.some((s) => s.concluida) || !ex.sets.some((s) => !s.concluida)
                       }
                       onClick={() => repeatLastSet(exIdx)}
                     >
-                      <RotateCcw className="mr-1 size-4" /> {t("Repeat set")}
+                      <RotateCcw className="mr-1 size-3.5" /> {t("Repeat set")}
                     </Button>
                   </div>
+
                   <Textarea
                     value={ex.notas}
                     onChange={(e) =>
