@@ -815,11 +815,8 @@ function SessionPage() {
                         ) : null}
                         <span className="min-w-0 truncate">{ex.nome}</span>
                       </p>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="font-semibold tabular-nums text-train">
-                          {feitas}/{validas}
-                        </span>
-                        <span>
+                      <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
+                        <span className="truncate tabular-nums">
                           {t("{count}/{total} sets · target {min}-{max} reps", {
                             count: feitas,
                             total: validas,
@@ -827,6 +824,7 @@ function SessionPage() {
                             max: ex.repsMax,
                           })}
                         </span>
+
                         {exDone ? (
                           <Check
                             className="size-3.5 shrink-0 text-success"
