@@ -33,6 +33,8 @@ import { CoachChatButton } from "@/components/CoachChatSheet";
 import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
+import { EMPTY_TARGETS, getWeeklyTargets, setWeeklyTargets } from "@/lib/weekly-targets";
+
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
