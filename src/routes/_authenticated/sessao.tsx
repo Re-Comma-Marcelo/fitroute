@@ -381,12 +381,21 @@ function SessionPage() {
   const elapsed = sessionElapsed(session);
   const paused = isSessionPaused(session);
   const restLeft = restSecondsLeft(session);
+  const restOverdue = restOverdueSeconds(session);
 
   function startRest(segundos: number) {
     if (segundos <= 0) return;
-    update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+    update((s) => ({
+      ...s,
+      restExpirouEm: null,
+      rest: { total: segundos, endsAt: Date.now() + segundos * 1000 },
+    }));
     // Backgrounded phones stop running timers; a notification still lands.
     scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
+  }
+
+  function clearOverdue() {
+    update((s) => ({ ...s, restExpirouEm: null }));
   }
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
@@ -399,7 +408,8 @@ function SessionPage() {
           t("Rest is over"),
           t("Time for your next set."),
         );
-      return { ...s, rest: next };
+      return { ...s, rest: next, restExpirouEm: null };
+
     });
   }
 
