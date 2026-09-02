@@ -1258,7 +1258,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
         <button
           type="button"
           aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
-          className={`tap-target h-11 w-full rounded-lg border text-xs font-semibold tabular-nums ${
+          className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
             value
               ? "border-info/60 bg-info/15 text-info"
               : "border-border bg-muted text-muted-foreground"
