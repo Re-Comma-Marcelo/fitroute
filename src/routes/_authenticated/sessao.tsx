@@ -66,6 +66,8 @@ import {
   loadActiveSession,
   makeSets,
   restSecondsLeft,
+  restOverdueSeconds,
+
   saveActiveSession,
   serieLabel,
   sessionElapsed,
@@ -164,14 +166,19 @@ function SessionPage() {
   }, []);
 
   /** Clear the persisted rest countdown (it is consumed once and never re-fires). */
-  const clearRest = useCallback(() => {
+  const clearRest = useCallback((markOverdue = false) => {
     setSession((prev) => {
       if (!prev?.rest) return prev;
-      const next = { ...prev, rest: null };
+      const next = {
+        ...prev,
+        rest: null,
+        restExpirouEm: markOverdue ? Date.now() : null,
+      };
       saveActiveSession(next);
       return next;
     });
   }, []);
+
 
   /**
    * Prominent rest timer: sound + vibration + full-screen overlay when done.
@@ -180,11 +187,13 @@ function SessionPage() {
    */
   const onRestExpired = useCallback(
     (live: boolean) => {
-      clearRest();
+      // Live expiry starts the "overdue" count-up; stale rest is dropped silently.
+      clearRest(live);
       if (live) setRestFinished(true);
     },
     [clearRest],
   );
+
   useRestExpiry(restEndsAt, onRestExpired);
   useEffect(() => {
     if (restEndsAt) setRestFinished(false);
@@ -374,12 +383,21 @@ function SessionPage() {
   const elapsed = sessionElapsed(session);
   const paused = isSessionPaused(session);
   const restLeft = restSecondsLeft(session);
+  const restOverdue = restOverdueSeconds(session);
 
   function startRest(segundos: number) {
     if (segundos <= 0) return;
-    update((s) => ({ ...s, rest: { total: segundos, endsAt: Date.now() + segundos * 1000 } }));
+    update((s) => ({
+      ...s,
+      restExpirouEm: null,
+      rest: { total: segundos, endsAt: Date.now() + segundos * 1000 },
+    }));
     // Backgrounded phones stop running timers; a notification still lands.
     scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
+  }
+
+  function clearOverdue() {
+    update((s) => ({ ...s, restExpirouEm: null }));
   }
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
@@ -392,7 +410,8 @@ function SessionPage() {
           t("Rest is over"),
           t("Time for your next set."),
         );
-      return { ...s, rest: next };
+      return { ...s, rest: next, restExpirouEm: null };
+
     });
   }
 
@@ -1019,17 +1038,19 @@ function SessionPage() {
         />
       </main>
 
-      {rest ? (
+      {rest || restOverdue > 0 ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
           <RestIsland
-            total={rest.total}
+            total={rest?.total ?? 0}
             left={restLeft}
+            overdue={restOverdue}
             onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
             onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-            onSkip={() => patchRest(() => null)}
+            onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
           />
         </div>
       ) : null}
+
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">

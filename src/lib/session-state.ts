@@ -52,10 +52,13 @@ export interface ActiveSession {
   atual: number;
   /** Rest countdown, persisted so it survives navigation/unmount. */
   rest?: RestState | null;
+  /** Epoch ms when the rest countdown hit zero (drives the "overdue" read). */
+  restExpirouEm?: number | null;
   /** Epoch ms when the clock was paused (null/absent = running). */
   pausadoEm?: number | null;
   /** Seconds already spent paused, accumulated across pauses. */
   pausadoAcumSeg?: number;
+
 }
 
 /** Seconds left on the persisted rest countdown (0 when idle/finished). */
@@ -63,6 +66,16 @@ export function restSecondsLeft(session: ActiveSession | null): number {
   if (!session?.rest) return 0;
   return Math.max(0, Math.round((session.rest.endsAt - Date.now()) / 1000));
 }
+
+/** How long the rest window has been over — stops being shown after 10 min. */
+export const REST_OVERDUE_WINDOW_SEG = 600;
+
+export function restOverdueSeconds(session: ActiveSession | null): number {
+  if (!session?.restExpirouEm || session.rest) return 0;
+  const elapsed = Math.floor((Date.now() - session.restExpirouEm) / 1000);
+  return elapsed > 0 && elapsed <= REST_OVERDUE_WINDOW_SEG ? elapsed : 0;
+}
+
 
 const KEY = "forja.activeSession.v1";
 const PENDING_EX_KEY = "forja.pendingExercise.v1";

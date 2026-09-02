@@ -18,6 +18,8 @@ import {
   currentExerciseName,
   loadActiveSession,
   restSecondsLeft,
+  restOverdueSeconds,
+
   saveActiveSession,
   sessionElapsed,
   type ActiveSession,
@@ -57,15 +59,24 @@ export function SessionMiniPlayer() {
    * stuck at 0:00 just because you switched tabs.
    */
   const onSessionScreen = location.pathname.startsWith("/sessao");
-  const clearRest = useCallback(() => {
+  const clearRest = useCallback((live: boolean) => {
     const current = loadActiveSession();
     if (!current?.rest) return;
-    const next = { ...current, rest: null };
+    // Live expiry keeps an "overdue" marker so the island counts up instead.
+    const next = { ...current, rest: null, restExpirouEm: live ? Date.now() : null };
     saveActiveSession(next);
     cancelRestNotification();
     setSession(next);
   }, []);
   useRestExpiry(session?.rest?.endsAt ?? null, clearRest, !onSessionScreen);
+
+  const clearOverdue = useCallback(() => {
+    const current = loadActiveSession();
+    if (!current) return;
+    const next = { ...current, restExpirouEm: null };
+    saveActiveSession(next);
+    setSession(next);
+  }, []);
 
   const patchRest = useCallback((mutate: (r: RestState) => RestState | null) => {
     const current = loadActiveSession();
@@ -78,7 +89,7 @@ export function SessionMiniPlayer() {
         t("Rest is over"),
         t("Time for your next set."),
       );
-    const next = { ...current, rest };
+    const next = { ...current, rest, restExpirouEm: null };
     saveActiveSession(next);
     setSession(next);
   }, [t]);
@@ -86,6 +97,7 @@ export function SessionMiniPlayer() {
   if (!session) return null;
 
   const restLeft = restSecondsLeft(session);
+  const restOverdue = restOverdueSeconds(session);
   const setsDone = sessionSetsDone(session);
   const setsTotal = session.exercicios
     .filter((ex) => !ex.pulado)
@@ -94,15 +106,17 @@ export function SessionMiniPlayer() {
   return (
     <div className="z-40 shrink-0 space-y-2 px-3 pb-2">
       {/* Rest island: only outside the session screen, which shows its own. */}
-      {!onSessionScreen && session.rest && restLeft > 0 ? (
+      {!onSessionScreen && ((session.rest && restLeft > 0) || restOverdue > 0) ? (
         <RestIsland
-          total={session.rest.total}
+          total={session.rest?.total ?? 0}
           left={restLeft}
+          overdue={restOverdue}
           onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
           onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-          onSkip={() => patchRest(() => null)}
+          onSkip={() => (session.rest ? patchRest(() => null) : clearOverdue())}
         />
       ) : null}
+
 
       <div className="mx-auto flex max-w-md items-center gap-1 rounded-full border border-primary/30 bg-card/90 py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl">
         <Link
