@@ -409,18 +409,7 @@ function RoutineEditor() {
                     size="icon"
                     className="tap-target text-destructive"
                     aria-label={t("Remove exercise")}
-                    onClick={() =>
-                      setRoutine((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              exercicios: prev.exercicios
-                                .filter((_, i) => i !== idx)
-                                .map((e, i) => ({ ...e, ordem: i })),
-                            }
-                          : prev,
-                      )
-                    }
+                    onClick={() => removeExercise(idx)}
                   >
                     <Trash2 className="size-5" />
                   </Button>
