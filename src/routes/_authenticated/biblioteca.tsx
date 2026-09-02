@@ -221,6 +221,35 @@ function LibraryPage() {
           />
         ) : showFolders ? (
           <>
+            {favoriteList.length ? (
+              <>
+                <div className="mt-5 flex items-end justify-between">
+                  <p className="label-caps flex items-center gap-1.5">
+                    <Star className="size-3.5 fill-train text-train" /> {t("Favorites")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOnlyFavorites(true)}
+                    className="text-xs font-semibold text-primary"
+                  >
+                    {t("See all")}
+                  </button>
+                </div>
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {favoriteList.slice(0, 5).map((e) => (
+                    <ExerciseRow
+                      key={e.id}
+                      exercise={e}
+                      favorite
+                      onChoose={() => choose(e)}
+                      onDetail={() => setDetail(e)}
+                      onStar={() => star(e.id)}
+                    />
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
             <p className="label-caps mt-5">{t("Muscle groups")}</p>
             <ul className="mt-2 grid grid-cols-2 gap-3">
               {folders.map((folder) => (
@@ -253,6 +282,7 @@ function LibraryPage() {
               <p className="mt-3 text-sm text-muted-foreground">{t("Loading…")}</p>
             ) : null}
           </>
+
         ) : (
           <>
             <div className="mt-4 flex flex-wrap items-center gap-2">
