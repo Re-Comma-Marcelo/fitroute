@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Bar, BarChart, Line, LineChart, ResponsiveContainer, XAxis } from "recharts";
 import type { WeekPoint } from "@/lib/progress-analytics";
+import { formatDurationShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-type Mode = "volume" | "sessions" | "rpe";
+type Mode = "volume" | "sessions" | "rpe" | "time";
 
 export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
   const t = useT();
   const [mode, setMode] = useState<Mode>("volume");
-  const hasData = data.some((d) => d.volume > 0 || d.sessions > 0);
+  const hasData = data.some((d) => d.volume > 0 || d.sessions > 0 || d.tempoSeg > 0);
+  const hasTempo = data.some((d) => d.tempoSeg > 0);
 
   const latest = data[data.length - 1];
   const rated = data.filter((d) => d.rpe > 0);
@@ -18,9 +20,15 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
       ? t("{val}t this week", { val: Math.round((latest?.volume ?? 0) / 1000) })
       : mode === "sessions"
         ? t("{count} sessions this week", { count: latest?.sessions ?? 0 })
-        : rated.length
-          ? t("{val} avg RPE", { val: rated[rated.length - 1]!.rpe })
-          : t("No RPE logged yet");
+        : mode === "time"
+          ? t("{time} under tension", { time: formatDurationShort(latest?.tempoSeg ?? 0) })
+          : rated.length
+            ? t("{val} avg RPE", { val: rated[rated.length - 1]!.rpe })
+            : t("No RPE logged yet");
+
+  const modes: Mode[] = hasTempo
+    ? ["volume", "sessions", "rpe", "time"]
+    : ["volume", "sessions", "rpe"];
 
   return (
     <section className="mt-4 rounded-2xl border border-border bg-card p-4">
@@ -30,7 +38,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
           <p className="font-display mt-0.5 text-base font-semibold tabular-nums">{headline}</p>
         </div>
         <div className="flex rounded-full border border-border p-0.5">
-          {(["volume", "sessions", "rpe"] as Mode[]).map((m) => (
+          {modes.map((m) => (
             <button
               key={m}
               type="button"
@@ -45,6 +53,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
           ))}
         </div>
       </header>
+
 
       <div className="mt-3 h-32">
         {hasData ? (
