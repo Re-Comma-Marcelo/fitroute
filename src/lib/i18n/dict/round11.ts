@@ -84,5 +84,8 @@ export const dict: DictFragment = {
     "{weeks} weeks before your deadline.": "{weeks} weken voor je deadline.",
     "{weeks} weeks after your deadline.": "{weeks} weken na je deadline.",
     "Hold to adjust": "Houd vast om aan te passen",
+    "Skip rest": "Rust overslaan",
+    "Add 15 seconds": "15 seconden toevoegen",
+    "Subtract 15 seconds": "15 seconden eraf",
   },
 };
