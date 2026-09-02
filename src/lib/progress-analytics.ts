@@ -173,7 +173,9 @@ export function weeklySeries(
       volume: Math.round(entry.volume),
       sessions: entry.sessions,
       rpe: rpe && rpe.count ? Math.round((rpe.sum / rpe.count) * 10) / 10 : 0,
+      tempoSeg: tempoBuckets.get(key) ?? 0,
     });
+
     cursor.setDate(cursor.getDate() + 7);
   }
   return out;
