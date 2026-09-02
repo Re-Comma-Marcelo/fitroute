@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,13 @@ import { BodyWeightCard } from "@/components/BodyWeightCard";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { MuscleVolumeCard } from "@/components/MuscleVolumeCard";
 import { CoachNotesCard } from "@/components/CoachNotesCard";
+import { PersonalRecordsCard } from "@/components/PersonalRecordsCard";
+import { ExerciseCompareCard } from "@/components/ExerciseCompareCard";
+import { WeekSummaryCard } from "@/components/WeekSummaryCard";
+import { weekSummary } from "@/lib/week-summary";
+import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 import { muscleVolumeComparison } from "@/lib/muscle-volume";
+
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
