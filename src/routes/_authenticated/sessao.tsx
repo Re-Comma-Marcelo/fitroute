@@ -112,12 +112,13 @@ const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 /**
- * Row 1: set type | previous | RPE | check. Row 2: -/kg/+ and -/reps/+ steppers.
- * Every tap target is 44px and the tracks fit 320-430px with no horizontal scroll.
+ * One line per set: type | previous | kg | reps | RPE | check.
+ * Fine weight/rep stepping lives in a long-press popover so the row stays single-line.
+ * Every tap target is at least 40px and the track fits 320-430px with no horizontal scroll.
  */
-const ROW_TOP = "grid grid-cols-[44px_minmax(0,1fr)_44px_44px] items-center gap-1.5";
-const ROW_STEP =
-  "grid grid-cols-[44px_minmax(3rem,1fr)_44px_44px_minmax(3rem,1fr)_44px] items-center gap-0.5";
+const ROW_GRID =
+  "grid grid-cols-[40px_minmax(0,1fr)_58px_50px_40px_44px] items-center gap-1 sm:gap-1.5";
+
 
 function useTick(active: boolean) {
   const [, setN] = useState(0);
@@ -814,11 +815,8 @@ function SessionPage() {
                         ) : null}
                         <span className="min-w-0 truncate">{ex.nome}</span>
                       </p>
-                      <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
-                        <span className="font-semibold tabular-nums text-train">
-                          {feitas}/{validas}
-                        </span>
-                        <span>
+                      <p className="mt-0.5 flex items-center gap-1.5 truncate text-[11px] text-muted-foreground">
+                        <span className="truncate tabular-nums">
                           {t("{count}/{total} sets · target {min}-{max} reps", {
                             count: feitas,
                             total: validas,
@@ -826,6 +824,7 @@ function SessionPage() {
                             max: ex.repsMax,
                           })}
                         </span>
+
                         {exDone ? (
                           <Check
                             className="size-3.5 shrink-0 text-success"
@@ -857,7 +856,7 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <RestPicker
                       value={ex.descansoSeg}
                       onChange={(segundos) => setExerciseRest(exIdx, segundos)}
@@ -927,14 +926,16 @@ function SessionPage() {
               {aberto ? (
                 <div className="px-3 pb-3">
                   <div
-                    className={`${ROW_TOP} mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
                     <span className="text-center">{t("Set")}</span>
-                    <span>{t("Previous")}</span>
+                    <span className="truncate">{t("Previous")}</span>
+                    <span className="text-center">{weightUnitLabel()}</span>
+                    <span className="text-center">{t("Reps")}</span>
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
-                  <ul className="space-y-2">
+                  <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
                       <SetRow
                         key={set.id}
@@ -951,6 +952,7 @@ function SessionPage() {
                       />
                     ))}
                   </ul>
+
                   {coachMark === 1 && exIdx === session.atual ? (
                     <CoachMark
                       text={t("Adjust weight and reps, then tap ✓ when the set is done")}
@@ -958,25 +960,26 @@ function SessionPage() {
                       t={t}
                     />
                   ) : null}
-                  <div className="mt-2 grid grid-cols-2 gap-2">
+                  <div className="mt-1 flex items-center gap-1">
                     <Button
                       variant="ghost"
-                      className="h-11 justify-center text-sm font-semibold text-muted-foreground"
+                      className="h-10 px-2 text-xs font-semibold text-muted-foreground"
                       onClick={() => addSet(exIdx)}
                     >
-                      <Plus className="mr-1 size-4" /> {t("Add set")}
+                      <Plus className="mr-1 size-3.5" /> {t("Add set")}
                     </Button>
                     <Button
                       variant="ghost"
-                      className="h-11 justify-center text-sm font-semibold text-info"
+                      className="h-10 px-2 text-xs font-semibold text-info"
                       disabled={
                         !ex.sets.some((s) => s.concluida) || !ex.sets.some((s) => !s.concluida)
                       }
                       onClick={() => repeatLastSet(exIdx)}
                     >
-                      <RotateCcw className="mr-1 size-4" /> {t("Repeat set")}
+                      <RotateCcw className="mr-1 size-3.5" /> {t("Repeat set")}
                     </Button>
                   </div>
+
                   <Textarea
                     value={ex.notas}
                     onChange={(e) =>
@@ -1193,7 +1196,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
+          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
           {t("Weight increased")}
@@ -1214,7 +1217,7 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-semibold text-info"
+          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-semibold text-info"
         >
           <Timer className="size-3.5" strokeWidth={2.6} />
           {t("Rest: {time}", { time: formatRest(value) })}
@@ -1255,7 +1258,7 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
         <button
           type="button"
           aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
-          className={`tap-target h-11 w-full rounded-lg border text-xs font-semibold tabular-nums ${
+          className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
             value
               ? "border-info/60 bg-info/15 text-info"
               : "border-border bg-muted text-muted-foreground"
@@ -1393,110 +1396,165 @@ function SetRow({
   return (
     <li
       className={cn(
-        "space-y-1 rounded-lg p-1",
-        set.concluida ? "bg-primary/10" : "bg-muted/20",
+        ROW_GRID,
+        "px-0.5 py-1",
+        set.concluida ? "bg-primary/10" : "",
         justDone ? "set-flash" : "",
       )}
     >
-      <div className={ROW_TOP}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                "tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold",
-                aquecimento && "text-warn",
-                tempo && "text-info",
-              )}
-              aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
-            >
-              {tempo ? `${label}s` : label}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
-              <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-                {typeName[tipo]}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-              <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "tap-target flex h-10 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold",
+              aquecimento && "text-warn",
+              tempo && "text-info",
+            )}
+            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
+          >
+            {tempo ? `${label}s` : label}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
+            <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
+              {typeName[tipo]}
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          ))}
+          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
+            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <div className="min-w-0 text-[11px] font-semibold leading-tight text-muted-foreground">
-          {set.antPeso !== null && set.antReps !== null ? (
-            <>
-              <span className="block truncate tabular-nums">
-                {formatKg(set.antPeso)} x {set.antReps}
-              </span>
-              <span className="block truncate tabular-nums">
-                {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
-              </span>
-            </>
-          ) : (
-            <span>—</span>
-          )}
-        </div>
+      <span className="min-w-0 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
+        {set.antPeso !== null && set.antReps !== null
+          ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
+          : "—"}
+      </span>
 
-        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+      <StepperField
+        value={shownWeight}
+        onChange={writeWeight}
+        onBlur={() => setDraft(null)}
+        onStep={(dir) => stepKg(dir * passoKg)}
+        inputMode="decimal"
+        placeholder={weightUnitLabel()}
+        ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
+        stepDownLabel={t("Decrease weight")}
+        stepUpLabel={t("Increase weight")}
+        hint={t("Hold to adjust")}
+      />
 
-        <button
-          type="button"
-          onClick={onCheck}
-          aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
-          aria-pressed={set.concluida}
-          className={cn(
-            "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
-            set.concluida
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-muted text-muted-foreground",
-            justDone ? "set-pop" : "",
-          )}
-        >
-          <Check className="size-6" strokeWidth={3} />
-        </button>
-      </div>
+      <StepperField
+        value={set.reps}
+        onChange={(v) => onField("reps", v)}
+        onStep={(dir) => stepReps(dir * (tempo ? 5 : 1))}
+        inputMode="numeric"
+        placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
+        ariaLabel={tempo ? t("Seconds") : t("Reps")}
+        stepDownLabel={tempo ? t("Decrease seconds") : t("Decrease reps")}
+        stepUpLabel={tempo ? t("Increase seconds") : t("Increase reps")}
+        hint={t("Hold to adjust")}
+      />
 
-      <div className={ROW_STEP}>
-        <StepButton dir="down" label={t("Decrease weight")} onClick={() => stepKg(-passoKg)} />
-        <Input
-          value={shownWeight}
-          onChange={(e) => writeWeight(e.target.value)}
-          onBlur={() => setDraft(null)}
-          inputMode="decimal"
-          enterKeyHint="next"
-          onKeyDown={focusNextField}
-          placeholder={weightUnitLabel()}
-          aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
-          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
-        />
-        <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
-        <StepButton
-          dir="down"
-          label={tempo ? t("Decrease seconds") : t("Decrease reps")}
-          onClick={() => stepReps(tempo ? -5 : -1)}
-        />
-        <Input
-          value={set.reps}
-          onChange={(e) => onField("reps", e.target.value)}
-          inputMode="numeric"
-          enterKeyHint="next"
-          onKeyDown={focusNextField}
-          placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
-          aria-label={tempo ? t("Seconds") : t("Reps")}
-          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
-        />
-        <StepButton
-          dir="up"
-          label={tempo ? t("Increase seconds") : t("Increase reps")}
-          onClick={() => stepReps(tempo ? 5 : 1)}
-        />
-      </div>
+      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+
+      <button
+        type="button"
+        onClick={onCheck}
+        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
+        aria-pressed={set.concluida}
+        className={cn(
+          "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
+          set.concluida
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-border bg-muted text-muted-foreground",
+          justDone ? "set-pop" : "",
+        )}
+      >
+        <Check className="size-6" strokeWidth={3} />
+      </button>
     </li>
   );
 }
+
+/**
+ * Numeric field that keeps the set on a single line: typing works as usual and a
+ * long press (or right-click) opens a small popover with the −/+ steppers.
+ */
+function StepperField({
+  value,
+  onChange,
+  onBlur,
+  onStep,
+  inputMode,
+  placeholder,
+  ariaLabel,
+  stepDownLabel,
+  stepUpLabel,
+  hint,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+  onStep: (direction: 1 | -1) => void;
+  inputMode: "decimal" | "numeric";
+  placeholder: string;
+  ariaLabel: string;
+  stepDownLabel: string;
+  stepUpLabel: string;
+  hint: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clear() {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={(next) => (next ? setOpen(true) : (clear(), setOpen(false)))}>
+      <PopoverTrigger asChild>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          {...(onBlur ? { onBlur } : {})}
+          inputMode={inputMode}
+          enterKeyHint="next"
+          onKeyDown={focusNextField}
+          placeholder={placeholder}
+          aria-label={ariaLabel}
+          title={hint}
+          onPointerDown={() => {
+            clear();
+            timer.current = setTimeout(() => setOpen(true), 450);
+          }}
+          onPointerUp={clear}
+          onPointerCancel={clear}
+          onPointerMove={clear}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setOpen(true);
+          }}
+          className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
+        />
+      </PopoverTrigger>
+      <PopoverContent align="center" className="w-auto p-2">
+        <div className="flex items-center gap-2">
+          <StepButton dir="down" label={stepDownLabel} onClick={() => onStep(-1)} />
+          <span className="min-w-12 text-center text-base font-semibold tabular-nums">
+            {value || "—"}
+          </span>
+          <StepButton dir="up" label={stepUpLabel} onClick={() => onStep(1)} />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 function RestTimerBar({
   t,
