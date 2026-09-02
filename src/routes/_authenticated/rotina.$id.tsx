@@ -20,6 +20,18 @@ import { getRoutineSuggestions } from "@/lib/routine-progression";
 import { getLastSetsForExercise } from "@/lib/data/workouts";
 import { isSerieDeCarga } from "@/lib/progression";
 import { cn } from "@/lib/utils";
+import { undoToast } from "@/lib/undo";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
