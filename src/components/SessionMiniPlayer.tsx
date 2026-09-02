@@ -18,6 +18,8 @@ import {
   currentExerciseName,
   loadActiveSession,
   restSecondsLeft,
+  restOverdueSeconds,
+
   saveActiveSession,
   sessionElapsed,
   type ActiveSession,
