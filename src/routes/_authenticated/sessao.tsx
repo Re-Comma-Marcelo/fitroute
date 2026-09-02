@@ -856,7 +856,7 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <RestPicker
                       value={ex.descansoSeg}
                       onChange={(segundos) => setExerciseRest(exIdx, segundos)}
