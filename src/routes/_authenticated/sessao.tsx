@@ -1396,110 +1396,165 @@ function SetRow({
   return (
     <li
       className={cn(
-        "space-y-1 rounded-lg p-1",
-        set.concluida ? "bg-primary/10" : "bg-muted/20",
+        ROW_GRID,
+        "px-0.5 py-1",
+        set.concluida ? "bg-primary/10" : "",
         justDone ? "set-flash" : "",
       )}
     >
-      <div className={ROW_TOP}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className={cn(
-                "tap-target flex size-11 items-center justify-center rounded-md bg-muted text-sm font-semibold",
-                aquecimento && "text-warn",
-                tempo && "text-info",
-              )}
-              aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
-            >
-              {tempo ? `${label}s` : label}
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
-            {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
-              <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-                {typeName[tipo]}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-              <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "tap-target flex h-10 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold",
+              aquecimento && "text-warn",
+              tempo && "text-info",
+            )}
+            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
+          >
+            {tempo ? `${label}s` : label}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
+            <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
+              {typeName[tipo]}
             </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          ))}
+          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
+            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
-        <div className="min-w-0 text-[11px] font-semibold leading-tight text-muted-foreground">
-          {set.antPeso !== null && set.antReps !== null ? (
-            <>
-              <span className="block truncate tabular-nums">
-                {formatKg(set.antPeso)} x {set.antReps}
-              </span>
-              <span className="block truncate tabular-nums">
-                {set.antRpe ? t("@ {rpe} rpe", { rpe: set.antRpe }) : "—"}
-              </span>
-            </>
-          ) : (
-            <span>—</span>
-          )}
-        </div>
+      <span className="min-w-0 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
+        {set.antPeso !== null && set.antReps !== null
+          ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
+          : "—"}
+      </span>
 
-        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+      <StepperField
+        value={shownWeight}
+        onChange={writeWeight}
+        onBlur={() => setDraft(null)}
+        onStep={(dir) => stepKg(dir * passoKg)}
+        inputMode="decimal"
+        placeholder={weightUnitLabel()}
+        ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
+        stepDownLabel={t("Decrease weight")}
+        stepUpLabel={t("Increase weight")}
+        hint={t("Hold to adjust")}
+      />
 
-        <button
-          type="button"
-          onClick={onCheck}
-          aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
-          aria-pressed={set.concluida}
-          className={cn(
-            "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
-            set.concluida
-              ? "border-primary bg-primary text-primary-foreground"
-              : "border-border bg-muted text-muted-foreground",
-            justDone ? "set-pop" : "",
-          )}
-        >
-          <Check className="size-6" strokeWidth={3} />
-        </button>
-      </div>
+      <StepperField
+        value={set.reps}
+        onChange={(v) => onField("reps", v)}
+        onStep={(dir) => stepReps(dir * (tempo ? 5 : 1))}
+        inputMode="numeric"
+        placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
+        ariaLabel={tempo ? t("Seconds") : t("Reps")}
+        stepDownLabel={tempo ? t("Decrease seconds") : t("Decrease reps")}
+        stepUpLabel={tempo ? t("Increase seconds") : t("Increase reps")}
+        hint={t("Hold to adjust")}
+      />
 
-      <div className={ROW_STEP}>
-        <StepButton dir="down" label={t("Decrease weight")} onClick={() => stepKg(-passoKg)} />
-        <Input
-          value={shownWeight}
-          onChange={(e) => writeWeight(e.target.value)}
-          onBlur={() => setDraft(null)}
-          inputMode="decimal"
-          enterKeyHint="next"
-          onKeyDown={focusNextField}
-          placeholder={weightUnitLabel()}
-          aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
-          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
-        />
-        <StepButton dir="up" label={t("Increase weight")} onClick={() => stepKg(passoKg)} />
-        <StepButton
-          dir="down"
-          label={tempo ? t("Decrease seconds") : t("Decrease reps")}
-          onClick={() => stepReps(tempo ? -5 : -1)}
-        />
-        <Input
-          value={set.reps}
-          onChange={(e) => onField("reps", e.target.value)}
-          inputMode="numeric"
-          enterKeyHint="next"
-          onKeyDown={focusNextField}
-          placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
-          aria-label={tempo ? t("Seconds") : t("Reps")}
-          className="numeric-field h-11 min-w-0 px-0.5 text-center text-base"
-        />
-        <StepButton
-          dir="up"
-          label={tempo ? t("Increase seconds") : t("Increase reps")}
-          onClick={() => stepReps(tempo ? 5 : 1)}
-        />
-      </div>
+      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+
+      <button
+        type="button"
+        onClick={onCheck}
+        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
+        aria-pressed={set.concluida}
+        className={cn(
+          "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
+          set.concluida
+            ? "border-primary bg-primary text-primary-foreground"
+            : "border-border bg-muted text-muted-foreground",
+          justDone ? "set-pop" : "",
+        )}
+      >
+        <Check className="size-6" strokeWidth={3} />
+      </button>
     </li>
   );
 }
+
+/**
+ * Numeric field that keeps the set on a single line: typing works as usual and a
+ * long press (or right-click) opens a small popover with the −/+ steppers.
+ */
+function StepperField({
+  value,
+  onChange,
+  onBlur,
+  onStep,
+  inputMode,
+  placeholder,
+  ariaLabel,
+  stepDownLabel,
+  stepUpLabel,
+  hint,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  onBlur?: () => void;
+  onStep: (direction: 1 | -1) => void;
+  inputMode: "decimal" | "numeric";
+  placeholder: string;
+  ariaLabel: string;
+  stepDownLabel: string;
+  stepUpLabel: string;
+  hint: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function clear() {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  }
+
+  return (
+    <Popover open={open} onOpenChange={(next) => (next ? setOpen(true) : (clear(), setOpen(false)))}>
+      <PopoverTrigger asChild>
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          {...(onBlur ? { onBlur } : {})}
+          inputMode={inputMode}
+          enterKeyHint="next"
+          onKeyDown={focusNextField}
+          placeholder={placeholder}
+          aria-label={ariaLabel}
+          title={hint}
+          onPointerDown={() => {
+            clear();
+            timer.current = setTimeout(() => setOpen(true), 450);
+          }}
+          onPointerUp={clear}
+          onPointerCancel={clear}
+          onPointerMove={clear}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            setOpen(true);
+          }}
+          className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
+        />
+      </PopoverTrigger>
+      <PopoverContent align="center" className="w-auto p-2">
+        <div className="flex items-center gap-2">
+          <StepButton dir="down" label={stepDownLabel} onClick={() => onStep(-1)} />
+          <span className="min-w-12 text-center text-base font-semibold tabular-nums">
+            {value || "—"}
+          </span>
+          <StepButton dir="up" label={stepUpLabel} onClick={() => onStep(1)} />
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 
 function RestTimerBar({
   t,
