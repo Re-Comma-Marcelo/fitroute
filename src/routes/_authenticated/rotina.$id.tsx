@@ -303,16 +303,40 @@ function RoutineEditor() {
         }
         right={
           routine.id ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="tap-target text-destructive"
-              aria-label={t("Delete routine")}
-              disabled={saving}
-              onClick={handleDelete}
-            >
-              <Trash2 className="size-5" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="tap-target text-destructive"
+                  aria-label={t("Delete routine")}
+                  disabled={saving}
+                >
+                  <Trash2 className="size-5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t("Delete {name}?", { name: routine.nome || t("this routine") })}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t(
+                      "The routine and its exercise setup are gone for good. Workouts you already logged stay in your history.",
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="tap-target">{t("Keep routine")}</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="tap-target bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => void handleDelete()}
+                  >
+                    {t("Delete routine")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           ) : null
         }
       />
