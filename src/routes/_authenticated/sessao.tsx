@@ -826,6 +826,45 @@ function SessionPage() {
             {t("Clock paused — logging still works.")}
           </p>
         ) : null}
+        {session.exercicios.length > 1 ? (
+          <nav
+            aria-label={t("Jump to exercise")}
+            className="mx-auto max-w-md overflow-x-auto border-t border-border px-2 py-1.5"
+          >
+            <ul className="flex items-center gap-1.5">
+              {session.exercicios.map((ex, exIdx) => {
+                const validas = ex.sets.filter(isSerieValida).length;
+                const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
+                const done = validas > 0 && feitas >= validas;
+                const active = exIdx === session.atual;
+                return (
+                  <li key={`chip-${ex.exerciseId}-${exIdx}`}>
+                    <button
+                      type="button"
+                      aria-current={active ? "true" : undefined}
+                      onClick={() => {
+                        update((s) => ({ ...s, atual: exIdx }));
+                        setScrollTo(exIdx);
+                      }}
+                      className={cn(
+                        "tap-target flex h-8 max-w-[8.5rem] items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors",
+                        active
+                          ? "bg-primary text-primary-foreground"
+                          : done
+                            ? "bg-success/15 text-success"
+                            : "bg-surface-3 text-muted-foreground",
+                        ex.pulado && "opacity-50 line-through",
+                      )}
+                    >
+                      {done && !active ? <Check className="size-3" strokeWidth={3} /> : null}
+                      <span className="truncate">{ex.nome}</span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        ) : null}
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
