@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Flame,
   Check,
   ChevronDown,
   History,
@@ -46,6 +47,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
+import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
 import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
