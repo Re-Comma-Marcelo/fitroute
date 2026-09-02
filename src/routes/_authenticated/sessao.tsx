@@ -91,6 +91,7 @@ import {
   saveWorkout,
 } from "@/lib/data/workouts";
 import { ProgressRing } from "@/components/ProgressRing";
+import { RestIsland } from "@/components/RestIsland";
 import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
