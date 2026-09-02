@@ -110,7 +110,12 @@ function TrainPage() {
 
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
-  const doneThisWeek = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start).length;
+  const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start);
+  const doneThisWeek = weekWorkouts.length;
+  const volumeThisWeek = Math.round(weekWorkouts.reduce((s, w) => s + w.volumeTotalKg, 0));
+  const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
+  useEffect(() => setTargets(getWeeklyTargets()), []);
+
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
   const orderedRoutines = useMemo(() => {
