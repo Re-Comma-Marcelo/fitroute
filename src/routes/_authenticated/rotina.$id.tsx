@@ -247,6 +247,33 @@ function RoutineEditor() {
     }
   }
 
+  /** Removing is reversible for a few seconds instead of silently gone. */
+  function removeExercise(idx: number) {
+    const removed = routine!.exercicios[idx];
+    if (!removed) return;
+    setRoutine((prev) =>
+      prev
+        ? {
+            ...prev,
+            exercicios: prev.exercicios
+              .filter((_, i) => i !== idx)
+              .map((e, i) => ({ ...e, ordem: i })),
+          }
+        : prev,
+    );
+    undoToast({
+      message: t("{name} removed", { name: nomes[removed.exerciseId] ?? t("Exercise") }),
+      undoLabel: t("Undo"),
+      onUndo: () =>
+        setRoutine((prev) => {
+          if (!prev) return prev;
+          const exercicios = [...prev.exercicios];
+          exercicios.splice(idx, 0, removed);
+          return { ...prev, exercicios: exercicios.map((e, i) => ({ ...e, ordem: i })) };
+        }),
+    });
+  }
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <PageHeader
