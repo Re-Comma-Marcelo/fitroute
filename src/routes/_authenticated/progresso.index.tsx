@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,7 +16,13 @@ import { BodyWeightCard } from "@/components/BodyWeightCard";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { MuscleVolumeCard } from "@/components/MuscleVolumeCard";
 import { CoachNotesCard } from "@/components/CoachNotesCard";
+import { PersonalRecordsCard } from "@/components/PersonalRecordsCard";
+import { ExerciseCompareCard } from "@/components/ExerciseCompareCard";
+import { WeekSummaryCard } from "@/components/WeekSummaryCard";
+import { weekSummary } from "@/lib/week-summary";
+import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 import { muscleVolumeComparison } from "@/lib/muscle-volume";
+
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
@@ -54,6 +60,10 @@ function ProgressPage() {
   const [manualOpen, setManualOpen] = useState(false);
   const [weeks, setWeeks] = useState<4 | 8 | 12>(8);
   const [routineFilter, setRoutineFilter] = useState<string | null>(null);
+  // Local-only weekly targets: read after hydration to keep SSR markup stable.
+  const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
+  useEffect(() => setTargets(getWeeklyTargets()), []);
+
 
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
@@ -80,6 +90,11 @@ function ProgressPage() {
   }, [allWorkouts, routineFilter, weeks]);
 
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
+  const summary = useMemo(
+    () => weekSummary(allWorkouts, sets, exercises),
+    [allWorkouts, sets, exercises],
+  );
+
   const muscleRows = useMemo(
     () => muscleVolumeComparison(workouts, sets, exercises),
     [workouts, sets, exercises],
@@ -214,6 +229,8 @@ function ProgressPage() {
             </p>
           </div>
 
+          <WeekSummaryCard summary={summary} targets={targets} />
+
           <ProgressTrendChart data={series} />
 
           <MuscleVolumeCard rows={muscleRows} />
@@ -225,7 +242,12 @@ function ProgressPage() {
             onAdd={() => setPickerOpen(true)}
             onRemove={(id) => void toggleLift(id, false)}
           />
+
+          <PersonalRecordsCard workouts={workouts} sets={sets} exercises={exercises} />
+
+          <ExerciseCompareCard workouts={workouts} sets={sets} exercises={exercises} />
         </>
+
       )}
 
       <div className="mt-6 space-y-3">

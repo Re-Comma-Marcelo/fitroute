@@ -3,7 +3,17 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, Plus, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +31,17 @@ import {
 } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
 import { exerciseImage } from "@/lib/exercise-image";
+import { getFavorites, toggleFavorite } from "@/lib/favorites";
+import { bumpExerciseUsage, getExerciseUsage } from "@/lib/exercise-usage";
+import {
+  getExercisePhoto,
+  removeExercisePhoto,
+  setExercisePhoto,
+} from "@/lib/exercise-photos";
+import { fileToPhotoDataUrl } from "@/lib/photo";
+import { cn } from "@/lib/utils";
 import type { Exercise } from "@/lib/types";
+
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -55,6 +75,16 @@ function LibraryPage() {
   const [equip, setEquip] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [creating, setCreating] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [usage, setUsage] = useState<Record<string, number>>({});
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "used">("name");
+
+  // Local-only lists: read after hydration so SSR markup stays stable.
+  useEffect(() => {
+    setFavorites(getFavorites());
+    setUsage(getExerciseUsage());
+  }, []);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
@@ -69,7 +99,7 @@ function LibraryPage() {
 
   const all = exercisesQuery.data ?? [];
   const termo = q.trim().toLowerCase();
-  const showFolders = !termo && grupo === null && !equip;
+  const showFolders = !termo && grupo === null && !equip && !onlyFavorites;
 
   const folders = useMemo(() => {
     const groups = gruposQuery.data ?? [];
@@ -79,16 +109,29 @@ function LibraryPage() {
     }));
   }, [gruposQuery.data, all]);
 
-  const lista = useMemo(
-    () =>
-      all.filter(
-        (e) =>
-          (!termo || e.nome.toLowerCase().includes(termo)) &&
-          (!grupo || belongsTo(e, grupo)) &&
-          (!equip || e.equipamento === equip),
-      ),
-    [all, termo, grupo, equip],
+  const favoriteList = useMemo(
+    () => all.filter((e) => favorites.includes(e.id)),
+    [all, favorites],
   );
+
+  const lista = useMemo(() => {
+    const filtered = all.filter(
+      (e) =>
+        (!termo || e.nome.toLowerCase().includes(termo)) &&
+        (!grupo || belongsTo(e, grupo)) &&
+        (!equip || e.equipamento === equip) &&
+        (!onlyFavorites || favorites.includes(e.id)),
+    );
+    return [...filtered].sort((a, b) => {
+      const favDiff = Number(favorites.includes(b.id)) - Number(favorites.includes(a.id));
+      if (favDiff !== 0) return favDiff;
+      if (sortBy === "used") {
+        const used = (usage[b.id] ?? 0) - (usage[a.id] ?? 0);
+        if (used !== 0) return used;
+      }
+      return a.nome.localeCompare(b.nome);
+    });
+  }, [all, termo, grupo, equip, onlyFavorites, favorites, sortBy, usage]);
 
   function goBack() {
     if (para === "sessao") navigate({ to: "/sessao" });
@@ -97,14 +140,20 @@ function LibraryPage() {
     else navigate({ to: "/treino" });
   }
 
+  function star(exerciseId: string) {
+    setFavorites(toggleFavorite(exerciseId));
+  }
+
   function choose(exercise: Exercise) {
     if (!para) {
       setDetail(exercise);
       return;
     }
+    setUsage(bumpExerciseUsage(exercise.id));
     setPendingExercise(exercise.id);
     goBack();
   }
+
 
   async function saveNew(input: {
     nome: string;
@@ -172,6 +221,35 @@ function LibraryPage() {
           />
         ) : showFolders ? (
           <>
+            {favoriteList.length ? (
+              <>
+                <div className="mt-5 flex items-end justify-between">
+                  <p className="label-caps flex items-center gap-1.5">
+                    <Star className="size-3.5 fill-train text-train" /> {t("Favorites")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOnlyFavorites(true)}
+                    className="text-xs font-semibold text-primary"
+                  >
+                    {t("See all")}
+                  </button>
+                </div>
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {favoriteList.slice(0, 5).map((e) => (
+                    <ExerciseRow
+                      key={e.id}
+                      exercise={e}
+                      favorite
+                      onChoose={() => choose(e)}
+                      onDetail={() => setDetail(e)}
+                      onStar={() => star(e.id)}
+                    />
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
             <p className="label-caps mt-5">{t("Muscle groups")}</p>
             <ul className="mt-2 grid grid-cols-2 gap-3">
               {folders.map((folder) => (
@@ -204,6 +282,7 @@ function LibraryPage() {
               <p className="mt-3 text-sm text-muted-foreground">{t("Loading…")}</p>
             ) : null}
           </>
+
         ) : (
           <>
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -225,6 +304,25 @@ function LibraryPage() {
                   {t("Clear search")}
                 </button>
               ) : null}
+              <button
+                type="button"
+                onClick={() => setOnlyFavorites((v) => !v)}
+                className={cn(
+                  "tap-target inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
+                  onlyFavorites
+                    ? "border-train/60 bg-train/15 text-train"
+                    : "border-border bg-card text-muted-foreground",
+                )}
+              >
+                <Star className={cn("size-4", onlyFavorites && "fill-train")} /> {t("Favorites")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortBy((v) => (v === "name" ? "used" : "name"))}
+                className="tap-target rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
+              >
+                {sortBy === "used" ? t("Most used") : t("A–Z")}
+              </button>
             </div>
 
             <FilterRow
@@ -238,34 +336,16 @@ function LibraryPage() {
 
             <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {lista.map((e) => (
-                <li key={e.id} className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => choose(e)}
-                    className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
-                  >
-                    <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-semibold leading-tight">
-                        {e.nome}
-                      </span>
-                      <span className="block text-xs text-muted-foreground/80">
-                        {e.grupoPrimario} · {e.equipamento}
-                      </span>
-                    </span>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target mr-2"
-                    aria-label={t("Details for {name}", { name: e.nome })}
-                    onClick={() => setDetail(e)}
-                  >
-                    <Info className="size-5 text-muted-foreground" />
-                  </Button>
-                </li>
+                <ExerciseRow
+                  key={e.id}
+                  exercise={e}
+                  favorite={favorites.includes(e.id)}
+                  onChoose={() => choose(e)}
+                  onDetail={() => setDetail(e)}
+                  onStar={() => star(e.id)}
+                />
               ))}
+
               {!lista.length && !exercisesQuery.isLoading ? (
                 <li className="px-4 py-8 text-center text-sm text-muted-foreground">
                   <p className="font-display text-sm font-semibold text-foreground">
@@ -296,7 +376,7 @@ function LibraryPage() {
           </SheetHeader>
           {detail ? (
             <div className="space-y-4 px-4 pb-6">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
                 </span>
@@ -308,13 +388,33 @@ function LibraryPage() {
                 <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
                   {detail.equipamento}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => star(detail.id)}
+                  aria-label={t("Favorite")}
+                  className={cn(
+                    "tap-target ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 text-xs font-semibold",
+                    favorites.includes(detail.id)
+                      ? "border-train/60 bg-train/15 text-train"
+                      : "border-border text-muted-foreground",
+                  )}
+                >
+                  <Star
+                    className={cn("size-4", favorites.includes(detail.id) && "fill-train")}
+                  />
+                  {t("Favorite")}
+                </button>
               </div>
+
+              <ExerciseMedia exercise={detail} />
+
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("Execution")}
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
+
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("Your history")}
@@ -539,5 +639,132 @@ function FilterChip({
     >
       {children}
     </button>
+  );
+}
+
+/** One library row: pick, favourite and open the details sheet. */
+function ExerciseRow({
+  exercise,
+  favorite,
+  onChoose,
+  onDetail,
+  onStar,
+}: {
+  exercise: Exercise;
+  favorite: boolean;
+  onChoose: () => void;
+  onDetail: () => void;
+  onStar: () => void;
+}) {
+  const t = useT();
+  return (
+    <li className="flex items-center">
+      <button
+        type="button"
+        onClick={onChoose}
+        className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
+      >
+        <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[15px] font-semibold leading-tight">
+            {exercise.nome}
+          </span>
+          <span className="block text-xs text-muted-foreground/80">
+            {exercise.grupoPrimario} · {exercise.equipamento}
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="tap-target"
+        aria-label={t("Favorite")}
+        aria-pressed={favorite}
+        onClick={onStar}
+      >
+        <Star className={cn("size-5", favorite ? "fill-train text-train" : "text-muted-foreground")} />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="tap-target mr-2"
+        aria-label={t("Details for {name}", { name: exercise.nome })}
+        onClick={onDetail}
+      >
+        <Info className="size-5 text-muted-foreground" />
+      </Button>
+    </li>
+  );
+}
+
+/** Reference media: the catalog image plus your own setup photo (local only). */
+function ExerciseMedia({ exercise }: { exercise: Exercise }) {
+  const t = useT();
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setPhoto(getExercisePhoto(exercise.id)), [exercise.id]);
+
+  async function pick(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const dataUrl = await fileToPhotoDataUrl(file);
+      setExercisePhoto(exercise.id, dataUrl);
+      setPhoto(dataUrl);
+    } catch {
+      toast.error(t("Could not use that image. Try another one."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("Reference")}
+      </h3>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <img
+          src={exercise.midiaUrl || exerciseImage(exercise.grupoPrimario)}
+          alt={t("How to perform {name}", { name: exercise.nome })}
+          loading="lazy"
+          className="h-28 w-full rounded-xl border border-border object-cover"
+        />
+        {photo ? (
+          <div className="relative">
+            <img
+              src={photo}
+              alt={t("Your setup photo")}
+              className="h-28 w-full rounded-xl border border-border object-cover"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute right-1.5 top-1.5 size-8"
+              aria-label={t("Remove photo")}
+              onClick={() => {
+                removeExercisePhoto(exercise.id);
+                setPhoto(null);
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <label className="tap-target flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground">
+            <Camera className="size-5" />
+            {busy ? t("Loading…") : t("Add setup photo")}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void pick(e.target.files?.[0])}
+            />
+          </label>
+        )}
+      </div>
+    </div>
   );
 }

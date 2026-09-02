@@ -13,12 +13,14 @@ type Filter = "all" | CoachNoteKind;
 export function CoachNotesCard() {
   const t = useT();
   const [filter, setFilter] = useState<Filter>("all");
+  const [showAll, setShowAll] = useState(false);
   const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getCoachNotes });
 
   const notes = useMemo(() => {
     const list = [...(notesQ.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return filter === "all" ? list : list.filter((n) => n.kind === filter);
   }, [notesQ.data, filter]);
+
 
   if (notesQ.isError) {
     return (
@@ -55,8 +57,9 @@ export function CoachNotesCard() {
         ))}
       </div>
       <ul className="mt-3 space-y-3">
-        {notes.slice(0, 20).map((note) => (
+        {(showAll ? notes : notes.slice(0, 5)).map((note) => (
           <li key={note.id} className="border-t border-border/60 pt-3 first:border-0 first:pt-0">
+
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {note.kind === "checkin" ? t("Check-in") : t("Observation")} ·{" "}
               <span className="normal-case">{formatDateLong(note.createdAt)}</span>
@@ -77,9 +80,19 @@ export function CoachNotesCard() {
           </li>
         ))}
       </ul>
+      {notes.length > 5 ? (
+        <button
+          type="button"
+          onClick={() => setShowAll((v) => !v)}
+          className="tap-target mt-2 text-xs font-semibold text-primary"
+        >
+          {showAll ? t("Show less") : t("Show all {count} notes", { count: notes.length })}
+        </button>
+      ) : null}
       {notes.length === 0 ? (
         <p className="mt-2 text-xs text-muted-foreground">{t("No notes in this filter yet.")}</p>
       ) : null}
+
     </section>
   );
 }

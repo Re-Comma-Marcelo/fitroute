@@ -33,6 +33,8 @@ import { CoachChatButton } from "@/components/CoachChatSheet";
 import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
+import { EMPTY_TARGETS, getWeeklyTargets, setWeeklyTargets } from "@/lib/weekly-targets";
+
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
@@ -481,6 +483,10 @@ function ProfilePage() {
             value={String(form.metaTreinosSemana)}
             onChange={(v) => patch({ metaTreinosSemana: Number(v) })}
           />
+
+          <WeeklyExtraTargets />
+
+
 
           <Segmented
             label={t("Preferred session length (minutes)")}
@@ -1134,4 +1140,49 @@ function errorDetail(error: unknown): string | null {
   if (!raw) return null;
   const text = raw.trim();
   return text.length > 180 ? `${text.slice(0, 180)}\u2026` : text;
+}
+
+/** Optional weekly volume and set targets, kept on this device only. */
+function WeeklyExtraTargets() {
+  const t = useT();
+  const [targets, setTargets] = useState(EMPTY_TARGETS);
+
+  useEffect(() => setTargets(getWeeklyTargets()), []);
+
+  function update(patchTargets: Partial<typeof targets>) {
+    const next = { ...targets, ...patchTargets };
+    setTargets(next);
+    setWeeklyTargets(next);
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label>{t("Weekly volume and set targets (optional)")}</Label>
+      <div className="grid grid-cols-2 gap-2">
+        <Input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          className="tap-target h-12 text-base"
+          placeholder={t("Volume (kg)")}
+          aria-label={t("Volume (kg)")}
+          value={targets.volumeKg ? String(targets.volumeKg) : ""}
+          onChange={(e) => update({ volumeKg: Math.max(0, Number(e.target.value) || 0) })}
+        />
+        <Input
+          type="number"
+          inputMode="numeric"
+          min={0}
+          className="tap-target h-12 text-base"
+          placeholder={t("Working sets")}
+          aria-label={t("Working sets")}
+          value={targets.sets ? String(targets.sets) : ""}
+          onChange={(e) => update({ sets: Math.max(0, Number(e.target.value) || 0) })}
+        />
+      </div>
+      <p className="text-xs text-muted-foreground">
+        {t("Shown on Train and in your weekly summary. Saved on this device.")}
+      </p>
+    </div>
+  );
 }

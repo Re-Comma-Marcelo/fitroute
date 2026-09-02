@@ -117,11 +117,13 @@ export interface WeekPoint {
   sessions: number;
   /** Mean RPE of the week's completed sets (0 when nothing was rated). */
   rpe: number;
+  /** Seconds logged in timed sets (plank, carries, cardio). */
+  tempoSeg: number;
 }
 
 /**
  * Continuous weekly series (zero-filled) for the last `weeks` weeks.
- * Passing the set log adds mean RPE per week — the fatigue read.
+ * Passing the set log adds mean RPE and time under tension per week.
  */
 export function weeklySeries(
   workouts: Workout[],
@@ -141,15 +143,22 @@ export function weeklySeries(
   }
 
   const rpeBuckets = new Map<string, { sum: number; count: number }>();
+  const tempoBuckets = new Map<string, number>();
   for (const s of sets) {
-    if (!s.concluida || !s.rpe) continue;
+    if (!s.concluida) continue;
     const key = weekOfWorkout.get(s.workoutId);
     if (!key) continue;
+    if (s.tipoSerie === "tempo") {
+      tempoBuckets.set(key, (tempoBuckets.get(key) ?? 0) + s.reps);
+      continue;
+    }
+    if (!s.rpe) continue;
     const entry = rpeBuckets.get(key) ?? { sum: 0, count: 0 };
     entry.sum += s.rpe;
     entry.count += 1;
     rpeBuckets.set(key, entry);
   }
+
 
   const out: WeekPoint[] = [];
   const cursor = new Date(weekStart(now));
@@ -164,7 +173,9 @@ export function weeklySeries(
       volume: Math.round(entry.volume),
       sessions: entry.sessions,
       rpe: rpe && rpe.count ? Math.round((rpe.sum / rpe.count) * 10) / 10 : 0,
+      tempoSeg: tempoBuckets.get(key) ?? 0,
     });
+
     cursor.setDate(cursor.getDate() + 7);
   }
   return out;

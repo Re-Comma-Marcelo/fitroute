@@ -26,8 +26,10 @@ import { getProfile } from "@/lib/data/profile";
 import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
 import type { Exercise, Routine, Workout } from "@/lib/types";
 import { getWorkouts } from "@/lib/data/workouts";
-import { formatDurationShort, relativeDays } from "@/lib/format";
+import { formatDurationShort, formatKg, relativeDays } from "@/lib/format";
 import { routineCover } from "@/lib/exercise-image";
+import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
+
 import {
   loadActiveSession,
   loadTodayChoice,
@@ -108,7 +110,12 @@ function TrainPage() {
 
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
-  const doneThisWeek = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start).length;
+  const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start);
+  const doneThisWeek = weekWorkouts.length;
+  const volumeThisWeek = Math.round(weekWorkouts.reduce((s, w) => s + w.volumeTotalKg, 0));
+  const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
+  useEffect(() => setTargets(getWeeklyTargets()), []);
+
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
   const orderedRoutines = useMemo(() => {
@@ -232,7 +239,26 @@ function TrainPage() {
             />
           ))}
         </div>
+        {targets.volumeKg > 0 ? (
+          <div className="mt-3">
+            <div className="flex items-end justify-between">
+              <p className="label-caps">{t("Volume target")}</p>
+              <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                {formatKg(volumeThisWeek)} / {formatKg(targets.volumeKg)}
+              </p>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
+              <span
+                className="block h-full rounded-full bg-train"
+                style={{
+                  width: `${Math.min(100, Math.round((volumeThisWeek / targets.volumeKg) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
+
 
       {coachQuery.isLoading || !coach ? (
         routines.length ? (
