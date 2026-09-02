@@ -207,11 +207,49 @@ function LibraryPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onBlur={() => rememberSearch(q)}
+            autoFocus={Boolean(para)}
             placeholder={t("Search exercise")}
             aria-label={t("Search exercise")}
-            className="tap-target h-12 pl-11 text-base"
+            className="tap-target h-12 pl-11 pr-12 text-base"
           />
+          {q ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Clear search")}
+              onClick={() => setQ("")}
+              className="tap-target absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              <X className="size-5" />
+            </Button>
+          ) : null}
         </div>
+
+        {!q && recents.length ? (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {recents.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => setQ(term)}
+                className="tap-target rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+              >
+                {term}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                clearRecentSearches();
+                setRecents([]);
+              }}
+              className="tap-target px-2 text-xs font-semibold text-muted-foreground underline"
+            >
+              {t("Clear")}
+            </button>
+          </div>
+        ) : null}
 
         {exercisesQuery.isError ? (
           <QueryError
