@@ -484,6 +484,10 @@ function ProfilePage() {
             onChange={(v) => patch({ metaTreinosSemana: Number(v) })}
           />
 
+          <WeeklyExtraTargets />
+
+
+
           <Segmented
             label={t("Preferred session length (minutes)")}
             columns={4}
