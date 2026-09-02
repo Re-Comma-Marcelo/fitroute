@@ -3,7 +3,17 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useT } from "@/lib/i18n";
-import { ArrowLeft, ChevronLeft, ChevronRight, Info, Plus, Search } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  ChevronLeft,
+  ChevronRight,
+  Info,
+  Plus,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,7 +31,17 @@ import {
 } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
 import { exerciseImage } from "@/lib/exercise-image";
+import { getFavorites, toggleFavorite } from "@/lib/favorites";
+import { bumpExerciseUsage, getExerciseUsage } from "@/lib/exercise-usage";
+import {
+  getExercisePhoto,
+  removeExercisePhoto,
+  setExercisePhoto,
+} from "@/lib/exercise-photos";
+import { fileToPhotoDataUrl } from "@/lib/photo";
+import { cn } from "@/lib/utils";
 import type { Exercise } from "@/lib/types";
+
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
