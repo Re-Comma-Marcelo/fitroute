@@ -928,14 +928,16 @@ function SessionPage() {
               {aberto ? (
                 <div className="px-3 pb-3">
                   <div
-                    className={`${ROW_TOP} mb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
                     <span className="text-center">{t("Set")}</span>
-                    <span>{t("Previous")}</span>
+                    <span className="truncate">{t("Previous")}</span>
+                    <span className="text-center">{weightUnitLabel()}</span>
+                    <span className="text-center">{t("Reps")}</span>
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
-                  <ul className="space-y-2">
+                  <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
                       <SetRow
                         key={set.id}
@@ -952,6 +954,7 @@ function SessionPage() {
                       />
                     ))}
                   </ul>
+
                   {coachMark === 1 && exIdx === session.atual ? (
                     <CoachMark
                       text={t("Adjust weight and reps, then tap ✓ when the set is done")}
