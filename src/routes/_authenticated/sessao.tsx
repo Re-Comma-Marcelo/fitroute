@@ -21,7 +21,7 @@ import {
   Trash2,
   TrendingUp,
   Volume2,
-  X,
+  
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -91,6 +91,7 @@ import {
   saveWorkout,
 } from "@/lib/data/workouts";
 import { ProgressRing } from "@/components/ProgressRing";
+import { RestIsland } from "@/components/RestIsland";
 import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
@@ -1018,18 +1019,20 @@ function SessionPage() {
         />
       </main>
 
+      {rest ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
+          <RestIsland
+            total={rest.total}
+            left={restLeft}
+            onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+            onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+            onSkip={() => patchRest(() => null)}
+          />
+        </div>
+      ) : null}
+
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">
-          {rest ? (
-            <RestTimerBar
-              rest={rest}
-              restLeft={restLeft}
-              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
-              onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-              onSkip={() => patchRest(() => null)}
-              t={t}
-            />
-          ) : null}
           {coachMark === 2 ? (
             <CoachMark
               text={t("When everything is done, finish here to save your workout")}
@@ -1555,80 +1558,6 @@ function StepperField({
   );
 }
 
-
-function RestTimerBar({
-  t,
-  rest,
-  restLeft,
-  onAdd,
-  onSubtract,
-  onSkip,
-}: {
-  rest: { total: number; endsAt: number };
-  restLeft: number;
-  onAdd: () => void;
-  onSubtract: () => void;
-  onSkip: () => void;
-  t: any;
-}) {
-  const pct = Math.min(100, (restLeft / rest.total) * 100);
-  const isLow = restLeft <= 10;
-  return (
-    <div className="mb-3 rounded-2xl border border-info/30 bg-info/10 p-3">
-      <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="flex size-9 items-center justify-center rounded-full bg-info/20 text-info">
-            <Timer className="size-5" />
-          </span>
-          <div>
-            <p className="text-[10px] font-medium uppercase tracking-[0.02em] text-info/80">
-              {t("Rest")}
-            </p>
-            <p
-              role="timer"
-              aria-live="off"
-              className={cn("num-big leading-none", isLow ? "text-warn" : "text-info")}
-            >
-              {formatDuration(restLeft)}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-1.5">
-          <Button
-            variant="secondary"
-            className="tap-target h-10 px-3 text-xs font-semibold"
-            onClick={onSubtract}
-          >
-            -15s
-          </Button>
-          <Button
-            variant="secondary"
-            className="tap-target h-10 px-3 text-xs font-semibold"
-            onClick={onAdd}
-          >
-            +15s
-          </Button>
-          <Button
-            variant="ghost"
-            className="tap-target h-10 px-3 text-xs font-semibold text-muted-foreground"
-            onClick={onSkip}
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      </div>
-      <div className="h-2.5 overflow-hidden rounded-full bg-surface-3">
-        <div
-          className={cn(
-            "h-full rounded-full transition-[width] duration-1000 ease-linear",
-            isLow ? "bg-warn" : "bg-info",
-          )}
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </div>
-  );
-}
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();

@@ -21,18 +21,21 @@ import {
   saveActiveSession,
   sessionElapsed,
   type ActiveSession,
+  type RestState,
   sessionLabel,
 } from "@/lib/session-state";
 import { useT } from "@/lib/i18n";
 import { ProgressRing } from "@/components/ProgressRing";
+import { RestIsland } from "@/components/RestIsland";
 import { sessionSetsDone } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
-import { cancelRestNotification } from "@/lib/rest-notification";
+import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 
 /**
- * Floating session bar shown above the bottom nav on every tab.
- * Lets you navigate the app without losing your workout.
+ * Floating session island shown above the bottom nav on every tab.
+ * Lets you navigate the app without losing your workout, and keeps the rest
+ * countdown (with -15s / +15s / skip) reachable from anywhere.
  */
 
 export function SessionMiniPlayer() {
@@ -64,6 +67,22 @@ export function SessionMiniPlayer() {
   }, []);
   useRestExpiry(session?.rest?.endsAt ?? null, clearRest, !onSessionScreen);
 
+  const patchRest = useCallback((mutate: (r: RestState) => RestState | null) => {
+    const current = loadActiveSession();
+    if (!current?.rest) return;
+    const rest = mutate(current.rest);
+    if (!rest) cancelRestNotification();
+    else
+      scheduleRestNotification(
+        Math.max(0, rest.endsAt - Date.now()),
+        t("Rest is over"),
+        t("Time for your next set."),
+      );
+    const next = { ...current, rest };
+    saveActiveSession(next);
+    setSession(next);
+  }, [t]);
+
   if (!session) return null;
 
   const restLeft = restSecondsLeft(session);
@@ -73,12 +92,23 @@ export function SessionMiniPlayer() {
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
 
   return (
-    <div className="z-40 shrink-0 px-3 pb-2">
-      <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-primary/30 bg-card/90 p-2 backdrop-blur-xl">
+    <div className="z-40 shrink-0 space-y-2 px-3 pb-2">
+      {/* Rest island: only outside the session screen, which shows its own. */}
+      {!onSessionScreen && session.rest && restLeft > 0 ? (
+        <RestIsland
+          total={session.rest.total}
+          left={restLeft}
+          onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+          onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+          onSkip={() => patchRest(() => null)}
+        />
+      ) : null}
+
+      <div className="mx-auto flex max-w-md items-center gap-1 rounded-full border border-primary/30 bg-card/90 py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl">
         <Link
           to="/sessao"
           aria-label={t("Return to workout session")}
-          className="tap-target flex flex-1 items-center gap-2 rounded-lg px-1 text-left"
+          className="tap-target flex min-w-0 flex-1 items-center gap-2 rounded-full px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
           <ProgressRing
@@ -100,14 +130,6 @@ export function SessionMiniPlayer() {
               </span>
             </span>
             <span className="block truncate text-xs text-muted-foreground/80">
-              {restLeft > 0 ? (
-                <>
-                  <span className="font-mono font-semibold tabular-nums text-primary">
-                    {t("Rest")} {formatDuration(restLeft)}
-                  </span>
-                  {" · "}
-                </>
-              ) : null}
               {currentExerciseName(session)}
             </span>
           </span>
@@ -117,7 +139,7 @@ export function SessionMiniPlayer() {
             <button
               type="button"
               aria-label={t("Discard active workout")}
-              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg text-destructive"
+              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive"
             >
               <Trash2 className="size-5" />
             </button>

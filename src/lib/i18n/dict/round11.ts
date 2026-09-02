@@ -5,6 +5,9 @@ export const dict: DictFragment = {
   pt: {
     "Set a goal": "Definir meta",
     "Hold to adjust": "Segure para ajustar",
+    "Skip rest": "Pular descanso",
+    "Add 15 seconds": "Adicionar 15 segundos",
+    "Subtract 15 seconds": "Reduzir 15 segundos",
     "Target in {unit}": "Meta em {unit}",
     "Goal {target} {unit}": "Meta {target} {unit}",
     "{current} {unit} · {pct}%": "{current} {unit} · {pct}%",
@@ -81,5 +84,8 @@ export const dict: DictFragment = {
     "{weeks} weeks before your deadline.": "{weeks} weken voor je deadline.",
     "{weeks} weeks after your deadline.": "{weeks} weken na je deadline.",
     "Hold to adjust": "Houd vast om aan te passen",
+    "Skip rest": "Rust overslaan",
+    "Add 15 seconds": "15 seconden toevoegen",
+    "Subtract 15 seconds": "15 seconden eraf",
   },
 };
