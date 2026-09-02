@@ -4,7 +4,7 @@ import type { WeekPoint } from "@/lib/progress-analytics";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
-type Mode = "volume" | "sessions";
+type Mode = "volume" | "sessions" | "rpe";
 
 export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
   const t = useT();
@@ -12,10 +12,15 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
   const hasData = data.some((d) => d.volume > 0 || d.sessions > 0);
 
   const latest = data[data.length - 1];
+  const rated = data.filter((d) => d.rpe > 0);
   const headline =
     mode === "volume"
       ? t("{val}t this week", { val: Math.round((latest?.volume ?? 0) / 1000) })
-      : t("{count} sessions this week", { count: latest?.sessions ?? 0 });
+      : mode === "sessions"
+        ? t("{count} sessions this week", { count: latest?.sessions ?? 0 })
+        : rated.length
+          ? t("{val} avg RPE", { val: rated[rated.length - 1]!.rpe })
+          : t("No RPE logged yet");
 
   return (
     <section className="mt-4 rounded-2xl border border-border bg-card p-4">
@@ -25,7 +30,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
           <p className="font-display mt-0.5 text-base font-semibold tabular-nums">{headline}</p>
         </div>
         <div className="flex rounded-full border border-border p-0.5">
-          {(["volume", "sessions"] as Mode[]).map((m) => (
+          {(["volume", "sessions", "rpe"] as Mode[]).map((m) => (
             <button
               key={m}
               type="button"
@@ -61,7 +66,10 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
               </BarChart>
             ) : (
-              <LineChart data={data} margin={{ top: 8, right: 6, bottom: 0, left: 6 }}>
+              <LineChart
+                data={mode === "rpe" ? data.filter((d) => d.rpe > 0) : data}
+                margin={{ top: 8, right: 6, bottom: 0, left: 6 }}
+              >
                 <XAxis
                   dataKey="label"
                   tickLine={false}
@@ -71,7 +79,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
                 <Line
                   type="monotone"
-                  dataKey="sessions"
+                  dataKey={mode === "rpe" ? "rpe" : "sessions"}
                   className="stroke-train"
                   strokeWidth={2}
                   dot={{ r: 2.5, className: "fill-train stroke-train" }}

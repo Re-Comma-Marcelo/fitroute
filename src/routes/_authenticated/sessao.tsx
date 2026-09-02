@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
+  Flame,
   Check,
   ChevronDown,
   History,
@@ -46,6 +47,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
+import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
 import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
@@ -457,6 +459,27 @@ function SessionPage() {
       return s;
     });
   }
+
+  /** Ramp up to the first working weight instead of hand-typing light sets. */
+  function addWarmup(exIdx: number) {
+    const ex = session?.exercicios[exIdx];
+    if (!ex) return;
+    const working = ex.sets.find((s) => isSerieValida(s));
+    const target = Number(working?.pesoKg) || working?.sugPeso || 0;
+    const warm = buildWarmupSets(target);
+    if (!warm.length) {
+      toast(t("Set a working weight first to build the warm-up."));
+      return;
+    }
+    update((s) => {
+      const target2 = s.exercicios[exIdx]!;
+      target2.sets = [...warm, ...target2.sets];
+      target2.sets.forEach((x, i) => (x.serieNum = i + 1));
+      return s;
+    });
+    hapticTick();
+  }
+
 
   function addSet(exIdx: number) {
     update((s) => {
@@ -872,6 +895,9 @@ function SessionPage() {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> {t("Add set")}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addWarmup(exIdx)}>
+                      <Flame className="mr-2 size-4" /> {t("Add warm-up sets")}
                     </DropdownMenuItem>
                     <DropdownMenuItem disabled={exIdx === 0} onClick={() => moveExercise(exIdx, -1)}>
                       <ArrowUp className="mr-2 size-4" /> {t("Move up")}

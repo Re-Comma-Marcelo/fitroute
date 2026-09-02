@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { RoutineTemplateSheet } from "@/components/RoutineTemplateSheet";
 import {
   AlertTriangle,
   ChevronDown,
@@ -69,6 +70,7 @@ function TrainPage() {
   const [choice, setChoice] = useState<string | null>(null);
   const [swaps, setSwaps] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   useEffect(() => {
     setActive(loadActiveSession());
@@ -297,11 +299,16 @@ function TrainPage() {
             )}
           </p>
 
-          <Button asChild className="mt-3">
-            <Link to="/rotina/$id" params={{ id: "nova" }}>
-              <Plus className="mr-2 size-4" /> {t("Create routine")}
-            </Link>
-          </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button asChild>
+              <Link to="/rotina/$id" params={{ id: "nova" }}>
+                <Plus className="mr-2 size-4" /> {t("Create routine")}
+              </Link>
+            </Button>
+            <Button variant="outline" onClick={() => setTemplatesOpen(true)}>
+              {t("Start from a template")}
+            </Button>
+          </div>
         </div>
       ) : (
         <ul className="space-y-3">
@@ -326,6 +333,24 @@ function TrainPage() {
           ))}
         </ul>
       )}
+
+      {orderedRoutines.length > 0 ? (
+        <Button
+          variant="outline"
+          className="tap-target mt-3 w-full"
+          onClick={() => setTemplatesOpen(true)}
+        >
+          {t("Start from a template")}
+        </Button>
+      ) : null}
+
+
+
+      <RoutineTemplateSheet
+        open={templatesOpen}
+        onOpenChange={setTemplatesOpen}
+        exercises={exercises}
+      />
     </AppShell>
   );
 }
