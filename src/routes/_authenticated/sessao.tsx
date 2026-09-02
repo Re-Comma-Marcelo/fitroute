@@ -458,6 +458,27 @@ function SessionPage() {
     });
   }
 
+  /** Ramp up to the first working weight instead of hand-typing light sets. */
+  function addWarmup(exIdx: number) {
+    const ex = session?.exercicios[exIdx];
+    if (!ex) return;
+    const working = ex.sets.find((s) => isSerieValida(s));
+    const target = Number(working?.pesoKg) || working?.sugPeso || 0;
+    const warm = buildWarmupSets(target);
+    if (!warm.length) {
+      toast(t("Set a working weight first to build the warm-up."));
+      return;
+    }
+    update((s) => {
+      const target2 = s.exercicios[exIdx]!;
+      target2.sets = [...warm, ...target2.sets];
+      target2.sets.forEach((x, i) => (x.serieNum = i + 1));
+      return s;
+    });
+    hapticTick();
+  }
+
+
   function addSet(exIdx: number) {
     update((s) => {
       const ex = s.exercicios[exIdx]!;
