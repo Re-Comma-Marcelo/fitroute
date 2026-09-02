@@ -4,6 +4,7 @@ import type { DictFragment } from "../types";
 export const dict: DictFragment = {
   pt: {
     "Set a goal": "Definir meta",
+    "Hold to adjust": "Segure para ajustar",
     "Target in {unit}": "Meta em {unit}",
     "Goal {target} {unit}": "Meta {target} {unit}",
     "{current} {unit} · {pct}%": "{current} {unit} · {pct}%",
@@ -79,5 +80,6 @@ export const dict: DictFragment = {
       "In dit tempo beweeg je niet naar je doelgewicht toe.",
     "{weeks} weeks before your deadline.": "{weeks} weken voor je deadline.",
     "{weeks} weeks after your deadline.": "{weeks} weken na je deadline.",
+    "Hold to adjust": "Houd vast om aan te passen",
   },
 };
