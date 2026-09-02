@@ -5,6 +5,9 @@ export const dict: DictFragment = {
   pt: {
     "Set a goal": "Definir meta",
     "Hold to adjust": "Segure para ajustar",
+    "Skip rest": "Pular descanso",
+    "Add 15 seconds": "Adicionar 15 segundos",
+    "Subtract 15 seconds": "Reduzir 15 segundos",
     "Target in {unit}": "Meta em {unit}",
     "Goal {target} {unit}": "Meta {target} {unit}",
     "{current} {unit} · {pct}%": "{current} {unit} · {pct}%",
