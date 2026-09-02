@@ -57,8 +57,9 @@ export function CoachNotesCard() {
         ))}
       </div>
       <ul className="mt-3 space-y-3">
-        {notes.slice(0, 20).map((note) => (
+        {(showAll ? notes : notes.slice(0, 5)).map((note) => (
           <li key={note.id} className="border-t border-border/60 pt-3 first:border-0 first:pt-0">
+
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               {note.kind === "checkin" ? t("Check-in") : t("Observation")} ·{" "}
               <span className="normal-case">{formatDateLong(note.createdAt)}</span>
