@@ -239,7 +239,26 @@ function TrainPage() {
             />
           ))}
         </div>
+        {targets.volumeKg > 0 ? (
+          <div className="mt-3">
+            <div className="flex items-end justify-between">
+              <p className="label-caps">{t("Volume target")}</p>
+              <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+                {formatKg(volumeThisWeek)} / {formatKg(targets.volumeKg)}
+              </p>
+            </div>
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
+              <span
+                className="block h-full rounded-full bg-train"
+                style={{
+                  width: `${Math.min(100, Math.round((volumeThisWeek / targets.volumeKg) * 100))}%`,
+                }}
+              />
+            </div>
+          </div>
+        ) : null}
       </section>
+
 
       {coachQuery.isLoading || !coach ? (
         routines.length ? (
