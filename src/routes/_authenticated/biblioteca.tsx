@@ -304,6 +304,25 @@ function LibraryPage() {
                   {t("Clear search")}
                 </button>
               ) : null}
+              <button
+                type="button"
+                onClick={() => setOnlyFavorites((v) => !v)}
+                className={cn(
+                  "tap-target inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
+                  onlyFavorites
+                    ? "border-train/60 bg-train/15 text-train"
+                    : "border-border bg-card text-muted-foreground",
+                )}
+              >
+                <Star className={cn("size-4", onlyFavorites && "fill-train")} /> {t("Favorites")}
+              </button>
+              <button
+                type="button"
+                onClick={() => setSortBy((v) => (v === "name" ? "used" : "name"))}
+                className="tap-target rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
+              >
+                {sortBy === "used" ? t("Most used") : t("A–Z")}
+              </button>
             </div>
 
             <FilterRow
@@ -317,34 +336,16 @@ function LibraryPage() {
 
             <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {lista.map((e) => (
-                <li key={e.id} className="flex items-center">
-                  <button
-                    type="button"
-                    onClick={() => choose(e)}
-                    className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
-                  >
-                    <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15px] font-semibold leading-tight">
-                        {e.nome}
-                      </span>
-                      <span className="block text-xs text-muted-foreground/80">
-                        {e.grupoPrimario} · {e.equipamento}
-                      </span>
-                    </span>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-                  </button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target mr-2"
-                    aria-label={t("Details for {name}", { name: e.nome })}
-                    onClick={() => setDetail(e)}
-                  >
-                    <Info className="size-5 text-muted-foreground" />
-                  </Button>
-                </li>
+                <ExerciseRow
+                  key={e.id}
+                  exercise={e}
+                  favorite={favorites.includes(e.id)}
+                  onChoose={() => choose(e)}
+                  onDetail={() => setDetail(e)}
+                  onStar={() => star(e.id)}
+                />
               ))}
+
               {!lista.length && !exercisesQuery.isLoading ? (
                 <li className="px-4 py-8 text-center text-sm text-muted-foreground">
                   <p className="font-display text-sm font-semibold text-foreground">
