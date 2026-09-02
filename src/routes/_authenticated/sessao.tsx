@@ -873,6 +873,9 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addSet(exIdx)}>
                       <Plus className="mr-2 size-4" /> {t("Add set")}
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => addWarmup(exIdx)}>
+                      <Flame className="mr-2 size-4" /> {t("Add warm-up sets")}
+                    </DropdownMenuItem>
                     <DropdownMenuItem disabled={exIdx === 0} onClick={() => moveExercise(exIdx, -1)}>
                       <ArrowUp className="mr-2 size-4" /> {t("Move up")}
                     </DropdownMenuItem>
