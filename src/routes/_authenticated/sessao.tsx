@@ -548,19 +548,46 @@ function SessionPage() {
   }
 
   function removeSet(exIdx: number, setIdx: number) {
+    const removed = session?.exercicios[exIdx]?.sets[setIdx];
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       ex.sets.splice(setIdx, 1);
       ex.sets.forEach((x, i) => (x.serieNum = i + 1));
       return s;
     });
+    if (!removed) return;
+    undoToast({
+      message: t("Set removed"),
+      undoLabel: t("Undo"),
+      onUndo: () =>
+        update((s) => {
+          const ex = s.exercicios[exIdx];
+          if (!ex) return s;
+          ex.sets.splice(Math.min(setIdx, ex.sets.length), 0, removed);
+          ex.sets.forEach((x, i) => (x.serieNum = i + 1));
+          return s;
+        }),
+    });
   }
 
   function removeExercise(exIdx: number) {
+    const removed = session?.exercicios[exIdx];
+    const previousAtual = session?.atual ?? 0;
     update((s) => {
       s.exercicios.splice(exIdx, 1);
       s.atual = Math.min(s.atual, Math.max(0, s.exercicios.length - 1));
       return s;
+    });
+    if (!removed) return;
+    undoToast({
+      message: t("{name} removed", { name: removed.nome }),
+      undoLabel: t("Undo"),
+      onUndo: () =>
+        update((s) => {
+          s.exercicios.splice(Math.min(exIdx, s.exercicios.length), 0, removed);
+          s.atual = previousAtual;
+          return s;
+        }),
     });
   }
 
