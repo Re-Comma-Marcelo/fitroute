@@ -58,7 +58,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
       <div className="mt-3 h-32">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
-            {mode === "volume" ? (
+            {mode === "volume" || mode === "time" ? (
               <BarChart data={data} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
                 <XAxis
                   dataKey="label"
@@ -68,8 +68,8 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                   tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
                 />
                 <Bar
-                  dataKey="volume"
-                  className="fill-train"
+                  dataKey={mode === "time" ? "tempoSeg" : "volume"}
+                  className={mode === "time" ? "fill-info" : "fill-train"}
                   radius={[4, 4, 2, 2]}
                   maxBarSize={22}
                 />
@@ -95,6 +95,7 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
               </LineChart>
             )}
+
           </ResponsiveContainer>
         ) : (
           <p className="flex h-full items-center justify-center text-xs text-muted-foreground">
