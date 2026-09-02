@@ -13,6 +13,7 @@ import {
   Search,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ import {
   setExercisePhoto,
 } from "@/lib/exercise-photos";
 import { fileToPhotoDataUrl } from "@/lib/photo";
+import { clearRecentSearches, getRecentSearches, rememberSearch } from "@/lib/recent-searches";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/lib/types";
 
@@ -79,11 +81,13 @@ function LibraryPage() {
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "used">("name");
+  const [recents, setRecents] = useState<string[]>([]);
 
   // Local-only lists: read after hydration so SSR markup stays stable.
   useEffect(() => {
     setFavorites(getFavorites());
     setUsage(getExerciseUsage());
+    setRecents(getRecentSearches());
   }, []);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
@@ -207,11 +211,49 @@ function LibraryPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
+            onBlur={() => rememberSearch(q)}
+            autoFocus={Boolean(para)}
             placeholder={t("Search exercise")}
             aria-label={t("Search exercise")}
-            className="tap-target h-12 pl-11 text-base"
+            className="tap-target h-12 pl-11 pr-12 text-base"
           />
+          {q ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={t("Clear search")}
+              onClick={() => setQ("")}
+              className="tap-target absolute right-1 top-1/2 -translate-y-1/2 text-muted-foreground"
+            >
+              <X className="size-5" />
+            </Button>
+          ) : null}
         </div>
+
+        {!q && recents.length ? (
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {recents.map((term) => (
+              <button
+                key={term}
+                type="button"
+                onClick={() => setQ(term)}
+                className="tap-target rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+              >
+                {term}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => {
+                clearRecentSearches();
+                setRecents([]);
+              }}
+              className="tap-target px-2 text-xs font-semibold text-muted-foreground underline"
+            >
+              {t("Clear")}
+            </button>
+          </div>
+        ) : null}
 
         {exercisesQuery.isError ? (
           <QueryError

@@ -20,6 +20,18 @@ import { getRoutineSuggestions } from "@/lib/routine-progression";
 import { getLastSetsForExercise } from "@/lib/data/workouts";
 import { isSerieDeCarga } from "@/lib/progression";
 import { cn } from "@/lib/utils";
+import { undoToast } from "@/lib/undo";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export const Route = createFileRoute("/_authenticated/rotina/$id")({
   head: () => ({
@@ -247,6 +259,33 @@ function RoutineEditor() {
     }
   }
 
+  /** Removing is reversible for a few seconds instead of silently gone. */
+  function removeExercise(idx: number) {
+    const removed = routine!.exercicios[idx];
+    if (!removed) return;
+    setRoutine((prev) =>
+      prev
+        ? {
+            ...prev,
+            exercicios: prev.exercicios
+              .filter((_, i) => i !== idx)
+              .map((e, i) => ({ ...e, ordem: i })),
+          }
+        : prev,
+    );
+    undoToast({
+      message: t("{name} removed", { name: nomes[removed.exerciseId] ?? t("Exercise") }),
+      undoLabel: t("Undo"),
+      onUndo: () =>
+        setRoutine((prev) => {
+          if (!prev) return prev;
+          const exercicios = [...prev.exercicios];
+          exercicios.splice(idx, 0, removed);
+          return { ...prev, exercicios: exercicios.map((e, i) => ({ ...e, ordem: i })) };
+        }),
+    });
+  }
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <PageHeader
@@ -264,16 +303,40 @@ function RoutineEditor() {
         }
         right={
           routine.id ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="tap-target text-destructive"
-              aria-label={t("Delete routine")}
-              disabled={saving}
-              onClick={handleDelete}
-            >
-              <Trash2 className="size-5" />
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="tap-target text-destructive"
+                  aria-label={t("Delete routine")}
+                  disabled={saving}
+                >
+                  <Trash2 className="size-5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>
+                    {t("Delete {name}?", { name: routine.nome || t("this routine") })}
+                  </AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t(
+                      "The routine and its exercise setup are gone for good. Workouts you already logged stay in your history.",
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="tap-target">{t("Keep routine")}</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="tap-target bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    onClick={() => void handleDelete()}
+                  >
+                    {t("Delete routine")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           ) : null
         }
       />
@@ -409,18 +472,7 @@ function RoutineEditor() {
                     size="icon"
                     className="tap-target text-destructive"
                     aria-label={t("Remove exercise")}
-                    onClick={() =>
-                      setRoutine((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              exercicios: prev.exercicios
-                                .filter((_, i) => i !== idx)
-                                .map((e, i) => ({ ...e, ordem: i })),
-                            }
-                          : prev,
-                      )
-                    }
+                    onClick={() => removeExercise(idx)}
                   >
                     <Trash2 className="size-5" />
                   </Button>

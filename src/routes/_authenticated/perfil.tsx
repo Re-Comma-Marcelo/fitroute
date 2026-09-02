@@ -720,12 +720,29 @@ function Section({
   defaultOpen?: boolean;
   children: React.ReactNode;
 }) {
+  // Sections remember their state so the profile opens where you left it.
+  const storageKey = `forja.profileSection.${title}`;
   const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => {
+    const saved = window.localStorage.getItem(storageKey);
+    if (saved === "1" || saved === "0") setOpen(saved === "1");
+  }, [storageKey]);
+  function toggle() {
+    setOpen((o) => {
+      const next = !o;
+      try {
+        window.localStorage.setItem(storageKey, next ? "1" : "0");
+      } catch {
+        /* storage unavailable */
+      }
+      return next;
+    });
+  }
   return (
     <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/40">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         aria-expanded={open}
         className="tap-target flex w-full items-center gap-3 px-4 py-3.5 text-left"
       >

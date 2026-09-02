@@ -15,6 +15,7 @@ export function PendingSync() {
   const queryClient = useQueryClient();
   const [count, setCount] = useState(0);
   const [syncing, setSyncing] = useState(false);
+  const [offline, setOffline] = useState(false);
 
   const flush = useCallback(
     async (announce: boolean) => {
@@ -35,18 +36,38 @@ export function PendingSync() {
 
   useEffect(() => {
     setCount(pendingCount());
+    setOffline(!navigator.onLine);
     const unsubscribe = onPendingChange(setCount);
-    const onOnline = () => void flush(true);
+    const onOnline = () => {
+      setOffline(false);
+      void flush(true);
+    };
+    const onOffline = () => setOffline(true);
     window.addEventListener("online", onOnline);
+    window.addEventListener("offline", onOffline);
     // One quiet attempt on app start.
     void flush(false);
     return () => {
       unsubscribe();
       window.removeEventListener("online", onOnline);
+      window.removeEventListener("offline", onOffline);
     };
   }, [flush]);
 
-  if (count === 0) return null;
+  // Offline with nothing queued still deserves one honest banner.
+  if (count === 0) {
+    if (!offline) return null;
+    return (
+      <div className="mx-auto w-full max-w-md px-4 pb-2">
+        <div className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2">
+          <CloudOff className="size-4 shrink-0 text-warn" />
+          <p className="flex-1 text-xs font-medium text-foreground">
+            {t("You are offline — logging keeps working and syncs later.")}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-2">
