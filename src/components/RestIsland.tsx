@@ -36,7 +36,7 @@ export function RestIsland({
   return (
     <div
       className={cn(
-        "pointer-events-auto mx-auto flex max-w-md items-center gap-1.5 rounded-full border py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl motion-safe:animate-scale-in",
+        "pointer-events-auto mx-auto flex max-w-md items-center gap-1.5 rounded-full border py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
         isLow ? "border-warn/40 bg-warn/10" : "border-info/30 bg-card/95",
         className,
       )}
