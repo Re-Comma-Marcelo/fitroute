@@ -185,11 +185,13 @@ function SessionPage() {
    */
   const onRestExpired = useCallback(
     (live: boolean) => {
-      clearRest();
+      // Live expiry starts the "overdue" count-up; stale rest is dropped silently.
+      clearRest(live);
       if (live) setRestFinished(true);
     },
     [clearRest],
   );
+
   useRestExpiry(restEndsAt, onRestExpired);
   useEffect(() => {
     if (restEndsAt) setRestFinished(false);
