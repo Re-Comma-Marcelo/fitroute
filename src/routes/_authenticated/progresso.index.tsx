@@ -229,6 +229,8 @@ function ProgressPage() {
             </p>
           </div>
 
+          <WeekSummaryCard summary={summary} targets={targets} />
+
           <ProgressTrendChart data={series} />
 
           <MuscleVolumeCard rows={muscleRows} />
@@ -240,7 +242,12 @@ function ProgressPage() {
             onAdd={() => setPickerOpen(true)}
             onRemove={(id) => void toggleLift(id, false)}
           />
+
+          <PersonalRecordsCard workouts={workouts} sets={sets} exercises={exercises} />
+
+          <ExerciseCompareCard workouts={workouts} sets={sets} exercises={exercises} />
         </>
+
       )}
 
       <div className="mt-6 space-y-3">
