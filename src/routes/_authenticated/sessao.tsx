@@ -1018,18 +1018,20 @@ function SessionPage() {
         />
       </main>
 
+      {rest ? (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
+          <RestIsland
+            total={rest.total}
+            left={restLeft}
+            onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+            onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+            onSkip={() => patchRest(() => null)}
+          />
+        </div>
+      ) : null}
+
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">
-          {rest ? (
-            <RestTimerBar
-              rest={rest}
-              restLeft={restLeft}
-              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
-              onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-              onSkip={() => patchRest(() => null)}
-              t={t}
-            />
-          ) : null}
           {coachMark === 2 ? (
             <CoachMark
               text={t("When everything is done, finish here to save your workout")}
