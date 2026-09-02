@@ -1,4 +1,4 @@
-import { Timer, X } from "lucide-react";
+import { Timer, TimerOff, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDuration } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -7,10 +7,15 @@ import { useT } from "@/lib/i18n";
  * Floating "island" for the rest countdown: circular progress + big tabular
  * timer + -15s / +15s / skip. Shared by the session screen and the mini-player
  * so the countdown looks and behaves the same everywhere.
+ *
+ * When `overdue` is greater than zero the rest window is already over and the
+ * island switches to counting up ("+1:20"), so a phone left on the bench still
+ * shows how long the set has been waiting.
  */
 export function RestIsland({
   total,
   left,
+  overdue = 0,
   onAdd,
   onSubtract,
   onSkip,
@@ -19,6 +24,7 @@ export function RestIsland({
 }: {
   total: number;
   left: number;
+  overdue?: number;
   onAdd: () => void;
   onSubtract: () => void;
   onSkip: () => void;
@@ -26,8 +32,9 @@ export function RestIsland({
   className?: string;
 }) {
   const t = useT();
-  const pct = total > 0 ? Math.max(0, Math.min(1, left / total)) : 0;
-  const isLow = left <= 10;
+  const isOverdue = left <= 0 && overdue > 0;
+  const pct = isOverdue ? 0 : total > 0 ? Math.max(0, Math.min(1, left / total)) : 0;
+  const isLow = isOverdue || left <= 10;
   const size = 40;
   const stroke = 3.5;
   const r = (size - stroke) / 2;
@@ -41,6 +48,7 @@ export function RestIsland({
         className,
       )}
     >
+
       <button
         type="button"
         onClick={onOpenSettings}
