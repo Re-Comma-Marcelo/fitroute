@@ -13,12 +13,14 @@ type Filter = "all" | CoachNoteKind;
 export function CoachNotesCard() {
   const t = useT();
   const [filter, setFilter] = useState<Filter>("all");
+  const [showAll, setShowAll] = useState(false);
   const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getCoachNotes });
 
   const notes = useMemo(() => {
     const list = [...(notesQ.data ?? [])].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     return filter === "all" ? list : list.filter((n) => n.kind === filter);
   }, [notesQ.data, filter]);
+
 
   if (notesQ.isError) {
     return (
