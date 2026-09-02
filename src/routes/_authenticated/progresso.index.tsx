@@ -90,6 +90,11 @@ function ProgressPage() {
   }, [allWorkouts, routineFilter, weeks]);
 
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
+  const summary = useMemo(
+    () => weekSummary(allWorkouts, sets, exercises),
+    [allWorkouts, sets, exercises],
+  );
+
   const muscleRows = useMemo(
     () => muscleVolumeComparison(workouts, sets, exercises),
     [workouts, sets, exercises],
