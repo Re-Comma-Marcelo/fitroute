@@ -59,6 +59,7 @@ import { useWeightUnit } from "@/lib/use-weight-unit";
 import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
 import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
+import { undoToast } from "@/lib/undo";
 import {
   clearActiveSession,
   currentExerciseIndex,
