@@ -13,6 +13,7 @@ import {
   Search,
   Star,
   Trash2,
+  X,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ import {
   setExercisePhoto,
 } from "@/lib/exercise-photos";
 import { fileToPhotoDataUrl } from "@/lib/photo";
+import { clearRecentSearches, getRecentSearches, rememberSearch } from "@/lib/recent-searches";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/lib/types";
 
@@ -79,11 +81,13 @@ function LibraryPage() {
   const [usage, setUsage] = useState<Record<string, number>>({});
   const [onlyFavorites, setOnlyFavorites] = useState(false);
   const [sortBy, setSortBy] = useState<"name" | "used">("name");
+  const [recents, setRecents] = useState<string[]>([]);
 
   // Local-only lists: read after hydration so SSR markup stays stable.
   useEffect(() => {
     setFavorites(getFavorites());
     setUsage(getExerciseUsage());
+    setRecents(getRecentSearches());
   }, []);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
