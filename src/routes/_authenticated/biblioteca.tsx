@@ -641,3 +641,130 @@ function FilterChip({
     </button>
   );
 }
+
+/** One library row: pick, favourite and open the details sheet. */
+function ExerciseRow({
+  exercise,
+  favorite,
+  onChoose,
+  onDetail,
+  onStar,
+}: {
+  exercise: Exercise;
+  favorite: boolean;
+  onChoose: () => void;
+  onDetail: () => void;
+  onStar: () => void;
+}) {
+  const t = useT();
+  return (
+    <li className="flex items-center">
+      <button
+        type="button"
+        onClick={onChoose}
+        className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
+      >
+        <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[15px] font-semibold leading-tight">
+            {exercise.nome}
+          </span>
+          <span className="block text-xs text-muted-foreground/80">
+            {exercise.grupoPrimario} · {exercise.equipamento}
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="tap-target"
+        aria-label={t("Favorite")}
+        aria-pressed={favorite}
+        onClick={onStar}
+      >
+        <Star className={cn("size-5", favorite ? "fill-train text-train" : "text-muted-foreground")} />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="tap-target mr-2"
+        aria-label={t("Details for {name}", { name: exercise.nome })}
+        onClick={onDetail}
+      >
+        <Info className="size-5 text-muted-foreground" />
+      </Button>
+    </li>
+  );
+}
+
+/** Reference media: the catalog image plus your own setup photo (local only). */
+function ExerciseMedia({ exercise }: { exercise: Exercise }) {
+  const t = useT();
+  const [photo, setPhoto] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => setPhoto(getExercisePhoto(exercise.id)), [exercise.id]);
+
+  async function pick(file: File | undefined) {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const dataUrl = await fileToPhotoDataUrl(file);
+      setExercisePhoto(exercise.id, dataUrl);
+      setPhoto(dataUrl);
+    } catch {
+      toast.error(t("Could not use that image. Try another one."));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div>
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("Reference")}
+      </h3>
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        <img
+          src={exercise.midiaUrl || exerciseImage(exercise.grupoPrimario)}
+          alt={t("How to perform {name}", { name: exercise.nome })}
+          loading="lazy"
+          className="h-28 w-full rounded-xl border border-border object-cover"
+        />
+        {photo ? (
+          <div className="relative">
+            <img
+              src={photo}
+              alt={t("Your setup photo")}
+              className="h-28 w-full rounded-xl border border-border object-cover"
+            />
+            <Button
+              variant="secondary"
+              size="icon"
+              className="absolute right-1.5 top-1.5 size-8"
+              aria-label={t("Remove photo")}
+              onClick={() => {
+                removeExercisePhoto(exercise.id);
+                setPhoto(null);
+              }}
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        ) : (
+          <label className="tap-target flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground">
+            <Camera className="size-5" />
+            {busy ? t("Loading…") : t("Add setup photo")}
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => void pick(e.target.files?.[0])}
+            />
+          </label>
+        )}
+      </div>
+    </div>
+  );
+}
