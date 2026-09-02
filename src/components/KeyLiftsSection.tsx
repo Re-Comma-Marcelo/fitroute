@@ -1,9 +1,15 @@
-import { Minus, Plus, TrendingDown, TrendingUp, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Minus, Plus, Target, TrendingDown, TrendingUp, X } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { LiftTrend } from "@/lib/progress-analytics";
 import type { Exercise } from "@/lib/types";
-import { relativeDays } from "@/lib/format";
+import { relativeDays, weightUnitLabel } from "@/lib/format";
+import { clearLiftGoal, getLiftGoals, goalProgress, setLiftGoal } from "@/lib/lift-goals";
+import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { useWeightUnit } from "@/lib/use-weight-unit";
 import { cn } from "@/lib/utils";
 
 export interface KeyLiftRow {
@@ -21,6 +27,36 @@ export function KeyLiftsSection({
   onRemove: (exerciseId: string) => void;
 }) {
   const t = useT();
+  const { unit } = useWeightUnit();
+  const [goals, setGoals] = useState<Record<string, number>>({});
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+
+  // Goals live in localStorage: a personal target, not logged training data.
+  useEffect(() => {
+    const stored = getLiftGoals();
+    setGoals(
+      Object.fromEntries(Object.entries(stored).map(([id, goal]) => [id, goal.targetKg])),
+    );
+  }, []);
+
+  function saveGoal(exerciseId: string) {
+    const parsed = Number(draft.replace(",", "."));
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      clearLiftGoal(exerciseId);
+      setGoals((prev) => {
+        const next = { ...prev };
+        delete next[exerciseId];
+        return next;
+      });
+    } else {
+      const targetKg = Math.round(fromDisplayWeight(parsed, unit) * 10) / 10;
+      setLiftGoal({ exerciseId, metric: "load", targetKg });
+      setGoals((prev) => ({ ...prev, [exerciseId]: targetKg }));
+    }
+    setEditing(null);
+    setDraft("");
+  }
   return (
     <section className="mt-8">
       <header className="mb-3 flex items-center justify-between">
@@ -51,10 +87,8 @@ export function KeyLiftsSection({
       ) : (
         <ul className="space-y-2">
           {rows.map(({ exercise, trend }) => (
-            <li
-              key={exercise.id}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3"
-            >
+            <li key={exercise.id} className="rounded-2xl border border-border bg-card p-3">
+              <div className="flex items-center gap-3">
               <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-display text-sm font-semibold leading-tight">
@@ -92,6 +126,25 @@ export function KeyLiftsSection({
               >
                 <X className="size-4" />
               </button>
+              </div>
+
+              <GoalRow
+                best={trend ? Math.max(...trend.points) : 0}
+                goalKg={goals[exercise.id] ?? null}
+                editing={editing === exercise.id}
+                draft={draft}
+                unit={unit}
+                onDraft={setDraft}
+                onEdit={() => {
+                  setEditing(exercise.id);
+                  const current = goals[exercise.id];
+                  setDraft(
+                    current ? String(Math.round(toDisplayWeight(current, unit) * 10) / 10) : "",
+                  );
+                }}
+                onCancel={() => setEditing(null)}
+                onSave={() => saveGoal(exercise.id)}
+              />
             </li>
           ))}
         </ul>
@@ -99,6 +152,88 @@ export function KeyLiftsSection({
     </section>
   );
 }
+
+/** Target load for the lift: "best so far vs the number you're chasing". */
+function GoalRow({
+  best,
+  goalKg,
+  editing,
+  draft,
+  unit,
+  onDraft,
+  onEdit,
+  onCancel,
+  onSave,
+}: {
+  best: number;
+  goalKg: number | null;
+  editing: boolean;
+  draft: string;
+  unit: "kg" | "lb";
+  onDraft: (value: string) => void;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+}) {
+  const t = useT();
+
+  if (editing) {
+    return (
+      <div className="mt-3 flex items-center gap-2">
+        <Input
+          value={draft}
+          autoFocus
+          inputMode="decimal"
+          placeholder={t("Target in {unit}", { unit: weightUnitLabel() })}
+          aria-label={t("Target in {unit}", { unit: weightUnitLabel() })}
+          onChange={(e) => onDraft(e.target.value)}
+          className="numeric-field h-11 flex-1"
+        />
+        <Button className="tap-target" onClick={onSave}>
+          {t("Save")}
+        </Button>
+        <Button variant="ghost" className="tap-target" onClick={onCancel}>
+          {t("Cancel")}
+        </Button>
+      </div>
+    );
+  }
+
+  if (goalKg === null) {
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        className="tap-target mt-2 flex items-center gap-1.5 text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <Target className="size-4" /> {t("Set a goal")}
+      </button>
+    );
+  }
+
+  const pct = goalProgress(best, goalKg);
+  const target = Math.round(toDisplayWeight(goalKg, unit) * 10) / 10;
+  const current = Math.round(toDisplayWeight(best, unit) * 10) / 10;
+  return (
+    <button type="button" onClick={onEdit} className="mt-3 block w-full text-left">
+      <div className="flex items-baseline justify-between text-xs font-semibold tabular-nums">
+        <span className="text-muted-foreground">
+          {t("Goal {target} {unit}", { target, unit: weightUnitLabel() })}
+        </span>
+        <span className={cn(pct >= 100 ? "text-success" : "text-foreground")}>
+          {t("{current} {unit} · {pct}%", { current, unit: weightUnitLabel(), pct })}
+        </span>
+      </div>
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
+        <div
+          className={cn("h-full rounded-full", pct >= 100 ? "bg-success" : "bg-primary")}
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </button>
+  );
+}
+
 
 function DirectionChip({ trend }: { trend: LiftTrend }) {
   const diff = Math.round((trend.lastWeight - trend.firstWeight) * 10) / 10;

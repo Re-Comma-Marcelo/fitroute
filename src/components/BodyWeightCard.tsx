@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { QueryError } from "@/components/QueryError";
 import { getBodyWeightLog, logBodyWeight } from "@/lib/data/body-weight";
-import { formatDate, weightUnitLabel } from "@/lib/format";
+import { getProfile } from "@/lib/data/profile";
+import { formatDate, formatDateLong, weightUnitLabel } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
+import { weightPace } from "@/lib/weight-pace";
 
 /**
  * Body weight trend: one entry per day, entered by hand. The chart is the
@@ -22,7 +24,19 @@ export function BodyWeightCard() {
   const [draft, setDraft] = useState("");
 
   const logQuery = useQuery({ queryKey: ["body-weight"], queryFn: getBodyWeightLog });
+  const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const entries = logQuery.data ?? [];
+
+  /** Reads the log as a rate, so the goal gets a projected date. */
+  const pace = useMemo(
+    () =>
+      weightPace(
+        entries,
+        profileQuery.data?.pesoMetaKg,
+        profileQuery.data?.metaPrazo,
+      ),
+    [entries, profileQuery.data?.pesoMetaKg, profileQuery.data?.metaPrazo],
+  );
 
   const save = useMutation({
     mutationFn: async () => {
@@ -99,6 +113,29 @@ export function BodyWeightCard() {
           {t("Log")}
         </Button>
       </div>
+
+      {pace ? (
+        <p className="mt-3 text-xs leading-snug text-muted-foreground">
+          {pace.wrongWay
+            ? t("At this pace you are not moving towards your goal weight.")
+            : t("{rate} {unit}/week — on this pace you hit your goal around {date}.", {
+                rate:
+                  (pace.ratePerWeek > 0 ? "+" : "") +
+                  String(Math.round(toDisplayWeight(pace.ratePerWeek, unit) * 10) / 10),
+                unit: weightUnitLabel(),
+                date: pace.projectedDate ? formatDateLong(pace.projectedDate) : "—",
+              })}
+          {pace.weeksVsDeadline !== null && !pace.wrongWay
+            ? pace.weeksVsDeadline >= 0
+              ? " " + t("{weeks} weeks before your deadline.", { weeks: pace.weeksVsDeadline })
+              : " " +
+                t("{weeks} weeks after your deadline.", {
+                  weeks: Math.abs(pace.weeksVsDeadline),
+                })
+            : null}
+        </p>
+      ) : null}
+
 
       {data.length > 1 ? (
         <div className="mt-4 h-40">

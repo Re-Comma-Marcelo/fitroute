@@ -2,12 +2,13 @@ import { useMemo, useState } from "react";
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Flame } from "lucide-react";
+import { ChevronRight, Flame, Plus } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { KeyLiftsSection, type KeyLiftRow } from "@/components/KeyLiftsSection";
 import { PlateauCoachCard } from "@/components/PlateauCoachCard";
 import { ProgressTrendChart } from "@/components/ProgressTrendChart";
 import { TrackedLiftPickerSheet } from "@/components/TrackedLiftPickerSheet";
+import { ManualWorkoutSheet } from "@/components/ManualWorkoutSheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { QueryError } from "@/components/QueryError";
@@ -50,6 +51,7 @@ function ProgressPage() {
   const t = useT();
   const queryClient = useQueryClient();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
   const [weeks, setWeeks] = useState<4 | 8 | 12>(8);
   const [routineFilter, setRoutineFilter] = useState<string | null>(null);
 
@@ -83,7 +85,10 @@ function ProgressPage() {
     [workouts, sets, exercises],
   );
   const consistency = useMemo(() => adherence(workouts, weeklyTarget), [workouts, weeklyTarget]);
-  const series = useMemo(() => weeklySeries(workouts, weeks), [workouts, weeks]);
+  const series = useMemo(
+    () => weeklySeries(workouts, weeks, new Date(), sets),
+    [workouts, weeks, sets],
+  );
   const plateau = useMemo(
     () =>
       trackedIds.length && workouts.length && sets.length
@@ -270,11 +275,26 @@ function ProgressPage() {
         ))}
       </ul>
 
+      <Button
+        variant="outline"
+        className="tap-target mt-3 w-full"
+        onClick={() => setManualOpen(true)}
+      >
+        <Plus className="size-4" /> {t("Log a past workout")}
+      </Button>
+
       <TrackedLiftPickerSheet
         open={pickerOpen}
         trackedIds={trackedIds}
         onOpenChange={setPickerOpen}
         onToggle={(id, tracked) => void toggleLift(id, tracked)}
+      />
+
+      <ManualWorkoutSheet
+        open={manualOpen}
+        onOpenChange={setManualOpen}
+        routines={routines}
+        exercises={exercises}
       />
     </AppShell>
   );

@@ -115,17 +115,40 @@ export interface WeekPoint {
   label: string;
   volume: number;
   sessions: number;
+  /** Mean RPE of the week's completed sets (0 when nothing was rated). */
+  rpe: number;
 }
 
-/** Continuous weekly series (zero-filled) for the last `weeks` weeks. */
-export function weeklySeries(workouts: Workout[], weeks = 8, now = new Date()): WeekPoint[] {
+/**
+ * Continuous weekly series (zero-filled) for the last `weeks` weeks.
+ * Passing the set log adds mean RPE per week — the fatigue read.
+ */
+export function weeklySeries(
+  workouts: Workout[],
+  weeks = 8,
+  now = new Date(),
+  sets: WorkoutSet[] = [],
+): WeekPoint[] {
   const buckets = new Map<string, { volume: number; sessions: number }>();
+  const weekOfWorkout = new Map<string, string>();
   for (const w of workouts) {
     const key = weekStart(new Date(w.iniciadoEm));
+    weekOfWorkout.set(w.id, key);
     const entry = buckets.get(key) ?? { volume: 0, sessions: 0 };
     entry.volume += w.volumeTotalKg;
     entry.sessions += 1;
     buckets.set(key, entry);
+  }
+
+  const rpeBuckets = new Map<string, { sum: number; count: number }>();
+  for (const s of sets) {
+    if (!s.concluida || !s.rpe) continue;
+    const key = weekOfWorkout.get(s.workoutId);
+    if (!key) continue;
+    const entry = rpeBuckets.get(key) ?? { sum: 0, count: 0 };
+    entry.sum += s.rpe;
+    entry.count += 1;
+    rpeBuckets.set(key, entry);
   }
 
   const out: WeekPoint[] = [];
@@ -134,11 +157,13 @@ export function weeklySeries(workouts: Workout[], weeks = 8, now = new Date()): 
   for (let i = 0; i < weeks; i++) {
     const key = new Date(weekStart(cursor)).toISOString();
     const entry = buckets.get(key) ?? { volume: 0, sessions: 0 };
+    const rpe = rpeBuckets.get(key);
     out.push({
       weekStart: key,
       label: formatDayMonth(new Date(key)),
       volume: Math.round(entry.volume),
       sessions: entry.sessions,
+      rpe: rpe && rpe.count ? Math.round((rpe.sum / rpe.count) * 10) / 10 : 0,
     });
     cursor.setDate(cursor.getDate() + 7);
   }
