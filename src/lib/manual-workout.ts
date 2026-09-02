@@ -56,7 +56,7 @@ export function buildManualWorkout(input: ManualWorkoutInput): ManualWorkoutDraf
   return {
     workout: {
       id: workoutId,
-      routineId: input.routine?.id,
+      ...(input.routine ? { routineId: input.routine.id } : {}),
       iniciadoEm: startedAt.toISOString(),
       finalizadoEm: new Date(startedAt.getTime() + duracaoSeg * 1000).toISOString(),
       duracaoSeg,
