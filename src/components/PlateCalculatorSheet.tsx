@@ -67,7 +67,7 @@ export function PlateCalculatorSheet({ targetKg }: { targetKg: number }) {
       <SheetTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
         >
           <Calculator className="size-3.5" strokeWidth={2.6} />
           {t("Plates")}
