@@ -60,6 +60,10 @@ function ProgressPage() {
   const [manualOpen, setManualOpen] = useState(false);
   const [weeks, setWeeks] = useState<4 | 8 | 12>(8);
   const [routineFilter, setRoutineFilter] = useState<string | null>(null);
+  // Local-only weekly targets: read after hydration to keep SSR markup stable.
+  const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
+  useEffect(() => setTargets(getWeeklyTargets()), []);
+
 
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
