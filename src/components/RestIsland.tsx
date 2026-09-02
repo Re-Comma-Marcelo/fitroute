@@ -81,51 +81,70 @@ export function RestIsland({
               )}
             />
           </svg>
-          <Timer
-            className={cn(
-              "absolute size-4",
-              isLow ? "text-warn motion-safe:animate-pulse" : "text-info",
-            )}
-          />
-        </span>
-        <span
-          role="timer"
-          aria-live="off"
-          className={cn(
-            "font-mono text-xl font-semibold tabular-nums leading-none",
-            isLow ? "text-warn" : "text-info",
+          {isOverdue ? (
+            <TimerOff className="absolute size-4 text-warn" />
+          ) : (
+            <Timer
+              className={cn(
+                "absolute size-4",
+                isLow ? "text-warn motion-safe:animate-pulse" : "text-info",
+              )}
+            />
           )}
-        >
-          {formatDuration(left)}
+        </span>
+        <span className="flex flex-col items-start leading-none">
+          <span
+            role="timer"
+            aria-live="off"
+            className={cn(
+              "font-mono text-xl font-semibold tabular-nums leading-none",
+              isLow ? "text-warn" : "text-info",
+            )}
+          >
+            {isOverdue ? `+${formatDuration(overdue)}` : formatDuration(left)}
+          </span>
+          {isOverdue ? (
+            <span className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-warn/80">
+              {t("Rest overdue")}
+            </span>
+          ) : null}
         </span>
       </button>
 
       <span className="ml-auto flex shrink-0 items-center gap-1">
-        <button
-          type="button"
-          onClick={onSubtract}
-          aria-label={t("Subtract 15 seconds")}
-          className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
-        >
-          −15
-        </button>
-        <button
-          type="button"
-          onClick={onAdd}
-          aria-label={t("Add 15 seconds")}
-          className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
-        >
-          +15
-        </button>
+        {isOverdue ? null : (
+          <>
+            <button
+              type="button"
+              onClick={onSubtract}
+              aria-label={t("Subtract 15 seconds")}
+              className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
+            >
+              −15
+            </button>
+            <button
+              type="button"
+              onClick={onAdd}
+              aria-label={t("Add 15 seconds")}
+              className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
+            >
+              +15
+            </button>
+          </>
+        )}
         <button
           type="button"
           onClick={onSkip}
-          aria-label={t("Skip rest")}
-          className="tap-target flex size-11 items-center justify-center rounded-full bg-info text-info-foreground"
+          aria-label={isOverdue ? t("Dismiss") : t("Skip rest")}
+          className={cn(
+            "tap-target flex size-11 items-center justify-center rounded-full",
+            isOverdue ? "bg-warn/20 text-warn" : "bg-info text-info-foreground",
+          )}
         >
           <X className="size-5" />
         </button>
       </span>
+
     </div>
   );
 }
