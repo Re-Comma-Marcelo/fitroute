@@ -376,7 +376,7 @@ function LibraryPage() {
           </SheetHeader>
           {detail ? (
             <div className="space-y-4 px-4 pb-6">
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
                 </span>
@@ -388,13 +388,33 @@ function LibraryPage() {
                 <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
                   {detail.equipamento}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => star(detail.id)}
+                  aria-label={t("Favorite")}
+                  className={cn(
+                    "tap-target ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 text-xs font-semibold",
+                    favorites.includes(detail.id)
+                      ? "border-train/60 bg-train/15 text-train"
+                      : "border-border text-muted-foreground",
+                  )}
+                >
+                  <Star
+                    className={cn("size-4", favorites.includes(detail.id) && "fill-train")}
+                  />
+                  {t("Favorite")}
+                </button>
               </div>
+
+              <ExerciseMedia exercise={detail} />
+
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("Execution")}
                 </h3>
                 <p className="mt-1 text-base leading-relaxed">{detail.instrucoes}</p>
               </div>
+
               <div>
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
                   {t("Your history")}
