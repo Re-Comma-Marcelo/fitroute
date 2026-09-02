@@ -26,8 +26,10 @@ import { getProfile } from "@/lib/data/profile";
 import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
 import type { Exercise, Routine, Workout } from "@/lib/types";
 import { getWorkouts } from "@/lib/data/workouts";
-import { formatDurationShort, relativeDays } from "@/lib/format";
+import { formatDurationShort, formatKg, relativeDays } from "@/lib/format";
 import { routineCover } from "@/lib/exercise-image";
+import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
+
 import {
   loadActiveSession,
   loadTodayChoice,
