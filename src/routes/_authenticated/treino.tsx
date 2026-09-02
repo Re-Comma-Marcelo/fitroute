@@ -334,6 +334,18 @@ function TrainPage() {
         </ul>
       )}
 
+      {orderedRoutines.length > 0 ? (
+        <Button
+          variant="outline"
+          className="tap-target mt-3 w-full"
+          onClick={() => setTemplatesOpen(true)}
+        >
+          {t("Start from a template")}
+        </Button>
+      ) : null}
+
+
+
       <RoutineTemplateSheet
         open={templatesOpen}
         onOpenChange={setTemplatesOpen}
