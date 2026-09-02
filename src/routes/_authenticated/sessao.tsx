@@ -1196,7 +1196,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-11 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
+          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
         >
           <TrendingUp className="size-3.5" strokeWidth={3} />
           {t("Weight increased")}
