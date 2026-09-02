@@ -164,14 +164,19 @@ function SessionPage() {
   }, []);
 
   /** Clear the persisted rest countdown (it is consumed once and never re-fires). */
-  const clearRest = useCallback(() => {
+  const clearRest = useCallback((markOverdue = false) => {
     setSession((prev) => {
       if (!prev?.rest) return prev;
-      const next = { ...prev, rest: null };
+      const next = {
+        ...prev,
+        rest: null,
+        restExpirouEm: markOverdue ? Date.now() : null,
+      };
       saveActiveSession(next);
       return next;
     });
   }, []);
+
 
   /**
    * Prominent rest timer: sound + vibration + full-screen overlay when done.
