@@ -1,83 +1,85 @@
 # 10 melhorias para o Iron Logger — nova rodada
 
-Auditoria read-only do estado atual. Tudo frontend/cliente, sem schema, auth ou MCP novos. Onde uma lacuna foi confirmada no código, o arquivo está citado; onde a proposta é apenas adição, não há afirmação sobre o estado atual.
+Auditoria read-only do estado atual. Tudo cliente/UI, sem schema, auth ou MCP novos. Onde uma lacuna foi confirmada no código, o arquivo está citado; os demais itens são adições.
 
-## 1. Metas por levantamento
+## 1. Favoritar exercícios
 
-**Onde:** `src/lib/data/tracked-lifts.ts` expõe só `getTrackedLifts`/`setTrackedLift` — não existe alvo por exercício.
+**Onde:** nenhuma referência a favorito em `src` — a biblioteca só filtra por grupo/equipamento.
 
-Você acompanha key lifts, mas sem número a perseguir.
+Quem usa sempre os mesmos 15 exercícios rola a lista inteira toda vez.
 
-**Correção:** meta opcional (carga ou e1RM) por lift rastreado, com barra "atual vs meta" no card de Key Lifts. Guardada localmente.
+**Correção:** estrela no card da biblioteca e no seletor da sessão, com seção "Favoritos" no topo (localStorage).
 
-## 2. Registrar treino retroativo
+## 2. Tela de recordes (PRs)
 
-**Onde:** `src/lib/data/workouts.ts` só cria treino pela sessão ativa.
+**Onde:** não existe módulo de PR em `src/lib`; o PR só aparece pontualmente no resumo e na Home.
 
-Treinou sem o celular? O dia fica vazio e a streak quebra.
+Os recordes existem no histórico mas não há lugar para vê-los juntos.
 
-**Correção:** "Adicionar treino manual" no Progresso: data, duração, exercícios e séries, gravando pelo mesmo caminho de save.
+**Correção:** lista de PRs por exercício (melhor carga, melhor e1RM, data) no Progresso, ordenável por recentes.
 
-## 3. Ajuste de descanso durante a série
+## 3. Descanso estourado
 
-**Onde:** `sessao.tsx:374-502` — `startRest` sempre usa o descanso do exercício.
+**Onde:** `src/components/RestIsland.tsx` e `src/lib/session-state.ts` não contam tempo após o zero.
 
-Barra de descanso sem controle fino: nada de ±15s nem "pular" sem mudar o padrão da rotina.
+Se o celular fica na bancada, o timer zera e a série seguinte sai muito depois — sem registro disso.
 
-**Correção:** botões −15s / +15s / pular na barra de descanso, só para o descanso em curso.
+**Correção:** contagem "+1:20 atrasado" na ilha depois do zero, com cor de aviso.
 
-## 4. Modelos de rotina prontos
+## 4. Séries por tempo fora das métricas
 
-**Onde:** `src/lib/import/starter-routine.ts` gera plano apenas no onboarding.
+**Onde:** `src/lib/progress-analytics.ts` não referencia `tempo`.
 
-Depois do primeiro acesso, criar uma rotina nova é montar tudo do zero.
+Prancha, cardio e isometria são registrados na sessão e desaparecem do Progresso.
 
-**Correção:** ao criar rotina, oferecer modelos (Push/Pull/Legs, Upper/Lower, Full Body 3x) reaproveitando o gerador existente.
+**Correção:** métrica de tempo sob tensão por sessão/semana e exibição desses sets no detalhe do treino.
 
-## 5. Aquecimento sugerido automaticamente
+## 5. Notas do coach sem histórico
 
-Antes do primeiro set pesado de um composto, o app não propõe rampa de aquecimento.
+**Onde:** `getCoachNotes` é lido por `CoachNotesCard`, `today-card.ts` e `recommendations.ts` — nenhuma tela lista o histórico completo.
 
-**Correção:** botão "Adicionar aquecimento" no primeiro exercício, gerando 2-3 séries `W` em % da carga alvo.
+Check-ins entram e não podem ser relidos depois.
 
-## 6. Descanso: aviso quando estourar
+**Correção:** lista completa de notas (data, tipo, tags) com filtro simples, dentro do Progresso.
 
-Se você esquece o celular na bancada, o timer zera e a série seguinte sai muito depois.
+## 6. Deload acionável
 
-**Correção:** contagem "atrasado +1:20" após o zero e aviso no mini-player, para o histórico refletir a densidade real.
+**Onde:** `src/lib/coach/plateau.ts` e `TodayCoachCard.tsx` sugerem deload em texto; sem ação.
 
-## 7. Tendência de fadiga por RPE
+O coach diagnostica e o usuário faz a conta na mão.
 
-**Onde:** `src/lib/progress-analytics.ts` não tem métrica sobre `rpe`.
+**Correção:** botão "Aplicar semana de deload" que inicia a sessão com ~60% da carga e menos séries, marcado no resumo.
 
-O RPE é coletado série a série e usado só no coach, nunca visualizado.
+## 7. Exercícios sem imagem de referência no detalhe
 
-**Correção:** gráfico de RPE médio por semana no Progresso, junto a volume, para enxergar fadiga acumulada.
+O detalhe da biblioteca traz instruções em texto; falta apoio visual de execução.
 
-## 8. Metas de peso corporal com ritmo
+**Correção:** área de mídia no detalhe (imagem/GIF quando houver `midiaUrl`) e possibilidade de anexar uma foto própria de setup da máquina.
 
-O registro de peso já existe; falta ler se o ritmo bate com o prazo da meta.
+## 8. Comparar duas rotinas / exercícios
 
-**Correção:** no card de peso, projeção "no ritmo atual você chega em <data>" e comparação com `metaPrazo`.
+Hoje cada gráfico olha um exercício por vez.
 
-## 9. Notas rápidas durante a sessão
+**Correção:** seletor de dois exercícios no gráfico de tendência, sobrepondo as curvas de e1RM.
 
-Adicionar uma nota hoje exige sair do fluxo de séries.
+## 9. Metas semanais além de sessões
 
-**Correção:** campo de nota fixo no rodapé da sessão (uma linha, salva ao sair do foco) e exibição no resumo.
+`metaTreinosSemana` conta só sessões.
 
-## 10. Reordenar exercícios na sessão
+**Correção:** meta opcional de volume semanal (kg) e de séries, exibida junto do card de meta na Home/Treino.
 
-Mudar a ordem no meio do treino (máquina ocupada) não é possível sem remover e re-adicionar.
+## 10. Resumo semanal
 
-**Correção:** mover ↑/↓ nos cards de exercício da sessão, preservando séries já registradas.
+Falta um fechamento de semana que consolide o que já é calculado (volume, séries, RPE, grupos treinados).
+
+**Correção:** card "Sua semana" no Progresso (domingo em diante) com deltas vs semana anterior e um destaque textual do coach.
 
 ## Notas técnicas
 
-- Todos os itens são cliente/UI; nenhum pede tabela nova (metas de lift e alvos ficam em localStorage).
-- Item 2 usa o mesmo caminho de gravação de treino já existente, sem endpoint novo.
+- Todos os itens são cliente/UI; favoritos, metas extras e fotos locais ficam em localStorage.
+- Itens 2, 4, 5, 8, 10 reaproveitam os sets já carregados, sem query nova.
 - Strings novas vão para `src/lib/i18n/dict/*` em pt/nl, zero hardcoded.
 
 ## Ordem sugerida
 
-3 → 10 → 9 → 7 → 1 → 5 → 6 → 8 → 4 → 2
+3 → 1 → 4 → 2 → 10 → 5 → 9 → 8 → 6 → 7
