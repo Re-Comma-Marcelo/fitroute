@@ -75,6 +75,16 @@ function LibraryPage() {
   const [equip, setEquip] = useState<string | null>(null);
   const [detail, setDetail] = useState<Exercise | null>(null);
   const [creating, setCreating] = useState(false);
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const [usage, setUsage] = useState<Record<string, number>>({});
+  const [onlyFavorites, setOnlyFavorites] = useState(false);
+  const [sortBy, setSortBy] = useState<"name" | "used">("name");
+
+  // Local-only lists: read after hydration so SSR markup stays stable.
+  useEffect(() => {
+    setFavorites(getFavorites());
+    setUsage(getExerciseUsage());
+  }, []);
 
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const gruposQuery = useQuery({ queryKey: ["muscleGroups"], queryFn: getMuscleGroups });
@@ -89,7 +99,7 @@ function LibraryPage() {
 
   const all = exercisesQuery.data ?? [];
   const termo = q.trim().toLowerCase();
-  const showFolders = !termo && grupo === null && !equip;
+  const showFolders = !termo && grupo === null && !equip && !onlyFavorites;
 
   const folders = useMemo(() => {
     const groups = gruposQuery.data ?? [];
@@ -99,16 +109,29 @@ function LibraryPage() {
     }));
   }, [gruposQuery.data, all]);
 
-  const lista = useMemo(
-    () =>
-      all.filter(
-        (e) =>
-          (!termo || e.nome.toLowerCase().includes(termo)) &&
-          (!grupo || belongsTo(e, grupo)) &&
-          (!equip || e.equipamento === equip),
-      ),
-    [all, termo, grupo, equip],
+  const favoriteList = useMemo(
+    () => all.filter((e) => favorites.includes(e.id)),
+    [all, favorites],
   );
+
+  const lista = useMemo(() => {
+    const filtered = all.filter(
+      (e) =>
+        (!termo || e.nome.toLowerCase().includes(termo)) &&
+        (!grupo || belongsTo(e, grupo)) &&
+        (!equip || e.equipamento === equip) &&
+        (!onlyFavorites || favorites.includes(e.id)),
+    );
+    return [...filtered].sort((a, b) => {
+      const favDiff = Number(favorites.includes(b.id)) - Number(favorites.includes(a.id));
+      if (favDiff !== 0) return favDiff;
+      if (sortBy === "used") {
+        const used = (usage[b.id] ?? 0) - (usage[a.id] ?? 0);
+        if (used !== 0) return used;
+      }
+      return a.nome.localeCompare(b.nome);
+    });
+  }, [all, termo, grupo, equip, onlyFavorites, favorites, sortBy, usage]);
 
   function goBack() {
     if (para === "sessao") navigate({ to: "/sessao" });
@@ -117,14 +140,20 @@ function LibraryPage() {
     else navigate({ to: "/treino" });
   }
 
+  function star(exerciseId: string) {
+    setFavorites(toggleFavorite(exerciseId));
+  }
+
   function choose(exercise: Exercise) {
     if (!para) {
       setDetail(exercise);
       return;
     }
+    setUsage(bumpExerciseUsage(exercise.id));
     setPendingExercise(exercise.id);
     goBack();
   }
+
 
   async function saveNew(input: {
     nome: string;
