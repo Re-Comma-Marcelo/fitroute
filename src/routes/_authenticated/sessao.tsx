@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -554,6 +554,38 @@ function SessionPage() {
       return s;
     });
   }
+
+  /** Context the coach reads later ("lower back felt tight"). */
+  function setSetNote(exIdx: number, setIdx: number, value: string) {
+    update((s) => {
+      s.exercicios[exIdx]!.sets[setIdx]!.coachNote = value;
+      return s;
+    });
+  }
+
+  /** Swap the exercise in place, accepted from the in-workout coach chat. */
+  async function swapExerciseTo(exIdx: number, exerciseId: string) {
+    const current = session?.exercicios[exIdx];
+    if (!current) return;
+    const built = await buildActiveExercise(exerciseId, {
+      seriesAlvo: current.sets.filter(isSerieValida).length,
+      repsMin: current.repsMin,
+      repsMax: current.repsMax,
+      descansoSeg: current.descansoSeg,
+    });
+    if (!built) return;
+    update((s) => {
+      s.exercicios[exIdx] = built;
+      return s;
+    });
+    setCoachTips((prev) => {
+      const next = { ...prev };
+      delete next[exIdx];
+      return next;
+    });
+    toast.success(t("Swapped to {name}", { name: built.nome }));
+  }
+
 
   /** Ramp up to the first working weight instead of hand-typing light sets. */
   function addWarmup(exIdx: number) {
