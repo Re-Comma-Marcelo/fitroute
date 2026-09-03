@@ -323,18 +323,38 @@ function TodayPage() {
         </div>
       ) : (
         <ul className="mt-3 space-y-3">
-          {options.map((meal) => (
-            <li key={meal.id}>
-              <MealCard
-                meal={meal}
-                slot={currentSlot}
-                selected={day?.[currentSlot] === meal.id}
-                note={note(meal)}
-                onSelect={() => choose(meal.id)}
-                onDetails={() => setDetail(meal)}
-              />
-            </li>
-          ))}
+          {options.map((meal) => {
+            const isPlannedHere = day?.[currentSlot] === meal.id;
+            const isEatenHere =
+              isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
+            return (
+              <li key={meal.id}>
+                <MealCard
+                  meal={meal}
+                  slot={currentSlot}
+                  selected={isPlannedHere}
+                  eaten={isEatenHere}
+                  favorite={favorites.includes(meal.id)}
+                  note={note(meal)}
+                  onSelect={() => choose(meal.id)}
+                  onDetails={() => setDetail(meal)}
+                  onToggleEaten={
+                    isPlannedHere
+                      ? () => {
+                          toggleEatenMeal(today, currentSlot, meal.id);
+                          setEatenTick((n) => n + 1);
+                          void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
+                        }
+                      : undefined
+                  }
+                  onToggleFavorite={() => {
+                    toggleMealFavorite(meal.id);
+                    setFavTick((n) => n + 1);
+                  }}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
 
