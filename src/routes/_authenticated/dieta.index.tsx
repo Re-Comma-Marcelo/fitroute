@@ -343,15 +343,15 @@ function TodayPage() {
                   note={note(meal)}
                   onSelect={() => choose(meal.id)}
                   onDetails={() => setDetail(meal)}
-                  onToggleEaten={
-                    isPlannedHere
-                      ? () => {
+                  {...(isPlannedHere
+                    ? {
+                        onToggleEaten: () => {
                           toggleEatenMeal(today, currentSlot, meal.id);
                           setEatenTick((n) => n + 1);
                           void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
-                        }
-                      : undefined
-                  }
+                        },
+                      }
+                    : {})}
                   onToggleFavorite={() => {
                     toggleMealFavorite(meal.id);
                     setFavTick((n) => n + 1);
