@@ -111,14 +111,20 @@ export function CoachNotesCard() {
       (workoutsQ.data ?? [])[0]?.routineId,
     );
     setConversation((c) => [...c, { role: "user", text }, { role: "coach", text: proposal.text }]);
-    if (checkIn) await replyToCoachingEvent(checkIn.id, text);
-    await logCoachingEvent({
-      kind: "inactivity_checkin",
-      cause: "none",
-      message: proposal.text,
-      detail: { reply: text, routineId: proposal.routineId, shortened: proposal.shortened },
-    });
+    // The reply belongs to the open check-in; only start a new thread when
+    // the user reached out on their own.
+    if (checkIn) {
+      await replyToCoachingEvent(checkIn.id, text);
+    } else {
+      await logCoachingEvent({
+        kind: "inactivity_checkin",
+        cause: "none",
+        message: proposal.text,
+        detail: { reply: text, routineId: proposal.routineId ?? null, shortened: proposal.shortened },
+      });
+    }
     void eventsQ.refetch();
+
   }
 
   if (notesQ.isError) {
