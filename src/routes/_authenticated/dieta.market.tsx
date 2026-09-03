@@ -86,6 +86,51 @@ function MarketPage() {
   const estTotal = estimateTotalPrice(items);
   const estLeft = estimateTotalPrice(items.filter((i) => !checked.includes(i.key)));
 
+  const shareText = useMemo(() => {
+    const lines: string[] = [t("Shopping list")];
+    for (const [aisle, aisleItems] of groups) {
+      lines.push(`\n${aisle}`);
+      for (const it of aisleItems) {
+        const mark = checked.includes(it.key) ? "✓ " : "";
+        lines.push(`  ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`);
+      }
+    }
+    if (listQ.data?.orderOut.length) {
+      lines.push(`\n${t("Ordering out")}`);
+      for (const o of listQ.data.orderOut) lines.push(`  ${o.meal.name}`);
+    }
+    return lines.join("\n");
+  }, [groups, checked, listQ.data, t]);
+
+  async function shareList() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t("Shopping list"), text: shareText });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast.success(t("Shopping list copied to clipboard."));
+      }
+    } catch {
+      // user cancelled share sheet — no toast needed
+    }
+  }
+
+  function clearChecked() {
+    const removed = checked.filter((k) => items.some((i) => i.key === k));
+    if (!removed.length) return;
+    // Optimistically clear from local state; persistence toggles each off.
+    removed.forEach((key) => toggleCheckedItem(key, () => {}));
+    setChecked([]);
+    undoToast({
+      message: t("Cleared {n} checked items.", { n: removed.length }),
+      undoLabel: t("Undo"),
+      onUndo: () => {
+        removed.forEach((key) => toggleCheckedItem(key, () => {}));
+        setChecked(removed);
+      },
+    });
+  }
+
   return (
     <>
       <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
