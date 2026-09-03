@@ -1,6 +1,6 @@
 import { mealImage } from "@/lib/meal-image";
 import type { Meal, MealSlot, NutritionTargets } from "@/lib/nutrition-types";
-import { Check, Clock, Info, Truck } from "lucide-react";
+import { Check, Clock, Info, Star, Truck, Utensils } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export function Ring({
@@ -105,22 +105,30 @@ export function MealCard({
   meal,
   slot,
   selected,
+  eaten,
+  favorite,
   note,
   onSelect,
   onDetails,
+  onToggleEaten,
+  onToggleFavorite,
 }: {
   meal: Meal;
   slot: MealSlot;
   selected?: boolean;
+  eaten?: boolean;
+  favorite?: boolean;
   note?: string | undefined;
   onSelect?: () => void;
   onDetails?: () => void;
+  onToggleEaten?: () => void;
+  onToggleFavorite?: () => void;
 }) {
   const t = useT();
   return (
     <div
       className={`w-full overflow-hidden rounded-2xl border bg-card text-left transition-colors ${
-        selected ? "border-primary" : "border-border"
+        eaten ? "border-diet/60" : selected ? "border-primary" : "border-border"
       }`}
     >
       <button type="button" onClick={onSelect} className="block w-full text-left">
@@ -133,7 +141,26 @@ export function MealCard({
             height={512}
             className="h-full w-full object-cover brightness-110"
           />
-          {selected ? (
+          {onToggleFavorite ? (
+            <button
+              type="button"
+              aria-label={t("Favorite")}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite();
+              }}
+              className="tap-target absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-full bg-background/70 backdrop-blur"
+            >
+              <Star
+                className={`size-4 ${favorite ? "fill-diet text-diet" : "text-muted-foreground"}`}
+              />
+            </button>
+          ) : null}
+          {eaten ? (
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-diet px-2 py-1 text-[10px] font-semibold text-background">
+              <Check className="size-3" /> {t("Eaten")}
+            </span>
+          ) : selected ? (
             <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
               <Check className="size-3" /> {t("Planned")}
             </span>
@@ -166,17 +193,33 @@ export function MealCard({
           {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
         </div>
       </button>
-      {onDetails ? (
-        <div className="border-t border-border px-3.5">
-          <button
-            type="button"
-            onClick={onDetails}
-            className="tap-target flex w-full items-center gap-1.5 text-xs font-semibold text-primary"
-          >
-            <Info className="size-3.5" /> {t("Macros & nutrition details")}
-          </button>
+      <div className="border-t border-border px-3.5 py-2">
+        <div className="flex items-center gap-1.5">
+          {onToggleEaten ? (
+            <button
+              type="button"
+              onClick={onToggleEaten}
+              className={`tap-target flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
+                eaten
+                  ? "bg-diet/15 text-diet"
+                  : "border border-border text-muted-foreground"
+              }`}
+            >
+              <Utensils className="size-3.5" />
+              {eaten ? t("Eaten") : t("Log eaten")}
+            </button>
+          ) : null}
+          {onDetails ? (
+            <button
+              type="button"
+              onClick={onDetails}
+              className="tap-target flex items-center gap-1.5 text-xs font-semibold text-primary"
+            >
+              <Info className="size-3.5" /> {t("Macros & nutrition details")}
+            </button>
+          ) : null}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }

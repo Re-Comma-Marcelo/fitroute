@@ -2,14 +2,15 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, Plus, Sparkles } from "lucide-react";
+import { Clock, Plus, Repeat, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
+import { HydrationCard } from "@/components/HydrationCard";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
@@ -18,6 +19,8 @@ import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
   activeSlots,
+  eatenFor,
+  eatenTotalsFor,
   formatSlotTime,
   getMealSchedule,
   getMeals,
@@ -25,12 +28,19 @@ import {
   getTrainingTags,
   getWeekPlan,
   isoDate,
+  isEatenSlot,
+  repeatYesterdayToToday,
   setPlannedMeal,
   slotForTime,
+  toggleEatenMeal,
   totalsFor,
   weekDates,
   weekTotalsFor,
 } from "@/lib/data/nutrition";
+import {
+  getMealFavorites,
+  toggleMealFavorite,
+} from "@/lib/nutrition-local";
 import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/")({
@@ -61,6 +71,9 @@ function TodayPage() {
   const [slot, setSlot] = useState<MealSlot | null>(null);
   const [timingOpen, setTimingOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [ringView, setRingView] = useState<"planned" | "eaten">("eaten");
+  const [eatenTick, setEatenTick] = useState(0); // bump to re-read localStorage
+  const [favTick, setFavTick] = useState(0);
   const qc = useQueryClient();
 
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
@@ -93,7 +106,15 @@ function TodayPage() {
 
   const targets = targetsQ.data ?? { kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 };
   const day = planQ.data?.[today];
-  const totals = useMemo(() => totalsFor(day), [day]);
+  const plannedTotals = useMemo(() => totalsFor(day), [day]);
+  const eatenDay = useMemo(() => eatenFor(today), [today, eatenTick]);
+  const eatenTotals = useMemo(
+    () => eatenTotalsFor(today),
+    [today, eatenTick],
+  );
+  const hasEaten = Object.keys(eatenDay).length > 0;
+  const totals = ringView === "eaten" && hasEaten ? eatenTotals : plannedTotals;
+  const favorites = useMemo(() => getMealFavorites(), [favTick]);
   const tag = tagsQ.data?.[today];
   const recentTags = useMemo(() => {
     const days = recentQ.data ?? {};
@@ -192,6 +213,41 @@ function TodayPage() {
         </section>
       ) : null}
 
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex rounded-full border border-border p-0.5">
+          {(["eaten", "planned"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setRingView(v)}
+              disabled={v === "eaten" && !hasEaten}
+              className={`tap-target rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                ringView === v
+                  ? "bg-diet/15 text-diet"
+                  : "text-muted-foreground disabled:opacity-40"
+              }`}
+            >
+              {v === "eaten" ? t("Eaten") : t("Planned")}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await repeatYesterdayToToday();
+              void qc.invalidateQueries({ queryKey: ["weekPlan"] });
+              toast.success(t("Copied yesterday's meals into today."));
+            } catch {
+              toast.error(t("Could not copy yesterday's meals."));
+            }
+          }}
+          className="tap-target flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+        >
+          <Repeat className="size-4" /> {t("Repeat yesterday")}
+        </button>
+      </div>
+
       <MacroRings totals={totals} targets={targets} />
 
       <nav className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
@@ -227,6 +283,10 @@ function TodayPage() {
       <Button variant="outline" className="tap-target mt-3 w-full" onClick={() => setAddOpen(true)}>
         <Plus className="mr-1.5 size-4" /> {t("Add a meal")}
       </Button>
+
+      <div className="mt-3">
+        <HydrationCard />
+      </div>
 
       {swap ? (
         <MealSwapCard
@@ -268,18 +328,38 @@ function TodayPage() {
         </div>
       ) : (
         <ul className="mt-3 space-y-3">
-          {options.map((meal) => (
-            <li key={meal.id}>
-              <MealCard
-                meal={meal}
-                slot={currentSlot}
-                selected={day?.[currentSlot] === meal.id}
-                note={note(meal)}
-                onSelect={() => choose(meal.id)}
-                onDetails={() => setDetail(meal)}
-              />
-            </li>
-          ))}
+          {options.map((meal) => {
+            const isPlannedHere = day?.[currentSlot] === meal.id;
+            const isEatenHere =
+              isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
+            return (
+              <li key={meal.id}>
+                <MealCard
+                  meal={meal}
+                  slot={currentSlot}
+                  selected={isPlannedHere}
+                  eaten={isEatenHere}
+                  favorite={favorites.includes(meal.id)}
+                  note={note(meal)}
+                  onSelect={() => choose(meal.id)}
+                  onDetails={() => setDetail(meal)}
+                  {...(isPlannedHere
+                    ? {
+                        onToggleEaten: () => {
+                          toggleEatenMeal(today, currentSlot, meal.id);
+                          setEatenTick((n) => n + 1);
+                          void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
+                        },
+                      }
+                    : {})}
+                  onToggleFavorite={() => {
+                    toggleMealFavorite(meal.id);
+                    setFavTick((n) => n + 1);
+                  }}
+                />
+              </li>
+            );
+          })}
         </ul>
       )}
 

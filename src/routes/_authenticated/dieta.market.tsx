@@ -2,8 +2,9 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Check, ShoppingBasket, Truck } from "lucide-react";
+import { Check, ClipboardCheck, Eraser, Share2, ShoppingBasket, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { undoToast } from "@/lib/undo";
 import { formatCurrency, formatNumber, formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
@@ -85,6 +86,51 @@ function MarketPage() {
   const estTotal = estimateTotalPrice(items);
   const estLeft = estimateTotalPrice(items.filter((i) => !checked.includes(i.key)));
 
+  const shareText = useMemo(() => {
+    const lines: string[] = [t("Shopping list")];
+    for (const [aisle, aisleItems] of groups) {
+      lines.push(`\n${aisle}`);
+      for (const it of aisleItems) {
+        const mark = checked.includes(it.key) ? "✓ " : "";
+        lines.push(`  ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`);
+      }
+    }
+    if (listQ.data?.orderOut.length) {
+      lines.push(`\n${t("Ordering out")}`);
+      for (const o of listQ.data.orderOut) lines.push(`  ${o.meal.name}`);
+    }
+    return lines.join("\n");
+  }, [groups, checked, listQ.data, t]);
+
+  async function shareList() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: t("Shopping list"), text: shareText });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        toast.success(t("Shopping list copied to clipboard."));
+      }
+    } catch {
+      // user cancelled share sheet — no toast needed
+    }
+  }
+
+  function clearChecked() {
+    const removed = checked.filter((k) => items.some((i) => i.key === k));
+    if (!removed.length) return;
+    // Optimistically clear from local state; persistence toggles each off.
+    removed.forEach((key) => toggleCheckedItem(key, () => {}));
+    setChecked([]);
+    undoToast({
+      message: t("Cleared {n} checked items.", { n: removed.length }),
+      undoLabel: t("Undo"),
+      onUndo: () => {
+        removed.forEach((key) => toggleCheckedItem(key, () => {}));
+        setChecked(removed);
+      },
+    });
+  }
+
   return (
     <>
       <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
@@ -133,6 +179,23 @@ function MarketPage() {
               <p className="mt-0.5">{t("{done} of {total} items checked", { done, total })}</p>
             </div>
           </section>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={shareList}
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold"
+            >
+              <Share2 className="size-4" /> {t("Share list")}
+            </button>
+            <button
+              type="button"
+              onClick={clearChecked}
+              disabled={!done}
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold disabled:opacity-40"
+            >
+              <Eraser className="size-4" /> {t("Clear checked")}
+            </button>
+          </div>
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
               <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
