@@ -1077,8 +1077,22 @@ function SessionPage() {
                       />
                     ) : null}
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
+                    <SessionCoachSheet
+                      exerciseId={ex.exerciseId}
+                      exerciseName={ex.nome}
+                      sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
+                      workoutId={session.id}
+                      onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
+                    />
                   </div>
+                  {/* Coach comment sits above the sets: read it before you lift. */}
+                  {coachTips[exIdx] ? (
+                    <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">
+                      {coachTips[exIdx]}
+                    </p>
+                  ) : null}
                 </div>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
