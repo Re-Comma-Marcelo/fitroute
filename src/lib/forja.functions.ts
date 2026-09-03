@@ -390,8 +390,9 @@ export const fetchTrackedLifts = createServerFn({ method: "GET" }).handler(async
       .from("tracked_lifts")
       .select("exercise_id")
       .eq("user_id", DEMO_USER_ID)
-      .order("created_at"),
-  , [] as Record<string, unknown>[]);
+      .order("created_at")
+    [] as Record<string, unknown>[],
+  );
   return (rows as Record<string, unknown>[]).map((r) => String(r["exercise_id"]));
 });
 
@@ -432,8 +433,9 @@ export const fetchCustomMeals = createServerFn({ method: "GET" }).handler(async 
       .from("custom_meals")
       .select("*")
       .eq("user_id", userId)
-      .order("created_at", { ascending: false }),
-  , [] as Record<string, unknown>[]);
+      .order("created_at", { ascending: false })
+    [] as Record<string, unknown>[],
+  );
   return (rows as Record<string, unknown>[]).map(toCustomMeal);
 });
 
@@ -487,8 +489,9 @@ export const fetchBodyWeightLog = createServerFn({ method: "GET" }).handler(asyn
   const { db, requireUserId, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
   const rows = unwrapSoft(
-    await db().from("body_weight_log").select("*").eq("user_id", userId).order("data"),
-  , [] as Record<string, unknown>[]) as Record<string, unknown>[];
+    await db().from("body_weight_log").select("*").eq("user_id", userId).order("data")
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
   return rows.map((r) => ({
     id: String(r["id"]),
     data: String(r["data"]),
@@ -533,8 +536,9 @@ export const fetchCoachingEvents = createServerFn({ method: "GET" }).handler(asy
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(60),
-  , [] as Record<string, unknown>[]) as Record<string, unknown>[];
+      .limit(60)
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
   return rows.map(toCoachingEvent);
 });
 
@@ -597,8 +601,9 @@ export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(asyn
       .select("*")
       .eq("user_id", userId)
       .order("data", { ascending: false })
-      .limit(60),
-  , [] as Record<string, unknown>[]) as Record<string, unknown>[];
+      .limit(60)
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
   return rows.map(toCrossTraining);
 });
 
@@ -658,8 +663,9 @@ export const fetchCoachChat = createServerFn({ method: "GET" }).handler(async ()
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
-      .limit(80),
-  , [] as Record<string, unknown>[]) as Record<string, unknown>[];
+      .limit(80)
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
   return rows.map(toChatEntry).reverse();
 });
 
