@@ -179,6 +179,23 @@ function MarketPage() {
               <p className="mt-0.5">{t("{done} of {total} items checked", { done, total })}</p>
             </div>
           </section>
+          <div className="mt-2 flex gap-2">
+            <button
+              type="button"
+              onClick={shareList}
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold"
+            >
+              <Share2 className="size-4" /> {t("Share list")}
+            </button>
+            <button
+              type="button"
+              onClick={clearChecked}
+              disabled={!done}
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold disabled:opacity-40"
+            >
+              <Eraser className="size-4" /> {t("Clear checked")}
+            </button>
+          </div>
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
               <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
