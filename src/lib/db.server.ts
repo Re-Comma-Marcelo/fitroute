@@ -53,6 +53,24 @@ export function unwrap<T>(res: { data: T | null; error: { message: string } | nu
   return res.data as T;
 }
 
+/** True when PostgREST reports the table/relation is not in the schema cache. */
+export function isMissingTable(error: { message?: string } | null): boolean {
+  const m = error?.message ?? "";
+  return /schema cache|does not exist|Could not find the table/i.test(m);
+}
+
+/** Like unwrap, but returns the fallback when the table has not been migrated yet. */
+export function unwrapSoft<T>(
+  res: { data: T | null; error: { message: string } | null },
+  fallback: T,
+): T {
+  if (res.error) {
+    if (isMissingTable(res.error)) return fallback;
+    throw new Error(res.error.message);
+  }
+  return (res.data ?? fallback) as T;
+}
+
 export function uid(prefix = "id") {
   return `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 }
