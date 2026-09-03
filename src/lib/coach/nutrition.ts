@@ -1,5 +1,5 @@
 import { getWorkouts } from "@/lib/data/workouts";
-import { getWeekPlan, getTargets, isoDate, mealSchedule, activeSlots } from "@/lib/data/nutrition";
+import { getTargets, getWeekPlan, isoDate, totalsFor, getMeal } from "@/lib/data/nutrition";
 import { getEaten } from "@/lib/nutrition-local";
 import type { CoachInsight } from "./types";
 
@@ -29,21 +29,11 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
   const eatenDay = eaten[today] ?? {};
   const plannedDay = plan[today] ?? {};
   const useEaten = Object.keys(eatenDay).length > 0;
-  const day = useEaten
-    ? { ...plannedDay, ...eatenDay }
-    : plannedDay;
-
-  let kcal = 0;
-  let proteinG = 0;
-  let carbsG = 0;
-  for (const slot of Object.keys(day)) {
-    const meal = await (await import("@/lib/data/nutrition")).getMeal(day[slot] ?? "");
-    if (meal) {
-      kcal += meal.kcal;
-      proteinG += meal.proteinG;
-      carbsG += meal.carbsG;
-    }
-  }
+  const day = useEaten ? { ...plannedDay, ...eatenDay } : plannedDay;
+  const totals = totalsFor(day);
+  const kcal = totals.kcal;
+  const proteinG = totals.proteinG;
+  const carbsG = totals.carbsG;
 
   // 1) Pre/post-workout timing — strongest, most actionable.
   const todaysWorkout = workouts.find((w) => isoDate(new Date(w.iniciadoEm)) === today);
@@ -92,23 +82,13 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
   }
 
   // 3) Protein deficit streak across recent planned days.
-  const recent: string[] = [];
+  let lowDays = 0;
   for (let i = 1; i <= 3; i++) {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    recent.push(isoDate(d));
-  }
-  let lowDays = 0;
-  for (const d of recent) {
-    const dayPlan = plan[d] ?? {};
-    let p = 0;
-    for (const slot of Object.keys(dayPlan)) {
-      // best-effort: use totalsFor synchronously is not async-safe here; approximate via plan
-    }
-    // Approximate using the data layer's totalsFor (synchronous on cache).
-    const totals = (await import("@/lib/data/nutrition")).totalsFor(dayPlan);
-    p = totals.proteinG;
-    if (p > 0 && p < targets.proteinG * 0.8) lowDays++;
+    const dayPlan = plan[isoDate(d)] ?? {};
+    const t = totalsFor(dayPlan);
+    if (t.proteinG > 0 && t.proteinG < targets.proteinG * 0.8) lowDays++;
   }
   if (lowDays >= 3) {
     return {
