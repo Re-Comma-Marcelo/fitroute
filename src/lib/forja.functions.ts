@@ -195,26 +195,28 @@ export const persistWorkout = createServerFn({ method: "POST" })
     );
     unwrap(await client.from("workout_sets").delete().eq("workout_id", id).select("id"));
     if (data.sets.length) {
-      unwrap(
-        await client
-          .from("workout_sets")
-          .insert(
-            data.sets.map((s, i) => ({
-              id: s.id || `${id}s${i}`,
-              workout_id: id,
-              exercise_id: s.exerciseId,
-              ordem_exercicio: s.ordemExercicio,
-              serie_num: s.serieNum,
-              tipo_serie: s.tipoSerie,
-              peso_kg: s.pesoKg,
-              reps: s.reps,
-              rpe: s.rpe ?? null,
-              concluida: s.concluida,
-            })),
-          )
-          .select("id"),
-      );
+      const rows = data.sets.map((s, i) => ({
+        id: s.id || `${id}s${i}`,
+        workout_id: id,
+        exercise_id: s.exerciseId,
+        ordem_exercicio: s.ordemExercicio,
+        serie_num: s.serieNum,
+        tipo_serie: s.tipoSerie,
+        peso_kg: s.pesoKg,
+        reps: s.reps,
+        rpe: s.rpe ?? null,
+        concluida: s.concluida,
+      }));
+      // coach_note comes from the coaching migration; fall back when missing.
+      const withNote = await client
+        .from("workout_sets")
+        .insert(rows.map((r, i) => ({ ...r, coach_note: data.sets[i]?.coachNote ?? "" })))
+        .select("id");
+      if (withNote.error) {
+        unwrap(await client.from("workout_sets").insert(rows).select("id"));
+      }
     }
+
     return { ...w, id } as Workout;
   });
 
