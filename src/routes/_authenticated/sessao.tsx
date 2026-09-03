@@ -442,11 +442,60 @@ function SessionPage() {
     );
   }
 
+  /**
+   * Performance drop with context: compare the set just logged with the last
+   * session at the same weight, look for a plausible cause, and comment once.
+   */
+  async function checkPerformanceDrop(
+    ex: ActiveExercise,
+    exIdx: number,
+    logged: { pesoKg: number; reps: number },
+    workoutId: string,
+  ) {
+    try {
+      const [history, log, cross, notes, events] = await Promise.all([
+        getExerciseHistory(ex.exerciseId),
+        getWorkoutLog(),
+        getCrossTraining(),
+        getRecentCoachNotes(5),
+        getCoachingEvents(),
+      ]);
+      const dates = new Map(log.workouts.map((w) => [w.id, w.iniciadoEm]));
+      const result = detectPerformanceDrop({
+        exerciseName: ex.nome,
+        current: logged,
+        history,
+        sessionDate: (id) => dates.get(id),
+        crossTraining: cross,
+        recentNotes: notes,
+        currentWorkoutId: workoutId,
+      });
+      if (!result) return;
+      setCoachTips((prev) => ({ ...prev, [exIdx]: result.message }));
+      if (firedToday(events, "performance_drop", ex.exerciseId)) return;
+      await logCoachingEvent({
+        kind: "performance_drop",
+        message: result.message,
+        exerciseId: ex.exerciseId,
+        workoutId,
+        cause: result.cause,
+        detail: {
+          repsLost: result.repsLost,
+          pesoKg: result.pesoKg,
+          ...(result.suggestedKg ? { suggestedKg: result.suggestedKg } : {}),
+        },
+      });
+    } catch {
+      /* detection is best effort — never block logging */
+    }
+  }
+
   function toggleSet(exIdx: number, setIdx: number) {
     unlockAudio();
     let descanso = 0;
     let proximo: number | null = null;
     let completou = false;
+    let logged: { pesoKg: number; reps: number } | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -458,6 +507,9 @@ function SessionPage() {
       if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
       if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
       set.concluida = true;
+      if (isSerieValida(set)) {
+        logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
+      }
       // Inside a superset you move straight to the next exercise: no rest yet.
       descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
       const todasFeitas = ex.sets.every((x) => x.concluida);
@@ -473,7 +525,12 @@ function SessionPage() {
     if (completou) setJustExercise(exIdx);
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
+    const exercise = session?.exercicios[exIdx];
+    if (logged && exercise && session) {
+      void checkPerformanceDrop(exercise, exIdx, logged, session.id);
+    }
   }
+
 
   function setField(
     exIdx: number,
