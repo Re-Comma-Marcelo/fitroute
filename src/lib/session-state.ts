@@ -21,7 +21,10 @@ export interface ActiveSet {
   antReps: number | null;
   antRpe: number | null;
   concluida: boolean;
+  /** Optional context for the coach ("lower back felt tight"). */
+  coachNote?: string;
 }
+
 
 export interface ActiveExercise {
   exerciseId: string;
