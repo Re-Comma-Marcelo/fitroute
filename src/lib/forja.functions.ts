@@ -383,14 +383,15 @@ export const persistCheckedItem = createServerFn({ method: "POST" })
   });
 
 export const fetchTrackedLifts = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, unwrap } = await import("./db.server");
+  const { db, requireUserId, unwrapSoft } = await import("./db.server");
   const DEMO_USER_ID = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db()
       .from("tracked_lifts")
       .select("exercise_id")
       .eq("user_id", DEMO_USER_ID)
       .order("created_at"),
+    [] as Record<string, unknown>[],
   );
   return (rows as Record<string, unknown>[]).map((r) => String(r["exercise_id"]));
 });
@@ -425,14 +426,15 @@ export const persistTrackedLift = createServerFn({ method: "POST" })
   });
 
 export const fetchCustomMeals = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, toCustomMeal, unwrap } = await import("./db.server");
+  const { db, requireUserId, toCustomMeal, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db()
       .from("custom_meals")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false }),
+    [] as Record<string, unknown>[],
   );
   return (rows as Record<string, unknown>[]).map(toCustomMeal);
 });
@@ -484,10 +486,11 @@ export const deleteCustomMeal = createServerFn({ method: "POST" })
 export type { MealSlot };
 
 export const fetchBodyWeightLog = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, unwrap } = await import("./db.server");
+  const { db, requireUserId, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db().from("body_weight_log").select("*").eq("user_id", userId).order("data"),
+    [] as Record<string, unknown>[],
   ) as Record<string, unknown>[];
   return rows.map((r) => ({
     id: String(r["id"]),
@@ -525,15 +528,16 @@ export const persistBodyWeight = createServerFn({ method: "POST" })
 // so the app keeps working before the migration is applied.
 
 export const fetchCoachingEvents = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, toCoachingEvent, unwrap } = await import("./db.server");
+  const { db, requireUserId, toCoachingEvent, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db()
       .from("coaching_events")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(60),
+    [] as Record<string, unknown>[],
   ) as Record<string, unknown>[];
   return rows.map(toCoachingEvent);
 });
@@ -589,15 +593,16 @@ export const persistCoachingReply = createServerFn({ method: "POST" })
   });
 
 export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, toCrossTraining, unwrap } = await import("./db.server");
+  const { db, requireUserId, toCrossTraining, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db()
       .from("cross_training_logs")
       .select("*")
       .eq("user_id", userId)
       .order("data", { ascending: false })
       .limit(60),
+    [] as Record<string, unknown>[],
   ) as Record<string, unknown>[];
   return rows.map(toCrossTraining);
 });
@@ -650,15 +655,16 @@ export const removeCrossTraining = createServerFn({ method: "POST" })
   });
 
 export const fetchCoachChat = createServerFn({ method: "GET" }).handler(async () => {
-  const { db, requireUserId, toChatEntry, unwrap } = await import("./db.server");
+  const { db, requireUserId, toChatEntry, unwrapSoft } = await import("./db.server");
   const userId = await requireUserId();
-  const rows = unwrap(
+  const rows = unwrapSoft(
     await db()
       .from("coach_chat_messages")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(80),
+    [] as Record<string, unknown>[],
   ) as Record<string, unknown>[];
   return rows.map(toChatEntry).reverse();
 });
