@@ -140,6 +140,18 @@ function SummaryPage() {
           />
         </section>
 
+        {coachMessage ? (
+          <section
+            aria-label={t("Coach")}
+            className="mt-6 rounded-3xl border border-primary/30 bg-primary/10 p-5"
+          >
+            <p className="label-caps text-primary">{t("Coach")}</p>
+            <p className="mt-2 text-sm leading-relaxed text-foreground">{coachMessage}</p>
+          </section>
+        ) : null}
+
+
+
         {prs.length ? (
           <section aria-label={t("New personal records")} className="mt-6 space-y-3">
             {prs.map((pr, index) => {
