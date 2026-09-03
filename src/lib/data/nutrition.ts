@@ -290,6 +290,68 @@ export function totalsFor(day: Partial<Record<MealSlot, string>> | undefined): D
   return t;
 }
 
+// ---- Eaten (local-only diary) ---------------------------------------------
+
+/** Eaten meal ids per slot for a date (synchronous localStorage read). */
+export function eatenFor(date: string): Partial<Record<MealSlot, string>> {
+  return (getEatenLocal()[date] ?? {}) as Partial<Record<MealSlot, string>>;
+}
+
+/** Macros actually consumed for a date (synchronous, reads the meal cache). */
+export function eatenTotalsFor(date: string): DayTotals {
+  return totalsFor(eatenFor(date));
+}
+
+/** Whether a slot is marked eaten for a date (synchronous). */
+export function isEatenSlot(date: string, slot: MealSlot): boolean {
+  return Boolean(getEatenLocal()[date]?.[slot]);
+}
+
+/**
+ * Marks/unmarks a planned meal as eaten for a date+slot. Local-only — no
+ * Supabase write. Returns the new eaten map so callers can update state.
+ */
+export function toggleEatenMeal(date: string, slot: MealSlot, mealId: string): boolean {
+  const eaten = getEatenLocal();
+  const already = eaten[date]?.[slot] === mealId;
+  setEatenLocal(date, slot, already ? null : mealId);
+  return !already;
+}
+
+/** Clears all eaten marks for a date (used by repeat/clear actions). */
+export function clearEatenDay(date: string): void {
+  clearEatenLocal(date);
+}
+
+/**
+ * Copies yesterday's planned meals into today (any today slot already set is
+ * kept). Useful one-tap "I ate the same as yesterday".
+ */
+export async function repeatYesterdayToToday(): Promise<WeekPlan> {
+  await hydrate();
+  const y = new Date();
+  y.setDate(y.getDate() - 1);
+  const yesterday = isoDate(y);
+  const today = isoDate(new Date());
+  const src = planCache[yesterday] ?? {};
+  const day = { ...(planCache[today] ?? {}) };
+  for (const slot of MEAL_SLOTS) {
+    if (!day[slot] && src[slot]) day[slot] = src[slot];
+  }
+  planCache = { ...planCache, [today]: day };
+  const set = MEAL_SLOTS.filter((s) => src[s] && !day[s]).length
+    ? [] // fallthrough below writes all copied slots
+    : [];
+  // Write every copied slot explicitly so persistence tracks it.
+  const writes = MEAL_SLOTS.filter((s) => src[s]).map((s) => ({
+    date: today,
+    slot: s,
+    mealId: src[s] as string,
+  }));
+  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: set } });
+  return structuredClone(planCache);
+}
+
 /** Training tag per date, derived from logged workouts (Strength / Rest). */
 export async function getTrainingTags(dates: string[]): Promise<Record<string, TrainingTag>> {
   const workouts = await getWorkouts();
