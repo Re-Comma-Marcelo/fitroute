@@ -90,9 +90,22 @@ import { buildActiveExercise } from "@/lib/start-session";
 import {
   getExerciseHistory,
   getPersonalRecord,
+  getWorkoutLog,
   getWorkouts,
   saveWorkout,
 } from "@/lib/data/workouts";
+import { getRecentCoachNotes } from "@/lib/data/coach-notes";
+import {
+  firedToday,
+  getCoachingEvents,
+  getCrossTraining,
+  logCoachingEvent,
+} from "@/lib/data/coaching";
+import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
+import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
+import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { SessionCoachSheet } from "@/components/SessionCoachSheet";
+
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
 import { useQuery } from "@tanstack/react-query";
