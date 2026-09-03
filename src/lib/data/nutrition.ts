@@ -1,5 +1,10 @@
 import { formatTimeOfDay } from "../format";
 import {
+  clearEatenDay as clearEatenLocal,
+  getEaten as getEatenLocal,
+  setEaten as setEatenLocal,
+} from "../nutrition-local";
+import {
   deleteCustomMeal,
   fetchCustomMeals,
   fetchNutritionState,
