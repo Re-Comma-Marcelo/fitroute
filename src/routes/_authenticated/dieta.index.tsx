@@ -212,6 +212,41 @@ function TodayPage() {
         </section>
       ) : null}
 
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex rounded-full border border-border p-0.5">
+          {(["eaten", "planned"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setRingView(v)}
+              disabled={v === "eaten" && !hasEaten}
+              className={`tap-target rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
+                ringView === v
+                  ? "bg-diet/15 text-diet"
+                  : "text-muted-foreground disabled:opacity-40"
+              }`}
+            >
+              {v === "eaten" ? t("Eaten") : t("Planned")}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await repeatYesterdayToToday();
+              void qc.invalidateQueries({ queryKey: ["weekPlan"] });
+              toast.success(t("Copied yesterday's meals into today."));
+            } catch {
+              toast.error(t("Could not copy yesterday's meals."));
+            }
+          }}
+          className="tap-target flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+        >
+          <Repeat className="size-4" /> {t("Repeat yesterday")}
+        </button>
+      </div>
+
       <MacroRings totals={totals} targets={targets} />
 
       <nav className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
