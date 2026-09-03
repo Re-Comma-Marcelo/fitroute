@@ -150,6 +150,7 @@ export const toSet = (r: Row) => ({
   reps: Number(r["reps"] ?? 0),
   rpe: r["rpe"] == null ? undefined : Number(r["rpe"]),
   concluida: Boolean(r["concluida"]),
+  coachNote: String(r["coach_note"] ?? ""),
 });
 
 export const toCoachNote = (r: Row) => ({
@@ -159,6 +160,37 @@ export const toCoachNote = (r: Row) => ({
   content: String(r["content"] ?? ""),
   tags: (r["tags"] ?? []) as string[],
 });
+
+export const toCoachingEvent = (r: Row) => ({
+  id: String(r["id"]),
+  createdAt: String(r["created_at"]),
+  kind: String(r["kind"]),
+  exerciseId: (r["exercise_id"] ?? undefined) as string | undefined,
+  workoutId: (r["workout_id"] ?? undefined) as string | undefined,
+  cause: (r["cause"] ?? undefined) as string | undefined,
+  detail: (r["detail"] ?? {}) as Record<string, unknown>,
+  message: String(r["message"] ?? ""),
+  userReply: (r["user_reply"] ?? undefined) as string | undefined,
+});
+
+export const toCrossTraining = (r: Row) => ({
+  id: String(r["id"]),
+  kind: String(r["kind"]),
+  data: String(r["data"]),
+  duracaoMin: Number(r["duracao_min"] ?? 0),
+  intensidade: String(r["intensidade"] ?? "moderate"),
+  nota: String(r["nota"] ?? ""),
+});
+
+export const toChatEntry = (r: Row) => ({
+  id: String(r["id"]),
+  createdAt: String(r["created_at"]),
+  role: String(r["role"]),
+  content: String(r["content"] ?? ""),
+  workoutId: (r["workout_id"] ?? undefined) as string | undefined,
+  exerciseId: (r["exercise_id"] ?? undefined) as string | undefined,
+});
+
 
 export const toCustomMeal = (r: Row) => ({
   id: String(r["id"]),
