@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
+import { HydrationCard } from "@/components/HydrationCard";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
