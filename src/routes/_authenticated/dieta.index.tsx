@@ -70,6 +70,9 @@ function TodayPage() {
   const [slot, setSlot] = useState<MealSlot | null>(null);
   const [timingOpen, setTimingOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
+  const [ringView, setRingView] = useState<"planned" | "eaten">("eaten");
+  const [eatenTick, setEatenTick] = useState(0); // bump to re-read localStorage
+  const [favTick, setFavTick] = useState(0);
   const qc = useQueryClient();
 
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
