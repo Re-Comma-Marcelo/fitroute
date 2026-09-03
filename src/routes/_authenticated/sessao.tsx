@@ -167,6 +167,9 @@ function SessionPage() {
   const [justExercise, setJustExercise] = useState<number | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
+  /** Coach comment per exercise index, shown above the sets. */
+  const [coachTips, setCoachTips] = useState<Record<number, string>>({});
+
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
