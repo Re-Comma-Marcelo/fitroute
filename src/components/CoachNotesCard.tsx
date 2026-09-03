@@ -27,7 +27,7 @@ interface FeedItem {
   content: string;
   tags: string[];
   adaptive: boolean;
-  reply?: string;
+  reply?: string | undefined;
 }
 
 /** Everything the coach and your check-ins recorded, newest first. */

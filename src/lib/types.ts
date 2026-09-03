@@ -126,17 +126,20 @@ export type CoachingEventKind =
 /** Why the coach thinks something happened — drives the tone of the message. */
 export type CoachingCause = "cross_training" | "pattern" | "one_off" | "none";
 
+export type CoachingDetail = Record<string, string | number | boolean | null>;
+
 export interface CoachingEvent {
   id: string;
   createdAt: string;
   kind: CoachingEventKind;
-  exerciseId?: string;
-  workoutId?: string;
-  cause?: CoachingCause;
-  detail?: Record<string, unknown>;
+  exerciseId?: string | undefined;
+  workoutId?: string | undefined;
+  cause?: CoachingCause | undefined;
+  detail?: CoachingDetail | undefined;
   message: string;
-  userReply?: string;
+  userReply?: string | undefined;
 }
+
 
 export type CrossTrainingKind = "run" | "sport" | "bike" | "walk" | "other";
 

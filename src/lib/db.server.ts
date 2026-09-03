@@ -168,7 +168,7 @@ export const toCoachingEvent = (r: Row) => ({
   exerciseId: (r["exercise_id"] ?? undefined) as string | undefined,
   workoutId: (r["workout_id"] ?? undefined) as string | undefined,
   cause: (r["cause"] ?? undefined) as string | undefined,
-  detail: (r["detail"] ?? {}) as Record<string, unknown>,
+  detail: (r["detail"] ?? {}) as Record<string, string | number | boolean | null>,
   message: String(r["message"] ?? ""),
   userReply: (r["user_reply"] ?? undefined) as string | undefined,
 });
