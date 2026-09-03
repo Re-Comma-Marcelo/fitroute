@@ -1,6 +1,6 @@
 import { mealImage } from "@/lib/meal-image";
 import type { Meal, MealSlot, NutritionTargets } from "@/lib/nutrition-types";
-import { Check, Clock, Info, Truck } from "lucide-react";
+import { Check, Clock, Info, Star, Truck, Utensils } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export function Ring({
