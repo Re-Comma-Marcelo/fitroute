@@ -758,6 +758,8 @@ function SessionPage() {
             reps,
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+            ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
+
           });
         });
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
