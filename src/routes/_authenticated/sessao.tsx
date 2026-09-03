@@ -1154,21 +1154,36 @@ function SessionPage() {
                   </div>
                   <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
-                      <SetRow
-                        key={set.id}
-                        set={set}
-                        label={serieLabel(ex.sets, setIdx)}
-                        exercise={ex}
-                        onTipo={(tipo) => setTipo(exIdx, setIdx, tipo)}
-                        onRemove={() => removeSet(exIdx, setIdx)}
-                        onField={(field, value) => setField(exIdx, setIdx, field, value)}
-                        onCheck={() => toggleSet(exIdx, setIdx)}
-                        justDone={justSet === `${exIdx}:${setIdx}`}
-                        typeName={typeName}
-                        t={t}
-                      />
+                      <Fragment key={set.id}>
+                        <SetRow
+                          set={set}
+                          label={serieLabel(ex.sets, setIdx)}
+                          exercise={ex}
+                          onTipo={(tipo) => setTipo(exIdx, setIdx, tipo)}
+                          onRemove={() => removeSet(exIdx, setIdx)}
+                          onField={(field, value) => setField(exIdx, setIdx, field, value)}
+                          onCheck={() => toggleSet(exIdx, setIdx)}
+                          justDone={justSet === `${exIdx}:${setIdx}`}
+                          typeName={typeName}
+                          t={t}
+                        />
+                        {/* Optional context for the coach, never blocking the log flow. */}
+                        {set.concluida ? (
+                          <li className="border-0 px-0.5 pb-1.5">
+                            <input
+                              value={set.coachNote ?? ""}
+                              onChange={(e) => setSetNote(exIdx, setIdx, e.target.value)}
+                              placeholder={t("Note for coach (optional)")}
+                              aria-label={t("Note for coach (optional)")}
+                              maxLength={140}
+                              className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            />
+                          </li>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </ul>
+
 
                   {coachMark === 1 && exIdx === session.atual ? (
                     <CoachMark
