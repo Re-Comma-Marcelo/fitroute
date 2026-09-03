@@ -144,7 +144,6 @@ export const dict: DictFragment = {
     P: "P",
     C: "C",
     F: "F",
-    Planned: "Planejado",
     Eaten: "Consumido",
     "Log eaten": "Marcar consumido",
     Favorite: "Favorito",
