@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -90,9 +90,22 @@ import { buildActiveExercise } from "@/lib/start-session";
 import {
   getExerciseHistory,
   getPersonalRecord,
+  getWorkoutLog,
   getWorkouts,
   saveWorkout,
 } from "@/lib/data/workouts";
+import { getRecentCoachNotes } from "@/lib/data/coach-notes";
+import {
+  firedToday,
+  getCoachingEvents,
+  getCrossTraining,
+  logCoachingEvent,
+} from "@/lib/data/coaching";
+import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
+import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
+import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { SessionCoachSheet } from "@/components/SessionCoachSheet";
+
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
 import { useQuery } from "@tanstack/react-query";
@@ -154,6 +167,9 @@ function SessionPage() {
   const [justExercise, setJustExercise] = useState<number | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
+  /** Coach comment per exercise index, shown above the sets. */
+  const [coachTips, setCoachTips] = useState<Record<number, string>>({});
+
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
@@ -426,11 +442,60 @@ function SessionPage() {
     );
   }
 
+  /**
+   * Performance drop with context: compare the set just logged with the last
+   * session at the same weight, look for a plausible cause, and comment once.
+   */
+  async function checkPerformanceDrop(
+    ex: ActiveExercise,
+    exIdx: number,
+    logged: { pesoKg: number; reps: number },
+    workoutId: string,
+  ) {
+    try {
+      const [history, log, cross, notes, events] = await Promise.all([
+        getExerciseHistory(ex.exerciseId),
+        getWorkoutLog(),
+        getCrossTraining(),
+        getRecentCoachNotes(5),
+        getCoachingEvents(),
+      ]);
+      const dates = new Map(log.workouts.map((w) => [w.id, w.iniciadoEm]));
+      const result = detectPerformanceDrop({
+        exerciseName: ex.nome,
+        current: logged,
+        history,
+        sessionDate: (id) => dates.get(id),
+        crossTraining: cross,
+        recentNotes: notes,
+        currentWorkoutId: workoutId,
+      });
+      if (!result) return;
+      setCoachTips((prev) => ({ ...prev, [exIdx]: result.message }));
+      if (firedToday(events, "performance_drop", ex.exerciseId)) return;
+      await logCoachingEvent({
+        kind: "performance_drop",
+        message: result.message,
+        exerciseId: ex.exerciseId,
+        workoutId,
+        cause: result.cause,
+        detail: {
+          repsLost: result.repsLost,
+          pesoKg: result.pesoKg,
+          ...(result.suggestedKg ? { suggestedKg: result.suggestedKg } : {}),
+        },
+      });
+    } catch {
+      /* detection is best effort — never block logging */
+    }
+  }
+
   function toggleSet(exIdx: number, setIdx: number) {
     unlockAudio();
     let descanso = 0;
     let proximo: number | null = null;
     let completou = false;
+    let logged: { pesoKg: number; reps: number } | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -442,6 +507,9 @@ function SessionPage() {
       if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
       if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
       set.concluida = true;
+      if (isSerieValida(set)) {
+        logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
+      }
       // Inside a superset you move straight to the next exercise: no rest yet.
       descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
       const todasFeitas = ex.sets.every((x) => x.concluida);
@@ -457,7 +525,12 @@ function SessionPage() {
     if (completou) setJustExercise(exIdx);
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
+    const exercise = session?.exercicios[exIdx];
+    if (logged && exercise && session) {
+      void checkPerformanceDrop(exercise, exIdx, logged, session.id);
+    }
   }
+
 
   function setField(
     exIdx: number,
@@ -481,6 +554,38 @@ function SessionPage() {
       return s;
     });
   }
+
+  /** Context the coach reads later ("lower back felt tight"). */
+  function setSetNote(exIdx: number, setIdx: number, value: string) {
+    update((s) => {
+      s.exercicios[exIdx]!.sets[setIdx]!.coachNote = value;
+      return s;
+    });
+  }
+
+  /** Swap the exercise in place, accepted from the in-workout coach chat. */
+  async function swapExerciseTo(exIdx: number, exerciseId: string) {
+    const current = session?.exercicios[exIdx];
+    if (!current) return;
+    const built = await buildActiveExercise(exerciseId, {
+      seriesAlvo: current.sets.filter(isSerieValida).length,
+      repsMin: current.repsMin,
+      repsMax: current.repsMax,
+      descansoSeg: current.descansoSeg,
+    });
+    if (!built) return;
+    update((s) => {
+      s.exercicios[exIdx] = built;
+      return s;
+    });
+    setCoachTips((prev) => {
+      const next = { ...prev };
+      delete next[exIdx];
+      return next;
+    });
+    toast.success(t("Swapped to {name}", { name: built.nome }));
+  }
+
 
   /** Ramp up to the first working weight instead of hand-typing light sets. */
   function addWarmup(exIdx: number) {
@@ -685,6 +790,8 @@ function SessionPage() {
             reps,
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
+            ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
+
           });
         });
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
@@ -716,15 +823,56 @@ function SessionPage() {
         await saveWorkout(workout, sets);
       }
 
+      // Post-workout coach message: recovery + food that fits the open macros.
+      let coachMessage = "";
+      try {
+        const [log, targets, plan] = await Promise.all([
+          getWorkoutLog(),
+          getTargets(),
+          getWeekPlan(),
+        ]);
+        const recent = log.workouts
+          .filter((w) => w.finalizadoEm && w.id !== target.id)
+          .slice(-8);
+        const avgVolume = recent.length
+          ? recent.reduce((sum, w) => sum + w.volumeTotalKg, 0) / recent.length
+          : 0;
+        const avgDuration = recent.length
+          ? recent.reduce((sum, w) => sum + w.duracaoSeg, 0) / recent.length
+          : 0;
+        const built = buildPostWorkoutMessage({
+          volumeKg: workout.volumeTotalKg,
+          durationSeg: duracaoSeg,
+          avgVolumeKg: avgVolume,
+          avgDurationSeg: avgDuration,
+          targets,
+          consumed: totalsFor(plan[isoDate(new Date())]),
+        });
+        coachMessage = built.message;
+        await logCoachingEvent({
+          kind: "post_workout",
+          message: built.message,
+          workoutId: target.id,
+          detail: { intensity: built.intensity },
+        });
+      } catch {
+        /* the summary still works without the coach message */
+      }
+
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
           `forja.resumo.${target.id}`,
-          JSON.stringify({ prs, series: sets.length }),
+          JSON.stringify({
+            prs,
+            series: sets.length,
+            ...(coachMessage ? { coach: coachMessage } : {}),
+          }),
         );
       }
       cancelRestNotification();
       clearActiveSession();
       navigate({ to: "/resumo/$id", params: { id: target.id } });
+
     } catch {
       // Keep the session in localStorage so nothing is lost.
       toast.error(
@@ -961,8 +1109,22 @@ function SessionPage() {
                       />
                     ) : null}
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
+                    <SessionCoachSheet
+                      exerciseId={ex.exerciseId}
+                      exerciseName={ex.nome}
+                      sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
+                      workoutId={session.id}
+                      onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
+                    />
                   </div>
+                  {/* Coach comment sits above the sets: read it before you lift. */}
+                  {coachTips[exIdx] ? (
+                    <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">
+                      {coachTips[exIdx]}
+                    </p>
+                  ) : null}
                 </div>
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -1024,21 +1186,36 @@ function SessionPage() {
                   </div>
                   <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
-                      <SetRow
-                        key={set.id}
-                        set={set}
-                        label={serieLabel(ex.sets, setIdx)}
-                        exercise={ex}
-                        onTipo={(tipo) => setTipo(exIdx, setIdx, tipo)}
-                        onRemove={() => removeSet(exIdx, setIdx)}
-                        onField={(field, value) => setField(exIdx, setIdx, field, value)}
-                        onCheck={() => toggleSet(exIdx, setIdx)}
-                        justDone={justSet === `${exIdx}:${setIdx}`}
-                        typeName={typeName}
-                        t={t}
-                      />
+                      <Fragment key={set.id}>
+                        <SetRow
+                          set={set}
+                          label={serieLabel(ex.sets, setIdx)}
+                          exercise={ex}
+                          onTipo={(tipo) => setTipo(exIdx, setIdx, tipo)}
+                          onRemove={() => removeSet(exIdx, setIdx)}
+                          onField={(field, value) => setField(exIdx, setIdx, field, value)}
+                          onCheck={() => toggleSet(exIdx, setIdx)}
+                          justDone={justSet === `${exIdx}:${setIdx}`}
+                          typeName={typeName}
+                          t={t}
+                        />
+                        {/* Optional context for the coach, never blocking the log flow. */}
+                        {set.concluida ? (
+                          <li className="border-0 px-0.5 pb-1.5">
+                            <input
+                              value={set.coachNote ?? ""}
+                              onChange={(e) => setSetNote(exIdx, setIdx, e.target.value)}
+                              placeholder={t("Note for coach (optional)")}
+                              aria-label={t("Note for coach (optional)")}
+                              maxLength={140}
+                              className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                            />
+                          </li>
+                        ) : null}
+                      </Fragment>
                     ))}
                   </ul>
+
 
                   {coachMark === 1 && exIdx === session.atual ? (
                     <CoachMark

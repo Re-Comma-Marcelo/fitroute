@@ -195,26 +195,28 @@ export const persistWorkout = createServerFn({ method: "POST" })
     );
     unwrap(await client.from("workout_sets").delete().eq("workout_id", id).select("id"));
     if (data.sets.length) {
-      unwrap(
-        await client
-          .from("workout_sets")
-          .insert(
-            data.sets.map((s, i) => ({
-              id: s.id || `${id}s${i}`,
-              workout_id: id,
-              exercise_id: s.exerciseId,
-              ordem_exercicio: s.ordemExercicio,
-              serie_num: s.serieNum,
-              tipo_serie: s.tipoSerie,
-              peso_kg: s.pesoKg,
-              reps: s.reps,
-              rpe: s.rpe ?? null,
-              concluida: s.concluida,
-            })),
-          )
-          .select("id"),
-      );
+      const rows = data.sets.map((s, i) => ({
+        id: s.id || `${id}s${i}`,
+        workout_id: id,
+        exercise_id: s.exerciseId,
+        ordem_exercicio: s.ordemExercicio,
+        serie_num: s.serieNum,
+        tipo_serie: s.tipoSerie,
+        peso_kg: s.pesoKg,
+        reps: s.reps,
+        rpe: s.rpe ?? null,
+        concluida: s.concluida,
+      }));
+      // coach_note comes from the coaching migration; fall back when missing.
+      const withNote = await client
+        .from("workout_sets")
+        .insert(rows.map((r, i) => ({ ...r, coach_note: data.sets[i]?.coachNote ?? "" })))
+        .select("id");
+      if (withNote.error) {
+        unwrap(await client.from("workout_sets").insert(rows).select("id"));
+      }
     }
+
     return { ...w, id } as Workout;
   });
 
@@ -515,4 +517,172 @@ export const persistBodyWeight = createServerFn({ method: "POST" })
         .single(),
     ) as Record<string, unknown>;
     return { id: String(row["id"]), data: String(row["data"]), pesoKg: Number(row["peso_kg"]) };
+  });
+
+// ---- adaptive coaching layer ----------------------------------------------
+// These tables come from scripts/supabase-migration-coaching.sql. Callers in
+// src/lib/data/coaching.ts fall back to local storage when they are missing,
+// so the app keeps working before the migration is applied.
+
+export const fetchCoachingEvents = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, toCoachingEvent, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("coaching_events")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(60),
+  ) as Record<string, unknown>[];
+  return rows.map(toCoachingEvent);
+});
+
+export const persistCoachingEvent = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      kind: string;
+      message: string;
+      exerciseId?: string | undefined;
+      workoutId?: string | undefined;
+      cause?: string | undefined;
+      detail?: Record<string, string | number | boolean | null> | undefined;
+    }) => data,
+  )
+
+  .handler(async ({ data }) => {
+    const { db, requireUserId, toCoachingEvent, uid, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const row = unwrap(
+      await db()
+        .from("coaching_events")
+        .insert({
+          id: uid("ce"),
+          user_id: userId,
+          kind: data.kind,
+          message: data.message,
+          exercise_id: data.exerciseId ?? null,
+          workout_id: data.workoutId ?? null,
+          cause: data.cause ?? null,
+          detail: data.detail ?? {},
+        })
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return toCoachingEvent(row);
+  });
+
+export const persistCoachingReply = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string; reply: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("coaching_events")
+        .update({ user_reply: data.reply })
+        .eq("user_id", userId)
+        .eq("id", data.id)
+        .select("id"),
+    );
+    return { ok: true };
+  });
+
+export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, toCrossTraining, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("cross_training_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("data", { ascending: false })
+      .limit(60),
+  ) as Record<string, unknown>[];
+  return rows.map(toCrossTraining);
+});
+
+export const persistCrossTraining = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      kind: string;
+      data: string;
+      duracaoMin: number;
+      intensidade: string;
+      nota: string;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireUserId, toCrossTraining, uid, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const row = unwrap(
+      await db()
+        .from("cross_training_logs")
+        .insert({
+          id: uid("ct"),
+          user_id: userId,
+          kind: data.kind,
+          data: data.data,
+          duracao_min: data.duracaoMin,
+          intensidade: data.intensidade,
+          nota: data.nota,
+        })
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return toCrossTraining(row);
+  });
+
+export const removeCrossTraining = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    unwrap(
+      await db()
+        .from("cross_training_logs")
+        .delete()
+        .eq("user_id", userId)
+        .eq("id", data.id)
+        .select("id"),
+    );
+    return { ok: true };
+  });
+
+export const fetchCoachChat = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, toChatEntry, unwrap } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrap(
+    await db()
+      .from("coach_chat_messages")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(80),
+  ) as Record<string, unknown>[];
+  return rows.map(toChatEntry).reverse();
+});
+
+export const persistCoachChat = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: { role: string; content: string; workoutId?: string; exerciseId?: string }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireUserId, toChatEntry, uid, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const row = unwrap(
+      await db()
+        .from("coach_chat_messages")
+        .insert({
+          id: uid("cc"),
+          user_id: userId,
+          role: data.role,
+          content: data.content,
+          workout_id: data.workoutId ?? null,
+          exercise_id: data.exerciseId ?? null,
+        })
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return toChatEntry(row);
   });

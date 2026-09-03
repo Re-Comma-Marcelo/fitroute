@@ -104,6 +104,8 @@ export interface WorkoutSet {
   reps: number;
   rpe?: number;
   concluida: boolean;
+  /** Optional short context the user wrote for the coach ("lower back tight"). */
+  coachNote?: string;
 }
 
 export interface CoachNote {
@@ -113,3 +115,50 @@ export interface CoachNote {
   content: string;
   tags: string[];
 }
+
+/** Which adaptive detection produced a coaching message. */
+export type CoachingEventKind =
+  | "performance_drop"
+  | "inactivity_checkin"
+  | "post_workout"
+  | "chat_swap";
+
+/** Why the coach thinks something happened — drives the tone of the message. */
+export type CoachingCause = "cross_training" | "pattern" | "one_off" | "none";
+
+export type CoachingDetail = Record<string, string | number | boolean | null>;
+
+export interface CoachingEvent {
+  id: string;
+  createdAt: string;
+  kind: CoachingEventKind;
+  exerciseId?: string | undefined;
+  workoutId?: string | undefined;
+  cause?: CoachingCause | undefined;
+  detail?: CoachingDetail | undefined;
+  message: string;
+  userReply?: string | undefined;
+}
+
+
+export type CrossTrainingKind = "run" | "sport" | "bike" | "walk" | "other";
+
+export interface CrossTrainingLog {
+  id: string;
+  kind: CrossTrainingKind;
+  /** ISO date (YYYY-MM-DD). */
+  data: string;
+  duracaoMin: number;
+  intensidade: "easy" | "moderate" | "hard";
+  nota: string;
+}
+
+export interface CoachChatEntry {
+  id: string;
+  createdAt: string;
+  role: "user" | "coach";
+  content: string;
+  workoutId?: string;
+  exerciseId?: string;
+}
+

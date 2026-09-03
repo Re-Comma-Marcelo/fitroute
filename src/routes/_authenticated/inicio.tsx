@@ -11,6 +11,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CountUp } from "@/components/CountUp";
 import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
+import { CoachNotesCard } from "@/components/CoachNotesCard";
+import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
+
 import { useT } from "@/lib/i18n";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
@@ -186,7 +189,13 @@ export default function Inicio() {
           )}
         </div>
 
+        {/* Adaptive coach: drops, check-ins and recovery notes, plus the
+            cross-training log that explains them. */}
+        <CoachNotesCard />
+        <CrossTrainingSheet />
+
         <DietCard kcal={kcalToday} target={kcalTarget} />
+
 
         {!isLoading && (
           <QuickStartChecklist
