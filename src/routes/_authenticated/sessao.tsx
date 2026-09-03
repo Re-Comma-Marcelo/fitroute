@@ -791,15 +791,56 @@ function SessionPage() {
         await saveWorkout(workout, sets);
       }
 
+      // Post-workout coach message: recovery + food that fits the open macros.
+      let coachMessage = "";
+      try {
+        const [log, targets, plan] = await Promise.all([
+          getWorkoutLog(),
+          getTargets(),
+          getWeekPlan(),
+        ]);
+        const recent = log.workouts
+          .filter((w) => w.finalizadoEm && w.id !== target.id)
+          .slice(-8);
+        const avgVolume = recent.length
+          ? recent.reduce((sum, w) => sum + w.volumeTotalKg, 0) / recent.length
+          : 0;
+        const avgDuration = recent.length
+          ? recent.reduce((sum, w) => sum + w.duracaoSeg, 0) / recent.length
+          : 0;
+        const built = buildPostWorkoutMessage({
+          volumeKg: workout.volumeTotalKg,
+          durationSeg: duracaoSeg,
+          avgVolumeKg: avgVolume,
+          avgDurationSeg: avgDuration,
+          targets,
+          consumed: totalsFor(plan[isoDate(new Date())]),
+        });
+        coachMessage = built.message;
+        await logCoachingEvent({
+          kind: "post_workout",
+          message: built.message,
+          workoutId: target.id,
+          detail: { intensity: built.intensity },
+        });
+      } catch {
+        /* the summary still works without the coach message */
+      }
+
       if (typeof window !== "undefined") {
         window.localStorage.setItem(
           `forja.resumo.${target.id}`,
-          JSON.stringify({ prs, series: sets.length }),
+          JSON.stringify({
+            prs,
+            series: sets.length,
+            ...(coachMessage ? { coach: coachMessage } : {}),
+          }),
         );
       }
       cancelRestNotification();
       clearActiveSession();
       navigate({ to: "/resumo/$id", params: { id: target.id } });
+
     } catch {
       // Keep the session in localStorage so nothing is lost.
       toast.error(
