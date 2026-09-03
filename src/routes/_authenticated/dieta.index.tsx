@@ -105,7 +105,15 @@ function TodayPage() {
 
   const targets = targetsQ.data ?? { kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 };
   const day = planQ.data?.[today];
-  const totals = useMemo(() => totalsFor(day), [day]);
+  const plannedTotals = useMemo(() => totalsFor(day), [day]);
+  const eatenDay = useMemo(() => eatenFor(today), [today, eatenTick]);
+  const eatenTotals = useMemo(
+    () => eatenTotalsFor(today),
+    [today, eatenTick],
+  );
+  const hasEaten = Object.keys(eatenDay).length > 0;
+  const totals = ringView === "eaten" && hasEaten ? eatenTotals : plannedTotals;
+  const favorites = useMemo(() => getMealFavorites(), [favTick]);
   const tag = tagsQ.data?.[today];
   const recentTags = useMemo(() => {
     const days = recentQ.data ?? {};
