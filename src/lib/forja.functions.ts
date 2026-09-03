@@ -543,12 +543,13 @@ export const persistCoachingEvent = createServerFn({ method: "POST" })
     (data: {
       kind: string;
       message: string;
-      exerciseId?: string;
-      workoutId?: string;
-      cause?: string;
-      detail?: Record<string, unknown>;
+      exerciseId?: string | undefined;
+      workoutId?: string | undefined;
+      cause?: string | undefined;
+      detail?: Record<string, string | number | boolean | null> | undefined;
     }) => data,
   )
+
   .handler(async ({ data }) => {
     const { db, requireUserId, toCoachingEvent, uid, unwrap } = await import("./db.server");
     const userId = await requireUserId();
