@@ -284,6 +284,10 @@ function TodayPage() {
         <Plus className="mr-1.5 size-4" /> {t("Add a meal")}
       </Button>
 
+      <div className="mt-3">
+        <HydrationCard />
+      </div>
+
       {swap ? (
         <MealSwapCard
           suggestion={swap}
