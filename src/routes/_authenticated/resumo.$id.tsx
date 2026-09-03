@@ -36,18 +36,22 @@ function SummaryPage() {
   const t = useT();
   const { id } = useParams({ from: "/_authenticated/resumo/$id" });
   const [prs, setPrs] = useState<PrEntry[]>([]);
+  const [coachMessage, setCoachMessage] = useState("");
 
   useEffect(() => {
     const key = `forja.resumo.${id}`;
     try {
       const raw = window.localStorage.getItem(key);
-      const parsed = raw ? ((JSON.parse(raw).prs ?? []) as PrEntry[]) : [];
+      const payload = raw ? (JSON.parse(raw) as { prs?: PrEntry[]; coach?: string }) : {};
+      const parsed = payload.prs ?? [];
       setPrs(parsed);
+      setCoachMessage(payload.coach ?? "");
       // Celebrate the record once, when the summary first appears.
       if (parsed.length) hapticSuccess();
     } catch {
       setPrs([]);
     }
+
     // Consumed once: keep localStorage from accumulating one key per workout.
     try {
       window.localStorage.removeItem(key);
