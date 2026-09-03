@@ -2,9 +2,9 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, Plus, Sparkles } from "lucide-react";
+import { Clock, Plus, Repeat, Sparkles } from "lucide-react";
 import { MacroRings, MealCard } from "@/components/nutrition-ui";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
@@ -18,6 +18,8 @@ import { useT } from "@/lib/i18n";
 import {
   SLOT_LABEL,
   activeSlots,
+  eatenFor,
+  eatenTotalsFor,
   formatSlotTime,
   getMealSchedule,
   getMeals,
@@ -25,12 +27,19 @@ import {
   getTrainingTags,
   getWeekPlan,
   isoDate,
+  isEatenSlot,
+  repeatYesterdayToToday,
   setPlannedMeal,
   slotForTime,
+  toggleEatenMeal,
   totalsFor,
   weekDates,
   weekTotalsFor,
 } from "@/lib/data/nutrition";
+import {
+  getMealFavorites,
+  toggleMealFavorite,
+} from "@/lib/nutrition-local";
 import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/")({
