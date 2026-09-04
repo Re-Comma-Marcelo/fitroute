@@ -11,6 +11,7 @@ import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
 import { HydrationCard } from "@/components/HydrationCard";
+import { MacroBreakdownSheet } from "@/components/MacroBreakdownSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
@@ -72,6 +73,7 @@ function TodayPage() {
   const [timingOpen, setTimingOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [ringView, setRingView] = useState<"planned" | "eaten">("eaten");
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [eatenTick, setEatenTick] = useState(0); // bump to re-read localStorage
   const [favTick, setFavTick] = useState(0);
   const qc = useQueryClient();
@@ -156,6 +158,50 @@ function TodayPage() {
   }
 
   const note = (meal: Meal) => reasons.get(meal.id);
+
+  const plannedOptions = useMemo(
+    () => options.filter((m) => day?.[currentSlot] === m.id),
+    [options, day, currentSlot],
+  );
+  const suggestedOptions = useMemo(
+    () => options.filter((m) => day?.[currentSlot] !== m.id),
+    [options, day, currentSlot],
+  );
+
+  /** One card renderer for both sections, so status stays consistent. */
+  const renderMeal = (meal: Meal) => {
+    const isPlannedHere = day?.[currentSlot] === meal.id;
+    const isEatenHere =
+      isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
+    return (
+      <li key={meal.id}>
+        <MealCard
+          meal={meal}
+          slot={currentSlot}
+          selected={isPlannedHere}
+          eaten={isEatenHere}
+          suggested={!isPlannedHere}
+          favorite={favorites.includes(meal.id)}
+          note={note(meal)}
+          onSelect={() => choose(meal.id)}
+          onDetails={() => setDetail(meal)}
+          {...(isPlannedHere
+            ? {
+                onToggleEaten: () => {
+                  toggleEatenMeal(today, currentSlot, meal.id);
+                  setEatenTick((n) => n + 1);
+                  void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
+                },
+              }
+            : {})}
+          onToggleFavorite={() => {
+            toggleMealFavorite(meal.id);
+            setFavTick((n) => n + 1);
+          }}
+        />
+      </li>
+    );
+  };
 
   // Without this the empty state showed up mid-load and looked like an empty plan.
   const loadError = scheduleQ.isError || planQ.isError || targetsQ.isError || mealsQ.isError;
@@ -248,7 +294,11 @@ function TodayPage() {
         </button>
       </div>
 
-      <MacroRings totals={totals} targets={targets} />
+      <MacroRings
+        totals={totals}
+        targets={targets}
+        onOpenBreakdown={() => setBreakdownOpen(true)}
+      />
 
       <nav className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
         {slots.map((s) => (
@@ -327,40 +377,30 @@ function TodayPage() {
           </Button>
         </div>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {options.map((meal) => {
-            const isPlannedHere = day?.[currentSlot] === meal.id;
-            const isEatenHere =
-              isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
-            return (
-              <li key={meal.id}>
-                <MealCard
-                  meal={meal}
-                  slot={currentSlot}
-                  selected={isPlannedHere}
-                  eaten={isEatenHere}
-                  favorite={favorites.includes(meal.id)}
-                  note={note(meal)}
-                  onSelect={() => choose(meal.id)}
-                  onDetails={() => setDetail(meal)}
-                  {...(isPlannedHere
-                    ? {
-                        onToggleEaten: () => {
-                          toggleEatenMeal(today, currentSlot, meal.id);
-                          setEatenTick((n) => n + 1);
-                          void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
-                        },
-                      }
-                    : {})}
-                  onToggleFavorite={() => {
-                    toggleMealFavorite(meal.id);
-                    setFavTick((n) => n + 1);
-                  }}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <h3 className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-primary">
+            {t("Your plan for this slot")}
+          </h3>
+          {plannedOptions.length ? (
+            <ul className="mt-2 space-y-3">{plannedOptions.map(renderMeal)}</ul>
+          ) : (
+            <p className="mt-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+              {t("Nothing planned yet — pick one of the suggestions below.")}
+            </p>
+          )}
+
+          {suggestedOptions.length ? (
+            <>
+              <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("Suggested for you")}
+              </h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t("Ideas that fit your macros and training — tap one to plan it.")}
+              </p>
+              <ul className="mt-2 space-y-3">{suggestedOptions.map(renderMeal)}</ul>
+            </>
+          ) : null}
+        </>
       )}
 
       <MealDetailSheet
@@ -391,6 +431,15 @@ function TodayPage() {
       {schedule ? (
         <MealScheduleSheet open={timingOpen} onOpenChange={setTimingOpen} schedule={schedule} />
       ) : null}
+      <MacroBreakdownSheet
+        open={breakdownOpen}
+        onOpenChange={setBreakdownOpen}
+        planned={day}
+        eaten={eatenDay}
+        plannedTotals={plannedTotals}
+        eatenTotals={eatenTotals}
+        targets={targets}
+      />
     </>
   );
 }

@@ -43,9 +43,11 @@ export function Ring({
 export function MacroRings({
   totals,
   targets,
+  onOpenBreakdown,
 }: {
   totals: NutritionTargets;
   targets: NutritionTargets;
+  onOpenBreakdown?: () => void;
 }) {
   const t = useT();
   const macros = [
@@ -59,7 +61,30 @@ export function MacroRings({
     { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
   ];
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div
+      {...(onOpenBreakdown
+        ? {
+            role: "button",
+            tabIndex: 0,
+            onClick: onOpenBreakdown,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenBreakdown();
+              }
+            },
+            "aria-label": t("Where today's numbers come from"),
+          }
+        : {})}
+      className={`rounded-2xl border border-border bg-card p-5 ${
+        onOpenBreakdown ? "cursor-pointer transition-colors active:bg-surface-2" : ""
+      }`}
+    >
+      {onOpenBreakdown ? (
+        <p className="mb-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Info className="size-3" /> {t("Tap for the full breakdown")}
+        </p>
+      ) : null}
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
           <Ring
@@ -108,6 +133,7 @@ export function MealCard({
   eaten,
   favorite,
   note,
+  suggested,
   onSelect,
   onDetails,
   onToggleEaten,
@@ -119,6 +145,8 @@ export function MealCard({
   eaten?: boolean;
   favorite?: boolean;
   note?: string | undefined;
+  /** Only a suggestion: never looks like something you already decided on. */
+  suggested?: boolean;
   onSelect?: () => void;
   onDetails?: () => void;
   onToggleEaten?: () => void;
@@ -127,8 +155,14 @@ export function MealCard({
   const t = useT();
   return (
     <div
-      className={`w-full overflow-hidden rounded-2xl border bg-card text-left transition-colors ${
-        eaten ? "border-diet/60" : selected ? "border-primary" : "border-border"
+      className={`w-full overflow-hidden rounded-2xl border text-left transition-colors ${
+        eaten
+          ? "border-diet/60 bg-card"
+          : selected
+            ? "border-primary bg-card"
+            : suggested
+              ? "border-dashed border-border/70 bg-surface-2"
+              : "border-border bg-card"
       }`}
     >
       <div
@@ -144,14 +178,16 @@ export function MealCard({
         }}
         className={`block w-full text-left ${onSelect ? "cursor-pointer" : ""}`}
       >
-        <div className="relative h-32 w-full overflow-hidden">
+        <div className={`relative w-full overflow-hidden ${suggested ? "h-24" : "h-32"}`}>
           <img
             src={mealImage(slot)}
             alt={meal.name}
             loading="lazy"
             width={768}
             height={512}
-            className="h-full w-full object-cover brightness-110"
+            className={`h-full w-full object-cover ${
+              suggested ? "opacity-70 brightness-90" : "brightness-110"
+            }`}
           />
           {onToggleFavorite ? (
             <button
@@ -175,6 +211,10 @@ export function MealCard({
           ) : selected ? (
             <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
               <Check className="size-3" /> {t("Planned")}
+            </span>
+          ) : suggested ? (
+            <span className="absolute right-3 top-3 rounded-full border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
+              {t("Suggested")}
             </span>
           ) : null}
         </div>
