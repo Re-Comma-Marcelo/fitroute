@@ -1248,28 +1248,7 @@ function SessionPage() {
                   ) : null}
                 </div>
 
-                <div className="flex shrink-0 flex-col items-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target size-9"
-                    disabled={exIdx === 0}
-                    aria-label={t("Move up")}
-                    onClick={() => moveExercise(exIdx, -1)}
-                  >
-                    <ArrowUp className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target size-9"
-                    disabled={exIdx === session.exercicios.length - 1}
-                    aria-label={t("Move down")}
-                    onClick={() => moveExercise(exIdx, 1)}
-                  >
-                    <ArrowDown className="size-4" />
-                  </Button>
-                </div>
+
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
