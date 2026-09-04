@@ -92,10 +92,20 @@ function WeekPage() {
         </button>
       </div>
 
+      <div className="mt-3">
+        <MacroConsistencyStrip
+          dates={dates}
+          plan={planQ.data}
+          kcalTarget={targets?.kcal}
+          proteinTarget={targets?.proteinG}
+        />
+      </div>
+
       <p className="mt-3 flex items-start gap-2 text-xs text-muted-foreground">
         <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" />
         {t("Suggestions lean high-protein on strength days and lighter on rest days.")}
       </p>
+
 
       <ul className="mt-4 space-y-3">
         {dates.map((date) => {
