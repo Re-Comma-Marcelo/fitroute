@@ -281,9 +281,15 @@ function TodayPage() {
           type="button"
           onClick={async () => {
             try {
-              await repeatYesterdayToToday();
+              const { source } = await repeatYesterdayToToday();
               void qc.invalidateQueries({ queryKey: ["weekPlan"] });
-              toast.success(t("Copied yesterday's meals into today."));
+              toast.success(
+                source === "lastPlanned"
+                  ? t("Yesterday had no meals — copied your last planned day instead.")
+                  : source === "none"
+                    ? t("No recent meals to copy — plan a day first.")
+                    : t("Copied yesterday's meals into today."),
+              );
             } catch {
               toast.error(t("Could not copy yesterday's meals."));
             }
