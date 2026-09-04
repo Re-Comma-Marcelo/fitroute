@@ -98,8 +98,11 @@ export default function Inicio() {
 
 
   const today = isoDate(new Date());
-  const kcalToday = useMemo(() => totalsFor(planQ.data?.[today]).kcal, [planQ.data, today]);
+  const todayTotals = useMemo(() => totalsFor(planQ.data?.[today]), [planQ.data, today]);
+  const kcalToday = todayTotals.kcal;
+  const proteinToday = todayTotals.proteinG;
   const kcalTarget = targetsQ.data?.kcal ?? 0;
+  const proteinTarget = targetsQ.data?.proteinG ?? 0;
 
   async function primaryAction() {
     if (active) {
