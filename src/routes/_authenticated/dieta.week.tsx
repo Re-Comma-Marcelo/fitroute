@@ -6,6 +6,8 @@ import { Dumbbell, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
+import { MacroConsistencyStrip } from "@/components/MacroConsistencyStrip";
+
 import { formatWeekdayDayMonth } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
