@@ -139,3 +139,33 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "di
     </div>
   );
 }
+
+function MacroStat({
+  label,
+  value,
+  target,
+  tone,
+}: {
+  label: string;
+  value: number;
+  target: number;
+  tone: "diet" | "train" | "primary";
+}) {
+  const pct = target > 0 ? Math.max(0, Math.min(100, (value / target) * 100)) : 0;
+  const bar =
+    tone === "diet" ? "bg-diet" : tone === "train" ? "bg-train" : "bg-primary";
+  return (
+    <div className="rounded-xl border border-border bg-card p-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums">
+        {Math.round(value * 10) / 10}
+        <span className="text-muted-foreground"> / {target}g</span>
+      </p>
+      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-3">
+        <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
