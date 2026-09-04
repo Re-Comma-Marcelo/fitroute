@@ -855,7 +855,26 @@ function SessionPage() {
     });
   }
 
+  /** Add an exercise mid-session from the in-workout picker (no navigation). */
+  async function addExerciseFromPicker(exerciseId: string) {
+    setPickerOpen(false);
+    const built = await buildActiveExercise(exerciseId).catch(() => null);
+    if (!built) {
+      toast.error(t("Could not add the exercise. Try again."));
+      return;
+    }
+    bumpExerciseUsage(exerciseId);
+    update((s) => {
+      const exercicios = [...s.exercicios, built];
+      return { ...s, exercicios, atual: exercicios.length - 1 };
+    });
+    hapticTick();
+    setScrollTo(session ? session.exercicios.length : 0);
+    toast.success(t("{name} added", { name: built.nome }));
+  }
+
   function skipExercise(exIdx: number) {
+
     update((s) => {
       s.exercicios[exIdx]!.pulado = !s.exercicios[exIdx]!.pulado;
       if (s.exercicios[exIdx]!.pulado && exIdx < s.exercicios.length - 1) s.atual = exIdx + 1;
