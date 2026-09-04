@@ -30,7 +30,7 @@ export function BodyWeightCard() {
 
   const goalKg = profileQuery.data?.pesoMetaKg;
   const startKg = profileQuery.data?.pesoInicialKg;
-  const showGoalBar = goalKg && startKg && goalKg !== startKg && latest;
+  const goalConfigured = Boolean(goalKg && startKg && goalKg !== startKg);
 
   /** Reads the log as a rate, so the goal gets a projected date. */
   const pace = useMemo(
