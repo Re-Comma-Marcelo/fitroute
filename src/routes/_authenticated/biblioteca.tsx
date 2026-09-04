@@ -8,6 +8,7 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Info,
   Plus,
   Search,
