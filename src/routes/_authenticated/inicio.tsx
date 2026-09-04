@@ -197,7 +197,7 @@ export default function Inicio() {
         <CoachNotesCard />
         <CrossTrainingSheet />
 
-        <DietCard kcal={kcalToday} target={kcalTarget} />
+        <DietCard kcal={kcalToday} target={kcalTarget} protein={proteinToday} proteinTarget={proteinTarget} />
 
 
         {!isLoading && (
