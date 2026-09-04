@@ -173,6 +173,9 @@ function SessionPage() {
   const [coachTips, setCoachTips] = useState<Record<number, string>>({});
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
+  const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
+  const dragIdxRef = useRef<number | null>(null);
+  const baseYRef = useRef(0);
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
