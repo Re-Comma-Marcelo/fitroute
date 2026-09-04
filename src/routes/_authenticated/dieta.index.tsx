@@ -327,40 +327,30 @@ function TodayPage() {
           </Button>
         </div>
       ) : (
-        <ul className="mt-3 space-y-3">
-          {options.map((meal) => {
-            const isPlannedHere = day?.[currentSlot] === meal.id;
-            const isEatenHere =
-              isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
-            return (
-              <li key={meal.id}>
-                <MealCard
-                  meal={meal}
-                  slot={currentSlot}
-                  selected={isPlannedHere}
-                  eaten={isEatenHere}
-                  favorite={favorites.includes(meal.id)}
-                  note={note(meal)}
-                  onSelect={() => choose(meal.id)}
-                  onDetails={() => setDetail(meal)}
-                  {...(isPlannedHere
-                    ? {
-                        onToggleEaten: () => {
-                          toggleEatenMeal(today, currentSlot, meal.id);
-                          setEatenTick((n) => n + 1);
-                          void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
-                        },
-                      }
-                    : {})}
-                  onToggleFavorite={() => {
-                    toggleMealFavorite(meal.id);
-                    setFavTick((n) => n + 1);
-                  }}
-                />
-              </li>
-            );
-          })}
-        </ul>
+        <>
+          <h3 className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-primary">
+            {t("Your plan for this slot")}
+          </h3>
+          {plannedOptions.length ? (
+            <ul className="mt-2 space-y-3">{plannedOptions.map(renderMeal)}</ul>
+          ) : (
+            <p className="mt-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+              {t("Nothing planned yet — pick one of the suggestions below.")}
+            </p>
+          )}
+
+          {suggestedOptions.length ? (
+            <>
+              <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                {t("Suggested for you")}
+              </h3>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                {t("Ideas that fit your macros and training — tap one to plan it.")}
+              </p>
+              <ul className="mt-2 space-y-3">{suggestedOptions.map(renderMeal)}</ul>
+            </>
+          ) : null}
+        </>
       )}
 
       <MealDetailSheet
