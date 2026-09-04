@@ -16,4 +16,13 @@ const configured = (import.meta.env["VITE_FORJA_SUPABASE_URL"] as string | undef
 
 export const SUPABASE_ORIGIN = configured || DEFAULT_SUPABASE_ORIGIN;
 
+// Fail closed: the MCP server must never boot without a valid https issuer,
+// which is what keeps it from degrading to an unauthenticated server that
+// would still be wired to real user data.
+if (!/^https:\/\/[^/\s]+$/.test(SUPABASE_ORIGIN)) {
+  throw new Error(
+    "MCP OAuth issuer is misconfigured: VITE_FORJA_SUPABASE_URL must be an https origin.",
+  );
+}
+
 export const OAUTH_ISSUER = `${SUPABASE_ORIGIN}/auth/v1`;
