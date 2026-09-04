@@ -1120,7 +1120,8 @@ function SessionPage() {
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
         {session.exercicios.map((ex, exIdx) => {
-          const aberto = exIdx === session.atual;
+          const dragging = drag?.idx === exIdx;
+          const aberto = exIdx === session.atual && !dragging;
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
@@ -1130,12 +1131,31 @@ function SessionPage() {
               ref={(node) => {
                 cardRefs.current[exIdx] = node;
               }}
-              style={{ scrollMarginTop: "7rem" }}
-              className={`rounded-xl border bg-card ${
-                aberto ? "border-primary/50" : "border-border"
-              } ${ex.pulado ? "opacity-50" : ""}`}
+              style={{
+                scrollMarginTop: "7rem",
+                ...(dragging
+                  ? { transform: `translateY(${drag.offset}px) scale(1.02)`, zIndex: 30 }
+                  : null),
+              }}
+              className={cn(
+                "relative rounded-xl border bg-card",
+                aberto ? "border-primary/50" : "border-border",
+                ex.pulado && "opacity-50",
+                dragging && "border-primary shadow-lg",
+                drag && !dragging && "opacity-60",
+              )}
             >
               <div className="flex items-start gap-1 p-3">
+                <button
+                  type="button"
+                  aria-label={t("Hold and drag to reorder")}
+                  title={t("Hold and drag to reorder")}
+                  onPointerDown={(e) => beginDragHold(exIdx, e)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  className="-ml-1 flex h-9 w-6 shrink-0 touch-none select-none items-center justify-center text-muted-foreground"
+                >
+                  <GripVertical className="size-4" />
+                </button>
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
@@ -1143,6 +1163,7 @@ function SessionPage() {
                     className="flex w-full items-start gap-2 text-left"
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
+
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-base font-semibold leading-tight">
                         {blockLabel[ex.exerciseId] ? (
