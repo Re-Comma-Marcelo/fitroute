@@ -214,7 +214,10 @@ function SessionPage() {
     (live: boolean) => {
       // Live expiry starts the "overdue" count-up; stale rest is dropped silently.
       clearRest(live);
-      if (live) setRestFinished(true);
+      if (live) {
+        hapticTick();
+        setRestFinished(true);
+      }
     },
     [clearRest],
   );
