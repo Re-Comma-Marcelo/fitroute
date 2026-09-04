@@ -2,6 +2,9 @@ import { formatTimeOfDay } from "../format";
 import {
   clearEatenDay as clearEatenLocal,
   getEaten as getEatenLocal,
+  getLocalCustomMeals,
+  removeLocalCustomMeal,
+  saveLocalCustomMeal,
   setEaten as setEatenLocal,
 } from "../nutrition-local";
 import {
@@ -59,7 +62,15 @@ async function hydrate(): Promise<void> {
       fetchNutritionState(),
       fetchCustomMeals().catch(() => [] as unknown[]),
     ]).then(([state, custom]) => {
-      customCache = (custom as unknown[]).map((m) => ({ ...(m as Meal), custom: true }));
+      const remote = (custom as unknown[]).map((m) => ({ ...(m as Meal), custom: true }));
+      // Local-only meals (created while the custom_meals table was absent)
+      // are merged in; remote rows win on id collisions.
+      const local = getLocalCustomMeals();
+      const remoteIds = new Set(remote.map((m) => m.id));
+      customCache = [
+        ...remote,
+        ...local.filter((m) => !remoteIds.has(m.id)),
+      ];
       planCache = (state.plan ?? {}) as WeekPlan;
       checkedCache = state.checked ?? [];
       const raw = (state.schedule ?? {}) as Partial<
@@ -133,6 +144,14 @@ export function isoDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Returns a new Date offset by `days` from `ref` (does not mutate `ref`). */
+export function addDays(ref: Date, days: number): Date {
+  const d = new Date(ref);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+
 /** Monday-based week containing `ref`. */
 export function weekDates(ref = new Date()): string[] {
   const base = new Date(ref);
@@ -171,13 +190,17 @@ export async function createCustomMeal(
     data: { meal: meal as unknown as Record<string, unknown>, source },
   })) as unknown as Meal;
   const normalized: Meal = { ...saved, custom: true, source };
+  // Mirror to localStorage so it survives a refresh when the custom_meals
+  // table has not been migrated yet.
+  saveLocalCustomMeal(normalized);
   customCache = [normalized, ...customCache.filter((m) => m.id !== normalized.id)];
   return normalized;
 }
 
 export async function removeCustomMeal(id: string): Promise<void> {
   await hydrate();
-  await deleteCustomMeal({ data: { id } });
+  await deleteCustomMeal({ data: { id } }).catch(() => {});
+  removeLocalCustomMeal(id);
   customCache = customCache.filter((m) => m.id !== id);
 }
 
@@ -325,31 +348,49 @@ export function clearEatenDay(date: string): void {
 
 /**
  * Copies yesterday's planned meals into today (any today slot already set is
- * kept). Useful one-tap "I ate the same as yesterday".
+ * kept). If yesterday had no planned meals, falls back to the most recent
+ * earlier day that had at least one slot planned — so the button stays useful
+ * on your first day back. Returns the resulting plan and which source was used.
  */
-export async function repeatYesterdayToToday(): Promise<WeekPlan> {
+export async function repeatYesterdayToToday(): Promise<{
+  plan: WeekPlan;
+  source: "yesterday" | "lastPlanned" | "none";
+}> {
   await hydrate();
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  const yesterday = isoDate(y);
   const today = isoDate(new Date());
-  const src = planCache[yesterday] ?? {};
+  const yesterday = isoDate(addDays(new Date(), -1));
+  let src = planCache[yesterday] ?? {};
+  let source: "yesterday" | "lastPlanned" | "none" = "yesterday";
+
+  // Fall back to the most recent earlier day with at least one planned slot.
+  if (!Object.values(src).some(Boolean)) {
+    source = "lastPlanned";
+    for (let back = 2; back <= 30; back++) {
+      const past = isoDate(addDays(new Date(), -back));
+      const day = planCache[past] ?? {};
+      if (Object.values(day).some(Boolean)) {
+        src = day;
+        break;
+      }
+    }
+    if (!Object.values(src).some(Boolean)) {
+      source = "none";
+    }
+  }
+
   const day = { ...(planCache[today] ?? {}) };
   for (const slot of MEAL_SLOTS) {
     if (!day[slot] && src[slot]) day[slot] = src[slot];
   }
   planCache = { ...planCache, [today]: day };
-  const set = MEAL_SLOTS.filter((s) => src[s] && !day[s]).length
-    ? [] // fallthrough below writes all copied slots
-    : [];
   // Write every copied slot explicitly so persistence tracks it.
   const writes = MEAL_SLOTS.filter((s) => src[s]).map((s) => ({
     date: today,
     slot: s,
     mealId: src[s] as string,
   }));
-  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: set } });
-  return structuredClone(planCache);
+  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: [] } });
+  return { plan: structuredClone(planCache), source };
 }
 
 /** Training tag per date, derived from logged workouts (Strength / Rest). */

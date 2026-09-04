@@ -43,6 +43,27 @@ export function MacroBreakdownSheet({
           <Stat label={t("Still to go")} value={`${left}`} />
         </div>
 
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          <MacroStat
+            label={t("Protein")}
+            value={eatenTotals.proteinG}
+            target={targets.proteinG}
+            tone="diet"
+          />
+          <MacroStat
+            label={t("Carbs")}
+            value={eatenTotals.carbsG}
+            target={targets.carbsG}
+            tone="train"
+          />
+          <MacroStat
+            label={t("Fat")}
+            value={eatenTotals.fatG}
+            target={targets.fatG}
+            tone="primary"
+          />
+        </div>
+
         <ul className="mt-4 space-y-2">
           {MEAL_SLOTS.map((slot) => {
             const plannedMeal = mealName(planned?.[slot]);
@@ -115,6 +136,36 @@ function Stat({ label, value, tone }: { label: string; value: string; tone?: "di
         {value}
       </p>
       <p className="text-[10px] text-muted-foreground">kcal</p>
+    </div>
+  );
+}
+
+function MacroStat({
+  label,
+  value,
+  target,
+  tone,
+}: {
+  label: string;
+  value: number;
+  target: number;
+  tone: "diet" | "train" | "primary";
+}) {
+  const pct = target > 0 ? Math.max(0, Math.min(100, (value / target) * 100)) : 0;
+  const bar =
+    tone === "diet" ? "bg-diet" : tone === "train" ? "bg-train" : "bg-primary";
+  return (
+    <div className="rounded-xl border border-border bg-card p-2.5">
+      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm font-semibold tabular-nums">
+        {Math.round(value * 10) / 10}
+        <span className="text-muted-foreground"> / {target}g</span>
+      </p>
+      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-3">
+        <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+      </div>
     </div>
   );
 }

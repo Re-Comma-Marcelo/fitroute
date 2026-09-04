@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { Dumbbell, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
@@ -112,7 +112,14 @@ function WeekPage() {
                   ) : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {t(tagsQ.data?.[date] ?? "Rest")}
+                  {tagsQ.data?.[date] === "Strength" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-train/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-train">
+                      <Dumbbell className="size-3" />
+                      {t("Training day")}
+                    </span>
+                  ) : (
+                    t("Rest")
+                  )}
                 </span>
               </div>
 

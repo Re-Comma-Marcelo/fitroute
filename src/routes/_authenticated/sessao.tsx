@@ -214,7 +214,10 @@ function SessionPage() {
     (live: boolean) => {
       // Live expiry starts the "overdue" count-up; stale rest is dropped silently.
       clearRest(live);
-      if (live) setRestFinished(true);
+      if (live) {
+        hapticTick();
+        setRestFinished(true);
+      }
     },
     [clearRest],
   );
@@ -1150,6 +1153,16 @@ function SessionPage() {
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
+          // Last completed valid set — shown in the collapsed header so you
+          // can recall where you are without expanding the card.
+          const lastDone = [...ex.sets]
+            .filter((s) => s.concluida && isSerieValida(s))
+            .pop();
+          const lastKg = lastDone ? Number(lastDone.pesoKg) || 0 : 0;
+          const lastLabel =
+            lastKg > 0
+              ? `${formatKg(lastKg)} kg × ${Number(lastDone!.reps) || 0}`
+              : null;
           return (
             <section
               key={ex.exerciseId + exIdx}
@@ -1207,6 +1220,12 @@ function SessionPage() {
                             max: ex.repsMax,
                           })}
                         </span>
+
+                        {!aberto && lastLabel ? (
+                          <span className="shrink-0 tabular-nums text-foreground/70">
+                            · {lastLabel}
+                          </span>
+                        ) : null}
 
                         {exDone ? (
                           <Check

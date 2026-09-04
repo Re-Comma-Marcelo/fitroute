@@ -8,6 +8,7 @@ import {
   Camera,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Info,
   Plus,
   Search,
@@ -121,6 +122,18 @@ function LibraryPage() {
     () => all.filter((e) => favorites.includes(e.id)),
     [all, favorites],
   );
+
+  // Most-used exercises — surfaced as a quick "Recent" row on the folder view so
+  // you can jump back into the lifts you actually train without searching.
+  const recentList = useMemo(() => {
+    const entries = Object.entries(usage)
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1]);
+    return entries
+      .map(([id]) => all.find((e) => e.id === id))
+      .filter((e): e is NonNullable<typeof e> => Boolean(e))
+      .slice(0, 5);
+  }, [usage, all]);
 
   const lista = useMemo(() => {
     const filtered = all.filter(
@@ -287,6 +300,28 @@ function LibraryPage() {
                       key={e.id}
                       exercise={e}
                       favorite
+                      onChoose={() => choose(e)}
+                      onDetail={() => setDetail(e)}
+                      onStar={() => star(e.id)}
+                    />
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
+            {recentList.length ? (
+              <>
+                <div className="mt-5 flex items-end justify-between">
+                  <p className="label-caps flex items-center gap-1.5">
+                    <Clock className="size-3.5 text-muted-foreground" /> {t("Recent")}
+                  </p>
+                </div>
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {recentList.map((e) => (
+                    <ExerciseRow
+                      key={e.id}
+                      exercise={e}
+                      favorite={favorites.includes(e.id)}
                       onChoose={() => choose(e)}
                       onDetail={() => setDetail(e)}
                       onStar={() => star(e.id)}

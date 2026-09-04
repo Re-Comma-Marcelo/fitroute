@@ -98,8 +98,11 @@ export default function Inicio() {
 
 
   const today = isoDate(new Date());
-  const kcalToday = useMemo(() => totalsFor(planQ.data?.[today]).kcal, [planQ.data, today]);
+  const todayTotals = useMemo(() => totalsFor(planQ.data?.[today]), [planQ.data, today]);
+  const kcalToday = todayTotals.kcal;
+  const proteinToday = todayTotals.proteinG;
   const kcalTarget = targetsQ.data?.kcal ?? 0;
+  const proteinTarget = targetsQ.data?.proteinG ?? 0;
 
   async function primaryAction() {
     if (active) {
@@ -194,7 +197,7 @@ export default function Inicio() {
         <CoachNotesCard />
         <CrossTrainingSheet />
 
-        <DietCard kcal={kcalToday} target={kcalTarget} />
+        <DietCard kcal={kcalToday} target={kcalTarget} protein={proteinToday} proteinTarget={proteinTarget} />
 
 
         {!isLoading && (
@@ -381,9 +384,20 @@ function PRCard({
 
 /* ---------- diet ---------- */
 
-function DietCard({ kcal, target }: { kcal: number; target: number }) {
+function DietCard({
+  kcal,
+  target,
+  protein,
+  proteinTarget,
+}: {
+  kcal: number;
+  target: number;
+  protein: number;
+  proteinTarget: number;
+}) {
   const t = useT();
   const pct = target > 0 ? Math.max(0, Math.min(100, (kcal / target) * 100)) : 0;
+  const pPct = proteinTarget > 0 ? Math.max(0, Math.min(100, (protein / proteinTarget) * 100)) : 0;
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-3">
@@ -401,6 +415,21 @@ function DietCard({ kcal, target }: { kcal: number; target: number }) {
       <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
         <div className="h-full rounded-full bg-diet" style={{ width: `${pct}%` }} />
       </div>
+      {proteinTarget > 0 ? (
+        <div className="mt-2.5 flex items-center gap-2">
+          <span className="text-xs font-semibold text-diet">
+            {formatNumber(Math.round(protein))}g{" "}
+            <span className="text-muted-foreground">
+              {t("of {target}g protein", { target: formatNumber(Math.round(proteinTarget)) })}
+            </span>
+          </span>
+        </div>
+      ) : null}
+      {proteinTarget > 0 ? (
+        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+          <div className="h-full rounded-full bg-diet/70" style={{ width: `${pPct}%` }} />
+        </div>
+      ) : null}
     </Card>
   );
 }
