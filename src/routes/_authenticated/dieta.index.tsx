@@ -11,6 +11,7 @@ import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
 import { HydrationCard } from "@/components/HydrationCard";
+import { MacroBreakdownSheet } from "@/components/MacroBreakdownSheet";
 import { MealSwapCard } from "@/components/MealSwapCard";
 import { rankMeals, swapSuggestion } from "@/lib/nutrition-swap";
 import { getNutritionInsight } from "@/lib/coach/nutrition";
@@ -72,6 +73,7 @@ function TodayPage() {
   const [timingOpen, setTimingOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [ringView, setRingView] = useState<"planned" | "eaten">("eaten");
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
   const [eatenTick, setEatenTick] = useState(0); // bump to re-read localStorage
   const [favTick, setFavTick] = useState(0);
   const qc = useQueryClient();
@@ -292,7 +294,11 @@ function TodayPage() {
         </button>
       </div>
 
-      <MacroRings totals={totals} targets={targets} />
+      <MacroRings
+        totals={totals}
+        targets={targets}
+        onOpenBreakdown={() => setBreakdownOpen(true)}
+      />
 
       <nav className="mt-5 flex items-center gap-1.5 overflow-x-auto pb-1">
         {slots.map((s) => (
