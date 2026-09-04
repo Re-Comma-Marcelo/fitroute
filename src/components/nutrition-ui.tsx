@@ -133,6 +133,7 @@ export function MealCard({
   eaten,
   favorite,
   note,
+  suggested,
   onSelect,
   onDetails,
   onToggleEaten,
@@ -144,6 +145,8 @@ export function MealCard({
   eaten?: boolean;
   favorite?: boolean;
   note?: string | undefined;
+  /** Only a suggestion: never looks like something you already decided on. */
+  suggested?: boolean;
   onSelect?: () => void;
   onDetails?: () => void;
   onToggleEaten?: () => void;
@@ -152,8 +155,14 @@ export function MealCard({
   const t = useT();
   return (
     <div
-      className={`w-full overflow-hidden rounded-2xl border bg-card text-left transition-colors ${
-        eaten ? "border-diet/60" : selected ? "border-primary" : "border-border"
+      className={`w-full overflow-hidden rounded-2xl border text-left transition-colors ${
+        eaten
+          ? "border-diet/60 bg-card"
+          : selected
+            ? "border-primary bg-card"
+            : suggested
+              ? "border-dashed border-border/70 bg-surface-2"
+              : "border-border bg-card"
       }`}
     >
       <div
