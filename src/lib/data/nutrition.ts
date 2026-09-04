@@ -2,6 +2,9 @@ import { formatTimeOfDay } from "../format";
 import {
   clearEatenDay as clearEatenLocal,
   getEaten as getEatenLocal,
+  getLocalCustomMeals,
+  removeLocalCustomMeal,
+  saveLocalCustomMeal,
   setEaten as setEatenLocal,
 } from "../nutrition-local";
 import {
