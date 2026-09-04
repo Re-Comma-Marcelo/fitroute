@@ -431,6 +431,15 @@ function TodayPage() {
       {schedule ? (
         <MealScheduleSheet open={timingOpen} onOpenChange={setTimingOpen} schedule={schedule} />
       ) : null}
+      <MacroBreakdownSheet
+        open={breakdownOpen}
+        onOpenChange={setBreakdownOpen}
+        planned={day}
+        eaten={eatenDay}
+        plannedTotals={plannedTotals}
+        eatenTotals={eatenTotals}
+        targets={targets}
+      />
     </>
   );
 }
