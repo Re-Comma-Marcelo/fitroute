@@ -3,6 +3,7 @@ import type { DictFragment } from "../types";
 /** Rest days, calculated set prescriptions and translated nutrition coach notes. */
 export const dict: DictFragment = {
   pt: {
+    "Hold and drag to reorder": "Segure e arraste para reordenar",
     // Rest days
     "Rest day": "Dia de descanso",
     "Rest of the day": "Descanso pelo resto do dia",
@@ -60,6 +61,7 @@ export const dict: DictFragment = {
     "Protein target is within reach.": "A meta de proteína está ao alcance.",
   },
   nl: {
+    "Hold and drag to reorder": "Houd vast en sleep om te herordenen",
     // Rest days
     "Rest day": "Rustdag",
     "Rest of the day": "Rust voor de rest van de dag",
