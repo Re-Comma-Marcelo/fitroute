@@ -43,9 +43,11 @@ export function Ring({
 export function MacroRings({
   totals,
   targets,
+  onOpenBreakdown,
 }: {
   totals: NutritionTargets;
   targets: NutritionTargets;
+  onOpenBreakdown?: () => void;
 }) {
   const t = useT();
   const macros = [
@@ -59,7 +61,30 @@ export function MacroRings({
     { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
   ];
   return (
-    <div className="rounded-2xl border border-border bg-card p-5">
+    <div
+      {...(onOpenBreakdown
+        ? {
+            role: "button",
+            tabIndex: 0,
+            onClick: onOpenBreakdown,
+            onKeyDown: (e: React.KeyboardEvent) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpenBreakdown();
+              }
+            },
+            "aria-label": t("Where today's numbers come from"),
+          }
+        : {})}
+      className={`rounded-2xl border border-border bg-card p-5 ${
+        onOpenBreakdown ? "cursor-pointer transition-colors active:bg-surface-2" : ""
+      }`}
+    >
+      {onOpenBreakdown ? (
+        <p className="mb-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <Info className="size-3" /> {t("Tap for the full breakdown")}
+        </p>
+      ) : null}
       <div className="flex items-center gap-5">
         <div className="relative shrink-0">
           <Ring
