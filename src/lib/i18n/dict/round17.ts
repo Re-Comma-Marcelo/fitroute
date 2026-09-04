@@ -15,6 +15,8 @@ export const dict: DictFragment = {
     Protein: "Proteína",
     Carbs: "Carbo",
     Fat: "Gordura",
+    "Cut: {from} → {to} {unit}": "Cut: {from} → {to} {unit}",
+    "Bulk: {from} → {to} {unit}": "Bulk: {from} → {to} {unit}",
   },
   nl: {
     "of {target}g protein": "van {target}g eiwit",
