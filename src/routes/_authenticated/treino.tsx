@@ -31,12 +31,17 @@ import { routineCover } from "@/lib/exercise-image";
 import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 
 import {
+  clearActiveSession,
+  currentExerciseName,
   loadActiveSession,
   loadTodayChoice,
   saveTodayChoice,
+  sessionElapsed,
+  sessionSetsDone,
   type ActiveSession,
   sessionLabel,
 } from "@/lib/session-state";
+
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
 import { swapCandidates } from "@/lib/coach/swap";
