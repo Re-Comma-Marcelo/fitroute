@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
+import { Dumbbell, Plus, Sparkles, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import { MealPickerSheet } from "@/components/MealPickerSheet";
 import { AddMealSheet } from "@/components/AddMealSheet";
