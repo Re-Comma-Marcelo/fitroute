@@ -113,6 +113,7 @@ function TrainPage() {
   const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start);
   const doneThisWeek = weekWorkouts.length;
   const volumeThisWeek = Math.round(weekWorkouts.reduce((s, w) => s + w.volumeTotalKg, 0));
+  const [overrideRest, setOverrideRest] = useState(false);
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
 
@@ -260,11 +261,34 @@ function TrainPage() {
       </section>
 
 
+      {coach?.restDay && !overrideRest && !active ? (
+        <section className="mt-5 rounded-2xl border border-border bg-card p-4">
+          <p className="label-caps text-muted-foreground">{t("Coach · today")}</p>
+          <p className="mt-1 font-display text-lg font-semibold">{coach.restDay.title}</p>
+          <p className="mt-1 text-sm leading-snug text-muted-foreground">{coach.restDay.line}</p>
+          <ul className="mt-3 space-y-1.5">
+            {coach.restDay.why.map((w) => (
+              <li key={w} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
+                <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/60" />
+                {w}
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="secondary"
+            className="mt-3 h-11 w-full font-semibold"
+            onClick={() => setOverrideRest(true)}
+          >
+            {t("Train anyway")}
+          </Button>
+        </section>
+      ) : null}
+
       {coachQuery.isLoading || !coach ? (
         routines.length ? (
           <div className="mt-5 h-24 animate-pulse rounded-2xl bg-card" />
         ) : null
-      ) : (
+      ) : coach.restDay && !overrideRest && !active ? null : (
         <TodayCoachCard
           model={coach}
           swapOptions={swapOptions}
