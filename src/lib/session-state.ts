@@ -1,4 +1,5 @@
 import { tx } from "./format";
+import type { SetPrescription } from "./prescription";
 import {
   isSerieDeCarga,
   isSerieValida,
