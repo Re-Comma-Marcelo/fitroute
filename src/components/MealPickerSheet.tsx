@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MealCard } from "@/components/nutrition-ui";
 import { SLOT_LABEL, getMeals } from "@/lib/data/nutrition";
-import { getMealFavorites } from "@/lib/nutrition-local";
+import { getMealFavorites, toggleMealFavorite } from "@/lib/nutrition-local";
 import { useT } from "@/lib/i18n";
 import type { MealSlot } from "@/lib/nutrition-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Star } from "lucide-react";
 
 const FILTERS = ["favorites", "all", "high-protein", "high-carb", "light", "quick", "order-out"] as const;
