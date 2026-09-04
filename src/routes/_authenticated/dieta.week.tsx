@@ -112,7 +112,14 @@ function WeekPage() {
                   ) : null}
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
-                  {t(tagsQ.data?.[date] ?? "Rest")}
+                  {tagsQ.data?.[date] === "Strength" ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-train/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-train">
+                      <Dumbbell className="size-3" />
+                      {t("Training day")}
+                    </span>
+                  ) : (
+                    t("Rest")
+                  )}
                 </span>
               </div>
 
