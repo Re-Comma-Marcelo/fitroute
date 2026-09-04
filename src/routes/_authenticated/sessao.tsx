@@ -62,6 +62,7 @@ import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-not
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
 import { restForExercise } from "@/lib/prescription";
+import { nextSetTarget } from "@/lib/next-set";
 import {
   clearActiveSession,
   currentExerciseIndex,
@@ -171,6 +172,8 @@ function SessionPage() {
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
   /** Coach comment per exercise index, shown above the sets. */
   const [coachTips, setCoachTips] = useState<Record<number, string>>({});
+  /** Target the app computed for the next set of an exercise. */
+  const [targetTips, setTargetTips] = useState<Record<number, string>>({});
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
@@ -506,6 +509,7 @@ function SessionPage() {
     let proximo: number | null = null;
     let completou = false;
     let logged: { pesoKg: number; reps: number } | null = null;
+    let alvoLinha: string | null = null;
     update((s) => {
       const ex = s.exercicios[exIdx]!;
       const set = ex.sets[setIdx]!;
@@ -519,6 +523,21 @@ function SessionPage() {
       set.concluida = true;
       if (isSerieValida(set)) {
         logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
+        // The app sets the goal for the next set from what just happened.
+        const target = nextSetTarget(ex, {
+          pesoKg: logged.pesoKg,
+          reps: logged.reps,
+          rpe: Number(set.rpe) || null,
+        });
+        const proximaValida = ex.sets.find((x, i) => i > setIdx && !x.concluida && isSerieValida(x));
+        if (target && proximaValida) {
+          proximaValida.sugPeso = target.pesoKg;
+          proximaValida.sugReps = target.reps;
+          // Targets stay grey hints, never typed-in values.
+          proximaValida.pesoKg = "";
+          proximaValida.reps = "";
+          alvoLinha = target.line;
+        }
       }
       // Inside a superset you move straight to the next exercise: no rest yet.
       descanso = supersetChain(s, exIdx) ? 0 : restFor(ex);
@@ -532,6 +551,12 @@ function SessionPage() {
     });
     hapticTick();
     setJustSet(`${exIdx}:${setIdx}`);
+    setTargetTips((prev) => {
+      const next = { ...prev };
+      if (alvoLinha) next[exIdx] = alvoLinha;
+      else delete next[exIdx];
+      return next;
+    });
     if (completou) setJustExercise(exIdx);
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
@@ -1305,7 +1330,13 @@ function SessionPage() {
 
               {aberto ? (
                 <div className="px-3 pb-3">
-                  {ex.prescricao ? (
+                  {targetTips[exIdx] ? (
+                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
+                      <p className="text-xs font-semibold leading-snug text-foreground">
+                        {targetTips[exIdx]}
+                      </p>
+                    </div>
+                  ) : ex.prescricao ? (
                     <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
                       <p className="text-xs font-semibold leading-snug text-foreground">
                         {ex.prescricao.line}
@@ -1770,11 +1801,18 @@ function SetRow({
   const { unit } = useWeightUnit();
   /** Weight is always stored in kg; the field shows the user's unit. */
   const [draft, setDraft] = useState<string | null>(null);
+  const [focused, setFocused] = useState<"pesoKg" | "reps" | null>(null);
   const shownWeight =
     draft ??
     (set.pesoKg === ""
       ? ""
       : String(Math.round(toDisplayWeight(Number(set.pesoKg) || 0, unit) * 100) / 100));
+  /** Target the app decided for this set, shown grey until you type or accept it. */
+  const alvoPeso =
+    set.sugPeso !== null && set.sugPeso > 0
+      ? String(Math.round(toDisplayWeight(set.sugPeso, unit) * 100) / 100)
+      : "";
+  const alvoReps = set.sugReps !== null && set.sugReps > 0 ? String(set.sugReps) : "";
 
   function writeWeight(displayValue: string) {
     setDraft(displayValue);
@@ -1804,165 +1842,165 @@ function SetRow({
     onField("reps", String(next));
   }
 
+  /** Tapping an empty field accepts the grey target so you only edit what changed. */
+  function acceptWeightTarget() {
+    if (shownWeight === "" && alvoPeso !== "") writeWeight(alvoPeso);
+  }
+  function acceptRepsTarget() {
+    if (set.reps === "" && alvoReps !== "") onField("reps", alvoReps);
+  }
+
   return (
     <li
       className={cn(
-        ROW_GRID,
         "px-0.5 py-1",
         set.concluida ? "bg-primary/10" : "",
         justDone ? "set-flash" : "",
       )}
     >
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "tap-target flex h-10 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold",
-              aquecimento && "text-warn",
-              tempo && "text-info",
-            )}
-            aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
-          >
-            {tempo ? `${label}s` : label}
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
-            <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
-              {typeName[tipo]}
+      <div className={ROW_GRID}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              className={cn(
+                "tap-target flex h-10 w-10 items-center justify-center rounded-md bg-muted text-sm font-semibold",
+                aquecimento && "text-warn",
+                tempo && "text-info",
+              )}
+              aria-label={t("Set {label} — type {type}", { label, type: typeName[set.tipoSerie] })}
+            >
+              {tempo ? `${label}s` : label}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {(["aquecimento", "normal", "falha", "drop", "tempo"] as TipoSerie[]).map((tipo) => (
+              <DropdownMenuItem key={tipo} onClick={() => onTipo(tipo)}>
+                {typeName[tipo]}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
+              <Trash2 className="mr-2 size-4" /> {t("Remove set")}
             </DropdownMenuItem>
-          ))}
-          <DropdownMenuItem className="text-destructive" onClick={onRemove}>
-            <Trash2 className="mr-2 size-4" /> {t("Remove set")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-      <span className="min-w-0 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
-        {set.antPeso !== null && set.antReps !== null
-          ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
-          : "—"}
-      </span>
+        <span className="min-w-0 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
+          {set.antPeso !== null && set.antReps !== null
+            ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
+            : "—"}
+        </span>
 
-      <StepperField
-        value={shownWeight}
-        onChange={writeWeight}
-        onBlur={() => setDraft(null)}
-        onStep={(dir) => stepKg(dir * passoKg)}
-        inputMode="decimal"
-        placeholder={weightUnitLabel()}
-        ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
-        stepDownLabel={t("Decrease weight")}
-        stepUpLabel={t("Increase weight")}
-        hint={t("Hold to adjust")}
-      />
+        <NumberField
+          value={shownWeight}
+          onChange={writeWeight}
+          onBlur={() => {
+            setDraft(null);
+            setFocused((f) => (f === "pesoKg" ? null : f));
+          }}
+          onFocus={() => {
+            acceptWeightTarget();
+            setFocused("pesoKg");
+          }}
+          inputMode="decimal"
+          placeholder={alvoPeso || weightUnitLabel()}
+          ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
+        />
 
-      <StepperField
-        value={set.reps}
-        onChange={(v) => onField("reps", v)}
-        onStep={(dir) => stepReps(dir * (tempo ? 5 : 1))}
-        inputMode="numeric"
-        placeholder={tempo ? t("sec") : `${exercise.repsMin}-${exercise.repsMax}`}
-        ariaLabel={tempo ? t("Seconds") : t("Reps")}
-        stepDownLabel={tempo ? t("Decrease seconds") : t("Decrease reps")}
-        stepUpLabel={tempo ? t("Increase seconds") : t("Increase reps")}
-        hint={t("Hold to adjust")}
-      />
+        <NumberField
+          value={set.reps}
+          onChange={(v) => onField("reps", v)}
+          onBlur={() => setFocused((f) => (f === "reps" ? null : f))}
+          onFocus={() => {
+            acceptRepsTarget();
+            setFocused("reps");
+          }}
+          inputMode="numeric"
+          placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
+          ariaLabel={tempo ? t("Seconds") : t("Reps")}
+        />
 
-      <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
 
-      <button
-        type="button"
-        onClick={onCheck}
-        aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
-        aria-pressed={set.concluida}
-        className={cn(
-          "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
-          set.concluida
-            ? "border-primary bg-primary text-primary-foreground"
-            : "border-border bg-muted text-muted-foreground",
-          justDone ? "set-pop" : "",
-        )}
-      >
-        <Check className="size-6" strokeWidth={3} />
-      </button>
+        <button
+          type="button"
+          onClick={onCheck}
+          aria-label={set.concluida ? t("Uncheck set") : t("Complete set")}
+          aria-pressed={set.concluida}
+          className={cn(
+            "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
+            set.concluida
+              ? "border-primary bg-primary text-primary-foreground"
+              : "border-border bg-muted text-muted-foreground",
+            justDone ? "set-pop" : "",
+          )}
+        >
+          <Check className="size-6" strokeWidth={3} />
+        </button>
+      </div>
+
+      {/* The −/+ strip only appears for the field you are editing, so typing stays first. */}
+      {focused ? (
+        <div className="mt-1 flex items-center justify-end gap-2 pb-1">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {focused === "pesoKg" ? weightUnitLabel() : tempo ? t("sec") : t("Reps")}
+          </span>
+          <StepButton
+            dir="down"
+            label={focused === "pesoKg" ? t("Decrease weight") : t("Decrease reps")}
+            onClick={() =>
+              focused === "pesoKg" ? stepKg(-passoKg) : stepReps(tempo ? -5 : -1)
+            }
+          />
+          <StepButton
+            dir="up"
+            label={focused === "pesoKg" ? t("Increase weight") : t("Increase reps")}
+            onClick={() => (focused === "pesoKg" ? stepKg(passoKg) : stepReps(tempo ? 5 : 1))}
+          />
+        </div>
+      ) : null}
     </li>
   );
 }
 
 /**
- * Numeric field that keeps the set on a single line: typing works as usual and a
- * long press (or right-click) opens a small popover with the −/+ steppers.
+ * Numeric field built for typing: one tap focuses and selects the value, so the
+ * keyboard replaces it straight away. The −/+ buttons live next to the row.
  */
-function StepperField({
+function NumberField({
   value,
   onChange,
   onBlur,
-  onStep,
+  onFocus,
   inputMode,
   placeholder,
   ariaLabel,
-  stepDownLabel,
-  stepUpLabel,
-  hint,
 }: {
   value: string;
   onChange: (value: string) => void;
   onBlur?: () => void;
-  onStep: (direction: 1 | -1) => void;
+  onFocus?: () => void;
   inputMode: "decimal" | "numeric";
   placeholder: string;
   ariaLabel: string;
-  stepDownLabel: string;
-  stepUpLabel: string;
-  hint: string;
 }) {
-  const [open, setOpen] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  function clear() {
-    if (timer.current) clearTimeout(timer.current);
-    timer.current = null;
-  }
-
   return (
-    <Popover open={open} onOpenChange={(next) => (next ? setOpen(true) : (clear(), setOpen(false)))}>
-      <PopoverTrigger asChild>
-        <Input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          {...(onBlur ? { onBlur } : {})}
-          inputMode={inputMode}
-          enterKeyHint="next"
-          onKeyDown={focusNextField}
-          placeholder={placeholder}
-          aria-label={ariaLabel}
-          title={hint}
-          onPointerDown={() => {
-            clear();
-            timer.current = setTimeout(() => setOpen(true), 450);
-          }}
-          onPointerUp={clear}
-          onPointerCancel={clear}
-          onPointerMove={clear}
-          onContextMenu={(e) => {
-            e.preventDefault();
-            setOpen(true);
-          }}
-          className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
-        />
-      </PopoverTrigger>
-      <PopoverContent align="center" className="w-auto p-2">
-        <div className="flex items-center gap-2">
-          <StepButton dir="down" label={stepDownLabel} onClick={() => onStep(-1)} />
-          <span className="min-w-12 text-center text-base font-semibold tabular-nums">
-            {value || "—"}
-          </span>
-          <StepButton dir="up" label={stepUpLabel} onClick={() => onStep(1)} />
-        </div>
-      </PopoverContent>
-    </Popover>
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      {...(onBlur ? { onBlur } : {})}
+      inputMode={inputMode}
+      enterKeyHint="next"
+      onKeyDown={focusNextField}
+      placeholder={placeholder}
+      aria-label={ariaLabel}
+      onFocus={(e) => {
+        onFocus?.();
+        // Select-all: typing overwrites instead of appending to the old number.
+        requestAnimationFrame(() => e.target.select());
+      }}
+      className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
+    />
   );
 }
 

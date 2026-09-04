@@ -62,9 +62,13 @@ export const Route = createFileRoute("/_authenticated/biblioteca")({
   component: LibraryPage,
 });
 
-/** An exercise lives in its primary folder and in every secondary group it trains. */
+/**
+ * An exercise belongs only to the muscle it primarily trains: a lat pulldown is
+ * a back exercise even though the forearms help. Secondary muscles stay visible
+ * in the exercise detail, not in the group filter.
+ */
 function belongsTo(exercise: Exercise, group: string): boolean {
-  return exercise.grupoPrimario === group || exercise.gruposSecundarios.includes(group);
+  return exercise.grupoPrimario === group;
 }
 
 function LibraryPage() {
