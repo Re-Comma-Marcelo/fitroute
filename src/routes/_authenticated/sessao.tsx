@@ -174,6 +174,10 @@ function SessionPage() {
   const [coachTips, setCoachTips] = useState<Record<number, string>>({});
   /** Target the app computed for the next set of an exercise. */
   const [targetTips, setTargetTips] = useState<Record<number, string>>({});
+  /** Focus mode: only the current exercise is rendered, full width. */
+  const [focusMode, setFocusMode] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
