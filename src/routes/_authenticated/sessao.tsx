@@ -10,6 +10,8 @@ import {
   ChevronDown,
   GripVertical,
   History,
+  Maximize2,
+  Minimize2,
   MoreVertical,
   Replace,
   Minus,
@@ -22,8 +24,8 @@ import {
   Trash2,
   TrendingUp,
   Volume2,
-  
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
