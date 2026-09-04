@@ -1068,6 +1068,20 @@ function SessionPage() {
           <Button
             variant="ghost"
             size="icon"
+            className={cn("tap-target", focusMode && "text-train")}
+            aria-label={focusMode ? t("Show all exercises") : t("Focus on current exercise")}
+            aria-pressed={focusMode}
+            onClick={() => {
+              setFocusMode((v) => !v);
+              hapticTick();
+            }}
+          >
+            {focusMode ? <Minimize2 className="size-6" /> : <Maximize2 className="size-6" />}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
             className="tap-target text-info"
             aria-label={t("Open rest timer")}
             onClick={() => {
