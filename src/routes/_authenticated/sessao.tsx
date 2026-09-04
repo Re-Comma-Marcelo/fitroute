@@ -1525,12 +1525,7 @@ function SessionPage() {
         <Button
           variant="secondary"
           className="h-12 w-full font-semibold"
-          onClick={() =>
-            navigate({
-              to: "/biblioteca",
-              search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
-            })
-          }
+          onClick={() => setPickerOpen(true)}
         >
           <Plus className="mr-1 size-5" /> {t("Add exercise")}
         </Button>
@@ -1543,6 +1538,12 @@ function SessionPage() {
         />
       </main>
 
+      <SessionExercisePickerSheet
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
+      />
+
       {rest || restOverdue > 0 ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
           <RestIsland
@@ -1552,9 +1553,11 @@ function SessionPage() {
             onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
             onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
             onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
+            onOpenSettings={() => startRest(currentRest)}
           />
         </div>
       ) : null}
+
 
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
