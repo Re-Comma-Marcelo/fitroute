@@ -287,6 +287,22 @@ function ProgressPage() {
                 <p className="mt-0.5 text-xs text-muted-foreground/80 first-letter:uppercase">
                   {formatDateLong(w.iniciadoEm)}
                 </p>
+                <div className="mt-1.5 flex flex-wrap gap-1">
+                  {Array.from(
+                    new Set(
+                      w.exercicios
+                        .map((re) => exercises.find((e) => e.id === re.exerciseId)?.grupoPrimario)
+                        .filter((g): g is string => Boolean(g)),
+                    ),
+                  ).map((g) => (
+                    <span
+                      key={g}
+                      className="rounded-full bg-train/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-train"
+                    >
+                      {g}
+                    </span>
+                  ))}
+                </div>
                 <p className="mt-1 text-xs font-semibold text-muted-foreground">
                   {formatDurationShort(w.duracaoSeg)} · {formatKg(w.volumeTotalKg)}
                 </p>
