@@ -8,6 +8,7 @@ import {
   Flame,
   Check,
   ChevronDown,
+  GripVertical,
   History,
   MoreVertical,
   Replace,
@@ -172,6 +173,9 @@ function SessionPage() {
   const [coachTips, setCoachTips] = useState<Record<number, string>>({});
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
+  const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
+  const dragIdxRef = useRef<number | null>(null);
+  const baseYRef = useRef(0);
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
@@ -718,6 +722,85 @@ function SessionPage() {
     setScrollTo(target);
   }
 
+  /** Same move, but silent: used while the finger is dragging a card. */
+  function shiftExercise(exIdx: number, dir: -1 | 1) {
+    const target = exIdx + dir;
+    update((s) => {
+      if (target < 0 || target >= s.exercicios.length) return s;
+      const exercicios = [...s.exercicios];
+      const [moved] = exercicios.splice(exIdx, 1);
+      exercicios.splice(target, 0, moved!);
+      const atual = s.atual === exIdx ? target : s.atual === target ? exIdx : s.atual;
+      return { ...s, exercicios, atual };
+    });
+  }
+
+  /** Press and hold a card's grip, then drag it up or down to reorder. */
+  function beginDragHold(exIdx: number, event: React.PointerEvent<HTMLElement>) {
+    const target = event.currentTarget;
+    const pointerId = event.pointerId;
+    const startY = event.clientY;
+    let armed = false;
+
+    const timer = window.setTimeout(() => {
+      armed = true;
+      dragIdxRef.current = exIdx;
+      baseYRef.current = startY;
+      setDrag({ idx: exIdx, offset: 0 });
+      hapticTick();
+      try {
+        target.setPointerCapture(pointerId);
+      } catch {
+        /* capture is a nicety, not a requirement */
+      }
+    }, 220);
+
+    function onMove(e: PointerEvent) {
+      if (e.pointerId !== pointerId) return;
+      if (!armed) {
+        // Moving before the hold completes means the user is scrolling.
+        if (Math.abs(e.clientY - startY) > 8) cleanup();
+        return;
+      }
+      e.preventDefault();
+      const idx = dragIdxRef.current;
+      if (idx === null) return;
+      const above = cardRefs.current[idx - 1]?.getBoundingClientRect();
+      const below = cardRefs.current[idx + 1]?.getBoundingClientRect();
+      if (above && e.clientY < above.top + above.height / 2) {
+        shiftExercise(idx, -1);
+        dragIdxRef.current = idx - 1;
+        baseYRef.current = e.clientY;
+        hapticTick();
+        setDrag({ idx: idx - 1, offset: 0 });
+        return;
+      }
+      if (below && e.clientY > below.top + below.height / 2) {
+        shiftExercise(idx, 1);
+        dragIdxRef.current = idx + 1;
+        baseYRef.current = e.clientY;
+        hapticTick();
+        setDrag({ idx: idx + 1, offset: 0 });
+        return;
+      }
+      setDrag({ idx, offset: e.clientY - baseYRef.current });
+    }
+
+    function cleanup() {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", cleanup);
+      window.removeEventListener("pointercancel", cleanup);
+      dragIdxRef.current = null;
+      setDrag(null);
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", cleanup);
+    window.addEventListener("pointercancel", cleanup);
+  }
+
+
   /** "I'll do this later": push the exercise to the end of the session. */
   function moveExerciseToEnd(exIdx: number) {
     update((s) => {
@@ -1037,7 +1120,8 @@ function SessionPage() {
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
         {session.exercicios.map((ex, exIdx) => {
-          const aberto = exIdx === session.atual;
+          const dragging = drag?.idx === exIdx;
+          const aberto = exIdx === session.atual && !dragging;
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
@@ -1047,12 +1131,31 @@ function SessionPage() {
               ref={(node) => {
                 cardRefs.current[exIdx] = node;
               }}
-              style={{ scrollMarginTop: "7rem" }}
-              className={`rounded-xl border bg-card ${
-                aberto ? "border-primary/50" : "border-border"
-              } ${ex.pulado ? "opacity-50" : ""}`}
+              style={{
+                scrollMarginTop: "7rem",
+                ...(dragging
+                  ? { transform: `translateY(${drag.offset}px) scale(1.02)`, zIndex: 30 }
+                  : null),
+              }}
+              className={cn(
+                "relative rounded-xl border bg-card",
+                aberto ? "border-primary/50" : "border-border",
+                ex.pulado && "opacity-50",
+                dragging && "border-primary shadow-lg",
+                drag && !dragging && "opacity-60",
+              )}
             >
               <div className="flex items-start gap-1 p-3">
+                <button
+                  type="button"
+                  aria-label={t("Hold and drag to reorder")}
+                  title={t("Hold and drag to reorder")}
+                  onPointerDown={(e) => beginDragHold(exIdx, e)}
+                  onContextMenu={(e) => e.preventDefault()}
+                  className="-ml-1 flex h-9 w-6 shrink-0 touch-none select-none items-center justify-center text-muted-foreground"
+                >
+                  <GripVertical className="size-4" />
+                </button>
                 <div className="min-w-0 flex-1">
                   <button
                     type="button"
@@ -1060,6 +1163,7 @@ function SessionPage() {
                     className="flex w-full items-start gap-2 text-left"
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
+
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-base font-semibold leading-tight">
                         {blockLabel[ex.exerciseId] ? (
@@ -1144,28 +1248,7 @@ function SessionPage() {
                   ) : null}
                 </div>
 
-                <div className="flex shrink-0 flex-col items-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target size-9"
-                    disabled={exIdx === 0}
-                    aria-label={t("Move up")}
-                    onClick={() => moveExercise(exIdx, -1)}
-                  >
-                    <ArrowUp className="size-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="tap-target size-9"
-                    disabled={exIdx === session.exercicios.length - 1}
-                    aria-label={t("Move down")}
-                    onClick={() => moveExercise(exIdx, 1)}
-                  >
-                    <ArrowDown className="size-4" />
-                  </Button>
-                </div>
+
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
