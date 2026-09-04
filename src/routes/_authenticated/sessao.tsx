@@ -1189,9 +1189,17 @@ function SessionPage() {
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
+        {focusMode ? (
+          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-train">
+            {t("Focus mode · one exercise at a time")}
+          </p>
+        ) : null}
         {session.exercicios.map((ex, exIdx) => {
           const dragging = drag?.idx === exIdx;
-          const aberto = exIdx === session.atual && !dragging;
+          // Focus mode hides everything except the exercise you are on.
+          if (focusMode && exIdx !== focusIdx) return null;
+          const aberto = focusMode ? true : exIdx === session.atual && !dragging;
+
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
