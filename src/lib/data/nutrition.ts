@@ -340,31 +340,49 @@ export function clearEatenDay(date: string): void {
 
 /**
  * Copies yesterday's planned meals into today (any today slot already set is
- * kept). Useful one-tap "I ate the same as yesterday".
+ * kept). If yesterday had no planned meals, falls back to the most recent
+ * earlier day that had at least one slot planned — so the button stays useful
+ * on your first day back. Returns the resulting plan and which source was used.
  */
-export async function repeatYesterdayToToday(): Promise<WeekPlan> {
+export async function repeatYesterdayToToday(): Promise<{
+  plan: WeekPlan;
+  source: "yesterday" | "lastPlanned" | "none";
+}> {
   await hydrate();
-  const y = new Date();
-  y.setDate(y.getDate() - 1);
-  const yesterday = isoDate(y);
   const today = isoDate(new Date());
-  const src = planCache[yesterday] ?? {};
+  const yesterday = isoDate(addDays(new Date(), -1));
+  let src = planCache[yesterday] ?? {};
+  let source: "yesterday" | "lastPlanned" | "none" = "yesterday";
+
+  // Fall back to the most recent earlier day with at least one planned slot.
+  if (!Object.values(src).some(Boolean)) {
+    source = "lastPlanned";
+    for (let back = 2; back <= 30; back++) {
+      const past = isoDate(addDays(new Date(), -back));
+      const day = planCache[past] ?? {};
+      if (Object.values(day).some(Boolean)) {
+        src = day;
+        break;
+      }
+    }
+    if (!Object.values(src).some(Boolean)) {
+      source = "none";
+    }
+  }
+
   const day = { ...(planCache[today] ?? {}) };
   for (const slot of MEAL_SLOTS) {
     if (!day[slot] && src[slot]) day[slot] = src[slot];
   }
   planCache = { ...planCache, [today]: day };
-  const set = MEAL_SLOTS.filter((s) => src[s] && !day[s]).length
-    ? [] // fallthrough below writes all copied slots
-    : [];
   // Write every copied slot explicitly so persistence tracks it.
   const writes = MEAL_SLOTS.filter((s) => src[s]).map((s) => ({
     date: today,
     slot: s,
     mealId: src[s] as string,
   }));
-  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: set } });
-  return structuredClone(planCache);
+  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: [] } });
+  return { plan: structuredClone(planCache), source };
 }
 
 /** Training tag per date, derived from logged workouts (Strength / Rest). */
