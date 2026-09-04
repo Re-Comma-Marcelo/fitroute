@@ -719,6 +719,85 @@ function SessionPage() {
     setScrollTo(target);
   }
 
+  /** Same move, but silent: used while the finger is dragging a card. */
+  function shiftExercise(exIdx: number, dir: -1 | 1) {
+    const target = exIdx + dir;
+    update((s) => {
+      if (target < 0 || target >= s.exercicios.length) return s;
+      const exercicios = [...s.exercicios];
+      const [moved] = exercicios.splice(exIdx, 1);
+      exercicios.splice(target, 0, moved!);
+      const atual = s.atual === exIdx ? target : s.atual === target ? exIdx : s.atual;
+      return { ...s, exercicios, atual };
+    });
+  }
+
+  /** Press and hold a card's grip, then drag it up or down to reorder. */
+  function beginDragHold(exIdx: number, event: React.PointerEvent<HTMLElement>) {
+    const target = event.currentTarget;
+    const pointerId = event.pointerId;
+    const startY = event.clientY;
+    let armed = false;
+
+    const timer = window.setTimeout(() => {
+      armed = true;
+      dragIdxRef.current = exIdx;
+      baseYRef.current = startY;
+      setDrag({ idx: exIdx, offset: 0 });
+      hapticTick();
+      try {
+        target.setPointerCapture(pointerId);
+      } catch {
+        /* capture is a nicety, not a requirement */
+      }
+    }, 220);
+
+    function onMove(e: PointerEvent) {
+      if (e.pointerId !== pointerId) return;
+      if (!armed) {
+        // Moving before the hold completes means the user is scrolling.
+        if (Math.abs(e.clientY - startY) > 8) cleanup();
+        return;
+      }
+      e.preventDefault();
+      const idx = dragIdxRef.current;
+      if (idx === null) return;
+      const above = cardRefs.current[idx - 1]?.getBoundingClientRect();
+      const below = cardRefs.current[idx + 1]?.getBoundingClientRect();
+      if (above && e.clientY < above.top + above.height / 2) {
+        shiftExercise(idx, -1);
+        dragIdxRef.current = idx - 1;
+        baseYRef.current = e.clientY;
+        hapticTick();
+        setDrag({ idx: idx - 1, offset: 0 });
+        return;
+      }
+      if (below && e.clientY > below.top + below.height / 2) {
+        shiftExercise(idx, 1);
+        dragIdxRef.current = idx + 1;
+        baseYRef.current = e.clientY;
+        hapticTick();
+        setDrag({ idx: idx + 1, offset: 0 });
+        return;
+      }
+      setDrag({ idx, offset: e.clientY - baseYRef.current });
+    }
+
+    function cleanup() {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", cleanup);
+      window.removeEventListener("pointercancel", cleanup);
+      dragIdxRef.current = null;
+      setDrag(null);
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", cleanup);
+    window.addEventListener("pointercancel", cleanup);
+  }
+
+
   /** "I'll do this later": push the exercise to the end of the session. */
   function moveExerciseToEnd(exIdx: number) {
     update((s) => {
