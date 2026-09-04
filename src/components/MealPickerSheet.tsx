@@ -34,9 +34,14 @@ export function MealPickerSheet({
     enabled: Boolean(slot),
   });
 
-  const favorites = getMealFavorites();
+  const [favorites, setFavorites] = useState<string[]>(() => getMealFavorites());
+  // Re-sync when the sheet opens, so favorites starred elsewhere show up here.
+  useEffect(() => {
+    if (open) setFavorites(getMealFavorites());
+  }, [open]);
+
   const list = (mealsQ.data ?? [])
-    .filter((m) => filter === "all" || m.tags.includes(filter as never))
+    .filter((m) => filter === "all" || filter === "favorites" || m.tags.includes(filter as never))
     .filter((m) => (filter === "favorites" ? favorites.includes(m.id) : true))
     .sort((a, b) => {
       const fa = favorites.includes(a.id) ? 0 : 1;
