@@ -43,6 +43,27 @@ export function MacroBreakdownSheet({
           <Stat label={t("Still to go")} value={`${left}`} />
         </div>
 
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          <MacroStat
+            label={t("Protein")}
+            value={eatenTotals.proteinG}
+            target={targets.proteinG}
+            tone="diet"
+          />
+          <MacroStat
+            label={t("Carbs")}
+            value={eatenTotals.carbsG}
+            target={targets.carbsG}
+            tone="train"
+          />
+          <MacroStat
+            label={t("Fat")}
+            value={eatenTotals.fatG}
+            target={targets.fatG}
+            tone="primary"
+          />
+        </div>
+
         <ul className="mt-4 space-y-2">
           {MEAL_SLOTS.map((slot) => {
             const plannedMeal = mealName(planned?.[slot]);
