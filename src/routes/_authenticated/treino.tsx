@@ -209,13 +209,56 @@ function TrainPage() {
     >
       {active ? (
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
+          <p className="text-sm font-semibold text-primary">{t("Unfinished workout")}</p>
           <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
-          <Button className="mt-3 w-full font-semibold" onClick={() => navigate({ to: "/sessao" })}>
-            <Play className="mr-2 size-4" /> {t("Resume workout")}
-          </Button>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("Started {time} · {duration} · {sets} sets logged", {
+              time: new Date(active.iniciadoEm).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              duration: formatDurationShort(sessionElapsed(active)),
+              sets: sessionSetsDone(active),
+            })}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground/80">
+            {t("Next up")}: {currentExerciseName(active)}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button className="flex-1 font-semibold" onClick={() => navigate({ to: "/sessao" })}>
+              <Play className="mr-2 size-4" /> {t("Resume workout")}
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="icon" className="tap-target size-11 shrink-0">
+                  <Trash2 className="size-5 text-destructive" />
+                  <span className="sr-only">{t("Discard workout")}</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("Everything you logged in this session will be lost.")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      clearActiveSession();
+                      setActive(null);
+                    }}
+                  >
+                    {t("Discard")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       ) : null}
+
 
       <section>
         <div className="flex items-end justify-between">
