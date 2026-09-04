@@ -402,6 +402,11 @@ function SessionPage() {
   const restLeft = restSecondsLeft(session);
   const restOverdue = restOverdueSeconds(session);
 
+  /** Never zero: falls back to a rest length derived from the rep range. */
+  function restFor(ex: ActiveExercise): number {
+    return ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex);
+  }
+
   function startRest(segundos: number) {
     if (segundos <= 0) return;
     update((s) => ({
@@ -511,7 +516,7 @@ function SessionPage() {
         logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
       }
       // Inside a superset you move straight to the next exercise: no rest yet.
-      descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
+      descanso = supersetChain(s, exIdx) ? 0 : restFor(ex);
       const todasFeitas = ex.sets.every((x) => x.concluida);
       completou = todasFeitas;
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
@@ -640,7 +645,7 @@ function SessionPage() {
       proxima.pesoKg = ultima.pesoKg;
       proxima.reps = ultima.reps;
       proxima.concluida = true;
-      descanso = ex.descansoSeg;
+      descanso = restFor(ex);
       const todasFeitas = ex.sets.every((x) => x.concluida);
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
         s.atual = exIdx + 1;
