@@ -122,6 +122,18 @@ function LibraryPage() {
     [all, favorites],
   );
 
+  // Most-used exercises — surfaced as a quick "Recent" row on the folder view so
+  // you can jump back into the lifts you actually train without searching.
+  const recentList = useMemo(() => {
+    const entries = Object.entries(usage)
+      .filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1]);
+    return entries
+      .map(([id]) => all.find((e) => e.id === id))
+      .filter((e): e is NonNullable<typeof e> => Boolean(e))
+      .slice(0, 5);
+  }, [usage, all]);
+
   const lista = useMemo(() => {
     const filtered = all.filter(
       (e) =>
