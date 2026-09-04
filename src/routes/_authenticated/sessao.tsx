@@ -1220,6 +1220,12 @@ function SessionPage() {
                           })}
                         </span>
 
+                        {!aberto && lastLabel ? (
+                          <span className="shrink-0 tabular-nums text-foreground/70">
+                            · {lastLabel}
+                          </span>
+                        ) : null}
+
                         {exDone ? (
                           <Check
                             className="size-3.5 shrink-0 text-success"
