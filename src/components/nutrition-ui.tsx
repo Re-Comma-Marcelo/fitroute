@@ -178,14 +178,16 @@ export function MealCard({
         }}
         className={`block w-full text-left ${onSelect ? "cursor-pointer" : ""}`}
       >
-        <div className="relative h-32 w-full overflow-hidden">
+        <div className={`relative w-full overflow-hidden ${suggested ? "h-24" : "h-32"}`}>
           <img
             src={mealImage(slot)}
             alt={meal.name}
             loading="lazy"
             width={768}
             height={512}
-            className="h-full w-full object-cover brightness-110"
+            className={`h-full w-full object-cover ${
+              suggested ? "opacity-70 brightness-90" : "brightness-110"
+            }`}
           />
           {onToggleFavorite ? (
             <button
@@ -209,6 +211,10 @@ export function MealCard({
           ) : selected ? (
             <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
               <Check className="size-3" /> {t("Planned")}
+            </span>
+          ) : suggested ? (
+            <span className="absolute right-3 top-3 rounded-full border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
+              {t("Suggested")}
             </span>
           ) : null}
         </div>
