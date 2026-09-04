@@ -62,7 +62,15 @@ async function hydrate(): Promise<void> {
       fetchNutritionState(),
       fetchCustomMeals().catch(() => [] as unknown[]),
     ]).then(([state, custom]) => {
-      customCache = (custom as unknown[]).map((m) => ({ ...(m as Meal), custom: true }));
+      const remote = (custom as unknown[]).map((m) => ({ ...(m as Meal), custom: true }));
+      // Local-only meals (created while the custom_meals table was absent)
+      // are merged in; remote rows win on id collisions.
+      const local = getLocalCustomMeals();
+      const remoteIds = new Set(remote.map((m) => m.id));
+      customCache = [
+        ...remote,
+        ...local.filter((m) => !remoteIds.has(m.id)),
+      ];
       planCache = (state.plan ?? {}) as WeekPlan;
       checkedCache = state.checked ?? [];
       const raw = (state.schedule ?? {}) as Partial<
