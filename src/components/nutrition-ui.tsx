@@ -131,7 +131,19 @@ export function MealCard({
         eaten ? "border-diet/60" : selected ? "border-primary" : "border-border"
       }`}
     >
-      <button type="button" onClick={onSelect} className="block w-full text-left">
+      <div
+        role={onSelect ? "button" : undefined}
+        tabIndex={onSelect ? 0 : undefined}
+        onClick={onSelect}
+        onKeyDown={(e) => {
+          if (!onSelect) return;
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onSelect();
+          }
+        }}
+        className={`block w-full text-left ${onSelect ? "cursor-pointer" : ""}`}
+      >
         <div className="relative h-32 w-full overflow-hidden">
           <img
             src={mealImage(slot)}
