@@ -157,6 +157,50 @@ function TodayPage() {
 
   const note = (meal: Meal) => reasons.get(meal.id);
 
+  const plannedOptions = useMemo(
+    () => options.filter((m) => day?.[currentSlot] === m.id),
+    [options, day, currentSlot],
+  );
+  const suggestedOptions = useMemo(
+    () => options.filter((m) => day?.[currentSlot] !== m.id),
+    [options, day, currentSlot],
+  );
+
+  /** One card renderer for both sections, so status stays consistent. */
+  const renderMeal = (meal: Meal) => {
+    const isPlannedHere = day?.[currentSlot] === meal.id;
+    const isEatenHere =
+      isPlannedHere && isEatenSlot(today, currentSlot) && eatenDay[currentSlot] === meal.id;
+    return (
+      <li key={meal.id}>
+        <MealCard
+          meal={meal}
+          slot={currentSlot}
+          selected={isPlannedHere}
+          eaten={isEatenHere}
+          suggested={!isPlannedHere}
+          favorite={favorites.includes(meal.id)}
+          note={note(meal)}
+          onSelect={() => choose(meal.id)}
+          onDetails={() => setDetail(meal)}
+          {...(isPlannedHere
+            ? {
+                onToggleEaten: () => {
+                  toggleEatenMeal(today, currentSlot, meal.id);
+                  setEatenTick((n) => n + 1);
+                  void qc.invalidateQueries({ queryKey: ["nutritionInsight"] });
+                },
+              }
+            : {})}
+          onToggleFavorite={() => {
+            toggleMealFavorite(meal.id);
+            setFavTick((n) => n + 1);
+          }}
+        />
+      </li>
+    );
+  };
+
   // Without this the empty state showed up mid-load and looked like an empty plan.
   const loadError = scheduleQ.isError || planQ.isError || targetsQ.isError || mealsQ.isError;
   const firstLoad =
