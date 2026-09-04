@@ -82,6 +82,36 @@ export function toggleMealFavorite(mealId: string): string[] {
   return next;
 }
 
+// ---- Custom meals (local fallback when custom_meals table is absent) ------
+
+const CUSTOM_KEY = "forja.customMeals.v1";
+import type { Meal } from "./nutrition-types";
+
+export function getLocalCustomMeals(): Meal[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(CUSTOM_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as Meal[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalCustomMeal(meal: Meal): Meal[] {
+  const current = getLocalCustomMeals().filter((m) => m.id !== meal.id);
+  const next = [{ ...meal, custom: true }, ...current];
+  if (typeof window !== "undefined") window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(next));
+  return next;
+}
+
+export function removeLocalCustomMeal(id: string): Meal[] {
+  const next = getLocalCustomMeals().filter((m) => m.id !== id);
+  if (typeof window !== "undefined") window.localStorage.setItem(CUSTOM_KEY, JSON.stringify(next));
+  return next;
+}
+
 // ---- Hydration ------------------------------------------------------------
 
 export interface WaterState {
