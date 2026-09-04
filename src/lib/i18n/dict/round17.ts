@@ -29,5 +29,7 @@ export const dict: DictFragment = {
     Protein: "Eiwit",
     Carbs: "Koolhydraten",
     Fat: "Vet",
+    "Cut: {from} → {to} {unit}": "Cut: {from} → {to} {unit}",
+    "Bulk: {from} → {to} {unit}": "Bulk: {from} → {to} {unit}",
   },
 };
