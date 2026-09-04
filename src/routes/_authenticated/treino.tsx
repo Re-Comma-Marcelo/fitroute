@@ -335,6 +335,22 @@ function TrainPage() {
               </li>
             ))}
           </ul>
+          {nextPreview ? (
+            <div className="mt-3 rounded-xl border border-border/70 bg-surface-2 p-3">
+              <p className="label-caps text-muted-foreground">{t("Next session")}</p>
+              <p className="mt-1 truncate text-sm font-semibold">{nextPreview.nome}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {nextPreview.primeiros.join(" · ")}
+                {nextPreview.restantes > 0
+                  ? ` · +${nextPreview.restantes} ${t("more")}`
+                  : ""}
+              </p>
+              <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                ~{nextPreview.minutos} {t("min")}
+              </p>
+            </div>
+          ) : null}
+
           <Button
             variant="secondary"
             className="mt-3 h-11 w-full font-semibold"
