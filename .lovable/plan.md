@@ -1,35 +1,26 @@
-# Adaptieve coach: afmaken wat nog ontbreekt
+# Fix: maaltijd toevoegen aan dieet mislukt
 
-## Wat er al staat (gecontroleerd in de code)
+## Wat er gebeurt
 
-- Feature 1 — prestatiedaling met context: `src/lib/coach/performance-drop.ts` (cross-training in 48u, set-notitie, patroon over 3 sessies, one-off).
-- Feature 2 — inactiviteit + check-in: `src/lib/coach/inactivity.ts` + antwoordveld in de Coach Notes-kaart op Home (`inicio.tsx`).
-- Feature 3 — herstelbericht na de sessie: `src/lib/coach/post-workout.ts` (intensiteit vs. recent gemiddelde + open macro's van vandaag).
-- Feature 4 — "Note for coach" per set: `workout_sets.coach_note` + veld onder de gelogde set in `sessao.tsx`.
-- Feature 5 — chat tijdens de training met oefening-swap: `SessionCoachSheet.tsx` + `src/lib/coach/swap.ts`.
-- Feature 6 — coach-tip staat boven de sets, niet eronder.
-- Opslag van elke detectie: `scripts/supabase-migration-coaching.sql` (`coaching_events`, `cross_training_logs`, `coach_chat_messages`) met localStorage-fallback.
+Bij het opslaan van een nieuwe maaltijd schrijft de app naar de Supabase-tabel `custom_meals`. Die tabel bestaat nog niet in jouw project (`scripts/supabase-migration-custom-meals.sql` is nooit uitgevoerd), dus de schrijfactie faalt met "Could not find the table 'public.custom_meals' in the schema cache".
 
-## Wat nog ontbreekt
+Lezen is al bestand tegen die situatie (dat geeft een lege lijst terug), maar `createCustomMeal` in `src/lib/data/nutrition.ts` heeft geen terugvalpad: de fout komt ongefilterd terug in het maaltijd-formulier en de maaltijd verdwijnt.
 
-1. De migratie is nog niet uitgevoerd in jouw Supabase. Daardoor slaat de app coaching-events, cross-training en chat alleen lokaal op (het "table not found in schema cache"-pad).
-2. Alle coachteksten komen uit lokale regels/templates, niet uit een echte AI-call. De rijke context uit jouw briefing (laatste 5–10 sets, cross-training van 3 dagen, resterende macro's, ongelezen set-notities, dedication level) wordt nog niet naar het model gestuurd.
+## Oplossing
 
-## Voorstel
+Twee sporen — spoor 1 lost het nu op, spoor 2 maakt het echt persistent.
 
-### Stap 1 — Migratie afronden
-Je voert `scripts/supabase-migration-coaching.sql` één keer uit in de SQL-editor van je Supabase-project. Daarna schakelt de app automatisch over van lokale opslag naar echte persistentie; er is geen codewijziging nodig.
+### 1. Lokale terugval bij het opslaan (code)
+- `createCustomMeal` en `removeCustomMeal` krijgen dezelfde try/catch-terugval als de coaching-laag: mislukt de server-call, dan wordt de maaltijd lokaal bewaard (localStorage, sleutel `ironlogger.customMeals.v1`) en direct in de in-memory cache gezet.
+- Bij het laden van de maaltijdbibliotheek worden de lokale maaltijden samengevoegd met wat Supabase teruggeeft, ontdubbeld op `id`.
+- Hetzelfde terugvalpad voor het plannen van een maaltijd in een slot, zodat een net toegevoegde maaltijd ook echt in de dag geplaatst kan worden als de tabel ontbreekt.
+- Fouten die niet over een ontbrekende tabel gaan (bijv. ongeldige invoer) blijven wél zichtbaar als toast, zodat we geen echte fouten wegmoffelen.
 
-### Stap 2 — Echte AI-laag achter de coach
-- Nieuw `src/lib/coach/context.server.ts`: bouwt één contextpakket (laatste 10 sets van de betrokken oefening, cross-training van 3 dagen, open macro's van vandaag, ongelezen `coach_note`-teksten sinds het laatste event, dedication level uit onboarding).
-- Nieuwe server function `src/lib/coach-ai.functions.ts` met vier ingangen: `performance_drop`, `inactivity_checkin`, `post_workout`, `chat`. Draait via de bestaande `src/lib/plan/gateway.server.ts`, dus de key blijft server-side.
-- Systeemprompt met de merkstem: direct, menselijk, bevestigend, oplossingsgericht; geen schuldgevoel, geen hype; 2–3 zinnen; één concreet voorstel, niet twee.
-- De bestaande regels blijven de trigger en de fallback: detectie gebeurt lokaal, de AI schrijft de tekst. Valt de call weg (offline, 402/429), dan blijft het huidige templatebericht staan.
-- Chat in de sessie: het model mag een swap voorstellen uit de kandidaten van `swap.ts`; jij accepteert, de app wisselt de oefening in de actieve sessie.
+### 2. Migratie uitvoeren (jij, één keer)
+Voer `scripts/supabase-migration-custom-meals.sql` uit in de SQL-editor van je Supabase-project. Daarna slaan eigen maaltijden op in de database en werkt het op al je apparaten; de lokale terugval blijft alleen als vangnet bij offline gebruik.
 
 ## Technische details
 
-- Alle nieuwe calls lopen via `createServerFn`; niets vanuit de browser.
-- `coaching_events.detail` bewaart het verstuurde contextpakket in verkorte vorm, zodat de coach later naar patronen kan verwijzen.
-- Geen wijziging aan het schema behalve de bestaande migratie; geen nieuwe tabellen.
-- Nieuwe strings gaan in een i18n-fragment (EN/PT/NL), zoals de rest van de app.
+- Alleen frontend/datalaag: `src/lib/data/nutrition.ts` (terugval + samenvoegen) en een kleine foutmelding-verfijning in `src/components/AddMealSheet.tsx`.
+- Geen schemawijziging vanuit de code, geen nieuwe tabellen, Supabase blijft ongemoeid.
+- Nieuwe of gewijzigde teksten gaan via de bestaande i18n-woordenboeken (EN/PT/NL).
