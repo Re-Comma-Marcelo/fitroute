@@ -1158,9 +1158,10 @@ function SessionPage() {
           const lastDone = [...ex.sets]
             .filter((s) => s.concluida && isSerieValida(s))
             .pop();
+          const lastKg = lastDone ? Number(lastDone.pesoKg) || 0 : 0;
           const lastLabel =
-            lastDone && lastDone.pesoKg > 0
-              ? `${formatKg(lastDone.pesoKg)} kg × ${lastDone.reps}`
+            lastKg > 0
+              ? `${formatKg(lastKg)} kg × ${Number(lastDone!.reps) || 0}`
               : null;
           return (
             <section
