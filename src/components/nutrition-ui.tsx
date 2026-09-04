@@ -204,7 +204,7 @@ export function MealCard({
           </div>
           {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
         </div>
-      </button>
+      </div>
       <div className="border-t border-border px-3.5 py-2">
         <div className="flex items-center gap-1.5">
           {onToggleEaten ? (
