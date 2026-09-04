@@ -12,15 +12,17 @@ Deel 1 van de dieetronde (eigen maaltijden opslaan) wordt **uitgesteld** tot je 
 ## B. Trainen: rustdagen in plaats van elke dag een advies
 
 Nu krijg je elke dag een aanbevolen training. De coach gaat je weekdoel (4–5x) echt gebruiken:
+
 - Bij een gehaald weekdoel of te weinig rust tussen dezelfde spiergroepen wordt de aanbeveling een expliciete **rustdag-kaart**: waarom vandaag rust, wat de week nog laat zien, en een "toch trainen"-knop die de rustdag overslaat.
 - De verdeling wordt gepland over de week: bij 4x per week wisselt de coach trainingsdagen en rustdagen af op basis van je gelogde sessies, niet van de kalenderdag.
 
 ## C. Trainen: overzichtelijker loggen
 
 De setregel blijft één regel, maar de opbouw wordt rustiger:
+
 - Vaste kolombreedtes zodat KG/REPS in elke regel uitlijnen; grijze "vorige"-waarde compacter en zwakker.
 - Kopregel boven de sets (SET · VORIGE · KG · REPS · PSE) één keer per oefening in plaats van los rondslingerende labels.
-- Per oefening een compacte kop: naam, doel-reeks, rusttijd en voortgangsbalkje; afgeronde oefeningen klappen automatisch dicht.
+- Per oefening een compacte kop: naam, doel-reeks, rusttijd en voortgangsbalkje; afgeronde oefeningen klappen automatisch dicht. de rusttijd moet de app zelf bedenken per 'zwaarheid' van de oefening, als je een oefening heel zwaar 6-8x tot falen moet doen moet je meer rust nemen (volgensmij 3 minuten rust maar dit kan je zelf fact-checken) en als je een oefening 10-12 herhalingen wilt doen is er weer iets minder rust nodig denk ik maar dat moet je zelf bepalen met research.
 
 ## D. Trainen: oefeningen makkelijker verplaatsen
 
@@ -33,9 +35,11 @@ De timer start technisch al bij het afvinken van een set. Waar het misgaat is al
 ## F. Trainen: de app bepaalt je doel per set
 
 Geen zelfgestelde doelen meer. Per set berekent de app het werkgewicht uit je geschatte 1RM (Epley, uit je recente sets), je PSE-trend en de rep-range van de oefening, en vult dat vooraf in met een korte coach-regel in merkstem, bijvoorbeeld: "80kg x 10 — mag zwaar aanvoelen, maar die 10 moet je halen."
+
 - Ging de vorige sessie makkelijk (PSE ≤ 8 en boven de rep-range): meer gewicht. Was het zwaar of miste je reps: gelijk houden of terug.
 - De regel staat **boven** de sets, dus je leest het voor je begint.
 - Je kunt altijd zelf overschrijven; de app leert van wat je echt logt.
+- de app geeft zelf aan "1e is warm up set, doe .. gewicht 12 keer, puur om op te warmen" of wat het beste is voor de spieren zoek dit online uit. 
 
 ## Technische details
 

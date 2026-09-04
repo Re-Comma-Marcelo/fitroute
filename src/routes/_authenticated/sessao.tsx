@@ -60,6 +60,7 @@ import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
 import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
+import { restForExercise } from "@/lib/prescription";
 import {
   clearActiveSession,
   currentExerciseIndex,
@@ -402,6 +403,11 @@ function SessionPage() {
   const restLeft = restSecondsLeft(session);
   const restOverdue = restOverdueSeconds(session);
 
+  /** Never zero: falls back to a rest length derived from the rep range. */
+  function restFor(ex: ActiveExercise): number {
+    return ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex);
+  }
+
   function startRest(segundos: number) {
     if (segundos <= 0) return;
     update((s) => ({
@@ -511,7 +517,7 @@ function SessionPage() {
         logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
       }
       // Inside a superset you move straight to the next exercise: no rest yet.
-      descanso = supersetChain(s, exIdx) ? 0 : ex.descansoSeg;
+      descanso = supersetChain(s, exIdx) ? 0 : restFor(ex);
       const todasFeitas = ex.sets.every((x) => x.concluida);
       completou = todasFeitas;
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
@@ -640,7 +646,7 @@ function SessionPage() {
       proxima.pesoKg = ultima.pesoKg;
       proxima.reps = ultima.reps;
       proxima.concluida = true;
-      descanso = ex.descansoSeg;
+      descanso = restFor(ex);
       const todasFeitas = ex.sets.every((x) => x.concluida);
       if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
         s.atual = exIdx + 1;
@@ -710,6 +716,19 @@ function SessionPage() {
     });
     hapticTick();
     setScrollTo(target);
+  }
+
+  /** "I'll do this later": push the exercise to the end of the session. */
+  function moveExerciseToEnd(exIdx: number) {
+    update((s) => {
+      if (exIdx >= s.exercicios.length - 1) return s;
+      const exercicios = [...s.exercicios];
+      const [moved] = exercicios.splice(exIdx, 1);
+      exercicios.push(moved!);
+      const atual = Math.min(exIdx, exercicios.length - 1);
+      return { ...s, exercicios, atual };
+    });
+    hapticTick();
   }
 
   /** Send the user to the library and swap the picked exercise into this slot. */
@@ -1093,7 +1112,7 @@ function SessionPage() {
                   </button>
                   <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                     <RestPicker
-                      value={ex.descansoSeg}
+                      value={restFor(ex)}
                       onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                     />
                     {usesPlates(ex.equipamento) ? (
@@ -1123,6 +1142,29 @@ function SessionPage() {
                       {coachTips[exIdx]}
                     </p>
                   ) : null}
+                </div>
+
+                <div className="flex shrink-0 flex-col items-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="tap-target size-9"
+                    disabled={exIdx === 0}
+                    aria-label={t("Move up")}
+                    onClick={() => moveExercise(exIdx, -1)}
+                  >
+                    <ArrowUp className="size-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="tap-target size-9"
+                    disabled={exIdx === session.exercicios.length - 1}
+                    aria-label={t("Move down")}
+                    onClick={() => moveExercise(exIdx, 1)}
+                  >
+                    <ArrowDown className="size-4" />
+                  </Button>
                 </div>
 
                 <DropdownMenu>
@@ -1156,6 +1198,12 @@ function SessionPage() {
                     >
                       <ArrowDown className="mr-2 size-4" /> {t("Move down")}
                     </DropdownMenuItem>
+                    <DropdownMenuItem
+                      disabled={exIdx === session.exercicios.length - 1}
+                      onClick={() => moveExerciseToEnd(exIdx)}
+                    >
+                      <ArrowDown className="mr-2 size-4" /> {t("Do this one last")}
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
                       <Replace className="mr-2 size-4" /> {t("Replace exercise")}
                     </DropdownMenuItem>
@@ -1174,6 +1222,18 @@ function SessionPage() {
 
               {aberto ? (
                 <div className="px-3 pb-3">
+                  {ex.prescricao ? (
+                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
+                      <p className="text-xs font-semibold leading-snug text-foreground">
+                        {ex.prescricao.line}
+                      </p>
+                      {ex.prescricao.warmup ? (
+                        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
+                          {ex.prescricao.warmup.line}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   <div
                     className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >

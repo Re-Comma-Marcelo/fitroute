@@ -14,6 +14,7 @@ import {
   rpeTrend,
   weeklyAggregate,
 } from "./signals";
+import { restDayVerdict, type RestDayVerdict } from "./rest-day";
 import type { CoachInsight } from "./types";
 import type { Exercise, Profile, Routine, Workout, WorkoutSet } from "@/lib/types";
 
@@ -40,6 +41,9 @@ export interface TodayCardModel {
   cautions: string[];
   flagged: FlaggedExercise[];
   insightsByRoutine: Record<string, Record<string, CoachInsight>>;
+  /** Set when the coach thinks today should be a rest day. */
+  restDay?: RestDayVerdict;
+
 }
 
 const TIME_LABEL: Record<Profile["preferredTime"], string> = {
@@ -86,6 +90,7 @@ export async function getTodayCard(activeRoutineId?: string | null): Promise<Tod
     };
   }
 
+  const rest = restDayVerdict(workouts, profile, notes);
   const flagged = flaggedFor(chosen, exercises, insightsByRoutine[chosen.id] ?? {});
   const grounded = notesRelevantToRoutine(notes, chosen, exercises);
   const isSwitch = !!recommended && chosen.id !== recommended.id;
@@ -107,6 +112,7 @@ export async function getTodayCard(activeRoutineId?: string | null): Promise<Tod
     cautions: grounded.slice(0, 2).map(cautionSentence),
     flagged,
     insightsByRoutine,
+    ...(rest.rest ? { restDay: rest } : {}),
   };
 }
 

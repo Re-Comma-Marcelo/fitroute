@@ -2,6 +2,7 @@ import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise } from "./data/workouts";
 import { suggestProgression, type PrevSet } from "./progression";
+import { prescribeExercise, restForExercise } from "./prescription";
 import {
   makeSets,
   saveActiveSession,
@@ -46,20 +47,31 @@ export async function buildActiveExercise(
       ? Math.round(lastWeight * 0.9 * 2) / 2
       : null
     : (sugestao?.pesoSugerido ?? null);
+  // The app prescribes the work: weight/reps from the estimated 1RM and RPE trend.
+  const prescricao = opts.deload
+    ? null
+    : prescribeExercise({ ...exercise, repsMin, repsMax }, anteriores);
+  // 90 s is the generic placeholder rest, not user intent: derive it from how
+  // heavy the prescribed range is instead.
+  const rest =
+    opts.descansoSeg && opts.descansoSeg > 0 && opts.descansoSeg !== 90
+      ? opts.descansoSeg
+      : restForExercise({ ...exercise, repsMin, repsMax });
   return {
     exerciseId,
     nome: exercise.nome,
     grupoPrimario: exercise.grupoPrimario,
     equipamento: exercise.equipamento,
-    descansoSeg: opts.descansoSeg ?? 90,
+    descansoSeg: rest,
     repsMin,
     repsMax,
     notas: opts.notas ?? "",
     pulado: false,
     sugestao: opts.deload ? null : sugestao,
+    ...(prescricao ? { prescricao } : {}),
     sets: makeSets(seriesAlvo, anteriores, {
-      pesoSugerido,
-      repsAlvo: null,
+      pesoSugerido: prescricao ? prescricao.pesoKg : pesoSugerido,
+      repsAlvo: prescricao ? prescricao.reps : null,
     }),
   };
 }

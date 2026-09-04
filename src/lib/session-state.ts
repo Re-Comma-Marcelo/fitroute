@@ -1,4 +1,5 @@
 import { tx } from "./format";
+import type { SetPrescription } from "./prescription";
 import {
   isSerieDeCarga,
   isSerieValida,
@@ -37,6 +38,8 @@ export interface ActiveExercise {
   notas: string;
   pulado: boolean;
   sugestao: ProgressionSuggestion | null;
+  /** What the app decided you should lift today (weight, reps, warm-up). */
+  prescricao?: SetPrescription;
   sets: ActiveSet[];
 }
 

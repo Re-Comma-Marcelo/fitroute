@@ -1,6 +1,7 @@
 import { getWorkouts } from "@/lib/data/workouts";
 import { getTargets, getWeekPlan, isoDate, totalsFor, getMeal } from "@/lib/data/nutrition";
 import { getEaten } from "@/lib/nutrition-local";
+import { tx } from "@/lib/format";
 import type { CoachInsight } from "./types";
 
 function hourMin(iso: string): number {
@@ -51,8 +52,11 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
           id: "nutrition-post-workout",
           scope: "nutrition",
           severity: "nudge",
-          title: "Post-workout window",
-          body: `You trained ${since} min ago. A high-protein meal now tops up recovery — you have ${Math.max(0, targets.proteinG - proteinG)}g of protein still open today.`,
+          title: tx("Post-workout window"),
+          body: tx(
+            "You trained {since} min ago. A high-protein meal now tops up recovery — you have {open}g of protein still open today.",
+            { since, open: Math.max(0, targets.proteinG - proteinG) },
+          ),
         };
       }
     } else if (startH > nowH && startH - nowH < 1.5) {
@@ -62,8 +66,11 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
         id: "nutrition-pre-workout",
         scope: "nutrition",
         severity: "info",
-        title: "Fuel up before training",
-        body: `You train in about ${until} min. A carb-focused snack now gives you glycogen for the session — keep fat and fibre low so it digests in time.`,
+        title: tx("Fuel up before training"),
+        body: tx(
+          "You train in about {until} min. A carb-focused snack now gives you glycogen for the session — keep fat and fibre low so it digests in time.",
+          { until },
+        ),
       };
     }
   }
@@ -76,8 +83,11 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
       id: "nutrition-protein-remaining",
       scope: "nutrition",
       severity: "nudge",
-      title: "Protein still open",
-      body: `You have ${Math.round(remProtein)}g of protein and ${Math.round(remKcal)} kcal left today. One high-protein meal covers the gap.`,
+      title: tx("Protein still open"),
+      body: tx(
+        "You have {protein}g of protein and {kcal} kcal left today. One high-protein meal covers the gap.",
+        { protein: Math.round(remProtein), kcal: Math.round(remKcal) },
+      ),
     };
   }
 
@@ -95,8 +105,10 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
       id: "nutrition-protein-streak",
       scope: "nutrition",
       severity: "warning",
-      title: "Protein has been low",
-      body: `Protein landed under 80% of your target for the last 3 days. Add a high-protein meal or snack today to stay ahead of recovery.`,
+      title: tx("Protein has been low"),
+      body: tx(
+        "Protein landed under 80% of your target for the last 3 days. Add a high-protein meal or snack today to stay ahead of recovery.",
+      ),
     };
   }
 
@@ -106,8 +118,10 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
       id: "nutrition-plan-today",
       scope: "nutrition",
       severity: "info",
-      title: "Plan your meals",
-      body: "No meals planned today. Pick a meal for each slot and the rings show how it lines up with your targets.",
+      title: tx("Plan your meals"),
+      body: tx(
+        "No meals planned today. Pick a meal for each slot and the rings show how it lines up with your targets.",
+      ),
     };
   }
 
@@ -117,7 +131,11 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
     id: "nutrition-day-status",
     scope: "nutrition",
     severity: "info",
-    title: "Today's nutrition",
-    body: `${kcal} of ${targets.kcal} kcal planned (${pct}%) · ${proteinG}/${targets.proteinG}g protein · ${carbsG}g carbs. ${remProtein > 20 ? `${Math.round(remProtein)}g protein still open.` : "Protein target is within reach."}`,
+    title: tx("Today's nutrition"),
+    body: `${tx("{kcal} of {target} kcal planned ({pct}%) · {protein}/{proteinTarget}g protein · {carbs}g carbs.", { kcal, target: targets.kcal, pct, protein: proteinG, proteinTarget: targets.proteinG, carbs: carbsG })} ${
+      remProtein > 20
+        ? tx("{protein}g protein still open.", { protein: Math.round(remProtein) })
+        : tx("Protein target is within reach.")
+    }`,
   };
 }

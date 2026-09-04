@@ -2,10 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { MealCard } from "@/components/nutrition-ui";
 import { SLOT_LABEL, getMeals } from "@/lib/data/nutrition";
-import { getMealFavorites } from "@/lib/nutrition-local";
+import { getMealFavorites, toggleMealFavorite } from "@/lib/nutrition-local";
 import { useT } from "@/lib/i18n";
 import type { MealSlot } from "@/lib/nutrition-types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, Star } from "lucide-react";
 
 const FILTERS = ["favorites", "all", "high-protein", "high-carb", "light", "quick", "order-out"] as const;
@@ -34,9 +34,14 @@ export function MealPickerSheet({
     enabled: Boolean(slot),
   });
 
-  const favorites = getMealFavorites();
+  const [favorites, setFavorites] = useState<string[]>(() => getMealFavorites());
+  // Re-sync when the sheet opens, so favorites starred elsewhere show up here.
+  useEffect(() => {
+    if (open) setFavorites(getMealFavorites());
+  }, [open]);
+
   const list = (mealsQ.data ?? [])
-    .filter((m) => filter === "all" || m.tags.includes(filter as never))
+    .filter((m) => filter === "all" || filter === "favorites" || m.tags.includes(filter as never))
     .filter((m) => (filter === "favorites" ? favorites.includes(m.id) : true))
     .sort((a, b) => {
       const fa = favorites.includes(a.id) ? 0 : 1;
@@ -102,12 +107,7 @@ export function MealPickerSheet({
                 slot={slot ?? "lunch"}
                 selected={meal.id === selectedMealId}
                 favorite={favorites.includes(meal.id)}
-                onToggleFavorite={() => {
-                  // local toggle via mutation; picker re-renders on next open
-                  import("@/lib/nutrition-local").then(({ toggleMealFavorite }) =>
-                    toggleMealFavorite(meal.id),
-                  );
-                }}
+                onToggleFavorite={() => setFavorites(toggleMealFavorite(meal.id))}
                 onSelect={() => onPick(meal.id)}
               />
             </li>

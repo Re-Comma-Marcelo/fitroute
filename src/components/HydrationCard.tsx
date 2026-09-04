@@ -33,18 +33,33 @@ export function HydrationCard() {
             {t("{ml} of {goalMl} ml", { ml, goalMl })}
           </p>
         </div>
-        <button
-          type="button"
-          aria-label={t("Set goal")}
-          onClick={() => {
-            const next = window.prompt(t("Daily water goal (glasses)"), String(goal));
-            if (next) setWaterGoal(Number(next) || DEFAULT_WATER_GOAL);
-            setTick((n) => n + 1);
-          }}
-          className="tap-target rounded-full border border-border px-2.5 py-1 text-xs font-semibold text-muted-foreground"
-        >
-          {t("Goal")} {goal}
-        </button>
+        <div className="flex items-center gap-1 rounded-full border border-border px-1 py-0.5">
+          <button
+            type="button"
+            aria-label={t("Lower goal")}
+            onClick={() => {
+              setWaterGoal(Math.max(4, (goal || DEFAULT_WATER_GOAL) - 1));
+              setTick((n) => n + 1);
+            }}
+            className="tap-target flex size-7 items-center justify-center rounded-full text-muted-foreground"
+          >
+            <Minus className="size-3.5" />
+          </button>
+          <span className="min-w-14 text-center text-[11px] font-semibold tabular-nums text-muted-foreground">
+            {t("Goal")} {goal}
+          </span>
+          <button
+            type="button"
+            aria-label={t("Raise goal")}
+            onClick={() => {
+              setWaterGoal(Math.min(16, (goal || DEFAULT_WATER_GOAL) + 1));
+              setTick((n) => n + 1);
+            }}
+            className="tap-target flex size-7 items-center justify-center rounded-full text-muted-foreground"
+          >
+            <Plus className="size-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3">
