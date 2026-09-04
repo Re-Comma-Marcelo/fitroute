@@ -182,6 +182,9 @@ export async function createCustomMeal(
     data: { meal: meal as unknown as Record<string, unknown>, source },
   })) as unknown as Meal;
   const normalized: Meal = { ...saved, custom: true, source };
+  // Mirror to localStorage so it survives a refresh when the custom_meals
+  // table has not been migrated yet.
+  saveLocalCustomMeal(normalized);
   customCache = [normalized, ...customCache.filter((m) => m.id !== normalized.id)];
   return normalized;
 }
