@@ -1153,6 +1153,15 @@ function SessionPage() {
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
+          // Last completed valid set — shown in the collapsed header so you
+          // can recall where you are without expanding the card.
+          const lastDone = [...ex.sets]
+            .filter((s) => s.concluida && isSerieValida(s))
+            .pop();
+          const lastLabel =
+            lastDone && lastDone.pesoKg > 0
+              ? `${formatKg(lastDone.pesoKg)} kg × ${lastDone.reps}`
+              : null;
           return (
             <section
               key={ex.exerciseId + exIdx}
