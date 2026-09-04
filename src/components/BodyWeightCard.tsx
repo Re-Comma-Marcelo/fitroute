@@ -119,7 +119,7 @@ export function BodyWeightCard() {
         </Button>
       </div>
 
-      {showGoalBar ? (
+      {goalConfigured && latest ? (
         (() => {
           const span = Math.abs(goalKg! - startKg!);
           const done = Math.abs(latest!.pesoKg - startKg!);
