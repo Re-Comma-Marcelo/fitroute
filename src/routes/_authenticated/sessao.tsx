@@ -8,6 +8,7 @@ import {
   Flame,
   Check,
   ChevronDown,
+  GripVertical,
   History,
   MoreVertical,
   Replace,
