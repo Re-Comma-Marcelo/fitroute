@@ -176,7 +176,22 @@ function ProgressPage() {
         </div>
       ) : (
         <>
+          {/* Trajectory headline: the one-line answer to "am I moving forward?" */}
+          <p className="mb-2 text-sm font-semibold">
+            {comparison.previous === null
+              ? t("This month so far — keep logging to compare with last month.")
+              : (comparison.volumeDelta?.pct ?? 0) >= 5
+                ? t("You vs last month: volume up {pct}%", {
+                    pct: Math.abs(Math.round(comparison.volumeDelta?.pct ?? 0)),
+                  })
+                : (comparison.volumeDelta?.pct ?? 0) <= -5
+                  ? t("You vs last month: volume down {pct}%", {
+                      pct: Math.abs(Math.round(comparison.volumeDelta?.pct ?? 0)),
+                    })
+                  : t("You vs last month: holding steady")}
+          </p>
           <dl className="grid grid-cols-3 gap-2">
+
             <Stat
               label={t("Sessions")}
               value={String(comparison.current.sessions)}
