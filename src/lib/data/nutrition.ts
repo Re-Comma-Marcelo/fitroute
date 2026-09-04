@@ -144,6 +144,14 @@ export function isoDate(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
+/** Returns a new Date offset by `days` from `ref` (does not mutate `ref`). */
+export function addDays(ref: Date, days: number): Date {
+  const d = new Date(ref);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+
 /** Monday-based week containing `ref`. */
 export function weekDates(ref = new Date()): string[] {
   const base = new Date(ref);
