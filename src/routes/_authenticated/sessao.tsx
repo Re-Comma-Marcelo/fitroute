@@ -1041,7 +1041,9 @@ function SessionPage() {
     }
   }
 
+  const focusIdx = currentExerciseIndex(session);
   const setsDone = sessionSetsDone(session);
+
   const setsTotal = session.exercicios
     .filter((ex) => !ex.pulado)
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
