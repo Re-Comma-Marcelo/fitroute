@@ -60,6 +60,7 @@ import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
 import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
+import { restForExercise } from "@/lib/prescription";
 import {
   clearActiveSession,
   currentExerciseIndex,
