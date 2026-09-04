@@ -290,8 +290,9 @@ function ProgressPage() {
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {Array.from(
                     new Set(
-                      w.exercicios
-                        .map((re) => exercises.find((e) => e.id === re.exerciseId)?.grupoPrimario)
+                      sets
+                        .filter((s) => s.workoutId === w.id)
+                        .map((s) => exercises.find((e) => e.id === s.exerciseId)?.grupoPrimario)
                         .filter((g): g is string => Boolean(g)),
                     ),
                   ).map((g) => (
