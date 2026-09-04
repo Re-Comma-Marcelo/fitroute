@@ -191,7 +191,8 @@ export async function createCustomMeal(
 
 export async function removeCustomMeal(id: string): Promise<void> {
   await hydrate();
-  await deleteCustomMeal({ data: { id } });
+  await deleteCustomMeal({ data: { id } }).catch(() => {});
+  removeLocalCustomMeal(id);
   customCache = customCache.filter((m) => m.id !== id);
 }
 
