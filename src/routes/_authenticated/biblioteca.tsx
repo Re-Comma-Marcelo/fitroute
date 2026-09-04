@@ -308,6 +308,28 @@ function LibraryPage() {
               </>
             ) : null}
 
+            {recentList.length ? (
+              <>
+                <div className="mt-5 flex items-end justify-between">
+                  <p className="label-caps flex items-center gap-1.5">
+                    <Clock className="size-3.5 text-muted-foreground" /> {t("Recent")}
+                  </p>
+                </div>
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+                  {recentList.map((e) => (
+                    <ExerciseRow
+                      key={e.id}
+                      exercise={e}
+                      favorite={favorites.includes(e.id)}
+                      onChoose={() => choose(e)}
+                      onDetail={() => setDetail(e)}
+                      onStar={() => star(e.id)}
+                    />
+                  ))}
+                </ul>
+              </>
+            ) : null}
+
             <p className="label-caps mt-5">{t("Muscle groups")}</p>
             <ul className="mt-2 grid grid-cols-2 gap-3">
               {folders.map((folder) => (
