@@ -13,8 +13,21 @@ import {
   Play,
   Plus,
   Sparkles,
+  Trash2,
   TrendingUp,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { AppShell } from "@/components/AppShell";
 import { QueryError } from "@/components/QueryError";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
