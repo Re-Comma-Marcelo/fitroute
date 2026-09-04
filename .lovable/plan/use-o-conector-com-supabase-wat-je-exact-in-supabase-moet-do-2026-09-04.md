@@ -1,4 +1,4 @@
-# Wat je exact in Supabase moet doen
+# (Use o conector com supabase) Wat je exact in Supabase moet doen
 
 Je hebt een extern (eigen) Supabase-project. De app leest/schrijft via server
 functions met de service-role key; de browser raakt Supabase nooit direct. Om
@@ -50,9 +50,9 @@ Ze zijn onschadelijk als je ze toch draait, maar overbodig.
 
 - Stap 1 maakt de tabellen aan die stap 2 en 4 nodig hebben.
 - Stap 2 voegt de oefeningen toe (`on conflict do nothing` — bestaande blijven
-  staan, nieuwe worden bijgevoegd). Re-runnen voegt dus alleen het verschil toe.
+staan, nieuwe worden bijgevoegd). Re-runnen voegt dus alleen het verschil toe.
 - Stappen 3 en 4 voegen de adaptive-coaching- en gewicht-logtabellen toe die
-  later zijn toegevoegd en nog niet in je oorspronkelijke schema zaten.
+later zijn toegevoegd en nog niet in je oorspronkelijke schema zaten.
 
 ## Verifiëren
 
