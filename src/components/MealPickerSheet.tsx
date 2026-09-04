@@ -107,12 +107,7 @@ export function MealPickerSheet({
                 slot={slot ?? "lunch"}
                 selected={meal.id === selectedMealId}
                 favorite={favorites.includes(meal.id)}
-                onToggleFavorite={() => {
-                  // local toggle via mutation; picker re-renders on next open
-                  import("@/lib/nutrition-local").then(({ toggleMealFavorite }) =>
-                    toggleMealFavorite(meal.id),
-                  );
-                }}
+                onToggleFavorite={() => setFavorites(toggleMealFavorite(meal.id))}
                 onSelect={() => onPick(meal.id)}
               />
             </li>
