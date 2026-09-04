@@ -1,26 +1,41 @@
-# Fix: maaltijd toevoegen aan dieet mislukt
+# De 5 dieet-verbeteringen afmaken en oplappen
 
-## Wat er gebeurt
+De vijf punten uit het dieetplan zijn gebouwd, maar er zitten nog echte gebreken in. Dit is de opschoonronde. Frontend-only, geen Supabase-wijzigingen.
 
-Bij het opslaan van een nieuwe maaltijd schrijft de app naar de Supabase-tabel `custom_meals`. Die tabel bestaat nog niet in jouw project (`scripts/supabase-migration-custom-meals.sql` is nooit uitgevoerd), dus de schrijfactie faalt met "Could not find the table 'public.custom_meals' in the schema cache".
+## 1. Maaltijd toevoegen faalt (blokkerend)
 
-Lezen is al bestand tegen die situatie (dat geeft een lege lijst terug), maar `createCustomMeal` in `src/lib/data/nutrition.ts` heeft geen terugvalpad: de fout komt ongefilterd terug in het maaltijd-formulier en de maaltijd verdwijnt.
+De opslag schrijft naar de Supabase-tabel `custom_meals`, die in jouw project nog niet bestaat (`scripts/supabase-migration-custom-meals.sql` is niet uitgevoerd). `createCustomMeal` in `src/lib/data/nutrition.ts` heeft geen terugvalpad, dus de fout landt in het formulier en de maaltijd verdwijnt.
 
-## Oplossing
+Fix: `createCustomMeal` en `removeCustomMeal` krijgen dezelfde try/catch-terugval als de coachlaag — mislukt de server-call, dan wordt de maaltijd lokaal opgeslagen (localStorage) en in de cache gezet. Bij laden worden lokale en server-maaltijden samengevoegd, ontdubbeld op `id`. Echte invoerfouten blijven zichtbaar als toast.
 
-Twee sporen — spoor 1 lost het nu op, spoor 2 maakt het echt persistent.
+Wil je echte opslag op alle apparaten: voer die migratie één keer uit in de SQL-editor van Supabase. De terugval blijft dan het offline-vangnet.
 
-### 1. Lokale terugval bij het opslaan (code)
-- `createCustomMeal` en `removeCustomMeal` krijgen dezelfde try/catch-terugval als de coaching-laag: mislukt de server-call, dan wordt de maaltijd lokaal bewaard (localStorage, sleutel `ironlogger.customMeals.v1`) en direct in de in-memory cache gezet.
-- Bij het laden van de maaltijdbibliotheek worden de lokale maaltijden samengevoegd met wat Supabase teruggeeft, ontdubbeld op `id`.
-- Hetzelfde terugvalpad voor het plannen van een maaltijd in een slot, zodat een net toegevoegde maaltijd ook echt in de dag geplaatst kan worden als de tabel ontbreekt.
-- Fouten die niet over een ontbrekende tabel gaan (bijv. ongeldige invoer) blijven wél zichtbaar als toast, zodat we geen echte fouten wegmoffelen.
+## 2. Eaten-diary: ongeldige knop-in-knop
 
-### 2. Migratie uitvoeren (jij, één keer)
-Voer `scripts/supabase-migration-custom-meals.sql` uit in de SQL-editor van je Supabase-project. Daarna slaan eigen maaltijden op in de database en werkt het op al je apparaten; de lokale terugval blijft alleen als vangnet bij offline gebruik.
+In `MealCard` zit de favoriet-knop binnen de grote maaltijd-knop. Dat is ongeldige HTML en zorgt voor onbetrouwbare taps op mobiel.
+
+Fix: de kaart wordt een `div` met een aparte, volledige tap-zone voor selecteren, met favoriet en "eaten" als broertjes ernaast. Tap-doelen blijven 44px.
+
+## 3. Favorieten in de maaltijdkiezer reageren niet
+
+`MealPickerSheet` leest favorieten tijdens render en wisselt ze via een dynamische import zonder state-update: de sterretjes veranderen pas als je het paneel opnieuw opent.
+
+Fix: favorieten in lokale state, statische import van `toggleMealFavorite`, direct opnieuw renderen na een tap. Hetzelfde voor het Today-scherm.
+
+## 4. Hydratatie: `window.prompt` eruit
+
+Het instellen van je waterdoel gebruikt nu een browser-prompt, wat lelijk is in een PWA.
+
+Fix: doel aanpassen met −/+ stappen in de kaart zelf (bereik 4–16 glazen), zonder prompt.
+
+## 5. Coach-inzicht en repeat-yesterday netjes
+
+- De teksten van het nieuwe voedings-inzicht staan hardcoded in het Engels; die gaan door de bestaande i18n-woordenboeken (EN/PT/NL), zoals de rest van de app.
+- `repeatYesterdayToToday` bevat nog dode code en schrijft ook slots die vandaag al gevuld zijn; dat wordt teruggebracht tot alleen lege slots vullen, met undo-toast.
+- De macro-ringen krijgen een klein label "Planned" / "Eaten", zodat duidelijk is wat je ziet.
 
 ## Technische details
 
-- Alleen frontend/datalaag: `src/lib/data/nutrition.ts` (terugval + samenvoegen) en een kleine foutmelding-verfijning in `src/components/AddMealSheet.tsx`.
-- Geen schemawijziging vanuit de code, geen nieuwe tabellen, Supabase blijft ongemoeid.
-- Nieuwe of gewijzigde teksten gaan via de bestaande i18n-woordenboeken (EN/PT/NL).
+- Geraakte bestanden: `src/lib/data/nutrition.ts`, `src/lib/nutrition-local.ts`, `src/components/nutrition-ui.tsx`, `src/components/MealPickerSheet.tsx`, `src/components/HydrationCard.tsx`, `src/routes/_authenticated/dieta.index.tsx`, `src/lib/coach/nutrition.ts`, `src/lib/i18n/dict/diet.ts`.
+- Geen schemawijziging, geen nieuwe tabellen, geen migratie vanuit de code.
+- Afsluiten met typecheck en build.
