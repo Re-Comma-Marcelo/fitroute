@@ -135,6 +135,22 @@ function TrainPage() {
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
 
+  /** What the next session looks like — shown on rest days so the plan stays visible. */
+  const nextPreview = useMemo(() => {
+    const id = coach?.recommendedRoutineId ?? coach?.routineId;
+    const routine = routines.find((r) => r.id === id);
+    if (!routine) return null;
+    const nomes = routine.exercicios
+      .map((re) => exercises.find((e) => e.id === re.exerciseId)?.nome)
+      .filter((n): n is string => !!n);
+    return {
+      nome: routine.nome,
+      primeiros: nomes.slice(0, 2),
+      restantes: Math.max(0, nomes.length - 2),
+      minutos: estimateRoutineMinutes(routine),
+    };
+  }, [coach?.recommendedRoutineId, coach?.routineId, routines, exercises]);
+
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
   const orderedRoutines = useMemo(() => {
