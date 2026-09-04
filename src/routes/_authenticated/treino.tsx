@@ -13,8 +13,21 @@ import {
   Play,
   Plus,
   Sparkles,
+  Trash2,
   TrendingUp,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
 import { AppShell } from "@/components/AppShell";
 import { QueryError } from "@/components/QueryError";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
@@ -31,12 +44,17 @@ import { routineCover } from "@/lib/exercise-image";
 import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 
 import {
+  clearActiveSession,
+  currentExerciseName,
   loadActiveSession,
   loadTodayChoice,
   saveTodayChoice,
+  sessionElapsed,
+  sessionSetsDone,
   type ActiveSession,
   sessionLabel,
 } from "@/lib/session-state";
+
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
 import { swapCandidates } from "@/lib/coach/swap";
@@ -116,6 +134,22 @@ function TrainPage() {
   const [overrideRest, setOverrideRest] = useState(false);
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
+
+  /** What the next session looks like — shown on rest days so the plan stays visible. */
+  const nextPreview = useMemo(() => {
+    const id = coach?.recommendedRoutineId ?? coach?.routineId;
+    const routine = routines.find((r) => r.id === id);
+    if (!routine) return null;
+    const nomes = routine.exercicios
+      .map((re) => exercises.find((e) => e.id === re.exerciseId)?.nome)
+      .filter((n): n is string => !!n);
+    return {
+      nome: routine.nome,
+      primeiros: nomes.slice(0, 2),
+      restantes: Math.max(0, nomes.length - 2),
+      minutos: estimateRoutineMinutes(routine),
+    };
+  }, [coach?.recommendedRoutineId, coach?.routineId, routines, exercises]);
 
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
@@ -209,13 +243,56 @@ function TrainPage() {
     >
       {active ? (
         <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-primary">{t("Session in progress")}</p>
+          <p className="text-sm font-semibold text-primary">{t("Unfinished workout")}</p>
           <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
-          <Button className="mt-3 w-full font-semibold" onClick={() => navigate({ to: "/sessao" })}>
-            <Play className="mr-2 size-4" /> {t("Resume workout")}
-          </Button>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t("Started {time} · {duration} · {sets} sets logged", {
+              time: new Date(active.iniciadoEm).toLocaleTimeString(undefined, {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              duration: formatDurationShort(sessionElapsed(active)),
+              sets: sessionSetsDone(active),
+            })}
+          </p>
+          <p className="mt-0.5 text-xs font-semibold text-foreground/80">
+            {t("Next up")}: {currentExerciseName(active)}
+          </p>
+          <div className="mt-3 flex gap-2">
+            <Button className="flex-1 font-semibold" onClick={() => navigate({ to: "/sessao" })}>
+              <Play className="mr-2 size-4" /> {t("Resume workout")}
+            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="icon" className="tap-target size-11 shrink-0">
+                  <Trash2 className="size-5 text-destructive" />
+                  <span className="sr-only">{t("Discard workout")}</span>
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t("Everything you logged in this session will be lost.")}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      clearActiveSession();
+                      setActive(null);
+                    }}
+                  >
+                    {t("Discard")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       ) : null}
+
 
       <section>
         <div className="flex items-end justify-between">
@@ -274,6 +351,22 @@ function TrainPage() {
               </li>
             ))}
           </ul>
+          {nextPreview ? (
+            <div className="mt-3 rounded-xl border border-border/70 bg-surface-2 p-3">
+              <p className="label-caps text-muted-foreground">{t("Next session")}</p>
+              <p className="mt-1 truncate text-sm font-semibold">{nextPreview.nome}</p>
+              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                {nextPreview.primeiros.join(" · ")}
+                {nextPreview.restantes > 0
+                  ? ` · +${nextPreview.restantes} ${t("more")}`
+                  : ""}
+              </p>
+              <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                ~{nextPreview.minutos} {t("min")}
+              </p>
+            </div>
+          ) : null}
+
           <Button
             variant="secondary"
             className="mt-3 h-11 w-full font-semibold"

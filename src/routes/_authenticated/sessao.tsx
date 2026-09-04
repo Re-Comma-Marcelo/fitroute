@@ -10,6 +10,8 @@ import {
   ChevronDown,
   GripVertical,
   History,
+  Maximize2,
+  Minimize2,
   MoreVertical,
   Replace,
   Minus,
@@ -22,8 +24,8 @@ import {
   Trash2,
   TrendingUp,
   Volume2,
-  
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,7 +52,10 @@ import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
+import { bumpExerciseUsage } from "@/lib/exercise-usage";
+import { SessionExercisePickerSheet } from "@/components/SessionExercisePickerSheet";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
+
 import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
@@ -174,6 +179,10 @@ function SessionPage() {
   const [coachTips, setCoachTips] = useState<Record<number, string>>({});
   /** Target the app computed for the next set of an exercise. */
   const [targetTips, setTargetTips] = useState<Record<number, string>>({});
+  /** Focus mode: only the current exercise is rendered, full width. */
+  const [focusMode, setFocusMode] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
@@ -851,7 +860,26 @@ function SessionPage() {
     });
   }
 
+  /** Add an exercise mid-session from the in-workout picker (no navigation). */
+  async function addExerciseFromPicker(exerciseId: string) {
+    setPickerOpen(false);
+    const built = await buildActiveExercise(exerciseId).catch(() => null);
+    if (!built) {
+      toast.error(t("Could not add the exercise. Try again."));
+      return;
+    }
+    bumpExerciseUsage(exerciseId);
+    update((s) => {
+      const exercicios = [...s.exercicios, built];
+      return { ...s, exercicios, atual: exercicios.length - 1 };
+    });
+    hapticTick();
+    setScrollTo(session ? session.exercicios.length : 0);
+    toast.success(t("{name} added", { name: built.nome }));
+  }
+
   function skipExercise(exIdx: number) {
+
     update((s) => {
       s.exercicios[exIdx]!.pulado = !s.exercicios[exIdx]!.pulado;
       if (s.exercicios[exIdx]!.pulado && exIdx < s.exercicios.length - 1) s.atual = exIdx + 1;
@@ -1013,7 +1041,9 @@ function SessionPage() {
     }
   }
 
+  const focusIdx = currentExerciseIndex(session);
   const setsDone = sessionSetsDone(session);
+
   const setsTotal = session.exercicios
     .filter((ex) => !ex.pulado)
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
@@ -1042,6 +1072,20 @@ function SessionPage() {
           </Button>
           <h1 className="flex-1 truncate text-base font-semibold">{sessionLabel(session)}</h1>
           <ProgressRing done={setsDone} total={setsTotal} />
+          <Button
+            variant="ghost"
+            size="icon"
+            className={cn("tap-target", focusMode && "text-train")}
+            aria-label={focusMode ? t("Show all exercises") : t("Focus on current exercise")}
+            aria-pressed={focusMode}
+            onClick={() => {
+              setFocusMode((v) => !v);
+              hapticTick();
+            }}
+          >
+            {focusMode ? <Minimize2 className="size-6" /> : <Maximize2 className="size-6" />}
+          </Button>
+
           <Button
             variant="ghost"
             size="icon"
@@ -1147,9 +1191,17 @@ function SessionPage() {
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
+        {focusMode ? (
+          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-train">
+            {t("Focus mode · one exercise at a time")}
+          </p>
+        ) : null}
         {session.exercicios.map((ex, exIdx) => {
           const dragging = drag?.idx === exIdx;
-          const aberto = exIdx === session.atual && !dragging;
+          // Focus mode hides everything except the exercise you are on.
+          if (focusMode && exIdx !== focusIdx) return null;
+          const aberto = focusMode ? true : exIdx === session.atual && !dragging;
+
           const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
           const validas = ex.sets.filter(isSerieValida).length;
           const exDone = validas > 0 && feitas >= validas;
@@ -1283,6 +1335,22 @@ function SessionPage() {
                       workoutId={session.id}
                       onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
                     />
+                    {/* Ramp-up suggestion: only while nothing is logged and no warm-up exists. */}
+                    {aberto &&
+                    !ex.sets.some((s) => s.concluida) &&
+                    !ex.sets.some((s) => !isSerieValida(s)) &&
+                    (Number(ex.sets.find(isSerieValida)?.pesoKg) ||
+                      ex.sets.find(isSerieValida)?.sugPeso ||
+                      0) > 20 ? (
+                      <button
+                        type="button"
+                        onClick={() => addWarmup(exIdx)}
+                        className="tap-target flex h-8 items-center gap-1 rounded-full bg-train/15 px-2.5 text-[11px] font-semibold text-train"
+                      >
+                        <Flame className="size-3.5" /> {t("Add warm-up")}
+                      </button>
+                    ) : null}
+
                   </div>
                   {/* Coach comment sits above the sets: read it before you lift. */}
                   {coachTips[exIdx] ? (
@@ -1457,12 +1525,7 @@ function SessionPage() {
         <Button
           variant="secondary"
           className="h-12 w-full font-semibold"
-          onClick={() =>
-            navigate({
-              to: "/biblioteca",
-              search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
-            })
-          }
+          onClick={() => setPickerOpen(true)}
         >
           <Plus className="mr-1 size-5" /> {t("Add exercise")}
         </Button>
@@ -1475,6 +1538,12 @@ function SessionPage() {
         />
       </main>
 
+      <SessionExercisePickerSheet
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
+      />
+
       {rest || restOverdue > 0 ? (
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
           <RestIsland
@@ -1484,9 +1553,11 @@ function SessionPage() {
             onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
             onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
             onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
+            onOpenSettings={() => startRest(currentRest)}
           />
         </div>
       ) : null}
+
 
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
