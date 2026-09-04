@@ -52,7 +52,10 @@ import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
+import { bumpExerciseUsage } from "@/lib/exercise-usage";
+import { SessionExercisePickerSheet } from "@/components/SessionExercisePickerSheet";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
+
 import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
