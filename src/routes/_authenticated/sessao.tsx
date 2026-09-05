@@ -1098,6 +1098,10 @@ function SessionPage() {
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
   const currentExercise = session.exercicios[focusIdx];
+  const [scrubHint] = useState(() => shouldShowScrubHint());
+  useEffect(() => {
+    if (scrubHint) markScrubHintShown();
+  }, [scrubHint]);
   const currentRest = currentExercise ? restFor(currentExercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
     ? blockLabels(
