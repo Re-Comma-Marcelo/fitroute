@@ -189,6 +189,8 @@ function SessionPage() {
   const [scrollTo, setScrollTo] = useState<number | null>(null);
   /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
   const [justSet, setJustSet] = useState<string | null>(null);
+  // Asked right after a working set is ticked, so effort is never forgotten.
+  const [rpePrompt, setRpePrompt] = useState<{ exIdx: number; setIdx: number } | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
@@ -631,6 +633,9 @@ function SessionPage() {
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
     const exercise = session?.exercicios[exIdx];
+    if (logged !== null && askRpeEnabled() && !exercise?.sets[setIdx]?.rpe) {
+      setRpePrompt({ exIdx, setIdx });
+    }
     if (logged && exercise && session) {
       void checkPerformanceDrop(exercise, exIdx, logged, session.id);
     }
