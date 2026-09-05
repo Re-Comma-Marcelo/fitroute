@@ -34,7 +34,7 @@ export function RestIsland({
   left: number;
   overdue?: number;
   /** Exercise this rest belongs to. */
-  label?: string;
+  label?: string | undefined;
   onAdd: () => void;
   onSubtract: () => void;
   onSkip: () => void;
