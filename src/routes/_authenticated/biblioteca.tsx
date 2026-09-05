@@ -457,6 +457,8 @@ function LibraryPage() {
           </SheetHeader>
           {detail ? (
             <div className="space-y-4 px-4 pb-6">
+              <ExerciseExecutionCard exercise={detail} />
+
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
