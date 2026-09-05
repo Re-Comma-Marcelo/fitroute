@@ -1371,21 +1371,6 @@ function SessionPage() {
                       workoutId={session.id}
                       onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
                     />
-                    {/* Ramp-up suggestion: only while nothing is logged and no warm-up exists. */}
-                    {aberto &&
-                    !ex.sets.some((s) => s.concluida) &&
-                    !ex.sets.some((s) => !isSerieValida(s)) &&
-                    (Number(ex.sets.find(isSerieValida)?.pesoKg) ||
-                      ex.sets.find(isSerieValida)?.sugPeso ||
-                      0) > 20 ? (
-                      <button
-                        type="button"
-                        onClick={() => addWarmup(exIdx)}
-                        className="tap-target flex h-8 items-center gap-1 rounded-full bg-train/15 px-2.5 text-[11px] font-semibold text-train"
-                      >
-                        <Flame className="size-3.5" /> {t("Add warm-up")}
-                      </button>
-                    ) : null}
                   </div>
                   {aberto ? (
                     <ExerciseExecutionCardById
@@ -1395,12 +1380,6 @@ function SessionPage() {
                     />
                   ) : null}
 
-                  {/* Coach comment sits above the sets: read it before you lift. */}
-                  {coachTips[exIdx] ? (
-                    <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">
-                      {coachTips[exIdx]}
-                    </p>
-                  ) : null}
                 </div>
 
                 <DropdownMenu>
