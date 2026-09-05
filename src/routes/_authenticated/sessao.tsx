@@ -1629,7 +1629,25 @@ function SessionPage() {
               }}
             />
           </div>
-        ) : null}
+        ) : (
+          /* Idle state: the rest length is always visible, one tap from starting. */
+          <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 pt-2">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Timer className="size-4 text-info" />
+              {t("Rest")} {formatRest(currentRest)}
+            </span>
+            <Button
+              variant="ghost"
+              className="h-9 px-3 text-xs font-semibold text-info"
+              onClick={() => {
+                hapticTick();
+                startRest(currentRest);
+              }}
+            >
+              {t("Start rest")}
+            </Button>
+          </div>
+        )}
         <div className="mx-auto max-w-md px-3 py-3">
           {coachMark === 2 ? (
             <CoachMark
@@ -1639,13 +1657,20 @@ function SessionPage() {
             />
           ) : null}
           <Button
-            className="h-14 w-full text-base font-semibold"
+            className="h-14 w-full flex-col gap-0 text-base font-semibold leading-tight"
             disabled={finishing}
             onClick={requestFinish}
           >
-            {t("Finish workout")}
+            <span>{t("Finish workout")}</span>
+            <span className="text-[11px] font-medium opacity-80">
+              {t("{sets} sets · {volume} kg", {
+                sets: setsDone,
+                volume: formatKg(Math.round(volumeAtual)),
+              })}
+            </span>
           </Button>
         </div>
+
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
