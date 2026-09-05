@@ -1145,30 +1145,15 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target text-info"
-            aria-label={t("Open rest timer")}
+            aria-label={restLeft > 0 ? t("Restart rest") : t("Start rest")}
             onClick={() => {
-              // Never silently wipe a rest already counting down.
-              if (restLeft > 0) {
-                toast(t("Rest already running"), {
-                  action: {
-                    label: t("Restart"),
-                    onClick: () => startRest(currentRest),
-                  },
-                });
-                return;
-              }
+              hapticTick();
               startRest(currentRest);
             }}
           >
             <Timer className="size-6" />
           </Button>
-          <Button
-            className="tap-target h-11 bg-info px-4 font-semibold text-info-foreground hover:bg-info/90"
-            disabled={finishing}
-            onClick={requestFinish}
-          >
-            {t("Finish")}
-          </Button>
+
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <div className="flex items-center justify-center gap-1 px-1 py-2">
