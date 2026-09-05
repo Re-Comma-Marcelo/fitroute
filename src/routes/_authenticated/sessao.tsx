@@ -1515,17 +1515,45 @@ function SessionPage() {
                     </Button>
                   </div>
 
-                  <Textarea
+                  <CollapsibleNote
                     value={ex.notas}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       update((s) => {
-                        s.exercicios[exIdx]!.notas = e.target.value;
+                        s.exercicios[exIdx]!.notas = value;
                         return s;
                       })
                     }
                     placeholder={t("Exercise note (e.g., closer grip)")}
-                    className="mt-2 min-h-11 text-sm"
                   />
+
+                  {/* Rhythm between exercises: finish one, move to the next. */}
+                  {exDone && exIdx < session.exercicios.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = exIdx + 1;
+                        update((s) => ({ ...s, atual: next }));
+                        setScrollTo(next);
+                        hapticTick();
+                      }}
+                      className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2.5 text-left"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-success">
+                          {t("Exercise done")}
+                        </span>
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {t("Next: {name}", {
+                            name: session.exercicios[exIdx + 1]?.nome ?? "",
+                          })}
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-background">
+                        {t("Next")}
+                      </span>
+                    </button>
+                  ) : null}
+
                 </div>
               ) : null}
             </section>
