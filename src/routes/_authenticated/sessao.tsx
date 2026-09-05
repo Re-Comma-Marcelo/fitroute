@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
+import { useValueScrub } from "@/lib/use-value-scrub";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
@@ -2030,7 +2031,7 @@ function SetRow({
           onChange={(v) => onField("reps", v)}
           onFocus={acceptRepsTarget}
           onStep={(direction, big) => stepReps(direction * (big ? 5 : 1))}
-          formatDelta={(steps) => formatSignedStep(steps * (Math.abs(steps) > 6 ? 5 : 1))}
+          formatDelta={(steps) => formatSignedStep(steps)}
           inputMode="numeric"
           placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
@@ -2059,9 +2060,17 @@ function SetRow({
   );
 }
 
+/** Shows the running change while a number is being slid, e.g. "+2.5 kg". */
+function formatSignedStep(amount: number, unit?: string): string {
+  const rounded = Math.round(amount * 100) / 100;
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded}${unit ? ` ${weightUnitLabel()}` : ""}`;
+}
+
 /**
  * Numeric field built for typing: one tap focuses and selects the value, so the
- * keyboard replaces it straight away. The −/+ buttons live next to the row.
+ * keyboard replaces it straight away. Holding it and sliding up or down changes
+ * the value without the keyboard; arrow keys do the same for keyboard users.
  */
 function NumberField({
   value,
@@ -2071,6 +2080,8 @@ function NumberField({
   inputMode,
   placeholder,
   ariaLabel,
+  onStep,
+  formatDelta,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -2079,24 +2090,47 @@ function NumberField({
   inputMode: "decimal" | "numeric";
   placeholder: string;
   ariaLabel: string;
+  onStep?: (direction: 1 | -1, big: boolean) => void;
+  formatDelta?: (steps: number) => string;
 }) {
+  const t = useT();
+  const scrub = useValueScrub(onStep, formatDelta ?? ((steps) => String(steps)));
   return (
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      {...(onBlur ? { onBlur } : {})}
-      inputMode={inputMode}
-      enterKeyHint="next"
-      onKeyDown={focusNextField}
-      placeholder={placeholder}
-      aria-label={ariaLabel}
-      onFocus={(e) => {
-        onFocus?.();
-        // Select-all: typing overwrites instead of appending to the old number.
-        requestAnimationFrame(() => e.target.select());
-      }}
-      className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
-    />
+    <div className="relative min-w-0">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        {...(onBlur ? { onBlur } : {})}
+        inputMode={inputMode}
+        enterKeyHint="next"
+        onKeyDown={(e) => {
+          if (onStep && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+            e.preventDefault();
+            onStep(e.key === "ArrowUp" ? 1 : -1, e.shiftKey);
+            return;
+          }
+          focusNextField(e);
+        }}
+        placeholder={placeholder}
+        aria-label={onStep ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
+        {...scrub.handlers}
+        onFocus={(e) => {
+          onFocus?.();
+          // Select-all: typing overwrites instead of appending to the old number.
+          requestAnimationFrame(() => e.target.select());
+        }}
+        className={cn(
+          "numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]",
+          onStep && "touch-none",
+          scrub.scrubbing && "scale-105 border-primary text-primary motion-reduce:scale-100",
+        )}
+      />
+      {scrub.scrubbing ? (
+        <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary-foreground">
+          {scrub.deltaLabel}
+        </span>
+      ) : null}
+    </div>
   );
 }
 
