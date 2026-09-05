@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "iron-logger",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "title": "Iron Logger"
     },
     "tools": [
@@ -29,6 +29,31 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "get_exercise_context",
+        "title": "Get exercise context",
+        "description": "Read-only detail for one exercise: its muscle group, equipment, written instructions and, when the user is connected, their recent logged sets and heaviest set for it. Use it to answer form and progression questions about a specific movement.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "exerciseId": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Exercise id from get_training_context, e.g. 'ex-supino-reto'."
+            }
+          },
+          "required": [
+            "exerciseId"
+          ]
         },
         "outputSchema": null
       },
