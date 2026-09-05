@@ -137,10 +137,25 @@ function ChatPanel({
     await ask(question);
   }
 
-
   return (
-    <div className="flex h-[70vh] flex-col">
+    <div className={`flex flex-col ${exercise ? "h-[44vh]" : "h-[70vh]"}`}>
+      {suggestions?.length ? (
+        <div className="flex flex-wrap gap-1.5 pb-1">
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => void ask(s)}
+              disabled={loading}
+              className="tap-target h-8 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div className="flex-1 space-y-4 overflow-y-auto py-3 pr-1">
+
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
