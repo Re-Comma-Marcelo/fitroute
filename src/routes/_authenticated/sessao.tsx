@@ -507,7 +507,6 @@ function SessionPage() {
     });
   }
 
-
   /** True when a later exercise belongs to the same superset block. */
   function supersetChain(state: ActiveSession, exIdx: number): boolean {
     if (!state.routineId) return false;
@@ -1624,7 +1623,6 @@ function SessionPage() {
           </div>
         ) : null}
         <div className="mx-auto max-w-md px-3 py-3">
-
           {coachMark === 2 ? (
             <CoachMark
               text={t("When everything is done, finish here to save your workout")}
