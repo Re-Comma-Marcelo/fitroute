@@ -1689,6 +1689,19 @@ function SessionPage() {
                 : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendCount > 0 ? (
+            <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
+              {pendingList.map((item) => (
+                <li key={item.key} className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-muted-foreground">{item.nome}</span>
+                  <span className="shrink-0 font-semibold tabular-nums text-foreground">
+                    {item.detalhe}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <AlertDialogFooter>
             <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
             {pendCount > 0 ? (
