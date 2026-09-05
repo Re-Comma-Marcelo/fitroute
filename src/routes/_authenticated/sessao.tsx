@@ -1849,60 +1849,45 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
   );
 }
 
-function PsePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function PsePicker({
+  value,
+  onChange,
+  exerciseName,
+  setLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  exerciseName: string;
+  setLabel: string;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
-          className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
-            value
-              ? "border-info/60 bg-info/15 text-info"
-              : "border-border bg-muted text-muted-foreground"
-          }`}
-        >
-          {value || t("RPE")}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-56">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("RPE (optional)")}
-        </p>
-        <div className="grid grid-cols-3 gap-1.5">
-          {RPE_OPTIONS.map((op) => (
-            <button
-              key={op}
-              type="button"
-              onClick={() => {
-                onChange(String(op));
-                setOpen(false);
-              }}
-              className={`tap-target rounded-lg border text-sm font-semibold ${
-                value === String(op)
-                  ? "border-info bg-info text-info-foreground"
-                  : "border-border bg-card"
-              }`}
-            >
-              {op}
-            </button>
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          className="mt-2 h-10 w-full text-xs font-semibold text-muted-foreground"
-          onClick={() => {
-            onChange("");
-            setOpen(false);
-          }}
-        >
-          {t("Clear")}
-        </Button>
-      </PopoverContent>
-    </Popover>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
+        className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
+          value
+            ? "border-info/60 bg-info/15 text-info"
+            : "border-border bg-muted text-muted-foreground"
+        }`}
+      >
+        {value || t("RPE")}
+      </button>
+      <RpeSheet
+        open={open}
+        onOpenChange={setOpen}
+        exerciseName={exerciseName}
+        setLabel={setLabel}
+        value={value}
+        onSave={onChange}
+        onSkip={() => setOpen(false)}
+      />
+    </>
   );
+
 }
 
 function SetRow({
