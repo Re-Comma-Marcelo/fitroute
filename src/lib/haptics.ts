@@ -38,5 +38,5 @@ export function hapticSuccess() {
 
 /** Rest finished: the long, unmistakable pattern. */
 export function hapticRestDone() {
-  buzz([300, 150, 300, 150, 500]);
+  buzz([500, 200, 500, 200, 700]);
 }

@@ -70,7 +70,15 @@ import { blockLabels, hasNextInBlock } from "@/lib/supersets";
 import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
-import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
+import {
+  canAskRestPermission,
+  cancelRestNotification,
+  declineRestPermission,
+  ensureRestPermission,
+  scheduleRestNotification,
+  setRestNotifyEnabled,
+} from "@/lib/rest-notification";
+import { clampRest, getRestDefault, setRestDefault } from "@/lib/rest-defaults";
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
 import { restForExercise } from "@/lib/prescription";
@@ -427,20 +435,47 @@ function SessionPage() {
   const restLeft = restSecondsLeft(session);
   const restOverdue = restOverdueSeconds(session);
 
-  /** Never zero: falls back to a rest length derived from the rep range. */
+  /**
+   * Never zero: the length you saved for this exercise wins, then the routine
+   * value, then a length derived from the rep range.
+   */
   function restFor(ex: ActiveExercise): number {
-    return ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex);
+    const saved = getRestDefault(ex.exerciseId);
+    if (saved) return saved;
+    return clampRest(ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex) || 90);
+  }
+
+  /** Ask for notification permission the first time a rest actually starts. */
+  function maybeAskRestPermission() {
+    if (!canAskRestPermission()) return;
+    toast(t("Get a heads-up when rest ends?"), {
+      duration: 12000,
+      action: {
+        label: t("Allow"),
+        onClick: () => {
+          void ensureRestPermission().then((granted) => setRestNotifyEnabled(granted));
+        },
+      },
+      cancel: { label: t("Not now"), onClick: () => declineRestPermission() },
+    });
   }
 
   function startRest(segundos: number) {
-    if (segundos <= 0) return;
+    const total = clampRest(segundos);
+    if (total <= 0) return;
     update((s) => ({
       ...s,
       restExpirouEm: null,
-      rest: { total: segundos, endsAt: Date.now() + segundos * 1000 },
+      rest: { total, endsAt: Date.now() + total * 1000 },
     }));
-    // Backgrounded phones stop running timers; a notification still lands.
-    scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
+    // Backgrounded phones stop running timers; the worker still alerts.
+    scheduleRestNotification(
+      total * 1000,
+      t("Rest is over"),
+      t("Time for your next set."),
+      t("Resting"),
+    );
+    maybeAskRestPermission();
   }
 
   function clearOverdue() {
@@ -449,13 +484,24 @@ function SessionPage() {
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
     update((s) => {
-      const next = s.rest ? mutate(s.rest) : null;
+      const raw = s.rest ? mutate(s.rest) : null;
+      // The ring stays honest: total and deadline are clamped together.
+      const next: RestState | null = raw
+        ? {
+            total: clampRest(raw.total),
+            endsAt: Math.min(
+              Date.now() + clampRest(raw.total) * 1000,
+              Math.max(Date.now() + 1000, raw.endsAt),
+            ),
+          }
+        : null;
       if (!next) cancelRestNotification();
       else
         scheduleRestNotification(
           Math.max(0, next.endsAt - Date.now()),
           t("Rest is over"),
           t("Time for your next set."),
+          t("Resting"),
         );
       return { ...s, rest: next, restExpirouEm: null };
     });
@@ -1046,7 +1092,8 @@ function SessionPage() {
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
-  const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
+  const currentExercise = session.exercicios[focusIdx];
+  const currentRest = currentExercise ? restFor(currentExercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
     ? blockLabels(
         session.routineId,
@@ -1544,21 +1591,37 @@ function SessionPage() {
         onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
       />
 
-      {rest || restOverdue > 0 ? (
-        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
-          <RestIsland
-            total={rest?.total ?? 0}
-            left={restLeft}
-            overdue={restOverdue}
-            onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
-            onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-            onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
-            onOpenSettings={() => startRest(currentRest)}
-          />
-        </div>
-      ) : null}
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur">
+        {/* The rest bar lives inside the bottom bar, so it can never be hidden behind it. */}
+        {rest || restOverdue > 0 ? (
+          <div className="mx-auto max-w-md px-3 pt-2">
+            <RestIsland
+              total={rest?.total ?? 0}
+              left={restLeft}
+              overdue={restOverdue}
+              label={currentExercise?.nome}
+              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+              onSubtract={() =>
+                patchRest((r) => ({ total: r.total - 15, endsAt: r.endsAt - 15000 }))
+              }
+              onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
+              onOpenSettings={() => startRest(currentRest)}
+              onPreset={(segundos) => {
+                hapticTick();
+                startRest(segundos);
+              }}
+              onSaveDefault={() => {
+                const segundos = clampRest(rest?.total ?? currentRest);
+                if (currentExercise) {
+                  setRestDefault(currentExercise.exerciseId, segundos);
+                  setExerciseRest(focusIdx, segundos);
+                }
+                hapticTick();
+                toast.success(t("Saved as this exercise's rest"));
+              }}
+            />
+          </div>
+        ) : null}
         <div className="mx-auto max-w-md px-3 py-3">
           {coachMark === 2 ? (
             <CoachMark

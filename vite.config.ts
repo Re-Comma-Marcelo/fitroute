@@ -30,6 +30,8 @@ export default defineConfig({
         manifest: false,
         devOptions: { enabled: false },
         workbox: {
+          // Rest-timer notifications live in their own script so caching stays generated.
+          importScripts: ["/rest-timer-sw.js"],
           globPatterns: ["**/*.{js,css,ico,png,svg,webmanifest,woff2}"],
           navigateFallback: null,
           cleanupOutdatedCaches: true,
