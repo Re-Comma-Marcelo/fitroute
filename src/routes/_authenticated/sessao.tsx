@@ -2249,3 +2249,110 @@ function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: st
     </>
   );
 }
+
+/**
+ * One coach line per exercise: the target you are aiming for, with the
+ * reasoning tucked behind a tap so the sets stay the loudest thing on screen.
+ */
+function ExercisePlanLine({
+  target,
+  warmup,
+  note,
+}: {
+  target?: string | undefined;
+  warmup?: string | undefined;
+  note?: string | undefined;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  if (!target && !note) return null;
+  return (
+    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
+      {target ? (
+        <p className="text-xs font-semibold leading-snug text-foreground">{target}</p>
+      ) : null}
+      {warmup ? (
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{warmup}</p>
+      ) : null}
+      {note ? (
+        <>
+          {target ? (
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="mt-1 text-[11px] font-semibold text-train underline-offset-2 hover:underline"
+            >
+              {open ? t("Hide why") : t("Why this target")}
+            </button>
+          ) : null}
+          {open || !target ? (
+            <p className="mt-1 text-[11px] leading-snug text-foreground">{note}</p>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/** Coach note for a single set: hidden behind a link until there is something to say. */
+function SetNoteField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const t = useT();
+  const [open, setOpen] = useState(value.trim() !== "");
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="h-7 px-0.5 text-[11px] font-semibold text-muted-foreground"
+      >
+        + {t("Note for coach")}
+      </button>
+    );
+  }
+  return (
+    <input
+      autoFocus={value === ""}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={t("Note for coach (optional)")}
+      aria-label={t("Note for coach (optional)")}
+      maxLength={140}
+      className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    />
+  );
+}
+
+/** Free-text note that only takes space once you decide to write one. */
+function CollapsibleNote({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(value.trim() !== "");
+  if (!open) {
+    return (
+      <Button
+        variant="ghost"
+        className="mt-1 h-9 px-2 text-xs font-semibold text-muted-foreground"
+        onClick={() => setOpen(true)}
+      >
+        <Plus className="mr-1 size-3.5" /> {t("Add note")}
+      </Button>
+    );
+  }
+  return (
+    <Textarea
+      autoFocus={value === ""}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="mt-2 min-h-11 text-sm"
+    />
+  );
+}
