@@ -1,42 +1,47 @@
 # Cleaner workout journey: start → log → rest → finish
 
-Goal: make the whole training flow feel calm and obvious on a phone, one decision at a time, without removing any feature you already rely on.
+Goal: make the whole training flow feel calm and obvious on a phone — one decision at a time — without removing any feature you already rely on.
 
 ## What feels heavy today
 
-Walking the flow end to end, the logging screen carries too much at once:
-
-- Each exercise card shows, in the same small space: a drag handle, name, set counter, progress bar, expand arrow, rest picker, plate calculator, progress badge, info button, coach button, "Add warm-up" button and a 10-item menu.
-- Up to three advice boxes can stack above the sets (adaptive target, prescription line, coach comment) saying overlapping things.
-- Every completed set grows an extra "note for coach" field, and every exercise keeps an always-open notes box, so the list gets longer the more you train.
-- Nothing clearly tells you "this exercise is done, move to the next" — you have to find the next card yourself.
-- Starting a session drops you straight into a long list with no quick read of what today is.
+- **Start**: on the Train screen up to three "start/resume" buttons can be on screen at once (unfinished-workout banner, coach card, and the Start/Blank pair). Tapping a routine while another workout is running silently resumes that other workout instead.
+- **Logging**: each exercise card packs a drag handle, name, counters, progress bar, expand arrow, rest picker, plate calculator, progress badge, info button, coach button, warm-up chip and a 9-item menu. Up to three advice boxes can stack above the sets. Every checked set grows an extra unlabeled note field, and every exercise keeps an always-open note box.
+- **Reordering** exists three ways at once (drag, move up/down, do this last), and "Remove exercise" sits in the same flat menu with no confirmation or undo.
+- **Rest**: the timer bar only exists while resting, and the header timer icon shows a toast with a "Restart" action instead of just restarting.
+- **Finish**: the same Finish button appears twice (header and bottom bar). The discard dialog says sets will be dropped but never shows which ones.
+- **Summary**: records and the coach message are handed over through a one-shot local stash, so reopening the summary shows an empty page with no explanation.
 
 ## The plan
 
 ### 1. Quiet the exercise card
-- One line of identity: name, block tag, sets done / target reps, thin progress bar.
-- Move rest picker, plate calculator, warm-up and info into a single row of small icon actions, with the rarely used ones inside the existing menu.
-- Merge the three advice boxes into one coach line with the target, expandable when you want the reasoning.
-- Collapse the notes box into a "Add note" link; the per-set coach note appears only from a small action, not automatically.
+- One identity line: name, block tag, sets done / target reps, thin progress bar.
+- Rest, plates, info and warm-up become one small action row; rare actions live in the menu only (removing today's duplicate warm-up chip).
+- Merge the three advice boxes into a single coach line with the target, expandable for the reasoning.
+- Note boxes become an "Add note" action instead of always-open fields.
 
 ### 2. Make the current set the hero
-- The active set row gets larger numbers and more breathing room; completed sets shrink to a compact done line (weight × reps · RPE).
-- Keep the check, hold-and-slide editing, typing and the effort scale exactly as they work now.
+- Active set row gets bigger numbers and more space; completed sets shrink to a compact done line (weight × reps · effort).
+- Check, hold-and-slide editing, typing and the effort scale keep working exactly as now.
 
-### 3. A clear rhythm between exercises
+### 3. One clear way to do each thing
+- Reorder: keep hold-and-drag, and keep move up/down in the menu only as the accessible fallback; drop "do this one last".
+- Group the exercise menu into sections and put Remove behind a confirm with an undo toast.
+- Rest: keep the rest bar visible during the exercise (idle state shows the chosen length and a Start rest button); the header timer icon restarts directly instead of via a toast.
+
+### 4. A clear rhythm between exercises
 - When the last set of an exercise is checked, show a short "Exercise done — next: <name>" strip with a Next button that collapses the finished card and opens the next one.
-- Keep the top chip row as the quick jump, marking done / current / skipped more legibly.
+- Chip row marks done / current / skipped more legibly.
 
-### 4. A short start and a stronger finish
-- On entering a session: a one-glance header line (routine name, exercise count, estimated time) and a Start lifting button that opens the first exercise.
-- Finish button shows what will be saved (sets · volume) so the confirmation dialog stops being a surprise; the summary screen keeps records, comparison and sharing as today.
+### 5. Tidier start and finish
+- Train screen: one primary action at a time — resume takes over when a workout is running, and routine cards show "Resume" instead of a misleading start.
+- Session finish: the button shows what will be saved (sets · volume); the discard dialog lists the exact sets that would be dropped.
+- Summary: when records or the coach message are no longer available, show a plain fallback instead of a blank space.
 
-### 5. Polish pass
-- Consistent tap sizes and spacing on every control in the session.
-- Same visual language for rest bar, coach line and effort scale.
-- All new wording added in English, Portuguese and Dutch.
+### 6. Polish pass
+- Consistent tap sizes and spacing across the session screen; single visual language for rest bar, coach line and effort scale.
+- Clearer paused-clock state on the timer itself.
+- All new wording in English, Portuguese and Dutch.
 
 ## Technical notes
 
-Frontend only, no Supabase, schema or backend changes. Work stays in `src/routes/_authenticated/sessao.tsx` (split into smaller presentation components where it helps), `src/routes/_authenticated/treino.tsx`, session UI components under `src/components/`, and a new i18n fragment registered in the dictionary index. Existing session state, rest timer, prescription, coach and RPE logic is reused unchanged — this is layout, hierarchy and flow, not new behaviour.
+Frontend only — no Supabase, schema, auth, MCP or service-worker changes. Work stays in `src/routes/_authenticated/sessao.tsx` (extracted into smaller presentation components where it helps), `src/routes/_authenticated/treino.tsx`, `src/routes/_authenticated/resumo.$id.tsx`, session components under `src/components/`, plus a new i18n fragment registered in the dictionary index. Existing session state, rest timer, prescription, coach and RPE logic is reused unchanged: this is layout, hierarchy and flow, not new behaviour.
