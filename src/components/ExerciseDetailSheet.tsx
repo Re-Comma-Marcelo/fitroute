@@ -158,3 +158,60 @@ function Chip({ text }: { text: string }) {
     </span>
   );
 }
+
+/** Tips + scoped chat only, for surfaces that already show media and history. */
+export function ExerciseCoachSection({
+  exerciseId,
+  nome,
+}: {
+  exerciseId: string;
+  nome: string;
+}) {
+  const t = useT();
+  const tipsQ = useQuery({
+    queryKey: ["exerciseTips", exerciseId],
+    queryFn: () => getExerciseTips(exerciseId),
+  });
+
+  return (
+    <div className="space-y-4">
+      {tipsQ.data?.tips.length ? (
+        <section>
+          <h3 className="label-caps mb-1.5 flex items-center gap-1.5">
+            <Info className="size-3.5" /> {t("Coach tips")}
+          </h3>
+          <ul className="space-y-1.5">
+            {tipsQ.data.tips.map((tip) => (
+              <li
+                key={tip}
+                className="rounded-xl border border-border bg-card px-3 py-2 text-xs leading-snug"
+              >
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section>
+        <h3 className="label-caps mb-1.5 flex items-center gap-1.5">
+          <MessageSquare className="size-3.5" /> {t("Ask about this exercise")}
+        </h3>
+        <CoachChatPanel
+          exercise={{
+            exerciseName: nome,
+            tips: tipsQ.data?.tips ?? [],
+            lastLabel: tipsQ.data?.lastLabel ?? null,
+            bestLabel: tipsQ.data?.bestLabel ?? null,
+            stalled: tipsQ.data?.stalled ?? false,
+          }}
+          suggestions={[
+            t("Am I doing this right?"),
+            t("Why does it hurt here?"),
+            t("How do I progress?"),
+          ]}
+        />
+      </section>
+    </div>
+  );
+}
