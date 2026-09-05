@@ -1103,6 +1103,18 @@ function SessionPage() {
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
+  /** Exactly which sets the finish dialog would drop, so the choice is never blind. */
+  const pendingList = session.exercicios.flatMap((ex, exIdx) =>
+    ex.sets
+      .map((set, setIdx) => ({ set, setIdx }))
+      .filter(({ set }) => !set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "")
+      .map(({ set, setIdx }) => ({
+        key: `${exIdx}:${setIdx}`,
+        nome: `${ex.nome} · ${serieLabel(ex.sets, setIdx)}`,
+        detalhe: `${formatKg(Number(set.pesoKg) || 0)} kg × ${Number(set.reps) || 0}`,
+      })),
+  );
+
   const currentExercise = session.exercicios[focusIdx];
   const currentRest = currentExercise ? restFor(currentExercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
