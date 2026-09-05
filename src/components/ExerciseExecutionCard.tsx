@@ -27,7 +27,7 @@ export function ExerciseExecutionCard({
   className,
 }: {
   exercise: { nome: string; midiaUrl?: string | null; thumbUrl?: string | null };
-  className?: string;
+  className?: string | undefined;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -99,7 +99,7 @@ export function ExerciseExecutionCardById({
 }: {
   exerciseId: string;
   nome: string;
-  className?: string;
+  className?: string | undefined;
 }) {
   const { data } = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const found = data?.find((e) => e.id === exerciseId);
