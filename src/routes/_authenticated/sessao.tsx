@@ -1474,19 +1474,16 @@ function SessionPage() {
                           typeName={typeName}
                           t={t}
                         />
-                        {/* Optional context for the coach, never blocking the log flow. */}
+                        {/* Optional context for the coach, kept out of sight until asked for. */}
                         {set.concluida ? (
                           <li className="border-0 px-0.5 pb-1.5">
-                            <input
+                            <SetNoteField
                               value={set.coachNote ?? ""}
-                              onChange={(e) => setSetNote(exIdx, setIdx, e.target.value)}
-                              placeholder={t("Note for coach (optional)")}
-                              aria-label={t("Note for coach (optional)")}
-                              maxLength={140}
-                              className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              onChange={(value) => setSetNote(exIdx, setIdx, value)}
                             />
                           </li>
                         ) : null}
+
                       </Fragment>
                     ))}
                   </ul>
