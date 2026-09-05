@@ -106,3 +106,24 @@ export function useValueScrub(onStep: ScrubStep | undefined, formatDelta: (steps
     },
   };
 }
+
+const HINT_KEY = "forja.scrubHint.v1";
+const HINT_LIMIT = 3;
+
+/** The hint fades out of the app after a few sessions instead of nagging forever. */
+export function shouldShowScrubHint(): boolean {
+  try {
+    return Number(localStorage.getItem(HINT_KEY) ?? "0") < HINT_LIMIT;
+  } catch {
+    return false;
+  }
+}
+
+export function markScrubHintShown() {
+  try {
+    const seen = Number(localStorage.getItem(HINT_KEY) ?? "0");
+    localStorage.setItem(HINT_KEY, String(seen + 1));
+  } catch {
+    // Private browsing: showing the hint again is harmless.
+  }
+}

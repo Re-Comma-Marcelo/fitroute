@@ -51,7 +51,11 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
-import { useValueScrub } from "@/lib/use-value-scrub";
+import {
+  markScrubHintShown,
+  shouldShowScrubHint,
+  useValueScrub,
+} from "@/lib/use-value-scrub";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
@@ -1494,6 +1498,11 @@ function SessionPage() {
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
+                  {scrubHint && exIdx === 0 ? (
+                    <p className="pb-1.5 text-[11px] leading-snug text-muted-foreground">
+                      {t("Tip: hold a number and slide up or down to change it.")}
+                    </p>
+                  ) : null}
                   <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
                       <Fragment key={set.id}>
