@@ -34,7 +34,6 @@ export async function askCoach(
     if (scoped) return { answer: scoped, insights: [] };
   }
 
-
   // Keyword matching across the three supported languages (en / pt / nl).
   if (
     asks(
@@ -184,19 +183,7 @@ function answerForExercise(
   }
 
   if (
-    asks(
-      "hurt",
-      "pain",
-      "ache",
-      "sore",
-      "dor",
-      "dói",
-      "doi",
-      "machuca",
-      "pijn",
-      "blessu",
-      "zeer",
-    )
+    asks("hurt", "pain", "ache", "sore", "dor", "dói", "doi", "machuca", "pijn", "blessu", "zeer")
   ) {
     return tx(
       "Sharp pain in a joint means stop the set. Cut the load, shorten the range to what feels clean, and if it repeats, swap {name} for a variation and log the issue so I keep it out of your plan.",

@@ -87,7 +87,9 @@ export function CoachChatPanel({
   exercise?: CoachExerciseContext;
   suggestions?: string[];
 }) {
-  return <ChatPanel {...(exercise ? { exercise } : {})} {...(suggestions ? { suggestions } : {})} />;
+  return (
+    <ChatPanel {...(exercise ? { exercise } : {})} {...(suggestions ? { suggestions } : {})} />
+  );
 }
 
 function ChatPanel({
@@ -155,7 +157,6 @@ function ChatPanel({
         </div>
       ) : null}
       <div className="flex-1 space-y-4 overflow-y-auto py-3 pr-1">
-
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div

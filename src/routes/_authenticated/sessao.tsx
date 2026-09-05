@@ -14,7 +14,6 @@ import {
   Minimize2,
   Info,
   MoreVertical,
-
   Replace,
   Minus,
   Pause,

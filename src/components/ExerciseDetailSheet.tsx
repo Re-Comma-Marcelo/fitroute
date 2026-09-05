@@ -160,13 +160,7 @@ function Chip({ text }: { text: string }) {
 }
 
 /** Tips + scoped chat only, for surfaces that already show media and history. */
-export function ExerciseCoachSection({
-  exerciseId,
-  nome,
-}: {
-  exerciseId: string;
-  nome: string;
-}) {
+export function ExerciseCoachSection({ exerciseId, nome }: { exerciseId: string; nome: string }) {
   const t = useT();
   const tipsQ = useQuery({
     queryKey: ["exerciseTips", exerciseId],

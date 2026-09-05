@@ -24,13 +24,21 @@ function isFreeWeight(equip: string): boolean {
 
 function isMachine(equip: string): boolean {
   const e = equip.toLowerCase();
-  return e.includes("máquina") || e.includes("maquina") || e.includes("machine") || e.includes("cabo") || e.includes("cable");
+  return (
+    e.includes("máquina") ||
+    e.includes("maquina") ||
+    e.includes("machine") ||
+    e.includes("cabo") ||
+    e.includes("cable")
+  );
 }
 
 function groupCue(group: string): string | null {
   const g = group.toLowerCase();
   if (g.includes("peito") || g.includes("chest")) {
-    return tx("Keep the shoulder blades pulled back and down — the chest leads, not the shoulders.");
+    return tx(
+      "Keep the shoulder blades pulled back and down — the chest leads, not the shoulders.",
+    );
   }
   if (g.includes("costas") || g.includes("back")) {
     return tx("Start the pull with the elbows, not the hands, and pause a beat at the top.");
@@ -41,7 +49,13 @@ function groupCue(group: string): string | null {
   if (g.includes("ombro") || g.includes("shoulder")) {
     return tx("Stop just short of shrugging — if the neck takes over, the load is too heavy.");
   }
-  if (g.includes("braço") || g.includes("braco") || g.includes("arm") || g.includes("bic") || g.includes("tric")) {
+  if (
+    g.includes("braço") ||
+    g.includes("braco") ||
+    g.includes("arm") ||
+    g.includes("bic") ||
+    g.includes("tric")
+  ) {
     return tx("Lock the elbow in place so only the forearm moves; no swinging from the torso.");
   }
   if (g.includes("core") || g.includes("abdo")) {
@@ -58,7 +72,14 @@ function groupCue(group: string): string | null {
 export async function getExerciseTips(exerciseId: string): Promise<ExerciseTipsResult> {
   const exercise = await getExercise(exerciseId);
   if (!exercise) {
-    return { exercise: null, tips: [], lastLabel: null, bestLabel: null, sessions: 0, stalled: false };
+    return {
+      exercise: null,
+      tips: [],
+      lastLabel: null,
+      bestLabel: null,
+      sessions: 0,
+      stalled: false,
+    };
   }
 
   let history: WorkoutSet[] = [];
@@ -85,7 +106,9 @@ export async function getExerciseTips(exerciseId: string): Promise<ExerciseTipsR
       ),
     );
   }
-  tips.push(tx("Stop the set with 1–2 reps still in the tank unless you planned to go to failure."));
+  tips.push(
+    tx("Stop the set with 1–2 reps still in the tank unless you planned to go to failure."),
+  );
 
   const byWorkout = new Map<string, WorkoutSet[]>();
   for (const s of history) {
