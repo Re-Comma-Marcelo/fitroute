@@ -1093,7 +1093,8 @@ function SessionPage() {
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
-  const currentRest = session.exercicios[currentExerciseIndex(session)]?.descansoSeg ?? 90;
+  const currentExercise = session.exercicios[focusIdx];
+  const currentRest = currentExercise ? restFor(currentExercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
     ? blockLabels(
         session.routineId,
