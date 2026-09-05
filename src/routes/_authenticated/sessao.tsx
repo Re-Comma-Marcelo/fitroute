@@ -51,11 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
-import {
-  markScrubHintShown,
-  shouldShowScrubHint,
-  useValueScrub,
-} from "@/lib/use-value-scrub";
+import { markScrubHintShown, shouldShowScrubHint, useValueScrub } from "@/lib/use-value-scrub";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
@@ -2068,7 +2064,6 @@ function SetRow({
           <Check className="size-6" strokeWidth={3} />
         </button>
       </div>
-
     </li>
   );
 }

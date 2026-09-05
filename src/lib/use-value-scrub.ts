@@ -17,7 +17,10 @@ type ScrubState = { active: boolean; delta: string };
  * Hold a number and slide up or down to change it. A plain tap is left alone so
  * the keyboard still opens and typing keeps working.
  */
-export function useValueScrub(onStep: ScrubStep | undefined, formatDelta: (steps: number) => string) {
+export function useValueScrub(
+  onStep: ScrubStep | undefined,
+  formatDelta: (steps: number) => string,
+) {
   const [state, setState] = useState<ScrubState>({ active: false, delta: "" });
   const hold = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startY = useRef(0);
