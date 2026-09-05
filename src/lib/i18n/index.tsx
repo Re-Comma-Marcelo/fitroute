@@ -81,6 +81,7 @@ const FRAGMENTS: DictFragment[] = [
   round18Dict,
   round19Dict,
   round20Dict,
+  round21Dict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {
