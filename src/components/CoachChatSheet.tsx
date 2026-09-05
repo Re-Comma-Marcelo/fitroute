@@ -79,14 +79,35 @@ export function CoachChatRow({ label }: { label?: string }) {
   );
 }
 
-function ChatPanel() {
+/** Chat panel, embeddable elsewhere (e.g. the exercise detail sheet). */
+export function CoachChatPanel({
+  exercise,
+  suggestions,
+}: {
+  exercise?: CoachExerciseContext;
+  suggestions?: string[];
+}) {
+  return <ChatPanel {...(exercise ? { exercise } : {})} {...(suggestions ? { suggestions } : {})} />;
+}
+
+function ChatPanel({
+  exercise,
+  suggestions,
+}: {
+  exercise?: CoachExerciseContext;
+  suggestions?: string[];
+}) {
   const t = useT();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "coach",
-      text: t(
-        "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
-      ),
+      text: exercise
+        ? t("Ask me anything about {name} — form, pain, or how to progress it.", {
+            name: exercise.exerciseName,
+          })
+        : t(
+            "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
+          ),
       insights: [],
     },
   ]);
@@ -99,17 +120,23 @@ function ChatPanel() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, loading]);
 
+  async function ask(question: string) {
+    if (loading) return;
+    setMessages((m) => [...m, { role: "user", text: question, insights: [] }]);
+    setLoading(true);
+    const { answer, insights } = await askCoach(question, exercise);
+    setMessages((m) => [...m, { role: "coach", text: answer, insights: insights.slice(0, 2) }]);
+    setLoading(false);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || loading) return;
     const question = input.trim();
     setInput("");
-    setMessages((m) => [...m, { role: "user", text: question, insights: [] }]);
-    setLoading(true);
-    const { answer, insights } = await askCoach(question);
-    setMessages((m) => [...m, { role: "coach", text: answer, insights: insights.slice(0, 2) }]);
-    setLoading(false);
+    await ask(question);
   }
+
 
   return (
     <div className="flex h-[70vh] flex-col">
