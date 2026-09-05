@@ -1404,6 +1404,7 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addWarmup(exIdx)}>
                       <Flame className="mr-2 size-4" /> {t("Add warm-up sets")}
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       disabled={exIdx === 0}
                       onClick={() => moveExercise(exIdx, -1)}
@@ -1417,6 +1418,7 @@ function SessionPage() {
                       <ArrowDown className="mr-2 size-4" /> {t("Move down")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
+
 
                     <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
                       <Replace className="mr-2 size-4" /> {t("Replace exercise")}
