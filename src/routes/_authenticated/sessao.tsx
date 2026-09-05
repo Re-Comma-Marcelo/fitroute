@@ -56,7 +56,13 @@ import { bumpExerciseUsage } from "@/lib/exercise-usage";
 import { SessionExercisePickerSheet } from "@/components/SessionExercisePickerSheet";
 import { useRestExpiry } from "@/lib/use-rest-expiry";
 
-import { formatDateLong, formatDuration, formatKg, formatRest, weightUnitLabel } from "@/lib/format";
+import {
+  formatDateLong,
+  formatDuration,
+  formatKg,
+  formatRest,
+  weightUnitLabel,
+} from "@/lib/format";
 import { PlateCalculatorSheet } from "@/components/PlateCalculatorSheet";
 import { usesPlates } from "@/lib/plates";
 import { blockLabels, hasNextInBlock } from "@/lib/supersets";
@@ -76,7 +82,6 @@ import {
   makeSets,
   restSecondsLeft,
   restOverdueSeconds,
-
   saveActiveSession,
   serieLabel,
   sessionElapsed,
@@ -115,7 +120,6 @@ import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutritio
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
 import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
 
-
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
 import { useQuery } from "@tanstack/react-query";
@@ -145,7 +149,6 @@ const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300
  */
 const ROW_GRID =
   "grid grid-cols-[40px_minmax(0,1fr)_58px_50px_40px_44px] items-center gap-1 sm:gap-1.5";
-
 
 function useTick(active: boolean) {
   const [, setN] = useState(0);
@@ -185,7 +188,6 @@ function SessionPage() {
   const [focusMode, setFocusMode] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
 
-
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
   const dragIdxRef = useRef<number | null>(null);
@@ -214,7 +216,6 @@ function SessionPage() {
       return next;
     });
   }, []);
-
 
   /**
    * Prominent rest timer: sound + vibration + full-screen overlay when done.
@@ -455,7 +456,6 @@ function SessionPage() {
           t("Time for your next set."),
         );
       return { ...s, rest: next, restExpirouEm: null };
-
     });
   }
 
@@ -543,7 +543,9 @@ function SessionPage() {
           reps: logged.reps,
           rpe: Number(set.rpe) || null,
         });
-        const proximaValida = ex.sets.find((x, i) => i > setIdx && !x.concluida && isSerieValida(x));
+        const proximaValida = ex.sets.find(
+          (x, i) => i > setIdx && !x.concluida && isSerieValida(x),
+        );
         if (target && proximaValida) {
           proximaValida.sugPeso = target.pesoKg;
           proximaValida.sugReps = target.reps;
@@ -579,7 +581,6 @@ function SessionPage() {
       void checkPerformanceDrop(exercise, exIdx, logged, session.id);
     }
   }
-
 
   function setField(
     exIdx: number,
@@ -635,7 +636,6 @@ function SessionPage() {
     toast.success(t("Swapped to {name}", { name: built.nome }));
   }
 
-
   /** Ramp up to the first working weight instead of hand-typing light sets. */
   function addWarmup(exIdx: number) {
     const ex = session?.exercicios[exIdx];
@@ -655,7 +655,6 @@ function SessionPage() {
     });
     hapticTick();
   }
-
 
   function addSet(exIdx: number) {
     update((s) => {
@@ -839,7 +838,6 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-
   /** "I'll do this later": push the exercise to the end of the session. */
   function moveExerciseToEnd(exIdx: number) {
     update((s) => {
@@ -881,7 +879,6 @@ function SessionPage() {
   }
 
   function skipExercise(exIdx: number) {
-
     update((s) => {
       s.exercicios[exIdx]!.pulado = !s.exercicios[exIdx]!.pulado;
       if (s.exercicios[exIdx]!.pulado && exIdx < s.exercicios.length - 1) s.atual = exIdx + 1;
@@ -951,7 +948,6 @@ function SessionPage() {
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
             ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
-
           });
         });
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
@@ -991,9 +987,7 @@ function SessionPage() {
           getTargets(),
           getWeekPlan(),
         ]);
-        const recent = log.workouts
-          .filter((w) => w.finalizadoEm && w.id !== target.id)
-          .slice(-8);
+        const recent = log.workouts.filter((w) => w.finalizadoEm && w.id !== target.id).slice(-8);
         const avgVolume = recent.length
           ? recent.reduce((sum, w) => sum + w.volumeTotalKg, 0) / recent.length
           : 0;
@@ -1032,7 +1026,6 @@ function SessionPage() {
       cancelRestNotification();
       clearActiveSession();
       navigate({ to: "/resumo/$id", params: { id: target.id } });
-
     } catch {
       // Keep the session in localStorage so nothing is lost.
       toast.error(
@@ -1209,14 +1202,10 @@ function SessionPage() {
           const exDone = validas > 0 && feitas >= validas;
           // Last completed valid set — shown in the collapsed header so you
           // can recall where you are without expanding the card.
-          const lastDone = [...ex.sets]
-            .filter((s) => s.concluida && isSerieValida(s))
-            .pop();
+          const lastDone = [...ex.sets].filter((s) => s.concluida && isSerieValida(s)).pop();
           const lastKg = lastDone ? Number(lastDone.pesoKg) || 0 : 0;
           const lastLabel =
-            lastKg > 0
-              ? `${formatKg(lastKg)} kg × ${Number(lastDone!.reps) || 0}`
-              : null;
+            lastKg > 0 ? `${formatKg(lastKg)} kg × ${Number(lastDone!.reps) || 0}` : null;
           return (
             <section
               key={ex.exerciseId + exIdx}
@@ -1255,7 +1244,6 @@ function SessionPage() {
                     className="flex w-full items-start gap-2 text-left"
                     onClick={() => update((s) => ({ ...s, atual: aberto ? -1 : exIdx }))}
                   >
-
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-base font-semibold leading-tight">
                         {blockLabel[ex.exerciseId] ? (
@@ -1352,7 +1340,6 @@ function SessionPage() {
                         <Flame className="size-3.5" /> {t("Add warm-up")}
                       </button>
                     ) : null}
-
                   </div>
                   {aberto ? (
                     <ExerciseExecutionCardById
@@ -1369,8 +1356,6 @@ function SessionPage() {
                     </p>
                   ) : null}
                 </div>
-
-
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -1394,7 +1379,10 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addWarmup(exIdx)}>
                       <Flame className="mr-2 size-4" /> {t("Add warm-up sets")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem disabled={exIdx === 0} onClick={() => moveExercise(exIdx, -1)}>
+                    <DropdownMenuItem
+                      disabled={exIdx === 0}
+                      onClick={() => moveExercise(exIdx, -1)}
+                    >
                       <ArrowUp className="mr-2 size-4" /> {t("Move up")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -1487,7 +1475,6 @@ function SessionPage() {
                     ))}
                   </ul>
 
-
                   {coachMark === 1 && exIdx === session.atual ? (
                     <CoachMark
                       text={t("Adjust weight and reps, then tap ✓ when the set is done")}
@@ -1568,8 +1555,6 @@ function SessionPage() {
         </div>
       ) : null}
 
-
-
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-md px-3 py-3">
           {coachMark === 2 ? (
@@ -1625,10 +1610,7 @@ function SessionPage() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <ExerciseHistorySheet
-        exercise={historyFor}
-        onClose={() => setHistoryFor(null)}
-      />
+      <ExerciseHistorySheet exercise={historyFor} onClose={() => setHistoryFor(null)} />
 
       {restFinished ? <RestFinishedOverlay onResume={() => setRestFinished(false)} /> : null}
     </div>
@@ -2048,9 +2030,7 @@ function SetRow({
           <StepButton
             dir="down"
             label={focused === "pesoKg" ? t("Decrease weight") : t("Decrease reps")}
-            onClick={() =>
-              focused === "pesoKg" ? stepKg(-passoKg) : stepReps(tempo ? -5 : -1)
-            }
+            onClick={() => (focused === "pesoKg" ? stepKg(-passoKg) : stepReps(tempo ? -5 : -1))}
           />
           <StepButton
             dir="up"
@@ -2103,7 +2083,6 @@ function NumberField({
     />
   );
 }
-
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();
