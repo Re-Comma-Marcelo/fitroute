@@ -1568,12 +1568,12 @@ function SessionPage() {
           <Plus className="mr-1 size-5" /> {t("Add exercise")}
         </Button>
 
-        <Textarea
+        <CollapsibleNote
           value={session.notas}
-          onChange={(e) => update((s) => ({ ...s, notas: e.target.value }))}
+          onChange={(value) => update((s) => ({ ...s, notas: value }))}
           placeholder={t("Session note")}
-          className="min-h-16 text-sm"
         />
+
       </main>
 
       <SessionExercisePickerSheet
