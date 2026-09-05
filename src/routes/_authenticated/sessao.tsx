@@ -1416,12 +1416,8 @@ function SessionPage() {
                     >
                       <ArrowDown className="mr-2 size-4" /> {t("Move down")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={exIdx === session.exercicios.length - 1}
-                      onClick={() => moveExerciseToEnd(exIdx)}
-                    >
-                      <ArrowDown className="mr-2 size-4" /> {t("Do this one last")}
-                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
                       <Replace className="mr-2 size-4" /> {t("Replace exercise")}
                     </DropdownMenuItem>
