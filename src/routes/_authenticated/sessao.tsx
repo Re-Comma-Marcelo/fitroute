@@ -1591,22 +1591,39 @@ function SessionPage() {
         onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
       />
 
-      {rest || restOverdue > 0 ? (
-        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-50 px-3">
-          <RestIsland
-            total={rest?.total ?? 0}
-            left={restLeft}
-            overdue={restOverdue}
-            onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
-            onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
-            onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
-            onOpenSettings={() => startRest(currentRest)}
-          />
-        </div>
-      ) : null}
-
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 backdrop-blur">
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur">
+        {/* The rest bar lives inside the bottom bar, so it can never be hidden behind it. */}
+        {rest || restOverdue > 0 ? (
+          <div className="mx-auto max-w-md px-3 pt-2">
+            <RestIsland
+              total={rest?.total ?? 0}
+              left={restLeft}
+              overdue={restOverdue}
+              label={currentExercise?.nome}
+              onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
+              onSubtract={() =>
+                patchRest((r) => ({ total: r.total - 15, endsAt: r.endsAt - 15000 }))
+              }
+              onSkip={() => (rest ? patchRest(() => null) : clearOverdue())}
+              onOpenSettings={() => startRest(currentRest)}
+              onPreset={(segundos) => {
+                hapticTick();
+                startRest(segundos);
+              }}
+              onSaveDefault={() => {
+                const segundos = clampRest(rest?.total ?? currentRest);
+                if (currentExercise) {
+                  setRestDefault(currentExercise.exerciseId, segundos);
+                  setExerciseRest(focusIdx, segundos);
+                }
+                hapticTick();
+                toast.success(t("Saved as this exercise's rest"));
+              }}
+            />
+          </div>
+        ) : null}
         <div className="mx-auto max-w-md px-3 py-3">
+
           {coachMark === 2 ? (
             <CoachMark
               text={t("When everything is done, finish here to save your workout")}
