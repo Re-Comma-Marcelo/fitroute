@@ -113,6 +113,8 @@ import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
+import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
+
 
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
