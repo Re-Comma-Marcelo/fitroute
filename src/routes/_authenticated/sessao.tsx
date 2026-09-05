@@ -897,18 +897,6 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-  /** "I'll do this later": push the exercise to the end of the session. */
-  function moveExerciseToEnd(exIdx: number) {
-    update((s) => {
-      if (exIdx >= s.exercicios.length - 1) return s;
-      const exercicios = [...s.exercicios];
-      const [moved] = exercicios.splice(exIdx, 1);
-      exercicios.push(moved!);
-      const atual = Math.min(exIdx, exercicios.length - 1);
-      return { ...s, exercicios, atual };
-    });
-    hapticTick();
-  }
 
   /** Send the user to the library and swap the picked exercise into this slot. */
   function replaceExercise(exIdx: number) {
