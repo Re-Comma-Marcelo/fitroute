@@ -1,37 +1,39 @@
-# 10 melhorias — rodada de 4 de setembro
+# Exercise detail sheet: execution, tips and per-exercise coach
 
-Tudo frontend puro: nada de mudanças no Supabase, nada de schema novo. O que precisar guardar fica no aparelho (como as favoritas e as metas já fazem hoje).
+Tapping an exercise name during a workout opens a slide-up sheet about that movement. No database changes.
 
-## Treino e sessão
+## 1. Tap target in the session
 
-1. **Substituir exercício sem perder o lugar** — no menu do exercício, "Trocar por parecido" sugere 3 alternativas do mesmo grupo com o equipamento que você tem, mantendo séries, reps-alvo e descanso.
-2. **Modo superset na sessão** — juntar dois exercícios em par: os dois aparecem em um bloco, o descanso só começa depois da segunda série, com marcador A/B.
-3. **Resumo de fim de treino mais útil** — além do volume, mostrar recordes batidos, comparação com a última vez na mesma rotina e um lembrete de próximo treino recomendado.
-4. **Fila de exercícios reordenável antes de começar** — na tela de treino, tocar em "Ajustar ordem" abre uma lista arrastável e a sessão já começa nessa ordem.
+- In the session, the exercise title (and its thumb) becomes tappable, with a small info chevron so it reads as "open".
+- Opens a bottom sheet over the session; closing returns to the exact same scroll position and set state.
+- The same sheet opens from the exercise list in the library and from the exercise picker.
 
-## Progresso
+## 2. What the sheet shows
 
-5. **Filtro por grupo muscular no histórico** — chips (peito, costas, pernas…) para ver só as sessões que treinaram aquele grupo.
-6. **Metas de carga por exercício** — definir "quero 100 kg no supino" e ver barra de progresso + previsão de quando chega, com base na sua evolução real.
-7. **Exportar/compartilhar progresso** — imagem de resumo do mês (sessões, volume, recordes) pronta para enviar.
+- Animated execution loop at the top (static image when the phone asks for less motion), full width, playing by default here — no need to expand anything.
+- Movement name, primary muscle and equipment.
+- "How to do it": the step text already stored for each exercise.
+- "Coach tips": short cue list built from the exercise's own data (muscle group, equipment, whether it is a free-weight or machine move) plus the user's own numbers — last load used, best set, and a stagnation note when that lift has stalled.
+- "Your history": last few sessions for this exercise (weight x reps, date), reusing the existing history card.
 
-## Dieta
+## 3. Ask about this exercise
 
-8. **Porção ajustável ao registrar** — ao marcar uma refeição como comida, escolher 0,5x / 1x / 1,5x e os macros do dia acompanharem.
-9. **Refeições rápidas favoritas na tela do dia** — atalho com as 4 refeições que você mais usa, para preencher um horário em um toque.
+- An "Ask about this exercise" area at the bottom of the sheet, reusing the existing coach chat panel, pre-scoped to the current movement so answers mention it by name.
+- Quick question chips: "Am I doing this right?", "Why does it hurt here?", "How do I progress?".
+- In-app answers stay the existing grounded ones (form cues, rest, progression, stalls) with the exercise name and the user's recent numbers filled in.
+- Open-ended coaching keeps going through Claude over MCP, as agreed: the sheet shows a short line pointing there, and Claude gains a new read-only tool that returns everything about one exercise (instructions, equipment, recent sets, best set, stall status) so its answers about a specific movement are grounded in real training data.
 
-## App em geral
+## Technical notes
 
-10. **Central de ajustes rápidos** — um painel no Perfil com o que mais se mexe: unidade (kg/lb), descanso padrão, meta semanal, som/vibração do descanso e idioma, tudo em uma tela só.
+- New `src/components/ExerciseDetailSheet.tsx` — sheet composing loop media (`exerciseLoopUrl` / `exerciseThumbUrl`), instructions, tips, `ExerciseHistoryCard`, and the chat panel.
+- New `src/lib/coach/exercise-tips.ts` — pure tip generator from `Exercise` + recent workout data; no model call.
+- `src/lib/coach/chat.ts` — accept an optional exercise context so answers name the lift and use its numbers; `CoachChatSheet.tsx` exports the chat panel for embedding.
+- Wire the tap in `src/routes/_authenticated/sessao.tsx`, `biblioteca.tsx`, `SessionExercisePickerSheet.tsx`.
+- New MCP tool `src/lib/mcp/tools/get-exercise-context.ts`, registered in `src/lib/mcp/index.ts`, read-only and scoped to the authenticated user; manifest re-extracted afterwards.
+- New strings added to the i18n dictionary in pt and nl; no literals in JSX.
+- Untouched: `db.server.ts`, `forja.functions.ts`, `src/integrations/supabase/*`, auth, service worker, manifest, migrations.
 
-## Detalhes técnicos
+## Out of scope
 
-- Novos módulos locais: `src/lib/similar-exercise.ts`, `src/lib/lift-goals.ts` (estender), `src/lib/share-progress.ts`; porção da refeição entra em `nutrition-local.ts` (`EatenMap` passa a guardar `{ mealId, portion }` com migração tolerante do formato antigo).
-- Supersets reaproveitam `src/lib/supersets.ts` e o estado de descanso já global em `session-state.ts`.
-- Reordenação antes da sessão reusa o gesto de arrastar já implementado na sessão.
-- Compartilhar progresso usa canvas no cliente + Web Share API, com download como fallback.
-- Todos os textos novos entram em um novo fragmento de tradução (EN/PT/NL).
-
-## Ordem sugerida
-
-1 → 4 → 8 → 9 → 5 → 3 → 6 → 2 → 10 → 7
+- No new AI model calls inside the app.
+- No changes to set logging, rest timer or progression logic.
