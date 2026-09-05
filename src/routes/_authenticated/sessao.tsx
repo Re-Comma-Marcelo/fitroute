@@ -119,6 +119,7 @@ import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
 import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
+import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
@@ -1318,6 +1319,7 @@ function SessionPage() {
                       />
                     ) : null}
                     {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
+                    <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
                     <SessionCoachSheet
                       exerciseId={ex.exerciseId}
                       exerciseName={ex.nome}
@@ -2134,5 +2136,23 @@ function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void
         {t("Got it")}
       </button>
     </div>
+  );
+}
+
+/** Opens the exercise detail sheet (execution, tips, history, scoped chat). */
+function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: string }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="tap-target flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-[11px] font-semibold text-muted-foreground"
+      >
+        <Info className="size-3.5" /> {t("How to do it")}
+      </button>
+      <ExerciseDetailSheet exerciseId={exerciseId} nome={nome} open={open} onOpenChange={setOpen} />
+    </>
   );
 }
