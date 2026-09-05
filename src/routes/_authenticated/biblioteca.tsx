@@ -745,7 +745,12 @@ function ExerciseRow({
         onClick={onChoose}
         className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
       >
-        <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+        <ExerciseThumb
+          grupo={exercise.grupoPrimario}
+          nome={exercise.nome}
+          src={exerciseThumbUrl(exercise)}
+        />
+
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold leading-tight">
             {exercise.nome}
