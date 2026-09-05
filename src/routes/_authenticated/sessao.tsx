@@ -51,6 +51,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
+import { markScrubHintShown, shouldShowScrubHint, useValueScrub } from "@/lib/use-value-scrub";
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
@@ -417,6 +418,10 @@ function SessionPage() {
     return () => clearTimeout(id);
   }, [justExercise]);
 
+  const [scrubHint] = useState(() => shouldShowScrubHint());
+  useEffect(() => {
+    if (scrubHint) markScrubHintShown();
+  }, [scrubHint]);
   if (!ready) return <div className="min-h-screen bg-background" />;
 
   if (!session) {
@@ -1493,6 +1498,11 @@ function SessionPage() {
                     <span className="text-center">{t("RPE")}</span>
                     <span />
                   </div>
+                  {scrubHint && exIdx === 0 ? (
+                    <p className="pb-1.5 text-[11px] leading-snug text-muted-foreground">
+                      {t("Tip: hold a number and slide up or down to change it.")}
+                    </p>
+                  ) : null}
                   <ul className="divide-y divide-border/60 border-y border-border/60">
                     {ex.sets.map((set, setIdx) => (
                       <Fragment key={set.id}>
@@ -1895,31 +1905,6 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
   );
 }
 
-function StepButton({
-  onClick,
-  label,
-  dir,
-}: {
-  onClick: () => void;
-  label: string;
-  dir: "up" | "down";
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground active:bg-accent"
-    >
-      {dir === "up" ? (
-        <Plus className="size-5" strokeWidth={2.8} />
-      ) : (
-        <Minus className="size-5" strokeWidth={2.8} />
-      )}
-    </button>
-  );
-}
-
 function SetRow({
   set,
   label,
@@ -1949,7 +1934,6 @@ function SetRow({
   const { unit } = useWeightUnit();
   /** Weight is always stored in kg; the field shows the user's unit. */
   const [draft, setDraft] = useState<string | null>(null);
-  const [focused, setFocused] = useState<"pesoKg" | "reps" | null>(null);
   const shownWeight =
     draft ??
     (set.pesoKg === ""
@@ -2042,14 +2026,10 @@ function SetRow({
         <NumberField
           value={shownWeight}
           onChange={writeWeight}
-          onBlur={() => {
-            setDraft(null);
-            setFocused((f) => (f === "pesoKg" ? null : f));
-          }}
-          onFocus={() => {
-            acceptWeightTarget();
-            setFocused("pesoKg");
-          }}
+          onBlur={() => setDraft(null)}
+          onFocus={acceptWeightTarget}
+          onStep={(direction, big) => stepKg(direction * (big ? passoKg * 4 : passoKg))}
+          formatDelta={(steps) => formatSignedStep(steps * passoKg, unit)}
           inputMode="decimal"
           placeholder={alvoPeso || weightUnitLabel()}
           ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
@@ -2058,11 +2038,9 @@ function SetRow({
         <NumberField
           value={set.reps}
           onChange={(v) => onField("reps", v)}
-          onBlur={() => setFocused((f) => (f === "reps" ? null : f))}
-          onFocus={() => {
-            acceptRepsTarget();
-            setFocused("reps");
-          }}
+          onFocus={acceptRepsTarget}
+          onStep={(direction, big) => stepReps(direction * (big ? 5 : 1))}
+          formatDelta={(steps) => formatSignedStep(steps)}
           inputMode="numeric"
           placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
@@ -2086,32 +2064,21 @@ function SetRow({
           <Check className="size-6" strokeWidth={3} />
         </button>
       </div>
-
-      {/* The −/+ strip only appears for the field you are editing, so typing stays first. */}
-      {focused ? (
-        <div className="mt-1 flex items-center justify-end gap-2 pb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {focused === "pesoKg" ? weightUnitLabel() : tempo ? t("sec") : t("Reps")}
-          </span>
-          <StepButton
-            dir="down"
-            label={focused === "pesoKg" ? t("Decrease weight") : t("Decrease reps")}
-            onClick={() => (focused === "pesoKg" ? stepKg(-passoKg) : stepReps(tempo ? -5 : -1))}
-          />
-          <StepButton
-            dir="up"
-            label={focused === "pesoKg" ? t("Increase weight") : t("Increase reps")}
-            onClick={() => (focused === "pesoKg" ? stepKg(passoKg) : stepReps(tempo ? 5 : 1))}
-          />
-        </div>
-      ) : null}
     </li>
   );
 }
 
+/** Shows the running change while a number is being slid, e.g. "+2.5 kg". */
+function formatSignedStep(amount: number, unit?: string): string {
+  const rounded = Math.round(amount * 100) / 100;
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded}${unit ? ` ${weightUnitLabel()}` : ""}`;
+}
+
 /**
  * Numeric field built for typing: one tap focuses and selects the value, so the
- * keyboard replaces it straight away. The −/+ buttons live next to the row.
+ * keyboard replaces it straight away. Holding it and sliding up or down changes
+ * the value without the keyboard; arrow keys do the same for keyboard users.
  */
 function NumberField({
   value,
@@ -2121,6 +2088,8 @@ function NumberField({
   inputMode,
   placeholder,
   ariaLabel,
+  onStep,
+  formatDelta,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -2129,24 +2098,47 @@ function NumberField({
   inputMode: "decimal" | "numeric";
   placeholder: string;
   ariaLabel: string;
+  onStep?: (direction: 1 | -1, big: boolean) => void;
+  formatDelta?: (steps: number) => string;
 }) {
+  const t = useT();
+  const scrub = useValueScrub(onStep, formatDelta ?? ((steps) => String(steps)));
   return (
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      {...(onBlur ? { onBlur } : {})}
-      inputMode={inputMode}
-      enterKeyHint="next"
-      onKeyDown={focusNextField}
-      placeholder={placeholder}
-      aria-label={ariaLabel}
-      onFocus={(e) => {
-        onFocus?.();
-        // Select-all: typing overwrites instead of appending to the old number.
-        requestAnimationFrame(() => e.target.select());
-      }}
-      className="numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]"
-    />
+    <div className="relative min-w-0">
+      <Input
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        {...(onBlur ? { onBlur } : {})}
+        inputMode={inputMode}
+        enterKeyHint="next"
+        onKeyDown={(e) => {
+          if (onStep && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+            e.preventDefault();
+            onStep(e.key === "ArrowUp" ? 1 : -1, e.shiftKey);
+            return;
+          }
+          focusNextField(e);
+        }}
+        placeholder={placeholder}
+        aria-label={onStep ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
+        {...scrub.handlers}
+        onFocus={(e) => {
+          onFocus?.();
+          // Select-all: typing overwrites instead of appending to the old number.
+          requestAnimationFrame(() => e.target.select());
+        }}
+        className={cn(
+          "numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]",
+          onStep && "touch-none",
+          scrub.scrubbing && "scale-105 border-primary text-primary motion-reduce:scale-100",
+        )}
+      />
+      {scrub.scrubbing ? (
+        <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary-foreground">
+          {scrub.deltaLabel}
+        </span>
+      ) : null}
+    </div>
   );
 }
 

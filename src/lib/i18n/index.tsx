@@ -34,6 +34,7 @@ import { dict as round18Dict } from "./dict/round18";
 import { dict as round19Dict } from "./dict/round19";
 import { dict as round20Dict } from "./dict/round20";
 import { dict as round21Dict } from "./dict/round21";
+import { dict as round22Dict } from "./dict/round22";
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
@@ -82,6 +83,7 @@ const FRAGMENTS: DictFragment[] = [
   round19Dict,
   round20Dict,
   round21Dict,
+  round22Dict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {
