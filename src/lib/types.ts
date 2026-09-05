@@ -52,6 +52,9 @@ export interface Exercise {
   equipamento: string;
   instrucoes: string;
   midiaUrl?: string;
+  /** Static thumb path in the public media bucket (derived when absent). */
+  thumbUrl?: string;
+
   isCustom: boolean;
 }
 
