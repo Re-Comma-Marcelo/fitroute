@@ -133,6 +133,8 @@ import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
+import { RpeSheet } from "@/components/RpeScale";
+import { askRpeEnabled } from "@/lib/rpe";
 import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
@@ -150,7 +152,6 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 
 const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 
-const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 /**
@@ -188,6 +189,8 @@ function SessionPage() {
   const [scrollTo, setScrollTo] = useState<number | null>(null);
   /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
   const [justSet, setJustSet] = useState<string | null>(null);
+  // Asked right after a working set is ticked, so effort is never forgotten.
+  const [rpePrompt, setRpePrompt] = useState<{ exIdx: number; setIdx: number } | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
@@ -630,6 +633,9 @@ function SessionPage() {
     if (descanso > 0) startRest(descanso);
     if (proximo !== null) setScrollTo(proximo);
     const exercise = session?.exercicios[exIdx];
+    if (logged !== null && askRpeEnabled() && !exercise?.sets[setIdx]?.rpe) {
+      setRpePrompt({ exIdx, setIdx });
+    }
     if (logged && exercise && session) {
       void checkPerformanceDrop(exercise, exIdx, logged, session.id);
     }
@@ -1601,6 +1607,23 @@ function SessionPage() {
         onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
       />
 
+      {rpePrompt ? (
+        <RpeSheet
+          open
+          onOpenChange={(next) => {
+            if (!next) setRpePrompt(null);
+          }}
+          exerciseName={session.exercicios[rpePrompt.exIdx]?.nome ?? ""}
+          setLabel={serieLabel(session.exercicios[rpePrompt.exIdx]?.sets ?? [], rpePrompt.setIdx)}
+          value={session.exercicios[rpePrompt.exIdx]?.sets[rpePrompt.setIdx]?.rpe ?? ""}
+          onSave={(value) => {
+            setField(rpePrompt.exIdx, rpePrompt.setIdx, "rpe", value);
+            setRpePrompt(null);
+          }}
+          onSkip={() => setRpePrompt(null)}
+        />
+      ) : null}
+
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur">
         {/* The rest bar lives inside the bottom bar, so it can never be hidden behind it. */}
         {rest || restOverdue > 0 ? (
@@ -1849,59 +1872,43 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
   );
 }
 
-function PsePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+function PsePicker({
+  value,
+  onChange,
+  exerciseName,
+  setLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  exerciseName: string;
+  setLabel: string;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
-          className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
-            value
-              ? "border-info/60 bg-info/15 text-info"
-              : "border-border bg-muted text-muted-foreground"
-          }`}
-        >
-          {value || t("RPE")}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-56">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {t("RPE (optional)")}
-        </p>
-        <div className="grid grid-cols-3 gap-1.5">
-          {RPE_OPTIONS.map((op) => (
-            <button
-              key={op}
-              type="button"
-              onClick={() => {
-                onChange(String(op));
-                setOpen(false);
-              }}
-              className={`tap-target rounded-lg border text-sm font-semibold ${
-                value === String(op)
-                  ? "border-info bg-info text-info-foreground"
-                  : "border-border bg-card"
-              }`}
-            >
-              {op}
-            </button>
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          className="mt-2 h-10 w-full text-xs font-semibold text-muted-foreground"
-          onClick={() => {
-            onChange("");
-            setOpen(false);
-          }}
-        >
-          {t("Clear")}
-        </Button>
-      </PopoverContent>
-    </Popover>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label={value ? `RPE ${value}` : t("Set RPE (optional)")}
+        className={`tap-target h-10 w-full rounded-lg border text-[11px] font-semibold tabular-nums ${
+          value
+            ? "border-info/60 bg-info/15 text-info"
+            : "border-border bg-muted text-muted-foreground"
+        }`}
+      >
+        {value || t("RPE")}
+      </button>
+      <RpeSheet
+        open={open}
+        onOpenChange={setOpen}
+        exerciseName={exerciseName}
+        setLabel={setLabel}
+        value={value}
+        onSave={onChange}
+        onSkip={() => setOpen(false)}
+      />
+    </>
   );
 }
 
@@ -2046,7 +2053,12 @@ function SetRow({
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
         />
 
-        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+        <PsePicker
+          value={set.rpe}
+          onChange={(v) => onField("rpe", v)}
+          exerciseName={exercise.nome}
+          setLabel={label}
+        />
 
         <button
           type="button"

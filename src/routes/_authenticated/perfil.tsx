@@ -52,6 +52,7 @@ import {
 import { formatDateLong } from "@/lib/format";
 
 import { hapticsEnabled, hapticTick, setHapticsEnabled } from "@/lib/haptics";
+import { askRpeEnabled, setAskRpeEnabled } from "@/lib/rpe";
 import { resetOnboarding } from "@/lib/onboarding";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
@@ -486,8 +487,6 @@ function ProfilePage() {
 
           <WeeklyExtraTargets />
 
-
-
           <Segmented
             label={t("Preferred session length (minutes)")}
             columns={4}
@@ -654,6 +653,8 @@ function ProfilePage() {
           <UnitToggle />
 
           <VibrationToggle />
+
+          <AskRpeToggle />
 
           <RestNotifyToggle />
 
@@ -839,6 +840,37 @@ function AccountSection({ email }: { email: string | null }) {
       >
         {signingOut ? t("Signing out…") : t("Sign out")}
       </Button>
+    </div>
+  );
+}
+
+/** Effort right after a set: the scale slides up unless you turn it off. */
+function AskRpeToggle() {
+  const t = useT();
+  const [on, setOn] = useState(true);
+
+  useEffect(() => {
+    setOn(askRpeEnabled());
+  }, []);
+
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
+      <div>
+        <Label htmlFor="ask-rpe">{t("Ask for effort after each set")}</Label>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {t(
+            "The effort scale slides up when you tick a working set. Off, you can still tap the RPE box.",
+          )}
+        </p>
+      </div>
+      <Switch
+        id="ask-rpe"
+        checked={on}
+        onCheckedChange={(next) => {
+          setOn(next);
+          setAskRpeEnabled(next);
+        }}
+      />
     </div>
   );
 }
