@@ -35,6 +35,8 @@ import {
 } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
 import { exerciseImage } from "@/lib/exercise-image";
+import { exerciseThumbUrl } from "@/lib/exerciseMedia";
+
 import { getFavorites, toggleFavorite } from "@/lib/favorites";
 import { bumpExerciseUsage, getExerciseUsage } from "@/lib/exercise-usage";
 import {
