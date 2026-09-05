@@ -487,8 +487,6 @@ function ProfilePage() {
 
           <WeeklyExtraTargets />
 
-
-
           <Segmented
             label={t("Preferred session length (minutes)")}
             columns={4}

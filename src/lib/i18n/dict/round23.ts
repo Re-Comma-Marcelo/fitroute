@@ -28,15 +28,13 @@ export const dict: DictFragment = {
     "How hard was that set?": "Hoe zwaar was die set?",
     "This is how the app picks your next weights and spots stalls.":
       "Zo bepaalt de app je volgende gewichten en ziet hij stagnatie.",
-    "Pick how many reps you had left in the tank.":
-      "Kies hoeveel reps je nog over had in de tank.",
+    "Pick how many reps you had left in the tank.": "Kies hoeveel reps je nog over had in de tank.",
     "Save effort": "Inspanning opslaan",
     Skip: "Overslaan",
     "Ask for effort after each set": "Vraag na elke set om de inspanning",
     "The effort scale slides up when you tick a working set. Off, you can still tap the RPE box.":
       "De inspanningsschaal schuift omhoog zodra je een werkset afvinkt. Uit? Dan kun je nog steeds op het RPE-vak tikken.",
-    "Nothing left — no way you could do another rep":
-      "Niets over — geen extra rep meer mogelijk",
+    "Nothing left — no way you could do another rep": "Niets over — geen extra rep meer mogelijk",
     "Maybe one more rep": "Misschien nog één rep",
     "One more rep for sure": "Zeker nog één rep",
     "Maybe two more reps": "Misschien nog twee reps",

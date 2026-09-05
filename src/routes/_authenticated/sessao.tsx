@@ -1614,10 +1614,7 @@ function SessionPage() {
             if (!next) setRpePrompt(null);
           }}
           exerciseName={session.exercicios[rpePrompt.exIdx]?.nome ?? ""}
-          setLabel={serieLabel(
-            session.exercicios[rpePrompt.exIdx]?.sets ?? [],
-            rpePrompt.setIdx,
-          )}
+          setLabel={serieLabel(session.exercicios[rpePrompt.exIdx]?.sets ?? [], rpePrompt.setIdx)}
           value={session.exercicios[rpePrompt.exIdx]?.sets[rpePrompt.setIdx]?.rpe ?? ""}
           onSave={(value) => {
             setField(rpePrompt.exIdx, rpePrompt.setIdx, "rpe", value);
@@ -1626,7 +1623,6 @@ function SessionPage() {
           onSkip={() => setRpePrompt(null)}
         />
       ) : null}
-
 
       <div className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-card/95 backdrop-blur">
         {/* The rest bar lives inside the bottom bar, so it can never be hidden behind it. */}
@@ -1914,7 +1910,6 @@ function PsePicker({
       />
     </>
   );
-
 }
 
 function SetRow({
