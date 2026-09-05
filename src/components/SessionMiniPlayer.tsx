@@ -112,7 +112,7 @@ export function SessionMiniPlayer() {
           left={restLeft}
           overdue={restOverdue}
           onAdd={() => patchRest((r) => ({ total: r.total + 15, endsAt: r.endsAt + 15000 }))}
-          onSubtract={() => patchRest((r) => ({ ...r, endsAt: r.endsAt - 15000 }))}
+          onSubtract={() => patchRest((r) => ({ total: r.total - 15, endsAt: r.endsAt - 15000 }))}
           onSkip={() => (session.rest ? patchRest(() => null) : clearOverdue())}
         />
       ) : null}
