@@ -27,28 +27,18 @@ import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
 
 import { QueryError } from "@/components/QueryError";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import {
-  createExercise,
-  getEquipments,
-  getExercises,
-  getMuscleGroups,
-} from "@/lib/data/exercises";
+import { createExercise, getEquipments, getExercises, getMuscleGroups } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
 import { exerciseImage } from "@/lib/exercise-image";
 import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 
 import { getFavorites, toggleFavorite } from "@/lib/favorites";
 import { bumpExerciseUsage, getExerciseUsage } from "@/lib/exercise-usage";
-import {
-  getExercisePhoto,
-  removeExercisePhoto,
-  setExercisePhoto,
-} from "@/lib/exercise-photos";
+import { getExercisePhoto, removeExercisePhoto, setExercisePhoto } from "@/lib/exercise-photos";
 import { fileToPhotoDataUrl } from "@/lib/photo";
 import { clearRecentSearches, getRecentSearches, rememberSearch } from "@/lib/recent-searches";
 import { cn } from "@/lib/utils";
 import type { Exercise } from "@/lib/types";
-
 
 export const Route = createFileRoute("/_authenticated/biblioteca")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -122,10 +112,7 @@ function LibraryPage() {
     }));
   }, [gruposQuery.data, all]);
 
-  const favoriteList = useMemo(
-    () => all.filter((e) => favorites.includes(e.id)),
-    [all, favorites],
-  );
+  const favoriteList = useMemo(() => all.filter((e) => favorites.includes(e.id)), [all, favorites]);
 
   // Most-used exercises — surfaced as a quick "Recent" row on the folder view so
   // you can jump back into the lifts you actually train without searching.
@@ -179,7 +166,6 @@ function LibraryPage() {
     goBack();
   }
 
-
   async function saveNew(input: {
     nome: string;
     grupoPrimario: string;
@@ -192,7 +178,9 @@ function LibraryPage() {
       await queryClient.invalidateQueries({ queryKey: ["exercises"] });
       await queryClient.invalidateQueries({ queryKey: ["muscleGroups"] });
       setCreating(false);
-      toast.success(t("{name} added to {group}.", { name: created.nome, group: input.grupoPrimario }));
+      toast.success(
+        t("{name} added to {group}.", { name: created.nome, group: input.grupoPrimario }),
+      );
     } catch {
       toast.error(t("Could not save the exercise. Try again."));
     }
@@ -367,7 +355,6 @@ function LibraryPage() {
               <p className="mt-3 text-sm text-muted-foreground">{t("Loading…")}</p>
             ) : null}
           </>
-
         ) : (
           <>
             <div className="mt-4 flex flex-wrap items-center gap-2">
@@ -486,9 +473,7 @@ function LibraryPage() {
                       : "border-border text-muted-foreground",
                   )}
                 >
-                  <Star
-                    className={cn("size-4", favorites.includes(detail.id) && "fill-train")}
-                  />
+                  <Star className={cn("size-4", favorites.includes(detail.id) && "fill-train")} />
                   {t("Favorite")}
                 </button>
               </div>
@@ -632,11 +617,7 @@ function NewExerciseSheet({
             <p className="label-caps mb-1.5">{t("Equipment")}</p>
             <div className="flex flex-wrap gap-2">
               {equipments.map((eq) => (
-                <FilterChip
-                  key={eq}
-                  active={equipamento === eq}
-                  onClick={() => setEquipamento(eq)}
-                >
+                <FilterChip key={eq} active={equipamento === eq} onClick={() => setEquipamento(eq)}>
                   {eq}
                 </FilterChip>
               ))}
@@ -775,7 +756,9 @@ function ExerciseRow({
         aria-pressed={favorite}
         onClick={onStar}
       >
-        <Star className={cn("size-5", favorite ? "fill-train text-train" : "text-muted-foreground")} />
+        <Star
+          className={cn("size-5", favorite ? "fill-train text-train" : "text-muted-foreground")}
+        />
       </Button>
       <Button
         variant="ghost"
