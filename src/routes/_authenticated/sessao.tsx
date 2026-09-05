@@ -1352,6 +1352,14 @@ function SessionPage() {
                     ) : null}
 
                   </div>
+                  {aberto ? (
+                    <ExerciseExecutionCardById
+                      exerciseId={ex.exerciseId}
+                      nome={ex.nome}
+                      className="mt-2"
+                    />
+                  ) : null}
+
                   {/* Coach comment sits above the sets: read it before you lift. */}
                   {coachTips[exIdx] ? (
                     <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">
