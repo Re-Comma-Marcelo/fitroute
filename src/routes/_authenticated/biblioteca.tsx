@@ -495,6 +495,9 @@ function LibraryPage() {
                   <ExerciseHistoryCard exerciseId={detail.id} />
                 </div>
               </div>
+
+              <ExerciseCoachSection exerciseId={detail.id} nome={detail.nome} />
+
               {para ? (
                 <Button
                   className="h-14 w-full text-base font-semibold"
