@@ -1895,31 +1895,6 @@ function PsePicker({ value, onChange }: { value: string; onChange: (value: strin
   );
 }
 
-function StepButton({
-  onClick,
-  label,
-  dir,
-}: {
-  onClick: () => void;
-  label: string;
-  dir: "up" | "down";
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      className="tap-target flex size-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-foreground active:bg-accent"
-    >
-      {dir === "up" ? (
-        <Plus className="size-5" strokeWidth={2.8} />
-      ) : (
-        <Minus className="size-5" strokeWidth={2.8} />
-      )}
-    </button>
-  );
-}
-
 function SetRow({
   set,
   label,
@@ -1949,7 +1924,6 @@ function SetRow({
   const { unit } = useWeightUnit();
   /** Weight is always stored in kg; the field shows the user's unit. */
   const [draft, setDraft] = useState<string | null>(null);
-  const [focused, setFocused] = useState<"pesoKg" | "reps" | null>(null);
   const shownWeight =
     draft ??
     (set.pesoKg === ""
@@ -2042,14 +2016,10 @@ function SetRow({
         <NumberField
           value={shownWeight}
           onChange={writeWeight}
-          onBlur={() => {
-            setDraft(null);
-            setFocused((f) => (f === "pesoKg" ? null : f));
-          }}
-          onFocus={() => {
-            acceptWeightTarget();
-            setFocused("pesoKg");
-          }}
+          onBlur={() => setDraft(null)}
+          onFocus={acceptWeightTarget}
+          onStep={(direction, big) => stepKg(direction * (big ? passoKg * 4 : passoKg))}
+          formatDelta={(steps) => formatSignedStep(steps * passoKg, unit)}
           inputMode="decimal"
           placeholder={alvoPeso || weightUnitLabel()}
           ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
@@ -2058,11 +2028,9 @@ function SetRow({
         <NumberField
           value={set.reps}
           onChange={(v) => onField("reps", v)}
-          onBlur={() => setFocused((f) => (f === "reps" ? null : f))}
-          onFocus={() => {
-            acceptRepsTarget();
-            setFocused("reps");
-          }}
+          onFocus={acceptRepsTarget}
+          onStep={(direction, big) => stepReps(direction * (big ? 5 : 1))}
+          formatDelta={(steps) => formatSignedStep(steps * (Math.abs(steps) > 6 ? 5 : 1))}
           inputMode="numeric"
           placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
@@ -2087,24 +2055,6 @@ function SetRow({
         </button>
       </div>
 
-      {/* The −/+ strip only appears for the field you are editing, so typing stays first. */}
-      {focused ? (
-        <div className="mt-1 flex items-center justify-end gap-2 pb-1">
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {focused === "pesoKg" ? weightUnitLabel() : tempo ? t("sec") : t("Reps")}
-          </span>
-          <StepButton
-            dir="down"
-            label={focused === "pesoKg" ? t("Decrease weight") : t("Decrease reps")}
-            onClick={() => (focused === "pesoKg" ? stepKg(-passoKg) : stepReps(tempo ? -5 : -1))}
-          />
-          <StepButton
-            dir="up"
-            label={focused === "pesoKg" ? t("Increase weight") : t("Increase reps")}
-            onClick={() => (focused === "pesoKg" ? stepKg(passoKg) : stepReps(tempo ? 5 : 1))}
-          />
-        </div>
-      ) : null}
     </li>
   );
 }
