@@ -133,6 +133,8 @@ import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
+import { RpeSheet } from "@/components/RpeScale";
+import { askRpeEnabled } from "@/lib/rpe";
 import { useQuery } from "@tanstack/react-query";
 import type { TipoSerie, WorkoutSet } from "@/lib/types";
 
@@ -150,7 +152,6 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 
 const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 
-const RPE_OPTIONS = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const REST_OPTIONS = [30, 45, 60, 75, 90, 105, 120, 135, 150, 180, 210, 240, 300];
 
 /**
@@ -2031,7 +2032,12 @@ function SetRow({
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
         />
 
-        <PsePicker value={set.rpe} onChange={(v) => onField("rpe", v)} />
+        <PsePicker
+          value={set.rpe}
+          onChange={(v) => onField("rpe", v)}
+          exerciseName={exercise.nome}
+          setLabel={label}
+        />
 
         <button
           type="button"
