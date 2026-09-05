@@ -435,20 +435,47 @@ function SessionPage() {
   const restLeft = restSecondsLeft(session);
   const restOverdue = restOverdueSeconds(session);
 
-  /** Never zero: falls back to a rest length derived from the rep range. */
+  /**
+   * Never zero: the length you saved for this exercise wins, then the routine
+   * value, then a length derived from the rep range.
+   */
   function restFor(ex: ActiveExercise): number {
-    return ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex);
+    const saved = getRestDefault(ex.exerciseId);
+    if (saved) return saved;
+    return clampRest(ex.descansoSeg > 0 ? ex.descansoSeg : restForExercise(ex) || 90);
+  }
+
+  /** Ask for notification permission the first time a rest actually starts. */
+  function maybeAskRestPermission() {
+    if (!canAskRestPermission()) return;
+    toast(t("Get a heads-up when rest ends?"), {
+      duration: 12000,
+      action: {
+        label: t("Allow"),
+        onClick: () => {
+          void ensureRestPermission().then((granted) => setRestNotifyEnabled(granted));
+        },
+      },
+      cancel: { label: t("Not now"), onClick: () => declineRestPermission() },
+    });
   }
 
   function startRest(segundos: number) {
-    if (segundos <= 0) return;
+    const total = clampRest(segundos);
+    if (total <= 0) return;
     update((s) => ({
       ...s,
       restExpirouEm: null,
-      rest: { total: segundos, endsAt: Date.now() + segundos * 1000 },
+      rest: { total, endsAt: Date.now() + total * 1000 },
     }));
-    // Backgrounded phones stop running timers; a notification still lands.
-    scheduleRestNotification(segundos * 1000, t("Rest is over"), t("Time for your next set."));
+    // Backgrounded phones stop running timers; the worker still alerts.
+    scheduleRestNotification(
+      total * 1000,
+      t("Rest is over"),
+      t("Time for your next set."),
+      t("Resting"),
+    );
+    maybeAskRestPermission();
   }
 
   function clearOverdue() {
@@ -457,17 +484,29 @@ function SessionPage() {
 
   function patchRest(mutate: (r: RestState) => RestState | null) {
     update((s) => {
-      const next = s.rest ? mutate(s.rest) : null;
+      const raw = s.rest ? mutate(s.rest) : null;
+      // The ring stays honest: total and deadline are clamped together.
+      const next: RestState | null = raw
+        ? {
+            total: clampRest(raw.total),
+            endsAt: Math.min(
+              Date.now() + clampRest(raw.total) * 1000,
+              Math.max(Date.now() + 1000, raw.endsAt),
+            ),
+          }
+        : null;
       if (!next) cancelRestNotification();
       else
         scheduleRestNotification(
           Math.max(0, next.endsAt - Date.now()),
           t("Rest is over"),
           t("Time for your next set."),
+          t("Resting"),
         );
       return { ...s, rest: next, restExpirouEm: null };
     });
   }
+
 
   /** True when a later exercise belongs to the same superset block. */
   function supersetChain(state: ActiveSession, exIdx: number): boolean {
