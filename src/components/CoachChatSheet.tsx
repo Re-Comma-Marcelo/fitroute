@@ -4,7 +4,7 @@ import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { askCoach } from "@/lib/coach/chat";
+import { askCoach, type CoachExerciseContext } from "@/lib/coach/chat";
 import type { CoachInsight } from "@/lib/coach/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
