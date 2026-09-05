@@ -4,7 +4,7 @@ import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { askCoach } from "@/lib/coach/chat";
+import { askCoach, type CoachExerciseContext } from "@/lib/coach/chat";
 import type { CoachInsight } from "@/lib/coach/types";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -79,14 +79,37 @@ export function CoachChatRow({ label }: { label?: string }) {
   );
 }
 
-function ChatPanel() {
+/** Chat panel, embeddable elsewhere (e.g. the exercise detail sheet). */
+export function CoachChatPanel({
+  exercise,
+  suggestions,
+}: {
+  exercise?: CoachExerciseContext;
+  suggestions?: string[];
+}) {
+  return (
+    <ChatPanel {...(exercise ? { exercise } : {})} {...(suggestions ? { suggestions } : {})} />
+  );
+}
+
+function ChatPanel({
+  exercise,
+  suggestions,
+}: {
+  exercise?: CoachExerciseContext;
+  suggestions?: string[];
+}) {
   const t = useT();
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "coach",
-      text: t(
-        "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
-      ),
+      text: exercise
+        ? t("Ask me anything about {name} — form, pain, or how to progress it.", {
+            name: exercise.exerciseName,
+          })
+        : t(
+            "What can I help with? Ask about today’s plan, a stalled lift, recovery, or nutrition.",
+          ),
       insights: [],
     },
   ]);
@@ -99,20 +122,40 @@ function ChatPanel() {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, loading]);
 
+  async function ask(question: string) {
+    if (loading) return;
+    setMessages((m) => [...m, { role: "user", text: question, insights: [] }]);
+    setLoading(true);
+    const { answer, insights } = await askCoach(question, exercise);
+    setMessages((m) => [...m, { role: "coach", text: answer, insights: insights.slice(0, 2) }]);
+    setLoading(false);
+  }
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!input.trim() || loading) return;
     const question = input.trim();
     setInput("");
-    setMessages((m) => [...m, { role: "user", text: question, insights: [] }]);
-    setLoading(true);
-    const { answer, insights } = await askCoach(question);
-    setMessages((m) => [...m, { role: "coach", text: answer, insights: insights.slice(0, 2) }]);
-    setLoading(false);
+    await ask(question);
   }
 
   return (
-    <div className="flex h-[70vh] flex-col">
+    <div className={`flex flex-col ${exercise ? "h-[44vh]" : "h-[70vh]"}`}>
+      {suggestions?.length ? (
+        <div className="flex flex-wrap gap-1.5 pb-1">
+          {suggestions.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => void ask(s)}
+              disabled={loading}
+              className="tap-target h-8 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <div className="flex-1 space-y-4 overflow-y-auto py-3 pr-1">
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>

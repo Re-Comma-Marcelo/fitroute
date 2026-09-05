@@ -24,6 +24,7 @@ import { PageHeader } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { ExerciseExecutionCard } from "@/components/ExerciseExecutionCard";
 import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
+import { ExerciseCoachSection } from "@/components/ExerciseDetailSheet";
 
 import { QueryError } from "@/components/QueryError";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -495,6 +496,9 @@ function LibraryPage() {
                   <ExerciseHistoryCard exerciseId={detail.id} />
                 </div>
               </div>
+
+              <ExerciseCoachSection exerciseId={detail.id} nome={detail.nome} />
+
               {para ? (
                 <Button
                   className="h-14 w-full text-base font-semibold"

@@ -10,12 +10,29 @@ export interface CoachChatMessage {
   text: string;
 }
 
-export async function askCoach(question: string): Promise<{
+/** Optional per-exercise scope so answers name the movement and its numbers. */
+export interface CoachExerciseContext {
+  exerciseName: string;
+  tips: string[];
+  lastLabel?: string | null;
+  bestLabel?: string | null;
+  stalled?: boolean;
+}
+
+export async function askCoach(
+  question: string,
+  exercise?: CoachExerciseContext,
+): Promise<{
   answer: string;
   insights: CoachInsight[];
 }> {
   const q = question.toLowerCase();
   const asks = (...terms: string[]) => terms.some((term) => q.includes(term));
+
+  if (exercise) {
+    const scoped = answerForExercise(q, asks, exercise);
+    if (scoped) return { answer: scoped, insights: [] };
+  }
 
   // Keyword matching across the three supported languages (en / pt / nl).
   if (
@@ -127,4 +144,73 @@ export async function askCoach(question: string): Promise<{
     ),
     insights: [],
   };
+}
+
+/**
+ * Exercise-scoped answers: technique, pain and progression questions get a reply
+ * about that movement, grounded in the user's own last sets.
+ */
+function answerForExercise(
+  q: string,
+  asks: (...terms: string[]) => boolean,
+  ex: CoachExerciseContext,
+): string | null {
+  const numbers = ex.lastLabel
+    ? tx("Last time you did {last} on {name}.", { last: ex.lastLabel, name: ex.exerciseName })
+    : tx("You have no logged sets on {name} yet.", { name: ex.exerciseName });
+
+  if (
+    asks(
+      "form",
+      "right",
+      "correct",
+      "technique",
+      "how do i",
+      "how to",
+      "execute",
+      "certo",
+      "técnica",
+      "tecnica",
+      "execu",
+      "como faz",
+      "goed",
+      "techniek",
+      "uitvoer",
+      "hoe doe",
+    )
+  ) {
+    return `${ex.tips.slice(0, 3).join(" ")} ${numbers}`;
+  }
+
+  if (
+    asks("hurt", "pain", "ache", "sore", "dor", "dói", "doi", "machuca", "pijn", "blessu", "zeer")
+  ) {
+    return tx(
+      "Sharp pain in a joint means stop the set. Cut the load, shorten the range to what feels clean, and if it repeats, swap {name} for a variation and log the issue so I keep it out of your plan.",
+      { name: ex.exerciseName },
+    );
+  }
+
+  if (
+    asks(
+      "progress",
+      "heavier",
+      "more weight",
+      "increase",
+      "improve",
+      "evolu",
+      "progres",
+      "mais peso",
+      "aumentar",
+      "zwaarder",
+      "verbeter",
+    )
+  ) {
+    const push = ex.stalled
+      ? tx("It has been flat for three sessions, so chase reps before load.")
+      : tx("Add load only once every set reaches the top of your rep range with clean form.");
+    return `${push} ${numbers}`;
+  }
+
+  return null;
 }
