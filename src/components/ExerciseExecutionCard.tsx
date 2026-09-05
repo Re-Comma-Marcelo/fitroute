@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { getExercises } from "@/lib/data/exercises";
 import { exerciseLoopUrl, exerciseThumbUrl } from "@/lib/exerciseMedia";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -87,4 +89,20 @@ export function ExerciseExecutionCard({
       ) : null}
     </div>
   );
+}
+
+/** Same card, resolved from the catalog by id (used inside a live session). */
+export function ExerciseExecutionCardById({
+  exerciseId,
+  nome,
+  className,
+}: {
+  exerciseId: string;
+  nome: string;
+  className?: string;
+}) {
+  const { data } = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
+  const found = data?.find((e) => e.id === exerciseId);
+  if (!found) return null;
+  return <ExerciseExecutionCard exercise={{ ...found, nome }} className={className} />;
 }
