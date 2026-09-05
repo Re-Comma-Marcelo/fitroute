@@ -1440,24 +1440,12 @@ function SessionPage() {
 
               {aberto ? (
                 <div className="px-3 pb-3">
-                  {targetTips[exIdx] ? (
-                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
-                      <p className="text-xs font-semibold leading-snug text-foreground">
-                        {targetTips[exIdx]}
-                      </p>
-                    </div>
-                  ) : ex.prescricao ? (
-                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
-                      <p className="text-xs font-semibold leading-snug text-foreground">
-                        {ex.prescricao.line}
-                      </p>
-                      {ex.prescricao.warmup ? (
-                        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-                          {ex.prescricao.warmup.line}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  <ExercisePlanLine
+                    target={targetTips[exIdx] ?? ex.prescricao?.line}
+                    warmup={targetTips[exIdx] ? undefined : ex.prescricao?.warmup?.line}
+                    note={coachTips[exIdx]}
+                  />
+
                   <div
                     className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
