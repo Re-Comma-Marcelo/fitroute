@@ -70,7 +70,15 @@ import { blockLabels, hasNextInBlock } from "@/lib/supersets";
 import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { enqueueWorkout, isOffline } from "@/lib/offline-queue";
-import { cancelRestNotification, scheduleRestNotification } from "@/lib/rest-notification";
+import {
+  canAskRestPermission,
+  cancelRestNotification,
+  declineRestPermission,
+  ensureRestPermission,
+  scheduleRestNotification,
+  setRestNotifyEnabled,
+} from "@/lib/rest-notification";
+import { clampRest, getRestDefault, setRestDefault } from "@/lib/rest-defaults";
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
 import { restForExercise } from "@/lib/prescription";
