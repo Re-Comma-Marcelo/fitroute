@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 import { getExercises } from "@/lib/data/exercises";
 import { getFavorites } from "@/lib/favorites";
 import { getExerciseUsage } from "@/lib/exercise-usage";
@@ -78,7 +79,7 @@ export function SessionExercisePickerSheet({
                 onClick={() => onPick(e)}
                 className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
               >
-                <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
+                <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} src={exerciseThumbUrl(e)} />
                 <span className="min-w-0 flex-1">
                   <span className="block truncate font-display text-sm font-semibold leading-tight">
                     {e.nome}

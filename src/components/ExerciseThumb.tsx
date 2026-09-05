@@ -1,16 +1,25 @@
+import { useState } from "react";
 import { exerciseImage } from "@/lib/exercise-image";
 import { cn } from "@/lib/utils";
 
-/** Miniatura escura do exercício, derivada do grupo muscular. */
+/**
+ * Miniatura do exercício: usa o thumb real do catálogo quando existe e cai na
+ * ilustração do grupo muscular se a imagem falhar ou não houver mídia.
+ */
 export function ExerciseThumb({
   grupo,
   nome,
+  src,
   className,
 }: {
   grupo?: string | null | undefined;
   nome?: string | undefined;
+  src?: string | null | undefined;
   className?: string | undefined;
 }) {
+  const [failed, setFailed] = useState(false);
+  const useMedia = Boolean(src) && !failed;
+
   return (
     <span
       className={cn(
@@ -19,15 +28,18 @@ export function ExerciseThumb({
       )}
     >
       <img
-        src={exerciseImage(grupo)}
+        src={useMedia ? (src as string) : exerciseImage(grupo)}
         alt={nome ? `Illustration of ${nome}` : ""}
-
         loading="lazy"
+        decoding="async"
         width={512}
         height={512}
-        className="size-full object-cover brightness-110"
+        onError={() => setFailed(true)}
+        className={cn("size-full", useMedia ? "object-contain" : "object-cover brightness-110")}
       />
-      <span className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+      {useMedia ? null : (
+        <span className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+      )}
     </span>
   );
 }

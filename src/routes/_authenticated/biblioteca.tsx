@@ -22,7 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { ExerciseExecutionCard } from "@/components/ExerciseExecutionCard";
 import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
+
 import { QueryError } from "@/components/QueryError";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
@@ -33,6 +35,8 @@ import {
 } from "@/lib/data/exercises";
 import { setPendingExercise } from "@/lib/session-state";
 import { exerciseImage } from "@/lib/exercise-image";
+import { exerciseThumbUrl } from "@/lib/exerciseMedia";
+
 import { getFavorites, toggleFavorite } from "@/lib/favorites";
 import { bumpExerciseUsage, getExerciseUsage } from "@/lib/exercise-usage";
 import {
@@ -457,6 +461,8 @@ function LibraryPage() {
           </SheetHeader>
           {detail ? (
             <div className="space-y-4 px-4 pb-6">
+              <ExerciseExecutionCard exercise={detail} />
+
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
@@ -745,7 +751,12 @@ function ExerciseRow({
         onClick={onChoose}
         className="tap-target flex flex-1 items-center gap-3 px-3 py-3 text-left"
       >
-        <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+        <ExerciseThumb
+          grupo={exercise.grupoPrimario}
+          nome={exercise.nome}
+          src={exerciseThumbUrl(exercise)}
+        />
+
         <span className="min-w-0 flex-1">
           <span className="block truncate text-[15px] font-semibold leading-tight">
             {exercise.nome}

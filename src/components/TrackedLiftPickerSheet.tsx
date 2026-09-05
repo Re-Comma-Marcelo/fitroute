@@ -4,6 +4,7 @@ import { Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 import { getExercises } from "@/lib/data/exercises";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -54,7 +55,7 @@ export function TrackedLiftPickerSheet({
                     tracked ? "border-primary/50 bg-primary/[0.06]" : "border-border bg-card",
                   )}
                 >
-                  <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} />
+                  <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} src={exerciseThumbUrl(e)} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate font-display text-sm font-semibold leading-tight">
                       {e.nome}

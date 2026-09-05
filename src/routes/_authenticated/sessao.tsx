@@ -113,6 +113,8 @@ import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
+import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
+
 
 import { ProgressRing } from "@/components/ProgressRing";
 import { RestIsland } from "@/components/RestIsland";
@@ -1352,6 +1354,14 @@ function SessionPage() {
                     ) : null}
 
                   </div>
+                  {aberto ? (
+                    <ExerciseExecutionCardById
+                      exerciseId={ex.exerciseId}
+                      nome={ex.nome}
+                      className="mt-2"
+                    />
+                  ) : null}
+
                   {/* Coach comment sits above the sets: read it before you lift. */}
                   {coachTips[exIdx] ? (
                     <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">

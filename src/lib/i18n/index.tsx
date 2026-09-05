@@ -31,6 +31,8 @@ import { dict as round15Dict } from "./dict/round15";
 import { dict as round16Dict } from "./dict/round16";
 import { dict as round17Dict } from "./dict/round17";
 import { dict as round18Dict } from "./dict/round18";
+import { dict as round19Dict } from "./dict/round19";
+
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as shellDict } from "./dict/shell";
@@ -76,6 +78,8 @@ const FRAGMENTS: DictFragment[] = [
   round16Dict,
   round17Dict,
   round18Dict,
+  round19Dict,
+
 
 ];
 
