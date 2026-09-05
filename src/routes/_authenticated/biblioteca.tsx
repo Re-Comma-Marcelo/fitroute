@@ -22,7 +22,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader } from "@/components/AppShell";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { ExerciseExecutionCard } from "@/components/ExerciseExecutionCard";
 import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
+
 import { QueryError } from "@/components/QueryError";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import {
