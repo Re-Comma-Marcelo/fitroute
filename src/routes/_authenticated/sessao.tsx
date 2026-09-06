@@ -899,7 +899,6 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-
   /** Send the user to the library and swap the picked exercise into this slot. */
   function replaceExercise(exIdx: number) {
     setPendingReplaceSlot(exIdx);
@@ -1155,7 +1154,6 @@ function SessionPage() {
           >
             <Timer className="size-6" />
           </Button>
-
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <div className="flex items-center justify-center gap-1 px-1 py-2">
@@ -1381,7 +1379,6 @@ function SessionPage() {
                       className="mt-2"
                     />
                   ) : null}
-
                 </div>
 
                 <DropdownMenu>
@@ -1420,7 +1417,6 @@ function SessionPage() {
                       <ArrowDown className="mr-2 size-4" /> {t("Move down")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-
 
                     <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
                       <Replace className="mr-2 size-4" /> {t("Replace exercise")}
@@ -1485,7 +1481,6 @@ function SessionPage() {
                             />
                           </li>
                         ) : null}
-
                       </Fragment>
                     ))}
                   </ul>
@@ -1555,7 +1550,6 @@ function SessionPage() {
                       </span>
                     </button>
                   ) : null}
-
                 </div>
               ) : null}
             </section>
@@ -1575,7 +1569,6 @@ function SessionPage() {
           onChange={(value) => update((s) => ({ ...s, notas: value }))}
           placeholder={t("Session note")}
         />
-
       </main>
 
       <SessionExercisePickerSheet
