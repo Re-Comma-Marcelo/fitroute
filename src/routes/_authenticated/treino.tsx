@@ -399,26 +399,28 @@ function TrainPage() {
         <CoachChatRow />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <Button
-          className="h-14 w-full text-base font-semibold"
-          disabled={(!activeChoiceId && !active) || loading !== null}
-          onClick={() =>
-            active ? navigate({ to: "/sessao" }) : activeChoiceId && startRoutine(activeChoiceId)
-          }
-        >
-          <Play className="mr-1 size-5" />
-          {active ? t("Resume") : t("Start")}
-        </Button>
-        <Button
-          variant="outline"
-          className="h-14 w-full text-base font-semibold"
-          disabled={active !== null || loading !== null}
-          onClick={startBlank}
-        >
-          {t("Blank")}
-        </Button>
-      </div>
+      {/* While a workout is running the banner above is the only start action. */}
+      {active ? null : (
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Button
+            className="h-14 w-full text-base font-semibold"
+            disabled={!activeChoiceId || loading !== null}
+            onClick={() => activeChoiceId && startRoutine(activeChoiceId)}
+          >
+            <Play className="mr-1 size-5" />
+            {t("Start")}
+          </Button>
+          <Button
+            variant="outline"
+            className="h-14 w-full text-base font-semibold"
+            disabled={loading !== null}
+            onClick={startBlank}
+          >
+            {t("Blank")}
+          </Button>
+        </div>
+      )}
+
 
       <h2 className="label-caps mt-8 mb-3">{t("My routines")}</h2>
 
