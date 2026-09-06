@@ -29,7 +29,13 @@ const BAR_OPTIONS_KG = [20, 15, 10, 7];
  * How to load the bar for the weight on screen. Bar and available plates are
  * device settings, so a home gym with light plates gets honest math.
  */
-export function PlateCalculatorSheet({ targetKg }: { targetKg: number }) {
+export function PlateCalculatorSheet({
+  targetKg,
+  compact = false,
+}: {
+  targetKg: number;
+  compact?: boolean;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [bar, setBar] = useState<number>(() => getBarKg());
