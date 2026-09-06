@@ -12,7 +12,6 @@ import {
   History,
   Maximize2,
   Minimize2,
-  Info,
   MoreVertical,
   Replace,
   Minus,
@@ -138,7 +137,6 @@ import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
-import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
 import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
 import { ProgressRing } from "@/components/ProgressRing";
