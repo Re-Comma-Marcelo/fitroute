@@ -1460,7 +1460,10 @@ function SessionPage() {
                   </div>
                   {scrubHint && exIdx === 0 ? (
                     <p className="pb-1.5 text-[11px] leading-snug text-muted-foreground">
-                      {t("Tip: hold a number and slide up or down to change it.")}
+                      {t(
+                        "Tip: hold a number and slide up or down — slide further and it jumps 10 or 20 at a time.",
+                      )}
+
                     </p>
                   ) : null}
                   <ul className="divide-y divide-border/60 border-y border-border/60">
