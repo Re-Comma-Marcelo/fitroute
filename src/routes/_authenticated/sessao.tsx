@@ -1353,9 +1353,6 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  {aberto && ex.sugestao?.aumentou ? null : null}
-
-
                   {aberto ? (
                     <div className="mt-2 flex items-center gap-1.5">
                       <RestPicker
@@ -1363,6 +1360,8 @@ function SessionPage() {
                         onChange={(segundos) => setExerciseRest(exIdx, segundos)}
                       />
                       <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
+                      {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
+
                       {usesPlates(ex.equipamento) ? (
                         <PlateCalculatorSheet
                           compact
