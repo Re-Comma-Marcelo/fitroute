@@ -1859,11 +1859,12 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-semibold text-info"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-3.5 text-xs font-semibold text-info"
         >
-          <Timer className="size-3.5" strokeWidth={2.6} />
-          {t("Rest: {time}", { time: formatRest(value) })}
+          <Timer className="size-4" strokeWidth={2.6} />
+          <span className="tabular-nums">{formatRest(value)}</span>
         </button>
+
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
