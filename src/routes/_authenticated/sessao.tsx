@@ -2044,7 +2044,16 @@ function SetRow({
           onBlur={() => setDraft(null)}
           onFocus={acceptWeightTarget}
           onStep={(direction, big) => stepKg(direction * (big ? passoKg * 4 : passoKg))}
-          formatDelta={(steps) => formatSignedStep(steps * passoKg, unit)}
+          scrub={{
+            getValue: () =>
+              toDisplayWeight(Number(set.pesoKg) || set.sugPeso || set.antPeso || 0, unit),
+            stepFor: (tier) =>
+              displayStep(tier === "coarsest" ? 20 : tier === "coarse" ? 10 : passoKg, unit),
+            onValue: (value) => writeWeight(String(value)),
+            formatValue: (value, delta) =>
+              `${formatKg(value)} ${weightUnitLabel()}${delta ? ` ${formatSignedStep(delta)}` : ""}`,
+            formatStep: (step) => t("step {step}", { step: formatKg(step) }),
+          }}
           inputMode="decimal"
           placeholder={alvoPeso || weightUnitLabel()}
           ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
@@ -2055,11 +2064,19 @@ function SetRow({
           onChange={(v) => onField("reps", v)}
           onFocus={acceptRepsTarget}
           onStep={(direction, big) => stepReps(direction * (big ? 5 : 1))}
-          formatDelta={(steps) => formatSignedStep(steps)}
+          scrub={{
+            getValue: () => Number(set.reps) || set.sugReps || 0,
+            stepFor: (tier) => (tier === "fine" ? 1 : 5),
+            onValue: (value) => onField("reps", String(Math.round(value))),
+            formatValue: (value, delta) =>
+              `${Math.round(value)}${delta ? ` ${formatSignedStep(delta)}` : ""}`,
+            formatStep: (step) => t("step {step}", { step: String(step) }),
+          }}
           inputMode="numeric"
           placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
         />
+
 
         <PsePicker
           value={set.rpe}
