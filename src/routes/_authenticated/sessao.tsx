@@ -18,6 +18,8 @@ import {
   Minus,
   Pause,
   Play,
+  PlayCircle,
+
   Plus,
   RotateCcw,
   SkipForward,
