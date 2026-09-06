@@ -2105,17 +2105,18 @@ function SetRow({
   );
 }
 
-/** Shows the running change while a number is being slid, e.g. "+2.5 kg". */
-function formatSignedStep(amount: number, unit?: string): string {
+/** Shows the running change while a number is being slid, e.g. "+2.5". */
+function formatSignedStep(amount: number): string {
   const rounded = Math.round(amount * 100) / 100;
   const sign = rounded > 0 ? "+" : "";
-  return `${sign}${rounded}${unit ? ` ${weightUnitLabel()}` : ""}`;
+  return `${sign}${rounded}`;
 }
 
 /**
- * Numeric field built for typing: one tap focuses and selects the value, so the
- * keyboard replaces it straight away. Holding it and sliding up or down changes
- * the value without the keyboard; arrow keys do the same for keyboard users.
+ * Numeric field built for the thumb: hold it and slide up or down and the value
+ * moves in steps that grow with the distance travelled, so heavy lifts get there
+ * in one gesture. A plain tap still opens the keyboard for typing, and arrow
+ * keys do the same job for keyboard users.
  */
 function NumberField({
   value,
@@ -2126,7 +2127,7 @@ function NumberField({
   placeholder,
   ariaLabel,
   onStep,
-  formatDelta,
+  scrub: scrubOptions,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -2136,10 +2137,10 @@ function NumberField({
   placeholder: string;
   ariaLabel: string;
   onStep?: (direction: 1 | -1, big: boolean) => void;
-  formatDelta?: (steps: number) => string;
+  scrub?: ScrubOptions;
 }) {
   const t = useT();
-  const scrub = useValueScrub(onStep, formatDelta ?? ((steps) => String(steps)));
+  const scrub = useValueScrub(scrubOptions);
   return (
     <div className="relative min-w-0">
       <Input
@@ -2157,7 +2158,7 @@ function NumberField({
           focusNextField(e);
         }}
         placeholder={placeholder}
-        aria-label={onStep ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
+        aria-label={scrubOptions ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
         {...scrub.handlers}
         onFocus={(e) => {
           onFocus?.();
@@ -2166,18 +2167,20 @@ function NumberField({
         }}
         className={cn(
           "numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]",
-          onStep && "touch-none",
+          scrubOptions && "touch-none",
           scrub.scrubbing && "scale-105 border-primary text-primary motion-reduce:scale-100",
         )}
       />
       {scrub.scrubbing ? (
-        <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary-foreground">
-          {scrub.deltaLabel}
+        <span className="pointer-events-none absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-1.5 py-0.5 text-center text-[10px] font-bold tabular-nums text-primary-foreground">
+          {scrub.valueLabel}
+          <span className="ml-1 font-semibold opacity-80">{scrub.stepLabel}</span>
         </span>
       ) : null}
     </div>
   );
 }
+
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();
