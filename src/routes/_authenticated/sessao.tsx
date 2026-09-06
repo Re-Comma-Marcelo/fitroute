@@ -1353,41 +1353,38 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <RestPicker
-                      value={restFor(ex)}
-                      onChange={(segundos) => setExerciseRest(exIdx, segundos)}
-                    />
-                    {usesPlates(ex.equipamento) ? (
-                      <PlateCalculatorSheet
-                        targetKg={
-                          Number(
-                            ex.sets.find((s) => !s.concluida)?.pesoKg ||
-                              ex.sets.find((s) => !s.concluida)?.sugPeso ||
-                              ex.sets[0]?.pesoKg ||
-                              0,
-                          ) || 0
-                        }
-                      />
-                    ) : null}
-                    {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
-                    <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
-                    <SessionCoachSheet
-                      exerciseId={ex.exerciseId}
-                      exerciseName={ex.nome}
-                      sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
-                      workoutId={session.id}
-                      onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
-                    />
-                  </div>
                   {aberto ? (
-                    <ExerciseExecutionCardById
-                      exerciseId={ex.exerciseId}
-                      nome={ex.nome}
-                      className="mt-2"
-                    />
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <RestPicker
+                        value={restFor(ex)}
+                        onChange={(segundos) => setExerciseRest(exIdx, segundos)}
+                      />
+                      <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
+                      {usesPlates(ex.equipamento) ? (
+                        <PlateCalculatorSheet
+                          compact
+                          targetKg={
+                            Number(
+                              ex.sets.find((s) => !s.concluida)?.pesoKg ||
+                                ex.sets.find((s) => !s.concluida)?.sugPeso ||
+                                ex.sets[0]?.pesoKg ||
+                                0,
+                            ) || 0
+                          }
+                        />
+                      ) : null}
+                      <SessionCoachSheet
+                        compact
+                        exerciseId={ex.exerciseId}
+                        exerciseName={ex.nome}
+                        sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
+                        workoutId={session.id}
+                        onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
+                      />
+                    </div>
                   ) : null}
                 </div>
+
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
