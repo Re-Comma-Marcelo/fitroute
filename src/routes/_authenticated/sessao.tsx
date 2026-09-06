@@ -1463,7 +1463,6 @@ function SessionPage() {
                       {t(
                         "Tip: hold a number and slide up or down — slide further and it jumps 10 or 20 at a time.",
                       )}
-
                     </p>
                   ) : null}
                   <ul className="divide-y divide-border/60 border-y border-border/60">
@@ -2086,7 +2085,6 @@ function SetRow({
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
         />
 
-
         <PsePicker
           value={set.rpe}
           onChange={(v) => onField("rpe", v)}
@@ -2189,7 +2187,6 @@ function NumberField({
     </div>
   );
 }
-
 
 function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
   const t = useT();
