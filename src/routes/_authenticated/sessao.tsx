@@ -2246,19 +2246,23 @@ function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void
 function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const label = t("Watch how to do it");
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="tap-target flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-[11px] font-semibold text-muted-foreground"
+        aria-label={label}
+        title={label}
+        className="grid size-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground"
       >
-        <Info className="size-3.5" /> {t("How to do it")}
+        <PlayCircle className="size-4" />
       </button>
       <ExerciseDetailSheet exerciseId={exerciseId} nome={nome} open={open} onOpenChange={setOpen} />
     </>
   );
 }
+
 
 /**
  * One coach line per exercise: the target you are aiming for, with the
