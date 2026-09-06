@@ -53,7 +53,13 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { hapticTick } from "@/lib/haptics";
-import { markScrubHintShown, shouldShowScrubHint, useValueScrub } from "@/lib/use-value-scrub";
+import {
+  markScrubHintShown,
+  shouldShowScrubHint,
+  useValueScrub,
+  type ScrubOptions,
+} from "@/lib/use-value-scrub";
+
 import { buildWarmupSets } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
@@ -1454,7 +1460,9 @@ function SessionPage() {
                   </div>
                   {scrubHint && exIdx === 0 ? (
                     <p className="pb-1.5 text-[11px] leading-snug text-muted-foreground">
-                      {t("Tip: hold a number and slide up or down to change it.")}
+                      {t(
+                        "Tip: hold a number and slide up or down — slide further and it jumps 10 or 20 at a time.",
+                      )}
                     </p>
                   ) : null}
                   <ul className="divide-y divide-border/60 border-y border-border/60">
@@ -2044,7 +2052,16 @@ function SetRow({
           onBlur={() => setDraft(null)}
           onFocus={acceptWeightTarget}
           onStep={(direction, big) => stepKg(direction * (big ? passoKg * 4 : passoKg))}
-          formatDelta={(steps) => formatSignedStep(steps * passoKg, unit)}
+          scrub={{
+            getValue: () =>
+              toDisplayWeight(Number(set.pesoKg) || set.sugPeso || set.antPeso || 0, unit),
+            stepFor: (tier) =>
+              displayStep(tier === "coarsest" ? 20 : tier === "coarse" ? 10 : passoKg, unit),
+            onValue: (value) => writeWeight(String(value)),
+            formatValue: (value, delta) =>
+              `${formatKg(value)} ${weightUnitLabel()}${delta ? ` ${formatSignedStep(delta)}` : ""}`,
+            formatStep: (step) => t("step {step}", { step: formatKg(step) }),
+          }}
           inputMode="decimal"
           placeholder={alvoPeso || weightUnitLabel()}
           ariaLabel={t("Weight in {unit}", { unit: weightUnitLabel() })}
@@ -2055,7 +2072,14 @@ function SetRow({
           onChange={(v) => onField("reps", v)}
           onFocus={acceptRepsTarget}
           onStep={(direction, big) => stepReps(direction * (big ? 5 : 1))}
-          formatDelta={(steps) => formatSignedStep(steps)}
+          scrub={{
+            getValue: () => Number(set.reps) || set.sugReps || 0,
+            stepFor: (tier) => (tier === "fine" ? 1 : 5),
+            onValue: (value) => onField("reps", String(Math.round(value))),
+            formatValue: (value, delta) =>
+              `${Math.round(value)}${delta ? ` ${formatSignedStep(delta)}` : ""}`,
+            formatStep: (step) => t("step {step}", { step: String(step) }),
+          }}
           inputMode="numeric"
           placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
           ariaLabel={tempo ? t("Seconds") : t("Reps")}
@@ -2088,17 +2112,18 @@ function SetRow({
   );
 }
 
-/** Shows the running change while a number is being slid, e.g. "+2.5 kg". */
-function formatSignedStep(amount: number, unit?: string): string {
+/** Shows the running change while a number is being slid, e.g. "+2.5". */
+function formatSignedStep(amount: number): string {
   const rounded = Math.round(amount * 100) / 100;
   const sign = rounded > 0 ? "+" : "";
-  return `${sign}${rounded}${unit ? ` ${weightUnitLabel()}` : ""}`;
+  return `${sign}${rounded}`;
 }
 
 /**
- * Numeric field built for typing: one tap focuses and selects the value, so the
- * keyboard replaces it straight away. Holding it and sliding up or down changes
- * the value without the keyboard; arrow keys do the same for keyboard users.
+ * Numeric field built for the thumb: hold it and slide up or down and the value
+ * moves in steps that grow with the distance travelled, so heavy lifts get there
+ * in one gesture. A plain tap still opens the keyboard for typing, and arrow
+ * keys do the same job for keyboard users.
  */
 function NumberField({
   value,
@@ -2109,7 +2134,7 @@ function NumberField({
   placeholder,
   ariaLabel,
   onStep,
-  formatDelta,
+  scrub: scrubOptions,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -2119,10 +2144,10 @@ function NumberField({
   placeholder: string;
   ariaLabel: string;
   onStep?: (direction: 1 | -1, big: boolean) => void;
-  formatDelta?: (steps: number) => string;
+  scrub?: ScrubOptions;
 }) {
   const t = useT();
-  const scrub = useValueScrub(onStep, formatDelta ?? ((steps) => String(steps)));
+  const scrub = useValueScrub(scrubOptions);
   return (
     <div className="relative min-w-0">
       <Input
@@ -2140,7 +2165,7 @@ function NumberField({
           focusNextField(e);
         }}
         placeholder={placeholder}
-        aria-label={onStep ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
+        aria-label={scrubOptions ? `${ariaLabel} — ${t("hold and slide to adjust")}` : ariaLabel}
         {...scrub.handlers}
         onFocus={(e) => {
           onFocus?.();
@@ -2149,13 +2174,14 @@ function NumberField({
         }}
         className={cn(
           "numeric-field h-10 min-w-0 px-0.5 text-center text-[15px]",
-          onStep && "touch-none",
+          scrubOptions && "touch-none",
           scrub.scrubbing && "scale-105 border-primary text-primary motion-reduce:scale-100",
         )}
       />
       {scrub.scrubbing ? (
-        <span className="pointer-events-none absolute -top-5 left-1/2 -translate-x-1/2 rounded-md bg-primary px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary-foreground">
-          {scrub.deltaLabel}
+        <span className="pointer-events-none absolute -top-6 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md bg-primary px-1.5 py-0.5 text-center text-[10px] font-bold tabular-nums text-primary-foreground">
+          {scrub.valueLabel}
+          <span className="ml-1 font-semibold opacity-80">{scrub.stepLabel}</span>
         </span>
       ) : null}
     </div>
