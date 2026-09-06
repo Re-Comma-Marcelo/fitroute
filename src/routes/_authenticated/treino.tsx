@@ -151,7 +151,6 @@ function TrainPage() {
     };
   }, [coach?.recommendedRoutineId, coach?.routineId, routines, exercises]);
 
-
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
   const orderedRoutines = useMemo(() => {
     if (!coach?.recommendedRoutineId) return routines;
@@ -293,7 +292,6 @@ function TrainPage() {
         </div>
       ) : null}
 
-
       <section>
         <div className="flex items-end justify-between">
           <h2 className="label-caps">{t("Weekly goal")}</h2>
@@ -337,7 +335,6 @@ function TrainPage() {
         ) : null}
       </section>
 
-
       {coach?.restDay && !overrideRest && !active ? (
         <section className="mt-5 rounded-2xl border border-border bg-card p-4">
           <p className="label-caps text-muted-foreground">{t("Coach · today")}</p>
@@ -357,9 +354,7 @@ function TrainPage() {
               <p className="mt-1 truncate text-sm font-semibold">{nextPreview.nome}</p>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {nextPreview.primeiros.join(" · ")}
-                {nextPreview.restantes > 0
-                  ? ` · +${nextPreview.restantes} ${t("more")}`
-                  : ""}
+                {nextPreview.restantes > 0 ? ` · +${nextPreview.restantes} ${t("more")}` : ""}
               </p>
               <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
                 ~{nextPreview.minutos} {t("min")}
@@ -399,26 +394,27 @@ function TrainPage() {
         <CoachChatRow />
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-3">
-        <Button
-          className="h-14 w-full text-base font-semibold"
-          disabled={(!activeChoiceId && !active) || loading !== null}
-          onClick={() =>
-            active ? navigate({ to: "/sessao" }) : activeChoiceId && startRoutine(activeChoiceId)
-          }
-        >
-          <Play className="mr-1 size-5" />
-          {active ? t("Resume") : t("Start")}
-        </Button>
-        <Button
-          variant="outline"
-          className="h-14 w-full text-base font-semibold"
-          disabled={active !== null || loading !== null}
-          onClick={startBlank}
-        >
-          {t("Blank")}
-        </Button>
-      </div>
+      {/* While a workout is running the banner above is the only start action. */}
+      {active ? null : (
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <Button
+            className="h-14 w-full text-base font-semibold"
+            disabled={!activeChoiceId || loading !== null}
+            onClick={() => activeChoiceId && startRoutine(activeChoiceId)}
+          >
+            <Play className="mr-1 size-5" />
+            {t("Start")}
+          </Button>
+          <Button
+            variant="outline"
+            className="h-14 w-full text-base font-semibold"
+            disabled={loading !== null}
+            onClick={startBlank}
+          >
+            {t("Blank")}
+          </Button>
+        </div>
+      )}
 
       <h2 className="label-caps mt-8 mb-3">{t("My routines")}</h2>
 
@@ -486,8 +482,6 @@ function TrainPage() {
           {t("Start from a template")}
         </Button>
       ) : null}
-
-
 
       <RoutineTemplateSheet
         open={templatesOpen}

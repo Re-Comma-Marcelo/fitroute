@@ -148,9 +148,13 @@ function SummaryPage() {
             <p className="label-caps text-primary">{t("Coach")}</p>
             <p className="mt-2 text-sm leading-relaxed text-foreground">{coachMessage}</p>
           </section>
-        ) : null}
-
-
+        ) : (
+          <p className="mt-6 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-xs leading-snug text-muted-foreground">
+            {t(
+              "The coach note and records for this workout are only shown right after you finish.",
+            )}
+          </p>
+        )}
 
         {prs.length ? (
           <section aria-label={t("New personal records")} className="mt-6 space-y-3">

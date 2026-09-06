@@ -34,8 +34,10 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { QueryError } from "@/components/QueryError";
@@ -897,19 +899,6 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-  /** "I'll do this later": push the exercise to the end of the session. */
-  function moveExerciseToEnd(exIdx: number) {
-    update((s) => {
-      if (exIdx >= s.exercicios.length - 1) return s;
-      const exercicios = [...s.exercicios];
-      const [moved] = exercicios.splice(exIdx, 1);
-      exercicios.push(moved!);
-      const atual = Math.min(exIdx, exercicios.length - 1);
-      return { ...s, exercicios, atual };
-    });
-    hapticTick();
-  }
-
   /** Send the user to the library and swap the picked exercise into this slot. */
   function replaceExercise(exIdx: number) {
     setPendingReplaceSlot(exIdx);
@@ -1103,6 +1092,18 @@ function SessionPage() {
     .reduce((total, ex) => total + ex.sets.filter(isSerieValida).length, 0);
   const volumeAtual = sessionVolume(session);
   const pendCount = filledUncheckedSets(session);
+  /** Exactly which sets the finish dialog would drop, so the choice is never blind. */
+  const pendingList = session.exercicios.flatMap((ex, exIdx) =>
+    ex.sets
+      .map((set, setIdx) => ({ set, setIdx }))
+      .filter(({ set }) => !set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "")
+      .map(({ set, setIdx }) => ({
+        key: `${exIdx}:${setIdx}`,
+        nome: `${ex.nome} · ${serieLabel(ex.sets, setIdx)}`,
+        detalhe: `${formatKg(Number(set.pesoKg) || 0)} kg × ${Number(set.reps) || 0}`,
+      })),
+  );
+
   const currentExercise = session.exercicios[focusIdx];
   const currentRest = currentExercise ? restFor(currentExercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
@@ -1145,29 +1146,13 @@ function SessionPage() {
             variant="ghost"
             size="icon"
             className="tap-target text-info"
-            aria-label={t("Open rest timer")}
+            aria-label={restLeft > 0 ? t("Restart rest") : t("Start rest")}
             onClick={() => {
-              // Never silently wipe a rest already counting down.
-              if (restLeft > 0) {
-                toast(t("Rest already running"), {
-                  action: {
-                    label: t("Restart"),
-                    onClick: () => startRest(currentRest),
-                  },
-                });
-                return;
-              }
+              hapticTick();
               startRest(currentRest);
             }}
           >
             <Timer className="size-6" />
-          </Button>
-          <Button
-            className="tap-target h-11 bg-info px-4 font-semibold text-info-foreground hover:bg-info/90"
-            disabled={finishing}
-            onClick={requestFinish}
-          >
-            {t("Finish")}
           </Button>
         </div>
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
@@ -1386,21 +1371,6 @@ function SessionPage() {
                       workoutId={session.id}
                       onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
                     />
-                    {/* Ramp-up suggestion: only while nothing is logged and no warm-up exists. */}
-                    {aberto &&
-                    !ex.sets.some((s) => s.concluida) &&
-                    !ex.sets.some((s) => !isSerieValida(s)) &&
-                    (Number(ex.sets.find(isSerieValida)?.pesoKg) ||
-                      ex.sets.find(isSerieValida)?.sugPeso ||
-                      0) > 20 ? (
-                      <button
-                        type="button"
-                        onClick={() => addWarmup(exIdx)}
-                        className="tap-target flex h-8 items-center gap-1 rounded-full bg-train/15 px-2.5 text-[11px] font-semibold text-train"
-                      >
-                        <Flame className="size-3.5" /> {t("Add warm-up")}
-                      </button>
-                    ) : null}
                   </div>
                   {aberto ? (
                     <ExerciseExecutionCardById
@@ -1408,13 +1378,6 @@ function SessionPage() {
                       nome={ex.nome}
                       className="mt-2"
                     />
-                  ) : null}
-
-                  {/* Coach comment sits above the sets: read it before you lift. */}
-                  {coachTips[exIdx] ? (
-                    <p className="mt-2 rounded-xl border border-primary/30 bg-primary/10 px-3 py-2 text-xs leading-snug text-foreground">
-                      {coachTips[exIdx]}
-                    </p>
                   ) : null}
                 </div>
 
@@ -1440,6 +1403,7 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => addWarmup(exIdx)}>
                       <Flame className="mr-2 size-4" /> {t("Add warm-up sets")}
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       disabled={exIdx === 0}
                       onClick={() => moveExercise(exIdx, -1)}
@@ -1452,12 +1416,8 @@ function SessionPage() {
                     >
                       <ArrowDown className="mr-2 size-4" /> {t("Move down")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={exIdx === session.exercicios.length - 1}
-                      onClick={() => moveExerciseToEnd(exIdx)}
-                    >
-                      <ArrowDown className="mr-2 size-4" /> {t("Do this one last")}
-                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+
                     <DropdownMenuItem onClick={() => replaceExercise(exIdx)}>
                       <Replace className="mr-2 size-4" /> {t("Replace exercise")}
                     </DropdownMenuItem>
@@ -1476,24 +1436,12 @@ function SessionPage() {
 
               {aberto ? (
                 <div className="px-3 pb-3">
-                  {targetTips[exIdx] ? (
-                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
-                      <p className="text-xs font-semibold leading-snug text-foreground">
-                        {targetTips[exIdx]}
-                      </p>
-                    </div>
-                  ) : ex.prescricao ? (
-                    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
-                      <p className="text-xs font-semibold leading-snug text-foreground">
-                        {ex.prescricao.line}
-                      </p>
-                      {ex.prescricao.warmup ? (
-                        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">
-                          {ex.prescricao.warmup.line}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  <ExercisePlanLine
+                    target={targetTips[exIdx] ?? ex.prescricao?.line}
+                    warmup={targetTips[exIdx] ? undefined : ex.prescricao?.warmup?.line}
+                    note={coachTips[exIdx]}
+                  />
+
                   <div
                     className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
@@ -1524,16 +1472,12 @@ function SessionPage() {
                           typeName={typeName}
                           t={t}
                         />
-                        {/* Optional context for the coach, never blocking the log flow. */}
+                        {/* Optional context for the coach, kept out of sight until asked for. */}
                         {set.concluida ? (
                           <li className="border-0 px-0.5 pb-1.5">
-                            <input
+                            <SetNoteField
                               value={set.coachNote ?? ""}
-                              onChange={(e) => setSetNote(exIdx, setIdx, e.target.value)}
-                              placeholder={t("Note for coach (optional)")}
-                              aria-label={t("Note for coach (optional)")}
-                              maxLength={140}
-                              className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              onChange={(value) => setSetNote(exIdx, setIdx, value)}
                             />
                           </li>
                         ) : null}
@@ -1568,17 +1512,44 @@ function SessionPage() {
                     </Button>
                   </div>
 
-                  <Textarea
+                  <CollapsibleNote
                     value={ex.notas}
-                    onChange={(e) =>
+                    onChange={(value) =>
                       update((s) => {
-                        s.exercicios[exIdx]!.notas = e.target.value;
+                        s.exercicios[exIdx]!.notas = value;
                         return s;
                       })
                     }
                     placeholder={t("Exercise note (e.g., closer grip)")}
-                    className="mt-2 min-h-11 text-sm"
                   />
+
+                  {/* Rhythm between exercises: finish one, move to the next. */}
+                  {exDone && exIdx < session.exercicios.length - 1 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = exIdx + 1;
+                        update((s) => ({ ...s, atual: next }));
+                        setScrollTo(next);
+                        hapticTick();
+                      }}
+                      className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2.5 text-left"
+                    >
+                      <span className="min-w-0">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-success">
+                          {t("Exercise done")}
+                        </span>
+                        <span className="block truncate text-sm font-semibold text-foreground">
+                          {t("Next: {name}", {
+                            name: session.exercicios[exIdx + 1]?.nome ?? "",
+                          })}
+                        </span>
+                      </span>
+                      <span className="shrink-0 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-background">
+                        {t("Next")}
+                      </span>
+                    </button>
+                  ) : null}
                 </div>
               ) : null}
             </section>
@@ -1593,11 +1564,10 @@ function SessionPage() {
           <Plus className="mr-1 size-5" /> {t("Add exercise")}
         </Button>
 
-        <Textarea
+        <CollapsibleNote
           value={session.notas}
-          onChange={(e) => update((s) => ({ ...s, notas: e.target.value }))}
+          onChange={(value) => update((s) => ({ ...s, notas: value }))}
           placeholder={t("Session note")}
-          className="min-h-16 text-sm"
         />
       </main>
 
@@ -1654,7 +1624,25 @@ function SessionPage() {
               }}
             />
           </div>
-        ) : null}
+        ) : (
+          /* Idle state: the rest length is always visible, one tap from starting. */
+          <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 pt-2">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+              <Timer className="size-4 text-info" />
+              {t("Rest")} {formatRest(currentRest)}
+            </span>
+            <Button
+              variant="ghost"
+              className="h-9 px-3 text-xs font-semibold text-info"
+              onClick={() => {
+                hapticTick();
+                startRest(currentRest);
+              }}
+            >
+              {t("Start rest")}
+            </Button>
+          </div>
+        )}
         <div className="mx-auto max-w-md px-3 py-3">
           {coachMark === 2 ? (
             <CoachMark
@@ -1664,13 +1652,20 @@ function SessionPage() {
             />
           ) : null}
           <Button
-            className="h-14 w-full text-base font-semibold"
+            className="h-14 w-full flex-col gap-0 text-base font-semibold leading-tight"
             disabled={finishing}
             onClick={requestFinish}
           >
-            {t("Finish workout")}
+            <span>{t("Finish workout")}</span>
+            <span className="text-[11px] font-medium opacity-80">
+              {t("{sets} sets · {volume} kg", {
+                sets: setsDone,
+                volume: formatKg(Math.round(volumeAtual)),
+              })}
+            </span>
           </Button>
         </div>
+
         <div className="h-[env(safe-area-inset-bottom)]" />
       </div>
 
@@ -1689,6 +1684,19 @@ function SessionPage() {
                 : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {pendCount > 0 ? (
+            <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
+              {pendingList.map((item) => (
+                <li key={item.key} className="flex items-center justify-between gap-2">
+                  <span className="min-w-0 truncate text-muted-foreground">{item.nome}</span>
+                  <span className="shrink-0 font-semibold tabular-nums text-foreground">
+                    {item.detalhe}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
           <AlertDialogFooter>
             <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
             {pendCount > 0 ? (
@@ -2222,5 +2230,112 @@ function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: st
       </button>
       <ExerciseDetailSheet exerciseId={exerciseId} nome={nome} open={open} onOpenChange={setOpen} />
     </>
+  );
+}
+
+/**
+ * One coach line per exercise: the target you are aiming for, with the
+ * reasoning tucked behind a tap so the sets stay the loudest thing on screen.
+ */
+function ExercisePlanLine({
+  target,
+  warmup,
+  note,
+}: {
+  target?: string | undefined;
+  warmup?: string | undefined;
+  note?: string | undefined;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  if (!target && !note) return null;
+  return (
+    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
+      {target ? (
+        <p className="text-xs font-semibold leading-snug text-foreground">{target}</p>
+      ) : null}
+      {warmup ? (
+        <p className="mt-1 text-[11px] leading-snug text-muted-foreground">{warmup}</p>
+      ) : null}
+      {note ? (
+        <>
+          {target ? (
+            <button
+              type="button"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+              className="mt-1 text-[11px] font-semibold text-train underline-offset-2 hover:underline"
+            >
+              {open ? t("Hide why") : t("Why this target")}
+            </button>
+          ) : null}
+          {open || !target ? (
+            <p className="mt-1 text-[11px] leading-snug text-foreground">{note}</p>
+          ) : null}
+        </>
+      ) : null}
+    </div>
+  );
+}
+
+/** Coach note for a single set: hidden behind a link until there is something to say. */
+function SetNoteField({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  const t = useT();
+  const [open, setOpen] = useState(value.trim() !== "");
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="h-7 px-0.5 text-[11px] font-semibold text-muted-foreground"
+      >
+        + {t("Note for coach")}
+      </button>
+    );
+  }
+  return (
+    <input
+      autoFocus={value === ""}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={t("Note for coach (optional)")}
+      aria-label={t("Note for coach (optional)")}
+      maxLength={140}
+      className="h-8 w-full rounded-lg border border-border/60 bg-surface-2 px-2 text-[11px] text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+    />
+  );
+}
+
+/** Free-text note that only takes space once you decide to write one. */
+function CollapsibleNote({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const t = useT();
+  const [open, setOpen] = useState(value.trim() !== "");
+  if (!open) {
+    return (
+      <Button
+        variant="ghost"
+        className="mt-1 h-9 px-2 text-xs font-semibold text-muted-foreground"
+        onClick={() => setOpen(true)}
+      >
+        <Plus className="mr-1 size-3.5" /> {t("Add note")}
+      </Button>
+    );
+  }
+  return (
+    <Textarea
+      autoFocus={value === ""}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className="mt-2 min-h-11 text-sm"
+    />
   );
 }
