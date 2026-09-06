@@ -153,12 +153,19 @@ export function SessionCoachSheet({
       <SheetTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
+          className={
+            compact
+              ? "grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+              : "tap-target inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
+          }
           aria-label={t("Ask your coach")}
+          title={t("Ask your coach")}
         >
-          <MessageSquare className="size-3.5" strokeWidth={2} /> {t("Ask coach")}
+          <MessageSquare className={compact ? "size-4" : "size-3.5"} strokeWidth={2} />
+          {compact ? null : t("Ask coach")}
         </button>
       </SheetTrigger>
+
       <SheetContent side="bottom" className="flex flex-col">
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
