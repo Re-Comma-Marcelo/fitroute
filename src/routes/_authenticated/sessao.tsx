@@ -1836,10 +1836,11 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
+          aria-label={t("Weight increased")}
+          title={t("Weight increased")}
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary"
         >
-          <TrendingUp className="size-3.5" strokeWidth={3} />
-          {t("Weight increased")}
+          <TrendingUp className="size-4" strokeWidth={3} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
@@ -1848,6 +1849,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
     </Popover>
   );
 }
+
 
 function RestPicker({ value, onChange }: { value: number; onChange: (segundos: number) => void }) {
   const t = useT();
