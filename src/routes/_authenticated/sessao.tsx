@@ -1353,11 +1353,8 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  {ex.sugestao?.aumentou ? (
-                    <div className="-mt-6 mb-1 flex justify-end pr-7">
-                      <ProgressBadge motivo={ex.sugestao.motivo} />
-                    </div>
-                  ) : null}
+                  {aberto && ex.sugestao?.aumentou ? null : null}
+
 
                   {aberto ? (
                     <div className="mt-2 flex items-center gap-1.5">
