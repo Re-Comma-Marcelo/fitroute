@@ -73,12 +73,20 @@ export function PlateCalculatorSheet({
       <SheetTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+          aria-label={t("Plates")}
+          title={t("Plates")}
+          className={cn(
+            "shrink-0 font-semibold text-muted-foreground",
+            compact
+              ? "grid size-10 place-items-center rounded-full border border-border"
+              : "tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs",
+          )}
         >
-          <Calculator className="size-3.5" strokeWidth={2.6} />
-          {t("Plates")}
+          <Calculator className={compact ? "size-4" : "size-3.5"} strokeWidth={2.6} />
+          {compact ? null : t("Plates")}
         </button>
       </SheetTrigger>
+
       <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto">
         <SheetHeader className="text-left">
           <SheetTitle>{t("Plate calculator")}</SheetTitle>
