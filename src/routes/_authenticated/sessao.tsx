@@ -12,12 +12,12 @@ import {
   History,
   Maximize2,
   Minimize2,
-  Info,
   MoreVertical,
   Replace,
   Minus,
   Pause,
   Play,
+  PlayCircle,
   Plus,
   RotateCcw,
   SkipForward,
@@ -136,7 +136,6 @@ import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
-import { ExerciseExecutionCardById } from "@/components/ExerciseExecutionCard";
 import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
 import { ProgressRing } from "@/components/ProgressRing";
@@ -1351,39 +1350,37 @@ function SessionPage() {
                       }`}
                     />
                   </button>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                    <RestPicker
-                      value={restFor(ex)}
-                      onChange={(segundos) => setExerciseRest(exIdx, segundos)}
-                    />
-                    {usesPlates(ex.equipamento) ? (
-                      <PlateCalculatorSheet
-                        targetKg={
-                          Number(
-                            ex.sets.find((s) => !s.concluida)?.pesoKg ||
-                              ex.sets.find((s) => !s.concluida)?.sugPeso ||
-                              ex.sets[0]?.pesoKg ||
-                              0,
-                          ) || 0
-                        }
-                      />
-                    ) : null}
-                    {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
-                    <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
-                    <SessionCoachSheet
-                      exerciseId={ex.exerciseId}
-                      exerciseName={ex.nome}
-                      sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
-                      workoutId={session.id}
-                      onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
-                    />
-                  </div>
                   {aberto ? (
-                    <ExerciseExecutionCardById
-                      exerciseId={ex.exerciseId}
-                      nome={ex.nome}
-                      className="mt-2"
-                    />
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <RestPicker
+                        value={restFor(ex)}
+                        onChange={(segundos) => setExerciseRest(exIdx, segundos)}
+                      />
+                      <ExerciseInfoButton exerciseId={ex.exerciseId} nome={ex.nome} />
+                      {ex.sugestao?.aumentou ? <ProgressBadge motivo={ex.sugestao.motivo} /> : null}
+
+                      {usesPlates(ex.equipamento) ? (
+                        <PlateCalculatorSheet
+                          compact
+                          targetKg={
+                            Number(
+                              ex.sets.find((s) => !s.concluida)?.pesoKg ||
+                                ex.sets.find((s) => !s.concluida)?.sugPeso ||
+                                ex.sets[0]?.pesoKg ||
+                                0,
+                            ) || 0
+                          }
+                        />
+                      ) : null}
+                      <SessionCoachSheet
+                        compact
+                        exerciseId={ex.exerciseId}
+                        exerciseName={ex.nome}
+                        sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
+                        workoutId={session.id}
+                        onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
+                      />
+                    </div>
                   ) : null}
                 </div>
 
@@ -1835,10 +1832,11 @@ function ProgressBadge({ motivo }: { motivo: string }) {
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-primary/15 px-3 text-xs font-semibold text-primary"
+          aria-label={t("Weight increased")}
+          title={t("Weight increased")}
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary"
         >
-          <TrendingUp className="size-3.5" strokeWidth={3} />
-          {t("Weight increased")}
+          <TrendingUp className="size-4" strokeWidth={3} />
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
@@ -1856,10 +1854,11 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-info/15 px-3 text-xs font-semibold text-info"
+          aria-label={t("Rest for this exercise")}
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-3.5 text-xs font-semibold text-info"
         >
-          <Timer className="size-3.5" strokeWidth={2.6} />
-          {t("Rest: {time}", { time: formatRest(value) })}
+          <Timer className="size-4" strokeWidth={2.6} />
+          <span className="tabular-nums">{formatRest(value)}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
@@ -2245,14 +2244,17 @@ function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void
 function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: string }) {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const label = t("Watch how to do it");
   return (
     <>
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="tap-target flex h-8 items-center gap-1 rounded-full border border-border px-2.5 text-[11px] font-semibold text-muted-foreground"
+        aria-label={label}
+        title={label}
+        className="grid size-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground"
       >
-        <Info className="size-3.5" /> {t("How to do it")}
+        <PlayCircle className="size-4" />
       </button>
       <ExerciseDetailSheet exerciseId={exerciseId} nome={nome} open={open} onOpenChange={setOpen} />
     </>

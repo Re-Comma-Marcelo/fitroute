@@ -35,7 +35,18 @@ const SWAP_HINTS = [
   "wisselen",
   "pijn",
 ];
-const FEEL_HINTS = ["feel", "where", "form", "technique", "sentir", "onde", "técnica", "voelen", "waar", "techniek"];
+const FEEL_HINTS = [
+  "feel",
+  "where",
+  "form",
+  "technique",
+  "sentir",
+  "onde",
+  "técnica",
+  "voelen",
+  "waar",
+  "techniek",
+];
 
 /**
  * Coach chat during an active workout: swap the current exercise, form cues,
@@ -47,12 +58,14 @@ export function SessionCoachSheet({
   sessionExerciseIds,
   workoutId,
   onSwap,
+  compact = false,
 }: {
   exerciseId: string;
   exerciseName: string;
   sessionExerciseIds: string[];
   workoutId: string;
   onSwap: (exercise: Exercise) => void;
+  compact?: boolean;
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -150,12 +163,19 @@ export function SessionCoachSheet({
       <SheetTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
+          className={
+            compact
+              ? "grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+              : "tap-target inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
+          }
           aria-label={t("Ask your coach")}
+          title={t("Ask your coach")}
         >
-          <MessageSquare className="size-3.5" strokeWidth={2} /> {t("Ask coach")}
+          <MessageSquare className={compact ? "size-4" : "size-3.5"} strokeWidth={2} />
+          {compact ? null : t("Ask coach")}
         </button>
       </SheetTrigger>
+
       <SheetContent side="bottom" className="flex flex-col">
         <SheetHeader className="pb-2">
           <SheetTitle className="flex items-center gap-2">
@@ -165,7 +185,10 @@ export function SessionCoachSheet({
         <div className="flex h-[60vh] flex-col">
           <div className="flex-1 space-y-3 overflow-y-auto py-2 pr-1">
             {messages.map((m, i) => (
-              <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+              <div
+                key={i}
+                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+              >
                 <div
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     m.role === "user"

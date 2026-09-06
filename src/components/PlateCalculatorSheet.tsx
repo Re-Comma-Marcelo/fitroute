@@ -29,7 +29,13 @@ const BAR_OPTIONS_KG = [20, 15, 10, 7];
  * How to load the bar for the weight on screen. Bar and available plates are
  * device settings, so a home gym with light plates gets honest math.
  */
-export function PlateCalculatorSheet({ targetKg }: { targetKg: number }) {
+export function PlateCalculatorSheet({
+  targetKg,
+  compact = false,
+}: {
+  targetKg: number;
+  compact?: boolean;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const [bar, setBar] = useState<number>(() => getBarKg());
@@ -67,12 +73,20 @@ export function PlateCalculatorSheet({ targetKg }: { targetKg: number }) {
       <SheetTrigger asChild>
         <button
           type="button"
-          className="tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+          aria-label={t("Plates")}
+          title={t("Plates")}
+          className={cn(
+            "shrink-0 font-semibold text-muted-foreground",
+            compact
+              ? "grid size-10 place-items-center rounded-full border border-border"
+              : "tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs",
+          )}
         >
-          <Calculator className="size-3.5" strokeWidth={2.6} />
-          {t("Plates")}
+          <Calculator className={compact ? "size-4" : "size-3.5"} strokeWidth={2.6} />
+          {compact ? null : t("Plates")}
         </button>
       </SheetTrigger>
+
       <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto">
         <SheetHeader className="text-left">
           <SheetTitle>{t("Plate calculator")}</SheetTitle>
@@ -128,9 +142,7 @@ export function PlateCalculatorSheet({ targetKg }: { targetKg: number }) {
                 bar: formatKg(breakdown.barKg),
                 total: formatKg(breakdown.achievedKg),
               })}
-              {breakdown.offKg !== 0
-                ? ` · ${t("closest possible with your plates")}`
-                : ""}
+              {breakdown.offKg !== 0 ? ` · ${t("closest possible with your plates")}` : ""}
             </p>
           </div>
 
