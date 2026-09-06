@@ -47,13 +47,16 @@ export function SessionCoachSheet({
   sessionExerciseIds,
   workoutId,
   onSwap,
+  compact = false,
 }: {
   exerciseId: string;
   exerciseName: string;
   sessionExerciseIds: string[];
   workoutId: string;
   onSwap: (exercise: Exercise) => void;
+  compact?: boolean;
 }) {
+
   const t = useT();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
