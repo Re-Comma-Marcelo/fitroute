@@ -35,7 +35,18 @@ const SWAP_HINTS = [
   "wisselen",
   "pijn",
 ];
-const FEEL_HINTS = ["feel", "where", "form", "technique", "sentir", "onde", "técnica", "voelen", "waar", "techniek"];
+const FEEL_HINTS = [
+  "feel",
+  "where",
+  "form",
+  "technique",
+  "sentir",
+  "onde",
+  "técnica",
+  "voelen",
+  "waar",
+  "techniek",
+];
 
 /**
  * Coach chat during an active workout: swap the current exercise, form cues,
@@ -56,7 +67,6 @@ export function SessionCoachSheet({
   onSwap: (exercise: Exercise) => void;
   compact?: boolean;
 }) {
-
   const t = useT();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -175,7 +185,10 @@ export function SessionCoachSheet({
         <div className="flex h-[60vh] flex-col">
           <div className="flex-1 space-y-3 overflow-y-auto py-2 pr-1">
             {messages.map((m, i) => (
-              <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+              <div
+                key={i}
+                className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+              >
                 <div
                   className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     m.role === "user"

@@ -142,9 +142,7 @@ export function PlateCalculatorSheet({
                 bar: formatKg(breakdown.barKg),
                 total: formatKg(breakdown.achievedKg),
               })}
-              {breakdown.offKg !== 0
-                ? ` · ${t("closest possible with your plates")}`
-                : ""}
+              {breakdown.offKg !== 0 ? ` · ${t("closest possible with your plates")}` : ""}
             </p>
           </div>
 

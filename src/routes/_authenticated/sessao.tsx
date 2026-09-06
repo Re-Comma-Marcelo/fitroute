@@ -18,7 +18,6 @@ import {
   Pause,
   Play,
   PlayCircle,
-
   Plus,
   RotateCcw,
   SkipForward,
@@ -1385,7 +1384,6 @@ function SessionPage() {
                   ) : null}
                 </div>
 
-
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -1848,7 +1846,6 @@ function ProgressBadge({ motivo }: { motivo: string }) {
   );
 }
 
-
 function RestPicker({ value, onChange }: { value: number; onChange: (segundos: number) => void }) {
   const t = useT();
   const [open, setOpen] = useState(false);
@@ -1860,11 +1857,9 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
           aria-label={t("Rest for this exercise")}
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-3.5 text-xs font-semibold text-info"
         >
-
           <Timer className="size-4" strokeWidth={2.6} />
           <span className="tabular-nums">{formatRest(value)}</span>
         </button>
-
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -2265,7 +2260,6 @@ function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: st
     </>
   );
 }
-
 
 /**
  * One coach line per exercise: the target you are aiming for, with the
