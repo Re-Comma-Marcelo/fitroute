@@ -1859,8 +1859,10 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
       <PopoverTrigger asChild>
         <button
           type="button"
+          aria-label={t("Rest for this exercise")}
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-3.5 text-xs font-semibold text-info"
         >
+
           <Timer className="size-4" strokeWidth={2.6} />
           <span className="tabular-nums">{formatRest(value)}</span>
         </button>
