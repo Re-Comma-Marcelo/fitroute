@@ -32,6 +32,7 @@ import {
 import { AppShell } from "@/components/AppShell";
 import { QueryError } from "@/components/QueryError";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 import { TodayCoachCard } from "@/components/TodayCoachCard";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
