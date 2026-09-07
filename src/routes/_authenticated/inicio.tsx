@@ -271,7 +271,7 @@ function TodayCard({
         </div>
       </div>
 
-      <Button onClick={onStart} className="mt-4 h-13 w-full text-base font-semibold">
+      <Button onClick={onStart} className="mt-4 h-14 w-full text-base font-semibold">
         {activeLabel ? (
           <>
             <Timer className="mr-2 size-5" /> {t("Resume workout")}
