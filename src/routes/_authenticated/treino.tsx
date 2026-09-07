@@ -8,6 +8,7 @@ import { RoutineTemplateSheet } from "@/components/RoutineTemplateSheet";
 import {
   AlertTriangle,
   ChevronDown,
+  ChevronRight,
   Copy,
   Pencil,
   Play,
