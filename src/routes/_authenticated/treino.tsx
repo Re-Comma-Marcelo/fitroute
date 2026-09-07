@@ -523,6 +523,7 @@ function RoutineCard({
   onDuplicate: () => void;
   t: any;
 }) {
+  const [detail, setDetail] = useState<{ id: string; nome: string } | null>(null);
   const flags = r.exercicios
     .map((re) => {
       const insight = insights[re.exerciseId];
