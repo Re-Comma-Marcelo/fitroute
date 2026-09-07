@@ -3,6 +3,12 @@ import type { DictFragment } from "../types";
 /** Translations for the home area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Today's session": "Treino de hoje",
+    "In progress": "Em andamento",
+    "~{min} min": "~{min} min",
+    Workouts: "Treinos",
+    Streak: "Sequência",
+    wks: "sem",
     "{remaining} kg": "{remaining} kg",
     "to {action}": "para {action}",
     " Log your weight to project a date.": " Registre seu peso para projetar uma data.",
@@ -92,6 +98,12 @@ export const dict: DictFragment = {
     "of {target} kcal": "de {target} kcal",
   },
   nl: {
+    "Today's session": "Training van vandaag",
+    "In progress": "Bezig",
+    "~{min} min": "~{min} min",
+    Workouts: "Trainingen",
+    Streak: "Reeks",
+    wks: "wkn",
     "{remaining} kg": "{remaining} kg",
     "to {action}": "om te {action}",
     " Log your weight to project a date.": " Log je gewicht om een datum te voorspellen.",
