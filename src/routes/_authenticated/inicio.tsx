@@ -262,10 +262,7 @@ function TodayCard({
           {Array.from({ length: goal }, (_, i) => (
             <span
               key={i}
-              className={cn(
-                "h-1.5 flex-1 rounded-full",
-                i < done ? "bg-train" : "bg-surface-3",
-              )}
+              className={cn("h-1.5 flex-1 rounded-full", i < done ? "bg-train" : "bg-surface-3")}
             />
           ))}
         </div>
@@ -339,9 +336,7 @@ function StatsRow({
           <p className="label-caps">{t("Streak")}</p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums">
             {streak}
-            <span className="ml-0.5 text-xs font-semibold text-muted-foreground">
-              {t("wks")}
-            </span>
+            <span className="ml-0.5 text-xs font-semibold text-muted-foreground">{t("wks")}</span>
           </p>
         </Card>
       </div>
