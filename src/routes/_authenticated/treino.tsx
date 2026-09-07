@@ -600,32 +600,50 @@ function RoutineCard({
 
       {open ? (
         <>
-          <ul className="space-y-2 border-t border-border px-3 py-3">
+          <ul className="space-y-1 border-t border-border px-3 py-2">
             {r.exercicios.map((re) => {
               const ex = exercises.find((e) => e.id === re.exerciseId);
               const insight = insights[re.exerciseId];
+              const nome = ex?.nome ?? t("Exercise");
               return (
-                <li key={re.id} className="flex items-center gap-3">
-                  <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold">{ex?.nome ?? t("Exercise")}</p>
-                      {insight && insight.severity !== "info" ? (
-                        <InsightBadge insight={insight} />
-                      ) : null}
+                <li key={re.id}>
+                  <button
+                    type="button"
+                    onClick={() => setDetail({ id: re.exerciseId, nome })}
+                    aria-label={t("How to perform {name}", { name: nome })}
+                    className="tap-target flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition-colors active:bg-surface-3"
+                  >
+                    <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold">{nome}</p>
+                        {insight && insight.severity !== "info" ? (
+                          <InsightBadge insight={insight} />
+                        ) : null}
+                      </div>
+                      <p className="text-xs text-muted-foreground/80">
+                        {t("{count} sets · {min}-{max} reps", {
+                          count: re.seriesAlvo,
+                          min: re.repsMin,
+                          max: re.repsMax,
+                        })}
+                      </p>
                     </div>
-                    <p className="text-xs text-muted-foreground/80">
-                      {t("{count} sets · {min}-{max} reps", {
-                        count: re.seriesAlvo,
-                        min: re.repsMin,
-                        max: re.repsMax,
-                      })}
-                    </p>
-                  </div>
+                    <ChevronRight className="size-4 shrink-0 text-muted-foreground/70" />
+                  </button>
                 </li>
               );
             })}
           </ul>
+
+          <ExerciseDetailSheet
+            exerciseId={detail?.id ?? ""}
+            nome={detail?.nome ?? ""}
+            open={detail !== null}
+            onOpenChange={(o) => {
+              if (!o) setDetail(null);
+            }}
+          />
 
           <div className="space-y-2 px-3 pb-4">
             <Button
