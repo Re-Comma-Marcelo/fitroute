@@ -23,7 +23,9 @@ import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutritio
 import { onboardingDone } from "@/lib/onboarding";
 import { loadActiveSession, sessionLabel } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
+import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import { formatFullDate, formatKg, formatNumber, relativeDays } from "@/lib/format";
+import type { Routine } from "@/lib/types";
 import {
   heatmap,
   latestPR,
@@ -89,13 +91,13 @@ export default function Inicio() {
   const hasData = workouts.some((w) => w.finalizadoEm);
   const prName =
     (pr && exercisesQ.data?.find((e) => e.id === pr.exerciseId)?.nome) || t("Latest PR");
+  const weekGoal = Math.max(1, profileQ.data?.metaTreinosSemana ?? 4);
 
   // First-run: send brand-new accounts through onboarding once.
   useEffect(() => {
     if (!logQ.isSuccess || hasData || onboardingDone()) return;
     navigate({ to: "/onboarding", replace: true });
   }, [logQ.isSuccess, hasData, navigate]);
-
 
   const today = isoDate(new Date());
   const todayTotals = useMemo(() => totalsFor(planQ.data?.[today]), [planQ.data, today]);
@@ -119,7 +121,7 @@ export default function Inicio() {
 
   return (
     <AppShell hideHeader title={t("Home")}>
-      <div className="route-enter space-y-7 pb-28">
+      <div className="route-enter space-y-6 pb-28">
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
             <h1 className="font-display text-2xl font-semibold tracking-tight">
@@ -153,124 +155,207 @@ export default function Inicio() {
               void logQ.refetch();
             }}
           />
-        ) : null}
+        ) : (
+          <>
+            <TodayCard
+              loading={isLoading}
+              activeLabel={active ? sessionLabel(active) : null}
+              routine={next}
+              sessions={sessions}
+              goal={weekGoal}
+              onStart={primaryAction}
+            />
 
-        <VolumeHero loading={isLoading} hasData={hasData} volume={volume} />
+            <StatsRow
+              loading={isLoading}
+              hasData={hasData}
+              volume={volume}
+              sessions={sessions}
+              streak={streak}
+            />
 
-        <HeatmapSection
-          loading={isLoading}
-          hasData={hasData}
-          cells={cells}
-          sessions={sessions}
-          streak={streak}
-        />
+            <HeatmapSection loading={isLoading} hasData={hasData} cells={cells} />
 
-        <PRCard loading={isLoading} pr={pr} name={prName} />
+            <PRStrip loading={isLoading} pr={pr} name={prName} />
 
-        <div className="space-y-2">
-          <Button
-            onClick={primaryAction}
-            disabled={isLoading}
-            className="h-14 w-full text-base font-semibold"
-          >
-            {active ? (
-              <>
-                <Timer className="mr-2 size-5" /> {t("Resume workout")}
-              </>
-            ) : next ? (
-              <>
-                <Dumbbell className="mr-2 size-5" /> {t("Start {routine}", { routine: next.nome })}
-              </>
-            ) : (
-              <>
-                <Dumbbell className="mr-2 size-5" /> {t("Create my routine")}
-              </>
+            {/* Adaptive coach: drops, check-ins and recovery notes, plus the
+                cross-training log that explains them. */}
+            <CoachNotesCard />
+
+            <DietCard
+              kcal={kcalToday}
+              target={kcalTarget}
+              protein={proteinToday}
+              proteinTarget={proteinTarget}
+            />
+
+            <CrossTrainingSheet />
+
+            {!isLoading && (
+              <QuickStartChecklist
+                hasRoutine={routines.length > 0}
+                hasWorkout={hasData}
+                hasPR={!!pr}
+              />
             )}
-          </Button>
-          {active && (
-            <p className="text-center text-xs text-muted-foreground">{sessionLabel(active)}</p>
-          )}
-        </div>
-
-        {/* Adaptive coach: drops, check-ins and recovery notes, plus the
-            cross-training log that explains them. */}
-        <CoachNotesCard />
-        <CrossTrainingSheet />
-
-        <DietCard kcal={kcalToday} target={kcalTarget} protein={proteinToday} proteinTarget={proteinTarget} />
-
-
-        {!isLoading && (
-          <QuickStartChecklist
-            hasRoutine={routines.length > 0}
-            hasWorkout={hasData}
-            hasPR={!!pr}
-          />
+          </>
         )}
       </div>
     </AppShell>
   );
 }
 
-/* ---------- hero volume ---------- */
+/* ---------- today's session + weekly goal ---------- */
 
-function VolumeHero({
+function TodayCard({
+  loading,
+  activeLabel,
+  routine,
+  sessions,
+  goal,
+  onStart,
+}: {
+  loading: boolean;
+  activeLabel: string | null;
+  routine: Routine | null;
+  sessions: number;
+  goal: number;
+  onStart: () => void;
+}) {
+  const t = useT();
+  if (loading) return <Skeleton className="h-44 w-full rounded-2xl" />;
+
+  const minutes = routine ? estimateRoutineMinutes(routine) : 0;
+  const done = Math.min(sessions, goal);
+
+  return (
+    <Card className="rounded-2xl border-border bg-surface-1 p-4 shadow-elegant">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="label-caps">{activeLabel ? t("In progress") : t("Today's session")}</p>
+          <p className="mt-1 truncate text-lg font-semibold">
+            {activeLabel ?? routine?.nome ?? t("Start a workout")}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {routine
+              ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
+              : t("Pick a routine and start logging.")}
+          </p>
+        </div>
+        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-train/15 text-train">
+          {activeLabel ? <Timer className="size-5" /> : <Dumbbell className="size-5" />}
+        </span>
+      </div>
+
+      <div className="mt-4">
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="label-caps">{t("Weekly goal")}</p>
+          <p className="text-xs font-semibold tabular-nums text-muted-foreground">
+            {t("{sessions}/{target} sessions", { sessions, target: goal })}
+          </p>
+        </div>
+        <div
+          role="img"
+          aria-label={t("{sessions}/{target} sessions", { sessions, target: goal })}
+          className="mt-2 flex gap-1"
+        >
+          {Array.from({ length: goal }, (_, i) => (
+            <span
+              key={i}
+              className={cn(
+                "h-1.5 flex-1 rounded-full",
+                i < done ? "bg-train" : "bg-surface-3",
+              )}
+            />
+          ))}
+        </div>
+      </div>
+
+      <Button onClick={onStart} className="mt-4 h-13 w-full text-base font-semibold">
+        {activeLabel ? (
+          <>
+            <Timer className="mr-2 size-5" /> {t("Resume workout")}
+          </>
+        ) : routine ? (
+          <>
+            <Dumbbell className="mr-2 size-5" /> {t("Start {routine}", { routine: routine.nome })}
+          </>
+        ) : (
+          <>
+            <Dumbbell className="mr-2 size-5" /> {t("Create my routine")}
+          </>
+        )}
+      </Button>
+    </Card>
+  );
+}
+
+/* ---------- three numbers in one row ---------- */
+
+function StatsRow({
   loading,
   hasData,
   volume,
+  sessions,
+  streak,
 }: {
   loading: boolean;
   hasData: boolean;
   volume: ReturnType<typeof weeklyVolume>;
+  sessions: number;
+  streak: number;
 }) {
   const t = useT();
   if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
 
-  if (!hasData) {
-    return (
-      <section>
-        <p className="label-caps">{t("This week's volume")}</p>
-        <p className="num-hero mt-1 text-muted-foreground/30" aria-label="0 kg">
-          0 kg
-        </p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {t("Your first workout lights this number up.")}
-        </p>
-      </section>
-    );
-  }
-
   const pct = volume.deltaPct;
-  const label = `${formatNumber(Math.round(volume.current))} kg`;
+  const trend = volume.isRecord
+    ? t("New weekly record")
+    : pct === null
+      ? t("First week logged")
+      : t("{pct}% vs last week", { pct: `${pct >= 0 ? "+" : ""}${formatNumber(pct, 0)}` });
 
   return (
     <section>
-      <p className="label-caps">{t("This week's volume")}</p>
-      <p className="num-hero mt-1" aria-label={label}>
-        <span aria-hidden="true">
-          <CountUp value={volume.current} format={(n) => formatNumber(Math.round(n))} />{" "}
-          <span className="text-xl font-semibold text-muted-foreground">kg</span>
-        </span>
-      </p>
+      <div className="grid grid-cols-3 gap-2">
+        <Card className="rounded-2xl border-border bg-card p-3">
+          <p className="label-caps">{t("Volume")}</p>
+          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
+            {hasData ? (
+              <>
+                <CountUp value={volume.current} format={(n) => formatNumber(Math.round(n))} />
+                <span className="ml-0.5 text-xs font-semibold text-muted-foreground">kg</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground/40">0</span>
+            )}
+          </p>
+        </Card>
+        <Card className="rounded-2xl border-border bg-card p-3">
+          <p className="label-caps">{t("Workouts")}</p>
+          <p className="mt-1 font-display text-xl font-semibold tabular-nums">{sessions}</p>
+        </Card>
+        <Card className="rounded-2xl border-border bg-card p-3">
+          <p className="label-caps">{t("Streak")}</p>
+          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
+            {streak}
+            <span className="ml-0.5 text-xs font-semibold text-muted-foreground">
+              {t("wks")}
+            </span>
+          </p>
+        </Card>
+      </div>
       <p
         className={cn(
-          "mt-1 text-sm font-semibold",
+          "mt-2 text-xs font-semibold",
           volume.isRecord
             ? "text-success"
-            : pct === null
-              ? "text-muted-foreground"
-              : pct >= 0
-                ? "text-train"
-                : "text-muted-foreground",
+            : pct !== null && pct >= 0
+              ? "text-train"
+              : "text-muted-foreground",
         )}
       >
-        {volume.isRecord
-          ? t("New weekly record")
-          : pct === null
-            ? t("First week logged")
-            : t("{pct}% vs last week", {
-                pct: `${pct >= 0 ? "+" : ""}${formatNumber(pct, 0)}`,
-              })}
+        {hasData ? trend : t("Your first workout lights this number up.")}
       </p>
     </section>
   );
@@ -282,17 +367,13 @@ function HeatmapSection({
   loading,
   hasData,
   cells,
-  sessions,
-  streak,
 }: {
   loading: boolean;
   hasData: boolean;
   cells: HeatCell[];
-  sessions: number;
-  streak: number;
 }) {
   const t = useT();
-  if (loading) return <Skeleton className="h-28 w-full rounded-2xl" />;
+  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
 
   const total = cells.length;
   const days = trainedDays(cells);
@@ -300,7 +381,14 @@ function HeatmapSection({
 
   return (
     <section>
-      <p className="label-caps">{t("Consistency")}</p>
+      <div className="flex items-baseline justify-between gap-2">
+        <p className="label-caps">{t("Consistency")}</p>
+        <p className="text-xs text-muted-foreground">
+          {hasData
+            ? t("Trained on {days} of the last {total} days", { days, total })
+            : t("Your first square shows up today.")}
+        </p>
+      </div>
       <div
         role="img"
         aria-label={t("Trained on {days} of the last {total} days", { days, total })}
@@ -311,74 +399,45 @@ function HeatmapSection({
             key={cell.date}
             className={cn(
               "aspect-square rounded-[3px]",
-              cell.level === 2
-                ? "bg-train"
-                : cell.level === 1
-                  ? "bg-train-dim"
-                  : "bg-surface-3",
+              cell.level === 2 ? "bg-train" : cell.level === 1 ? "bg-train-dim" : "bg-surface-3",
               !hasData && ghostIdx.has(i) && "bg-train/30",
               cell.isToday && "ring-1 ring-inset ring-foreground/40",
             )}
           />
         ))}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {hasData
-          ? t("{sessions} workouts this week · {weeks} week streak", { sessions, weeks: streak })
-          : t("Your first square shows up today.")}
-      </p>
     </section>
   );
 }
 
 /* ---------- latest PR ---------- */
 
-function PRCard({
-  loading,
-  pr,
-  name,
-}: {
-  loading: boolean;
-  pr: PRInfo | null;
-  name: string;
-}) {
+function PRStrip({ loading, pr, name }: { loading: boolean; pr: PRInfo | null; name: string }) {
   const t = useT();
-  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
-
-  if (!pr) {
-    return (
-      <Card className="rounded-2xl border-border bg-surface-1 p-4">
-        <p className="label-caps">{t("Latest PR")}</p>
-        <div className="mt-3 h-4 w-2/3 rounded-full bg-surface-3" />
-        <div className="mt-2 h-4 w-1/3 rounded-full bg-surface-3" />
-        <p className="mt-3 text-sm text-muted-foreground">
-          {t("Complete a workout to log your first record.")}
-        </p>
-      </Card>
-    );
-  }
+  if (loading) return <Skeleton className="h-14 w-full rounded-2xl" />;
+  if (!pr) return null;
 
   return (
-    <Card className="rounded-2xl border-border bg-surface-1 p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="label-caps">{t("Latest PR")}</p>
-        <span className="inline-flex items-center gap-1 rounded-full bg-success-bg px-2 py-0.5 text-[11px] font-semibold text-success">
-          <Trophy className="size-3" /> PR
+    <Link
+      to="/progresso"
+      className="tap-target flex items-center gap-3 rounded-2xl border border-border bg-surface-1 px-4 py-3"
+    >
+      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-success-bg text-success">
+        <Trophy className="size-4" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold">{name}</span>
+        <span className="block text-xs text-muted-foreground">
+          {t("Latest PR")}
+          {pr.date ? ` · ${relativeDays(pr.date)}` : ""}
         </span>
-      </div>
-      <p className="mt-2 truncate font-semibold">{name}</p>
-      <div className="mt-1 flex items-end justify-between gap-3">
-        <p className="num-big">
-          {formatKg(pr.pesoKg)}{" "}
-          <span className="text-sm font-semibold text-muted-foreground">
-            × {pr.reps}
-          </span>
-        </p>
-        {pr.date && (
-          <p className="text-xs text-muted-foreground">{relativeDays(pr.date)}</p>
-        )}
-      </div>
-    </Card>
+      </span>
+      <span className="shrink-0 text-sm font-semibold tabular-nums">
+        {formatKg(pr.pesoKg)}
+        <span className="text-muted-foreground"> × {pr.reps}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
   );
 }
 
@@ -406,30 +465,32 @@ function DietCard({
           {t("See diet")}
         </Link>
       </div>
-      <p className="mt-1 text-lg font-semibold tabular-nums text-diet">
-        {formatNumber(Math.round(kcal))}{" "}
-        <span className="text-sm font-semibold text-muted-foreground">
-          {t("of {target} kcal", { target: formatNumber(Math.round(target)) })}
-        </span>
-      </p>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
-        <div className="h-full rounded-full bg-diet" style={{ width: `${pct}%` }} />
-      </div>
-      {proteinTarget > 0 ? (
-        <div className="mt-2.5 flex items-center gap-2">
-          <span className="text-xs font-semibold text-diet">
-            {formatNumber(Math.round(protein))}g{" "}
-            <span className="text-muted-foreground">
-              {t("of {target}g protein", { target: formatNumber(Math.round(proteinTarget)) })}
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <div>
+          <p className="text-base font-semibold tabular-nums text-diet">
+            {formatNumber(Math.round(kcal))}
+            <span className="ml-1 text-xs font-semibold text-muted-foreground">
+              {t("of {target} kcal", { target: formatNumber(Math.round(target)) })}
             </span>
-          </span>
+          </p>
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+            <div className="h-full rounded-full bg-diet" style={{ width: `${pct}%` }} />
+          </div>
         </div>
-      ) : null}
-      {proteinTarget > 0 ? (
-        <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
-          <div className="h-full rounded-full bg-diet/70" style={{ width: `${pPct}%` }} />
-        </div>
-      ) : null}
+        {proteinTarget > 0 ? (
+          <div>
+            <p className="text-base font-semibold tabular-nums text-diet">
+              {formatNumber(Math.round(protein))}g
+              <span className="ml-1 text-xs font-semibold text-muted-foreground">
+                {t("of {target}g protein", { target: formatNumber(Math.round(proteinTarget)) })}
+              </span>
+            </p>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
+              <div className="h-full rounded-full bg-diet/70" style={{ width: `${pPct}%` }} />
+            </div>
+          </div>
+        ) : null}
+      </div>
     </Card>
   );
 }
