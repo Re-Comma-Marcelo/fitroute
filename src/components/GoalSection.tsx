@@ -50,11 +50,11 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
   const tooClose = daysOut !== null && daysOut < MIN_DAYS;
   const dirty = Boolean(
     profile &&
-      (date !== (profile.metaPrazo ?? "") ||
-        weightText !==
-          (profile.pesoMetaKg
-            ? String(Math.round(toDisplayWeight(profile.pesoMetaKg, unit) * 10) / 10)
-            : "")),
+    (date !== (profile.metaPrazo ?? "") ||
+      weightText !==
+        (profile.pesoMetaKg
+          ? String(Math.round(toDisplayWeight(profile.pesoMetaKg, unit) * 10) / 10)
+          : "")),
   );
 
   const quickPicks = useMemo(
@@ -70,8 +70,7 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
     mutationFn: async () => {
       const context = await buildCoachContext();
       const result = (await suggestGoalDate({ data: { context, language: lang } })) as
-        | { ok: true; date: string; months: number; reason: string }
-        | { ok: false; error: string };
+        { ok: true; date: string; months: number; reason: string } | { ok: false; error: string };
       if (!result.ok) throw new Error(result.error);
       return result;
     },
@@ -155,9 +154,12 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
         ) : null}
         {tooClose ? (
           <p className="text-xs leading-snug text-destructive">
-            {t("Pick a date at least {n} days out — there is no room for checkpoints before that.", {
-              n: String(MIN_DAYS),
-            })}
+            {t(
+              "Pick a date at least {n} days out — there is no room for checkpoints before that.",
+              {
+                n: String(MIN_DAYS),
+              },
+            )}
           </p>
         ) : date ? (
           <p className="text-xs text-muted-foreground tabular-nums">

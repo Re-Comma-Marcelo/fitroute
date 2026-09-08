@@ -3,6 +3,34 @@ import type { DictFragment } from "../types";
 /** Round 28: the Route — checkpoints, progress photos and the route page. */
 export const dict: DictFragment = {
   pt: {
+    "By when?": "Até quando?",
+    "Your route and its checkpoints are built between today and this date.":
+      "Sua rota e seus checkpoints são traçados entre hoje e esta data.",
+    "Target date": "Data alvo",
+    "3 months": "3 meses",
+    "6 months": "6 meses",
+    "1 year": "1 ano",
+    "Let the coach decide what's realistic": "Deixe o coach decidir o que é realista",
+    "Working it out...": "Calculando...",
+    "Could not work out a date right now. Pick one yourself.":
+      "Não consegui calcular uma data agora. Escolha uma você mesmo.",
+    "Pick a date at least {n} days out — there is no room for checkpoints before that.":
+      "Escolha uma data com pelo menos {n} dias — antes disso não há espaço para checkpoints.",
+    "{date} · {n} days from today": "{date} · {n} dias a partir de hoje",
+    "Target body weight ({unit}, optional)": "Peso corporal alvo ({unit}, opcional)",
+    "Leave empty if weight isn't the point": "Deixe vazio se o peso não é o foco",
+    "Save goal": "Salvar meta",
+    "Saving...": "Salvando...",
+    "Goal saved.": "Meta salva.",
+    "Could not save your goal.": "Não consegui salvar sua meta.",
+    "First: when do you want to be there? Then I can map the way.":
+      "Primeiro: quando você quer chegar lá? Então eu traço o caminho.",
+    "Set my goal date": "Definir minha data",
+    "Re-map my route": "Traçar a rota de novo",
+    "Re-map my route?": "Traçar a rota de novo?",
+    "I'll replace the checkpoints I suggested with a fresh set. The ones you made or edited yourself stay.":
+      "Vou substituir os checkpoints que sugeri por novos. Os que você criou ou editou permanecem.",
+    "Re-map": "Traçar de novo",
     Route: "Rota",
     "My route": "Minha rota",
     "Map your route to your goal": "Trace sua rota até a meta",
@@ -77,6 +105,34 @@ export const dict: DictFragment = {
       "Seu próximo checkpoint é {title}, planejado para {date}. {note}",
   },
   nl: {
+    "By when?": "Wanneer wil je er zijn?",
+    "Your route and its checkpoints are built between today and this date.":
+      "Je route en checkpoints worden tussen vandaag en deze datum uitgezet.",
+    "Target date": "Streefdatum",
+    "3 months": "3 maanden",
+    "6 months": "6 maanden",
+    "1 year": "1 jaar",
+    "Let the coach decide what's realistic": "Laat de coach bepalen wat realistisch is",
+    "Working it out...": "Even rekenen...",
+    "Could not work out a date right now. Pick one yourself.":
+      "Ik kon nu geen datum bepalen. Kies er zelf een.",
+    "Pick a date at least {n} days out — there is no room for checkpoints before that.":
+      "Kies een datum van minstens {n} dagen verderop — daarvoor is er geen ruimte voor checkpoints.",
+    "{date} · {n} days from today": "{date} · {n} dagen vanaf vandaag",
+    "Target body weight ({unit}, optional)": "Streefgewicht ({unit}, optioneel)",
+    "Leave empty if weight isn't the point": "Laat leeg als gewicht niet het doel is",
+    "Save goal": "Doel opslaan",
+    "Saving...": "Opslaan...",
+    "Goal saved.": "Doel opgeslagen.",
+    "Could not save your goal.": "Ik kon je doel niet opslaan.",
+    "First: when do you want to be there? Then I can map the way.":
+      "Eerst: wanneer wil je er zijn? Dan zet ik de weg ernaartoe uit.",
+    "Set my goal date": "Zet mijn streefdatum",
+    "Re-map my route": "Route opnieuw uitzetten",
+    "Re-map my route?": "Route opnieuw uitzetten?",
+    "I'll replace the checkpoints I suggested with a fresh set. The ones you made or edited yourself stay.":
+      "Ik vervang de checkpoints die ik voorstelde door nieuwe. Die je zelf maakte of aanpaste blijven staan.",
+    "Re-map": "Opnieuw uitzetten",
     Route: "Route",
     "My route": "Mijn route",
     "Map your route to your goal": "Zet je route naar je doel uit",

@@ -76,9 +76,7 @@ export async function getProfile(): Promise<Profile> {
 export async function saveProfile(next: Profile): Promise<Profile> {
   const wanted: Profile = { ...next, id: next.id || "p1" };
   try {
-    const saved = withGoalOverlay(
-      (await persistProfile({ data: { profile: wanted } })) as Profile,
-    );
+    const saved = withGoalOverlay((await persistProfile({ data: { profile: wanted } })) as Profile);
     // The row came back without the goal fields: the columns are missing.
     if (
       (wanted.metaPrazo && !saved.metaPrazo) ||
@@ -114,4 +112,3 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     return cache;
   }
 }
-
