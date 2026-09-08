@@ -34,6 +34,7 @@ import { Route as AuthenticatedDietaWeekRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
 import { Route as AuthenticatedProgressoIdRouteImport } from './routes/_authenticated/progresso.$id'
 import { Route as AuthenticatedResumoIdRouteImport } from './routes/_authenticated/resumo.$id'
+import { Route as AuthenticatedRotaProgressoRouteImport } from './routes/_authenticated/rota.progresso'
 import { Route as AuthenticatedRotinaIdRouteImport } from './routes/_authenticated/rotina.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -166,6 +167,12 @@ const AuthenticatedResumoIdRoute = AuthenticatedResumoIdRouteImport.update({
   path: '/resumo/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRotaProgressoRoute =
+  AuthenticatedRotaProgressoRouteImport.update({
+    id: '/progresso',
+    path: '/progresso',
+    getParentRoute: () => AuthenticatedRotaRoute,
+  } as any)
 const AuthenticatedRotinaIdRoute = AuthenticatedRotinaIdRouteImport.update({
   id: '/rotina/$id',
   path: '/rotina/$id',
@@ -186,7 +193,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
-  '/rota': typeof AuthenticatedRotaRoute
+  '/rota': typeof AuthenticatedRotaRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -195,6 +202,7 @@ export interface FileRoutesByFullPath {
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rota/progresso': typeof AuthenticatedRotaProgressoRoute
   '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/progresso/': typeof AuthenticatedProgressoIndexRoute
@@ -211,7 +219,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
-  '/rota': typeof AuthenticatedRotaRoute
+  '/rota': typeof AuthenticatedRotaRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -220,6 +228,7 @@ export interface FileRoutesByTo {
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/rota/progresso': typeof AuthenticatedRotaProgressoRoute
   '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/progresso': typeof AuthenticatedProgressoIndexRoute
@@ -240,7 +249,7 @@ export interface FileRoutesById {
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/plano': typeof AuthenticatedPlanoRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
-  '/_authenticated/rota': typeof AuthenticatedRotaRoute
+  '/_authenticated/rota': typeof AuthenticatedRotaRouteWithChildren
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -249,6 +258,7 @@ export interface FileRoutesById {
   '/_authenticated/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/_authenticated/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/_authenticated/resumo/$id': typeof AuthenticatedResumoIdRoute
+  '/_authenticated/rota/progresso': typeof AuthenticatedRotaProgressoRoute
   '/_authenticated/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/progresso/': typeof AuthenticatedProgressoIndexRoute
@@ -278,6 +288,7 @@ export interface FileRouteTypes {
     | '/dieta/week'
     | '/progresso/$id'
     | '/resumo/$id'
+    | '/rota/progresso'
     | '/rotina/$id'
     | '/dieta/'
     | '/progresso/'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/dieta/week'
     | '/progresso/$id'
     | '/resumo/$id'
+    | '/rota/progresso'
     | '/rotina/$id'
     | '/dieta'
     | '/progresso'
@@ -331,6 +343,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dieta/week'
     | '/_authenticated/progresso/$id'
     | '/_authenticated/resumo/$id'
+    | '/_authenticated/rota/progresso'
     | '/_authenticated/rotina/$id'
     | '/_authenticated/dieta/'
     | '/_authenticated/progresso/'
@@ -523,6 +536,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResumoIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/rota/progresso': {
+      id: '/_authenticated/rota/progresso'
+      path: '/progresso'
+      fullPath: '/rota/progresso'
+      preLoaderRoute: typeof AuthenticatedRotaProgressoRouteImport
+      parentRoute: typeof AuthenticatedRotaRoute
+    }
     '/_authenticated/rotina/$id': {
       id: '/_authenticated/rotina/$id'
       path: '/rotina/$id'
@@ -564,6 +584,17 @@ const AuthenticatedProgressoRouteWithChildren =
     AuthenticatedProgressoRouteChildren,
   )
 
+interface AuthenticatedRotaRouteChildren {
+  AuthenticatedRotaProgressoRoute: typeof AuthenticatedRotaProgressoRoute
+}
+
+const AuthenticatedRotaRouteChildren: AuthenticatedRotaRouteChildren = {
+  AuthenticatedRotaProgressoRoute: AuthenticatedRotaProgressoRoute,
+}
+
+const AuthenticatedRotaRouteWithChildren =
+  AuthenticatedRotaRoute._addFileChildren(AuthenticatedRotaRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBibliotecaRoute: typeof AuthenticatedBibliotecaRoute
   AuthenticatedBuscarRoute: typeof AuthenticatedBuscarRoute
@@ -574,7 +605,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPlanoRoute: typeof AuthenticatedPlanoRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
-  AuthenticatedRotaRoute: typeof AuthenticatedRotaRoute
+  AuthenticatedRotaRoute: typeof AuthenticatedRotaRouteWithChildren
   AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
   AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
   AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
@@ -591,7 +622,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPlanoRoute: AuthenticatedPlanoRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
-  AuthenticatedRotaRoute: AuthenticatedRotaRoute,
+  AuthenticatedRotaRoute: AuthenticatedRotaRouteWithChildren,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
   AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
   AuthenticatedResumoIdRoute: AuthenticatedResumoIdRoute,
