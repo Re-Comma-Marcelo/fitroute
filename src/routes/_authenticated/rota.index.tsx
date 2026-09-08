@@ -5,6 +5,17 @@ import { Camera, Plus, Sparkles, Target } from "lucide-react";
 import { toast } from "sonner";
 import { pageMeta } from "@/lib/route-meta";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoutePath } from "@/components/RoutePath";
 import { CheckpointSheet } from "@/components/CheckpointSheet";
@@ -310,6 +321,32 @@ function RoutePage() {
               <Camera className="size-4" /> {t("Photo")}
             </Button>
           </div>
+
+          {goalDate ? (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="ghost" className="tap-target mt-2 w-full text-xs">
+                  <Sparkles className="size-4" /> {t("Re-map my route")}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>{t("Re-map my route?")}</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {t(
+                      "I'll replace the checkpoints I suggested with a fresh set. The ones you made or edited yourself stay.",
+                    )}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="tap-target">{t("Cancel")}</AlertDialogCancel>
+                  <AlertDialogAction className="tap-target" onClick={() => generate.mutate()}>
+                    {t("Re-map")}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          ) : null}
         </>
       )}
 
