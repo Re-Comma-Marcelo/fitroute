@@ -69,7 +69,6 @@ export async function generateJson<T>(
     });
     text = await result.text;
   } catch (error) {
-
     const status = Number(
       (error as { statusCode?: number; status?: number })?.statusCode ??
         (error as { status?: number })?.status ??

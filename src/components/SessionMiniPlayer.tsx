@@ -19,7 +19,6 @@ import {
   loadActiveSession,
   restSecondsLeft,
   restOverdueSeconds,
-
   saveActiveSession,
   sessionElapsed,
   type ActiveSession,
@@ -78,21 +77,24 @@ export function SessionMiniPlayer() {
     setSession(next);
   }, []);
 
-  const patchRest = useCallback((mutate: (r: RestState) => RestState | null) => {
-    const current = loadActiveSession();
-    if (!current?.rest) return;
-    const rest = mutate(current.rest);
-    if (!rest) cancelRestNotification();
-    else
-      scheduleRestNotification(
-        Math.max(0, rest.endsAt - Date.now()),
-        t("Rest is over"),
-        t("Time for your next set."),
-      );
-    const next = { ...current, rest, restExpirouEm: null };
-    saveActiveSession(next);
-    setSession(next);
-  }, [t]);
+  const patchRest = useCallback(
+    (mutate: (r: RestState) => RestState | null) => {
+      const current = loadActiveSession();
+      if (!current?.rest) return;
+      const rest = mutate(current.rest);
+      if (!rest) cancelRestNotification();
+      else
+        scheduleRestNotification(
+          Math.max(0, rest.endsAt - Date.now()),
+          t("Rest is over"),
+          t("Time for your next set."),
+        );
+      const next = { ...current, rest, restExpirouEm: null };
+      saveActiveSession(next);
+      setSession(next);
+    },
+    [t],
+  );
 
   if (!session) return null;
 
@@ -116,7 +118,6 @@ export function SessionMiniPlayer() {
           onSkip={() => (session.rest ? patchRest(() => null) : clearOverdue())}
         />
       ) : null}
-
 
       <div className="mx-auto flex max-w-md items-center gap-1 rounded-full border border-primary/30 bg-card/90 py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl">
         <Link

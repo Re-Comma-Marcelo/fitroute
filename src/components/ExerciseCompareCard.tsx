@@ -24,8 +24,7 @@ export function ExerciseCompareCard({
   const t = useT();
 
   const logged = useMemo(
-    () =>
-      exercises.filter((e) => sets.some((s) => s.exerciseId === e.id && s.concluida)),
+    () => exercises.filter((e) => sets.some((s) => s.exerciseId === e.id && s.concluida)),
     [exercises, sets],
   );
 

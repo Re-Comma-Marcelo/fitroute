@@ -20,7 +20,6 @@ import { weekSummary } from "@/lib/week-summary";
 import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 import { muscleVolumeComparison } from "@/lib/muscle-volume";
 
-
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import { getExercises } from "@/lib/data/exercises";
@@ -50,7 +49,6 @@ export function ProgressView() {
   // Local-only weekly targets: read after hydration to keep SSR markup stable.
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
-
 
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
@@ -178,7 +176,6 @@ export function ProgressView() {
                   : t("You vs last month: holding steady")}
           </p>
           <dl className="grid grid-cols-3 gap-2">
-
             <Stat
               label={t("Sessions")}
               value={String(comparison.current.sessions)}
@@ -249,7 +246,6 @@ export function ProgressView() {
 
           <ExerciseCompareCard workouts={workouts} sets={sets} exercises={exercises} />
         </>
-
       )}
 
       <div className="mt-6 space-y-3">
@@ -419,4 +415,3 @@ function deltaLabel(
   const abs = Math.abs(Math.round(delta.diff * 10) / 10);
   return t("{sign}{diff}{unit} vs last month", { sign, diff: abs, unit });
 }
-

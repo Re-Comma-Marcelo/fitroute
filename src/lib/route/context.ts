@@ -63,8 +63,9 @@ export async function buildCoachContext(): Promise<CoachContext> {
     },
     currentWeightKg: weights[0]?.pesoKg ?? profile.pesoKg ?? null,
     weeklyTarget: profile.metaTreinosSemana,
-    sessionsLast30: log.workouts.filter((w) => w.finalizadoEm && w.iniciadoEm.slice(0, 10) >= sinceIso)
-      .length,
+    sessionsLast30: log.workouts.filter(
+      (w) => w.finalizadoEm && w.iniciadoEm.slice(0, 10) >= sinceIso,
+    ).length,
     routines: routines.map((r) => ({
       nome: r.nome,
       exercicios: r.exercicios

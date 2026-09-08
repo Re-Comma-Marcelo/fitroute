@@ -122,8 +122,8 @@ export async function getProgressPhotos(): Promise<ProgressPhoto[]> {
     remote = [];
   }
   const local = readLocal<ProgressPhoto>(PHOTO_KEY);
-  photoCache = [...remote, ...local.filter((l) => !remote.some((r) => r.id === l.id))].sort((a, b) =>
-    b.takenAt.localeCompare(a.takenAt),
+  photoCache = [...remote, ...local.filter((l) => !remote.some((r) => r.id === l.id))].sort(
+    (a, b) => b.takenAt.localeCompare(a.takenAt),
   );
   return photoCache;
 }
@@ -149,16 +149,14 @@ export async function addProgressPhoto(input: {
     saved = null;
   }
   // Without the storage bucket the photo stays on this device.
-  const final: ProgressPhoto =
-    saved ??
-    {
-      id: localId("ph"),
-      checkpointId: input.checkpointId,
-      url: input.dataUrl,
-      takenAt,
-      visibleToAi: input.visibleToAi,
-      createdAt: new Date().toISOString(),
-    };
+  const final: ProgressPhoto = saved ?? {
+    id: localId("ph"),
+    checkpointId: input.checkpointId,
+    url: input.dataUrl,
+    takenAt,
+    visibleToAi: input.visibleToAi,
+    createdAt: new Date().toISOString(),
+  };
   if (!saved) writeLocal(PHOTO_KEY, [final, ...readLocal<ProgressPhoto>(PHOTO_KEY)]);
   photoCache = [final, ...(photoCache ?? [])];
   return final;

@@ -110,8 +110,7 @@ export const dict: DictFragment = {
     "Saving…": "Opslaan…",
     "Save exercise": "Oefening opslaan",
     "{name} added to {group}.": "{name} toegevoegd aan {group}.",
-    "Could not save the exercise. Try again.":
-      "Kon de oefening niet opslaan. Probeer het opnieuw.",
+    "Could not save the exercise. Try again.": "Kon de oefening niet opslaan. Probeer het opnieuw.",
     "Recent searches": "Recente zoekopdrachten",
     Clear: "Wissen",
     "Jump to": "Ga naar",

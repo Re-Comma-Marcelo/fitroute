@@ -49,9 +49,7 @@ export function WeekSummaryCard({
       <ul className="mt-3 space-y-1.5 text-xs text-muted-foreground">
         {current.rpe > 0 ? <li>{t("{val} avg RPE", { val: current.rpe })}</li> : null}
         {current.tempoSeg > 0 ? (
-          <li>
-            {t("{time} under tension", { time: formatDurationShort(current.tempoSeg) })}
-          </li>
+          <li>{t("{time} under tension", { time: formatDurationShort(current.tempoSeg) })}</li>
         ) : null}
         {current.grupos.length ? (
           <li className="capitalize">
@@ -81,7 +79,10 @@ export function WeekSummaryCard({
   );
 }
 
-function buildHighlight(t: (s: string, v?: Record<string, string | number>) => string, summary: WeekSummary): string {
+function buildHighlight(
+  t: (s: string, v?: Record<string, string | number>) => string,
+  summary: WeekSummary,
+): string {
   const { current, previous } = summary;
   if (!previous.sessions) return t("First week logged — this becomes your baseline.");
   const diff = current.volume - previous.volume;
@@ -90,7 +91,10 @@ function buildHighlight(t: (s: string, v?: Record<string, string | number>) => s
     return t("Effort is up while volume is flat — a lighter week would help.");
   }
   if (pct >= 10) return t("Volume up {pct}% on last week — keep loads honest.", { pct });
-  if (pct <= -10) return t("Volume down {pct}% on last week — add a set where it matters.", { pct: Math.abs(pct) });
+  if (pct <= -10)
+    return t("Volume down {pct}% on last week — add a set where it matters.", {
+      pct: Math.abs(pct),
+    });
   return t("Volume held steady — a good week to push one lift.");
 }
 

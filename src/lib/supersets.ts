@@ -62,10 +62,7 @@ export function nextGroupLetter(routineId: string): string {
  * Display labels in routine order: A1, A2, B1… Exercises without a group get
  * an empty label.
  */
-export function blockLabels(
-  routineId: string,
-  exerciseIds: string[],
-): Record<string, string> {
+export function blockLabels(routineId: string, exerciseIds: string[]): Record<string, string> {
   const groups = supersetsFor(routineId);
   const seen = new Map<string, number>();
   const labels: Record<string, string> = {};
@@ -80,11 +77,7 @@ export function blockLabels(
 }
 
 /** True when another exercise of the same block still comes after this one. */
-export function hasNextInBlock(
-  routineId: string,
-  exerciseIds: string[],
-  index: number,
-): boolean {
+export function hasNextInBlock(routineId: string, exerciseIds: string[], index: number): boolean {
   const groups = supersetsFor(routineId);
   const current = exerciseIds[index];
   if (!current) return false;

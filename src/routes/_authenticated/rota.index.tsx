@@ -285,7 +285,11 @@ function RoutePage() {
             >
               <Plus className="size-4" /> {t("Checkpoint")}
             </Button>
-            <Button variant="outline" className="tap-target flex-1" onClick={() => setPhotoOpen(true)}>
+            <Button
+              variant="outline"
+              className="tap-target flex-1"
+              onClick={() => setPhotoOpen(true)}
+            >
               <Camera className="size-4" /> {t("Photo")}
             </Button>
           </div>

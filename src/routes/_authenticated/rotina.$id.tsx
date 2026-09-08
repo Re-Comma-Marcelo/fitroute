@@ -98,7 +98,6 @@ function RoutineEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseIdsKey]);
 
-
   const groupLabels = useMemo(
     () =>
       routine
@@ -396,8 +395,6 @@ function RoutineEditor() {
             {t("Days you pick here make this routine today's suggestion on Home.")}
           </p>
         </div>
-
-
 
         <h2 className="pt-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
           {t("Exercises ({count})", { count: routine.exercicios.length })}

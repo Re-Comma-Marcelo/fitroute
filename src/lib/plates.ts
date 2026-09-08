@@ -80,9 +80,7 @@ export function plateBreakdown(
 export function groupPlates(perSide: number[]): { plate: number; count: number }[] {
   const map = new Map<number, number>();
   perSide.forEach((p) => map.set(p, (map.get(p) ?? 0) + 1));
-  return [...map.entries()]
-    .sort((a, b) => b[0] - a[0])
-    .map(([plate, count]) => ({ plate, count }));
+  return [...map.entries()].sort((a, b) => b[0] - a[0]).map(([plate, count]) => ({ plate, count }));
 }
 
 /** Only bar-loaded equipment benefits from plate math. */

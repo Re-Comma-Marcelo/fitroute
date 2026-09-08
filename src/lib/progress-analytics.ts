@@ -159,7 +159,6 @@ export function weeklySeries(
     rpeBuckets.set(key, entry);
   }
 
-
   const out: WeekPoint[] = [];
   const cursor = new Date(weekStart(now));
   cursor.setDate(cursor.getDate() - (weeks - 1) * 7);

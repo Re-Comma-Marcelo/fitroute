@@ -209,7 +209,6 @@ export const toChatEntry = (r: Row) => ({
   exerciseId: (r["exercise_id"] ?? undefined) as string | undefined,
 });
 
-
 export const toCustomMeal = (r: Row) => ({
   id: String(r["id"]),
   name: String(r["nome"] ?? ""),
@@ -220,7 +219,12 @@ export const toCustomMeal = (r: Row) => ({
   fatG: Number(r["fat_g"] ?? 0),
   prepMin: Number(r["prep_min"] ?? 0),
   tags: (r["tags"] ?? []) as string[],
-  ingredients: (r["ingredients"] ?? []) as { name: string; qty: number; unit: string; aisle: string }[],
+  ingredients: (r["ingredients"] ?? []) as {
+    name: string;
+    qty: number;
+    unit: string;
+    aisle: string;
+  }[],
   orderOut: Boolean(r["order_out"]),
   custom: true as const,
   source: (r["source"] ?? "text") as string,

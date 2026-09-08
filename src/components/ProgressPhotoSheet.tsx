@@ -103,7 +103,11 @@ export function ProgressPhotoSheet({
           />
         </div>
 
-        <Button className="tap-target mt-4 w-full" disabled={!dataUrl || busy} onClick={() => void save()}>
+        <Button
+          className="tap-target mt-4 w-full"
+          disabled={!dataUrl || busy}
+          onClick={() => void save()}
+        >
           {t("Save photo")}
         </Button>
       </SheetContent>

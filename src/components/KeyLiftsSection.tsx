@@ -35,9 +35,7 @@ export function KeyLiftsSection({
   // Goals live in localStorage: a personal target, not logged training data.
   useEffect(() => {
     const stored = getLiftGoals();
-    setGoals(
-      Object.fromEntries(Object.entries(stored).map(([id, goal]) => [id, goal.targetKg])),
-    );
+    setGoals(Object.fromEntries(Object.entries(stored).map(([id, goal]) => [id, goal.targetKg])));
   }, []);
 
   function saveGoal(exerciseId: string) {
@@ -89,43 +87,45 @@ export function KeyLiftsSection({
           {rows.map(({ exercise, trend }) => (
             <li key={exercise.id} className="rounded-2xl border border-border bg-card p-3">
               <div className="flex items-center gap-3">
-              <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate font-display text-sm font-semibold leading-tight">
-                  {exercise.nome}
-                </p>
-                {trend ? (
-                  <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
-                    {trend.spanWeeks === 1
-                      ? t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} week · {date}", {
-                          firstWeight: trend.firstWeight,
-                          lastWeight: trend.lastWeight,
-                          spanWeeks: trend.spanWeeks,
-                          date: relativeDays(trend.lastDate),
-                        })
-                      : t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} weeks · {date}", {
-                          firstWeight: trend.firstWeight,
-                          lastWeight: trend.lastWeight,
-                          spanWeeks: trend.spanWeeks,
-                          date: relativeDays(trend.lastDate),
-                        })}
+                <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-display text-sm font-semibold leading-tight">
+                    {exercise.nome}
                   </p>
-                ) : (
-                  <p className="mt-0.5 text-xs text-muted-foreground">{t("No sets logged yet")}</p>
-                )}
-              </div>
+                  {trend ? (
+                    <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
+                      {trend.spanWeeks === 1
+                        ? t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} week · {date}", {
+                            firstWeight: trend.firstWeight,
+                            lastWeight: trend.lastWeight,
+                            spanWeeks: trend.spanWeeks,
+                            date: relativeDays(trend.lastDate),
+                          })
+                        : t("{firstWeight}kg → {lastWeight}kg · {spanWeeks} weeks · {date}", {
+                            firstWeight: trend.firstWeight,
+                            lastWeight: trend.lastWeight,
+                            spanWeeks: trend.spanWeeks,
+                            date: relativeDays(trend.lastDate),
+                          })}
+                    </p>
+                  ) : (
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {t("No sets logged yet")}
+                    </p>
+                  )}
+                </div>
 
-              {trend ? <Sparkline points={trend.points} direction={trend.direction} /> : null}
-              {trend ? <DirectionChip trend={trend} /> : null}
+                {trend ? <Sparkline points={trend.points} direction={trend.direction} /> : null}
+                {trend ? <DirectionChip trend={trend} /> : null}
 
-              <button
-                type="button"
-                onClick={() => onRemove(exercise.id)}
-                aria-label={t("Stop tracking {name}", { name: exercise.nome })}
-                className="tap-target -mr-1 flex w-8 items-center justify-center text-muted-foreground/60 transition-colors hover:text-foreground"
-              >
-                <X className="size-4" />
-              </button>
+                <button
+                  type="button"
+                  onClick={() => onRemove(exercise.id)}
+                  aria-label={t("Stop tracking {name}", { name: exercise.nome })}
+                  className="tap-target -mr-1 flex w-8 items-center justify-center text-muted-foreground/60 transition-colors hover:text-foreground"
+                >
+                  <X className="size-4" />
+                </button>
               </div>
 
               <GoalRow
@@ -233,7 +233,6 @@ function GoalRow({
     </button>
   );
 }
-
 
 function DirectionChip({ trend }: { trend: LiftTrend }) {
   const diff = Math.round((trend.lastWeight - trend.firstWeight) * 10) / 10;

@@ -18,8 +18,10 @@ export function getRecentSearches(): string[] {
 export function rememberSearch(term: string) {
   const clean = term.trim();
   if (typeof window === "undefined" || clean.length < 2) return;
-  const next = [clean, ...getRecentSearches().filter((v) => v.toLowerCase() !== clean.toLowerCase())]
-    .slice(0, MAX);
+  const next = [
+    clean,
+    ...getRecentSearches().filter((v) => v.toLowerCase() !== clean.toLowerCase()),
+  ].slice(0, MAX);
   try {
     window.localStorage.setItem(KEY, JSON.stringify(next));
   } catch {

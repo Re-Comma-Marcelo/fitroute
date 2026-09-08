@@ -43,7 +43,6 @@ export interface TodayCardModel {
   insightsByRoutine: Record<string, Record<string, CoachInsight>>;
   /** Set when the coach thinks today should be a rest day. */
   restDay?: RestDayVerdict;
-
 }
 
 const TIME_LABEL: Record<Profile["preferredTime"], string> = {

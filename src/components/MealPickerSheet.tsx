@@ -8,7 +8,15 @@ import type { MealSlot } from "@/lib/nutrition-types";
 import { useEffect, useState } from "react";
 import { Plus, Star } from "lucide-react";
 
-const FILTERS = ["favorites", "all", "high-protein", "high-carb", "light", "quick", "order-out"] as const;
+const FILTERS = [
+  "favorites",
+  "all",
+  "high-protein",
+  "high-carb",
+  "light",
+  "quick",
+  "order-out",
+] as const;
 
 export function MealPickerSheet({
   open,

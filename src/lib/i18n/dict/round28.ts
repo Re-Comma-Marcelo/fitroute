@@ -35,8 +35,7 @@ export const dict: DictFragment = {
     "Same spot, same light, every two weeks. It shows what the scale hides.":
       "Mesmo lugar, mesma luz, a cada duas semanas. Mostra o que a balança esconde.",
     "Choose a photo": "Escolher uma foto",
-    "Could not read that photo. Try another one.":
-      "Não consegui ler essa foto. Tente outra.",
+    "Could not read that photo. Try another one.": "Não consegui ler essa foto. Tente outra.",
     "Just for me": "Só para mim",
     "Stays private": "Fica privada",
     "Share with my coach": "Compartilhar com o coach",

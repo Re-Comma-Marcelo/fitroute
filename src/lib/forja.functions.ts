@@ -814,7 +814,9 @@ export const fetchRoutePhotos = createServerFn({ method: "GET" }).handler(async 
   }[] = [];
   for (const r of rows) {
     const path = String(r["storage_path"] ?? "");
-    const signed = await db().storage.from("route-photos").createSignedUrl(path, 60 * 60);
+    const signed = await db()
+      .storage.from("route-photos")
+      .createSignedUrl(path, 60 * 60);
     out.push({
       id: String(r["id"]),
       checkpointId: (r["checkpoint_id"] as string | null) ?? null,
@@ -867,7 +869,9 @@ export const persistRoutePhoto = createServerFn({ method: "POST" })
       if (isMissingTable(res.error)) return null;
       throw new Error(res.error.message);
     }
-    const signed = await db().storage.from("route-photos").createSignedUrl(path, 60 * 60);
+    const signed = await db()
+      .storage.from("route-photos")
+      .createSignedUrl(path, 60 * 60);
     return {
       id,
       checkpointId: data.checkpointId,

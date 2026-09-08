@@ -11,7 +11,15 @@ import { incrementoPara, isSerieDeCarga, type PrevSet } from "./progression";
  *  - Isolation work needs the least, 45-75 s.
  */
 
-const COMPOUND_GROUPS = new Set(["chest", "back", "legs", "quads", "quadriceps", "hamstrings", "glutes"]);
+const COMPOUND_GROUPS = new Set([
+  "chest",
+  "back",
+  "legs",
+  "quads",
+  "quadriceps",
+  "hamstrings",
+  "glutes",
+]);
 
 export interface ExerciseShape {
   grupoPrimario?: string;
@@ -25,8 +33,13 @@ export function isCompound(ex: ExerciseShape): boolean {
   const group = (ex.grupoPrimario ?? "").trim().toLowerCase();
   const equip = (ex.equipamento ?? "").trim().toLowerCase();
   if (!COMPOUND_GROUPS.has(group)) return false;
-  return equip.startsWith("barbell") || equip.startsWith("machine") || equip.startsWith("body") ||
-    equip.startsWith("smith") || equip.startsWith("dumbbell");
+  return (
+    equip.startsWith("barbell") ||
+    equip.startsWith("machine") ||
+    equip.startsWith("body") ||
+    equip.startsWith("smith") ||
+    equip.startsWith("dumbbell")
+  );
 }
 
 /**

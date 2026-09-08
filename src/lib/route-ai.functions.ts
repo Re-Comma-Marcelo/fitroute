@@ -55,8 +55,7 @@ export const generateCheckpoints = createServerFn({ method: "POST" })
 /** One calm sentence explaining why a checkpoint moved. */
 export const explainAdjustment = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: unknown) =>
-      data as { context: unknown; checkpoint: unknown; language: string },
+    (data: unknown) => data as { context: unknown; checkpoint: unknown; language: string },
   )
   .handler(async ({ data }) => {
     const [{ generateJson, PlanAiError }, { z }] = await Promise.all([

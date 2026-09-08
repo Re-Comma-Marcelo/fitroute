@@ -113,7 +113,6 @@ function WorkoutDetail() {
       ? compareWithPreviousRun(workout, sets, allWorkoutsQuery.data ?? [], logQuery.data.sets)
       : null;
 
-
   function patchDraft(setId: string, field: "pesoKg" | "reps", raw: string) {
     const parsed = Number(raw.replace(",", "."));
     setDraftSets((prev) =>
@@ -279,9 +278,7 @@ function WorkoutDetail() {
           </div>
         ) : null}
 
-        {diff ? (
-          <SessionDiffCard diff={diff} nameOf={exerciseName} />
-        ) : null}
+        {diff ? <SessionDiffCard diff={diff} nameOf={exerciseName} /> : null}
 
         {exerciseIds.map((exId, i) => {
           const exSets = shownSets.filter((s) => s.exerciseId === exId);
