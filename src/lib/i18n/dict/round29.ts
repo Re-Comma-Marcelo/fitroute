@@ -1,7 +1,7 @@
-import type { Dict } from "../types";
+import type { DictFragment } from "../types";
 
 /** One journey at the start, and a daily route verdict on the home screen. */
-export const dict: Dict = {
+export const dict: DictFragment = {
   pt: {
     "Set me up completely": "Configure tudo para mim",
     "One interview about your goal, your week and your food. Then the app builds your training, your meals and your route.":
