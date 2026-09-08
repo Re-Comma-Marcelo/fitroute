@@ -32,7 +32,9 @@ Saving writes to your profile as usual. If your Supabase doesn't have those two 
 
 ### 4. Language fix
 
-Pass the interface language under the name the generator expects, so checkpoint titles and notes come back in Dutch, Portuguese or English to match the app.
+Pass the interface language under the name the generator expects, so checkpoint titles and notes come back in Dutch, Portuguese or English to match the app.  
+  
+also add an option to let the app descide when the goal you want to achieve can be achieved and is realistic to achieve within that period. 
 
 ## Technical notes
 

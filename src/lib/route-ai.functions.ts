@@ -78,3 +78,36 @@ export const explainAdjustment = createServerFn({ method: "POST" })
       throw error;
     }
   });
+
+/** Ask the coach when the user's goal is realistically reachable. */
+export const suggestGoalDate = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) => data as { context: unknown; language: string })
+  .handler(async ({ data }) => {
+    const [{ generateJson, PlanAiError }, { z }] = await Promise.all([
+      import("./plan/gateway.server"),
+      import("zod"),
+    ]);
+    const schema = z.object({
+      date: z.string(),
+      months: z.number(),
+      reason: z.string(),
+    });
+    const prompt = [
+      "You are a strength coach. Given the user's goal, body data, training history and",
+      "weekly availability, decide the earliest date at which the goal is realistically",
+      "and safely reachable. Use conservative science: roughly 0.25-0.5 kg body weight",
+      "change per week, 2-5% strength gain per month for trained lifters, more for",
+      "beginners. Never suggest less than 6 weeks from today.",
+      "Return an ISO date (yyyy-mm-dd), the number of months it represents, and ONE short",
+      "supportive sentence explaining the timeline.",
+      `Today: ${new Date().toISOString().slice(0, 10)}`,
+      `Language for the sentence: ${data.language}`,
+      `User context: ${JSON.stringify(data.context)}`,
+    ].join("\n");
+    try {
+      return { ok: true as const, ...(await generateJson(prompt, schema)) };
+    } catch (error) {
+      if (error instanceof PlanAiError) return { ok: false as const, error: error.message };
+      throw error;
+    }
+  });
