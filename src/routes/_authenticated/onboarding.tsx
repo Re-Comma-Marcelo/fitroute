@@ -182,7 +182,6 @@ function OnboardingPage() {
               >
                 {t("Just suggest a routine for now")}
               </button>
-
             </div>
             <SkipLink onSkip={finish} />
           </section>

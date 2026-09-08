@@ -26,9 +26,9 @@ export function routePace(checkpoints: Checkpoint[], now = new Date()): RoutePac
   const overdue = open.filter((c) => c.targetDate < today);
   const missed = checkpoints.filter((c) => c.status === "missed" && c.targetDate < today);
   if (overdue.length || missed.length) {
-    const oldest = [...overdue, ...missed].sort((a, b) => a.targetDate.localeCompare(b.targetDate))[
-      0
-    ];
+    const oldest = [...overdue, ...missed].sort((a, b) =>
+      a.targetDate.localeCompare(b.targetDate),
+    )[0];
     const days = oldest
       ? Math.max(
           1,

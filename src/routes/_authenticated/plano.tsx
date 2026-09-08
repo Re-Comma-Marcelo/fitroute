@@ -195,7 +195,9 @@ function PlanPage() {
       const goalDate = isoDay(addDays(new Date(), Math.max(6, weeks) * 7));
       const targetWeight =
         intake.targetWeightKg ??
-        (goal ? Math.round(((goal.targetWeightLowKg + goal.targetWeightHighKg) / 2) * 10) / 10 : null);
+        (goal
+          ? Math.round(((goal.targetWeightLowKg + goal.targetWeightHighKg) / 2) * 10) / 10
+          : null);
       try {
         const profile = await getProfile();
         await saveProfile({
@@ -232,7 +234,6 @@ function PlanPage() {
       setBusy(null);
     }
   };
-
 
   if (current && busy !== "plan") {
     return (

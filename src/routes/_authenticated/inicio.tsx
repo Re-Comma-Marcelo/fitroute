@@ -165,8 +165,6 @@ export default function Inicio() {
             {/* One line, every day: am I still on my route? */}
             <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
 
-
-
             <TodayCard
               loading={isLoading}
               activeLabel={active ? sessionLabel(active) : null}
@@ -262,7 +260,6 @@ function RouteStatusLine({ checkpoints }: { checkpoints: Checkpoint[] }) {
 }
 
 function TodayCard({
-
   loading,
   activeLabel,
   routine,

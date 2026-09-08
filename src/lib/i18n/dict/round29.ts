@@ -11,8 +11,7 @@ export const dict: DictFragment = {
       "Vou traçar sua rota em instantes — seu plano já está ativo.",
     "On your route": "Você está na rota",
     "Ahead of your route": "Adiantado na sua rota",
-    "Drifting off your route — {days} day(s) behind":
-      "Saindo da rota — {days} dia(s) de atraso",
+    "Drifting off your route — {days} day(s) behind": "Saindo da rota — {days} dia(s) de atraso",
     "Next: {title}": "Próximo: {title}",
   },
   nl: {

@@ -30,8 +30,7 @@ export async function mapRoute(goalDate: string, language: string): Promise<numb
 
   const context = await buildCoachContext();
   const result = (await generateCheckpoints({ data: { context, goalDate, dates, language } })) as
-    | { ok: true; checkpoints: AiCheckpoint[] }
-    | { ok: false; error: string };
+    { ok: true; checkpoints: AiCheckpoint[] } | { ok: false; error: string };
   if (!result.ok) throw new RouteMapError(result.error);
 
   // Only now the old coach checkpoints go, so a failed call never wipes a route.

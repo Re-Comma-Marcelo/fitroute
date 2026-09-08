@@ -148,7 +148,6 @@ function RoutePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkpointsQ.isSuccess, profileQ.isSuccess, goalDate, checkpoints.length]);
 
-
   const savePhoto = useMutation({
     mutationFn: async (input: { dataUrl: string; visibleToAi: boolean }) => {
       const today = isoDay(new Date());
