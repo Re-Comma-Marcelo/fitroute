@@ -28,20 +28,19 @@ import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import { formatFullDate, formatKg, formatNumber, relativeDays } from "@/lib/format";
 import type { Routine } from "@/lib/types";
 import {
-  heatmap,
   latestPR,
   nextRoutine,
   sessionsThisWeek,
-  trainedDays,
   weekStreak,
   weeklyVolume,
-  type HeatCell,
   type PRInfo,
 } from "@/lib/home-metrics";
+import { RoutePreviewCard } from "@/components/RoutePreviewCard";
+import { getCheckpoints } from "@/lib/data/route";
+import { currentCheckpoint } from "@/lib/route/status";
 import { cn } from "@/lib/utils";
 
 const QUICKSTART_KEY = "iron-logger-quickstart-done";
-const HEATMAP_WEEKS = 8;
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
@@ -73,6 +72,7 @@ export default function Inicio() {
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
+  const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
 
   const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
   /** A failed fetch must read as an error, never as "you have no data yet". */
@@ -83,7 +83,6 @@ export default function Inicio() {
   const routines = routinesQ.data ?? [];
 
   const volume = useMemo(() => weeklyVolume(workouts, sets), [workouts, sets]);
-  const cells = useMemo(() => heatmap(workouts, HEATMAP_WEEKS), [workouts]);
   const sessions = useMemo(() => sessionsThisWeek(workouts), [workouts]);
   const streak = useMemo(() => weekStreak(workouts), [workouts]);
   const pr = useMemo(() => latestPR(workouts, sets), [workouts, sets]);
@@ -177,7 +176,14 @@ export default function Inicio() {
               streak={streak}
             />
 
-            <HeatmapSection loading={isLoading} hasData={hasData} cells={cells} />
+            {/* The route replaces the old consistency grid: where you are on
+                the way to your goal, not just which days you showed up. */}
+            <RoutePreviewCard
+              checkpoints={checkpointsQ.data ?? []}
+              current={currentCheckpoint(checkpointsQ.data ?? [])}
+              goalDate={profileQ.data?.metaPrazo ?? null}
+              loading={checkpointsQ.isLoading}
+            />
 
             <PRStrip loading={isLoading} pr={pr} name={prName} />
 
@@ -359,55 +365,6 @@ function StatsRow({
   );
 }
 
-/* ---------- consistency heatmap ---------- */
-
-function HeatmapSection({
-  loading,
-  hasData,
-  cells,
-}: {
-  loading: boolean;
-  hasData: boolean;
-  cells: HeatCell[];
-}) {
-  const t = useT();
-  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
-
-  const total = cells.length;
-  const days = trainedDays(cells);
-  const ghostIdx = new Set([total - 12, total - 9, total - 5, total - 2]);
-
-  return (
-    <section>
-      <div className="flex items-baseline justify-between gap-2">
-        <p className="label-caps">{t("Consistency")}</p>
-        <p className="text-xs text-muted-foreground">
-          {hasData
-            ? t("Trained on {days} of the last {total} days", { days, total })
-            : t("Your first square shows up today.")}
-        </p>
-      </div>
-      <div
-        role="img"
-        aria-label={t("Trained on {days} of the last {total} days", { days, total })}
-        className="mt-2 grid grid-flow-col grid-rows-7 gap-1"
-      >
-        {cells.map((cell, i) => (
-          <div
-            key={cell.date}
-            className={cn(
-              "aspect-square rounded-[3px]",
-              cell.level === 2 ? "bg-train" : cell.level === 1 ? "bg-train-dim" : "bg-surface-3",
-              !hasData && ghostIdx.has(i) && "bg-train/30",
-              cell.isToday && "ring-1 ring-inset ring-foreground/40",
-            )}
-          />
-        ))}
-      </div>
-    </section>
-  );
-}
-
 /* ---------- latest PR ---------- */
 
 function PRStrip({ loading, pr, name }: { loading: boolean; pr: PRInfo | null; name: string }) {
@@ -417,7 +374,7 @@ function PRStrip({ loading, pr, name }: { loading: boolean; pr: PRInfo | null; n
 
   return (
     <Link
-      to="/progresso"
+      to="/rota/progresso"
       className="tap-target flex items-center gap-3 rounded-2xl border border-border bg-surface-1 px-4 py-3"
     >
       <span className="grid size-9 shrink-0 place-items-center rounded-full bg-success-bg text-success">
