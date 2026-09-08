@@ -121,11 +121,7 @@ export interface CoachNote {
 
 /** Which adaptive detection produced a coaching message. */
 export type CoachingEventKind =
-  | "performance_drop"
-  | "inactivity_checkin"
-  | "weekly_checkin"
-  | "post_workout"
-  | "chat_swap";
+  "performance_drop" | "inactivity_checkin" | "weekly_checkin" | "post_workout" | "chat_swap";
 
 /** Why the coach thinks something happened — drives the tone of the message. */
 export type CoachingCause = "cross_training" | "pattern" | "one_off" | "none";
@@ -143,7 +139,6 @@ export interface CoachingEvent {
   message: string;
   userReply?: string | undefined;
 }
-
 
 export type CrossTrainingKind = "run" | "sport" | "bike" | "walk" | "other";
 
@@ -165,4 +160,3 @@ export interface CoachChatEntry {
   workoutId?: string;
   exerciseId?: string;
 }
-

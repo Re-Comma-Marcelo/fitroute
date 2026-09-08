@@ -2,7 +2,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Send, Sparkles } from "lucide-react";
 import { getCoachNotes } from "@/lib/data/coach-notes";
-import { getCoachingEvents, firedToday, logCoachingEvent, replyToCoachingEvent } from "@/lib/data/coaching";
+import {
+  getCoachingEvents,
+  firedToday,
+  logCoachingEvent,
+  replyToCoachingEvent,
+} from "@/lib/data/coaching";
 import { getWorkouts } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
 import {
@@ -53,7 +58,9 @@ export function CoachNotesCard() {
     const days = daysSinceLastWorkout(workouts);
     if (days == null || days < inactivityThreshold()) return;
     const existing = events.find(
-      (e) => e.kind === "inactivity_checkin" && e.createdAt.slice(0, 10) === new Date().toISOString().slice(0, 10),
+      (e) =>
+        e.kind === "inactivity_checkin" &&
+        e.createdAt.slice(0, 10) === new Date().toISOString().slice(0, 10),
     );
     createdRef.current = true;
     if (existing) {
@@ -87,10 +94,10 @@ export function CoachNotesCard() {
           : e.kind === "post_workout"
             ? t("Recovery")
             : e.kind === "weekly_checkin"
-                ? t("Weekly check-in")
-                : e.kind === "chat_swap"
-              ? t("Exercise swap")
-              : t("Check-in"),
+              ? t("Weekly check-in")
+              : e.kind === "chat_swap"
+                ? t("Exercise swap")
+                : t("Check-in"),
       content: e.message,
       tags: e.cause && e.cause !== "none" ? [e.cause.replace("_", " ")] : [],
       adaptive: true,
@@ -99,7 +106,9 @@ export function CoachNotesCard() {
     const all = [...notes, ...events].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
     if (filter === "all") return all;
     if (filter === "coach") return all.filter((i) => i.adaptive);
-    return all.filter((i) => !i.adaptive && i.label === (filter === "checkin" ? t("Check-in") : t("Observation")));
+    return all.filter(
+      (i) => !i.adaptive && i.label === (filter === "checkin" ? t("Check-in") : t("Observation")),
+    );
   }, [notesQ.data, eventsQ.data, filter, t]);
 
   async function sendReply(e: React.FormEvent) {
@@ -122,11 +131,14 @@ export function CoachNotesCard() {
         kind: "inactivity_checkin",
         cause: "none",
         message: proposal.text,
-        detail: { reply: text, routineId: proposal.routineId ?? null, shortened: proposal.shortened },
+        detail: {
+          reply: text,
+          routineId: proposal.routineId ?? null,
+          shortened: proposal.shortened,
+        },
       });
     }
     void eventsQ.refetch();
-
   }
 
   if (notesQ.isError) {

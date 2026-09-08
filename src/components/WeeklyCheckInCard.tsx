@@ -126,7 +126,9 @@ export function WeeklyCheckInCard() {
         t("Week planned: {days}", {
           days: entry.days.map((d) => t(DAY_LABELS[d] ?? "")).join(", ") || t("no days"),
         }),
-        t("Last week felt {feeling}.", { feeling: t(FEELINGS.find((f) => f.key === feeling)!.label) }),
+        t("Last week felt {feeling}.", {
+          feeling: t(FEELINGS.find((f) => f.key === feeling)!.label),
+        }),
         entry.lifeNote,
         entry.issues.filter((i) => i !== "nothing").length
           ? t("Watch out for: {issues}", {
@@ -190,7 +192,9 @@ export function WeeklyCheckInCard() {
               </li>
             ))}
         </ul>
-        <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm leading-snug">{t(coachLine(done))}</p>
+        <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm leading-snug">
+          {t(coachLine(done))}
+        </p>
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setDismissed(true)}>
           {t("Done")}
         </Button>

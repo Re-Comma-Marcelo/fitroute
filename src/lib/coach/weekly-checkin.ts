@@ -51,9 +51,7 @@ export function getCheckIns(): WeeklyCheckIn[] {
 }
 
 export function latestCheckIn(): WeeklyCheckIn | null {
-  return (
-    [...getCheckIns()].sort((a, b) => b.weekKey.localeCompare(a.weekKey))[0] ?? null
-  );
+  return [...getCheckIns()].sort((a, b) => b.weekKey.localeCompare(a.weekKey))[0] ?? null;
 }
 
 export function checkInFor(weekKey: string): WeeklyCheckIn | null {

@@ -11,7 +11,6 @@ const KEY = "forja.reminder.v1";
 const FIRED_KEY = "forja.reminder.fired.v1";
 const CHECKIN_FIRED_KEY = "forja.reminder.checkin.v1";
 
-
 export interface ReminderSettings {
   enabled: boolean;
   /** "HH:MM" local time. */
@@ -142,4 +141,3 @@ export function armWeeklyCheckInReminder(due: boolean, message: string) {
     checkinTimer = null;
   };
 }
-

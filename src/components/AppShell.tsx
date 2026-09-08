@@ -7,7 +7,8 @@ import { SessionMiniPlayer } from "./SessionMiniPlayer";
 import { useLanguageSync } from "@/lib/i18n/use-language-sync";
 import { useQuery } from "@tanstack/react-query";
 import { getRoutines } from "@/lib/data/routines";
-import { armReminder } from "@/lib/workout-reminder";
+import { armReminder, armWeeklyCheckInReminder } from "@/lib/workout-reminder";
+import { checkInDue } from "@/lib/coach/weekly-checkin";
 import { useT } from "@/lib/i18n";
 
 export function AppShell({
@@ -36,6 +37,14 @@ export function AppShell({
       t("Time to train — {routine} is planned for today.", { routine }),
     );
   }, [routinesQuery.data, t]);
+
+  // Weekend nudge to plan the coming week (same reminder time).
+  useEffect(() => {
+    return armWeeklyCheckInReminder(
+      checkInDue(),
+      t("Time to plan your week — two minutes and you're set."),
+    );
+  }, [t]);
 
   /**
    * Replay the entry animation on route change without remounting the tree —
