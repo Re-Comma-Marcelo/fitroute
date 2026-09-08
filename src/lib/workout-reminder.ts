@@ -9,6 +9,7 @@ import type { Routine } from "@/lib/types";
 
 const KEY = "forja.reminder.v1";
 const FIRED_KEY = "forja.reminder.fired.v1";
+const CHECKIN_FIRED_KEY = "forja.reminder.checkin.v1";
 
 export interface ReminderSettings {
   enabled: boolean;
@@ -98,5 +99,45 @@ export function armReminder(routines: Routine[], message: (routineName: string) 
   return () => {
     if (timer) clearTimeout(timer);
     timer = null;
+  };
+}
+
+let checkinTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * One nudge per weekend to plan the coming week. Uses the same reminder
+ * setting and time as the training reminder, and only fires on Sunday or
+ * Monday while the check-in for that week is still open.
+ */
+export function armWeeklyCheckInReminder(due: boolean, message: string) {
+  if (checkinTimer) clearTimeout(checkinTimer);
+  checkinTimer = null;
+  if (typeof window === "undefined" || !due) return () => {};
+
+  const settings = getReminder();
+  if (!settings.enabled || !notificationsSupported() || Notification.permission !== "granted") {
+    return () => {};
+  }
+  if (window.localStorage.getItem(CHECKIN_FIRED_KEY) === todayKey()) return () => {};
+
+  const now = new Date();
+  const [hh, mm] = settings.time.split(":");
+  const at = new Date(now);
+  at.setHours(Number(hh ?? 18), Number(mm ?? 0), 0, 0);
+  const delay = at.getTime() - now.getTime();
+  if (delay <= 0 || delay > 12 * 60 * 60 * 1000) return () => {};
+
+  checkinTimer = setTimeout(() => {
+    try {
+      window.localStorage.setItem(CHECKIN_FIRED_KEY, todayKey());
+      new Notification(message, { tag: "forja-weekly-checkin", icon: "/icon-192.png" });
+    } catch {
+      // notification failures are non-critical
+    }
+  }, delay);
+
+  return () => {
+    if (checkinTimer) clearTimeout(checkinTimer);
+    checkinTimer = null;
   };
 }
