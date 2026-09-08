@@ -34,6 +34,7 @@ import { Route as AuthenticatedDietaWeekRouteImport } from './routes/_authentica
 import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
 import { Route as AuthenticatedProgressoIdRouteImport } from './routes/_authenticated/progresso.$id'
 import { Route as AuthenticatedResumoIdRouteImport } from './routes/_authenticated/resumo.$id'
+import { Route as AuthenticatedRotaIndexRouteImport } from './routes/_authenticated/rota.index'
 import { Route as AuthenticatedRotaProgressoRouteImport } from './routes/_authenticated/rota.progresso'
 import { Route as AuthenticatedRotinaIdRouteImport } from './routes/_authenticated/rotina.$id'
 
@@ -167,6 +168,11 @@ const AuthenticatedResumoIdRoute = AuthenticatedResumoIdRouteImport.update({
   path: '/resumo/$id',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRotaIndexRoute = AuthenticatedRotaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AuthenticatedRotaRoute,
+} as any)
 const AuthenticatedRotaProgressoRoute =
   AuthenticatedRotaProgressoRouteImport.update({
     id: '/progresso',
@@ -206,6 +212,7 @@ export interface FileRoutesByFullPath {
   '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/dieta/': typeof AuthenticatedDietaIndexRoute
   '/progresso/': typeof AuthenticatedProgressoIndexRoute
+  '/rota/': typeof AuthenticatedRotaIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,7 +226,6 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
-  '/rota': typeof AuthenticatedRotaRouteWithChildren
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -232,6 +238,7 @@ export interface FileRoutesByTo {
   '/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/dieta': typeof AuthenticatedDietaIndexRoute
   '/progresso': typeof AuthenticatedProgressoIndexRoute
+  '/rota': typeof AuthenticatedRotaIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -262,6 +269,7 @@ export interface FileRoutesById {
   '/_authenticated/rotina/$id': typeof AuthenticatedRotinaIdRoute
   '/_authenticated/dieta/': typeof AuthenticatedDietaIndexRoute
   '/_authenticated/progresso/': typeof AuthenticatedProgressoIndexRoute
+  '/_authenticated/rota/': typeof AuthenticatedRotaIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -292,6 +300,7 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta/'
     | '/progresso/'
+    | '/rota/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -305,7 +314,6 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/plano'
-    | '/rota'
     | '/sessao'
     | '/treino'
     | '/.lovable/oauth/consent'
@@ -318,6 +326,7 @@ export interface FileRouteTypes {
     | '/rotina/$id'
     | '/dieta'
     | '/progresso'
+    | '/rota'
   id:
     | '__root__'
     | '/'
@@ -347,6 +356,7 @@ export interface FileRouteTypes {
     | '/_authenticated/rotina/$id'
     | '/_authenticated/dieta/'
     | '/_authenticated/progresso/'
+    | '/_authenticated/rota/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -536,6 +546,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedResumoIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/rota/': {
+      id: '/_authenticated/rota/'
+      path: '/'
+      fullPath: '/rota/'
+      preLoaderRoute: typeof AuthenticatedRotaIndexRouteImport
+      parentRoute: typeof AuthenticatedRotaRoute
+    }
     '/_authenticated/rota/progresso': {
       id: '/_authenticated/rota/progresso'
       path: '/progresso'
@@ -586,10 +603,12 @@ const AuthenticatedProgressoRouteWithChildren =
 
 interface AuthenticatedRotaRouteChildren {
   AuthenticatedRotaProgressoRoute: typeof AuthenticatedRotaProgressoRoute
+  AuthenticatedRotaIndexRoute: typeof AuthenticatedRotaIndexRoute
 }
 
 const AuthenticatedRotaRouteChildren: AuthenticatedRotaRouteChildren = {
   AuthenticatedRotaProgressoRoute: AuthenticatedRotaProgressoRoute,
+  AuthenticatedRotaIndexRoute: AuthenticatedRotaIndexRoute,
 }
 
 const AuthenticatedRotaRouteWithChildren =
