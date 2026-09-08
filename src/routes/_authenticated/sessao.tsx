@@ -909,6 +909,74 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
+  /** Press and hold a chip in the top strip, then slide sideways to reorder. */
+  function beginChipDragHold(exIdx: number, event: React.PointerEvent<HTMLElement>) {
+    const target = event.currentTarget;
+    const pointerId = event.pointerId;
+    const startX = event.clientX;
+    const startY = event.clientY;
+    let armed = false;
+
+    const timer = window.setTimeout(() => {
+      armed = true;
+      chipDragIdxRef.current = exIdx;
+      chipBaseXRef.current = startX;
+      setChipDrag({ idx: exIdx, offset: 0 });
+      hapticTick();
+      try {
+        target.setPointerCapture(pointerId);
+      } catch {
+        /* capture is a nicety, not a requirement */
+      }
+    }, 220);
+
+    function onMove(e: PointerEvent) {
+      if (e.pointerId !== pointerId) return;
+      if (!armed) {
+        // Moving before the hold completes means the user is scrolling the strip.
+        if (Math.abs(e.clientX - startX) > 8 || Math.abs(e.clientY - startY) > 8) cleanup();
+        return;
+      }
+      e.preventDefault();
+      const idx = chipDragIdxRef.current;
+      if (idx === null) return;
+      const before = chipRefs.current[idx - 1]?.getBoundingClientRect();
+      const after = chipRefs.current[idx + 1]?.getBoundingClientRect();
+      if (before && e.clientX < before.left + before.width / 2) {
+        shiftExercise(idx, -1);
+        chipDragIdxRef.current = idx - 1;
+        chipBaseXRef.current = e.clientX;
+        hapticTick();
+        setChipDrag({ idx: idx - 1, offset: 0 });
+        return;
+      }
+      if (after && e.clientX > after.left + after.width / 2) {
+        shiftExercise(idx, 1);
+        chipDragIdxRef.current = idx + 1;
+        chipBaseXRef.current = e.clientX;
+        hapticTick();
+        setChipDrag({ idx: idx + 1, offset: 0 });
+        return;
+      }
+      setChipDrag({ idx, offset: e.clientX - chipBaseXRef.current });
+    }
+
+    function cleanup() {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", cleanup);
+      window.removeEventListener("pointercancel", cleanup);
+      chipDragIdxRef.current = null;
+      setChipDrag(null);
+    }
+
+    window.addEventListener("pointermove", onMove, { passive: false });
+    window.addEventListener("pointerup", cleanup);
+    window.addEventListener("pointercancel", cleanup);
+  }
+
+
+
   /** Send the user to the library and swap the picked exercise into this slot. */
   function replaceExercise(exIdx: number) {
     setPendingReplaceSlot(exIdx);
