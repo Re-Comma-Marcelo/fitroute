@@ -563,12 +563,13 @@ export const persistCoachingEvent = createServerFn({ method: "POST" })
   )
 
   .handler(async ({ data }) => {
-    const { db, requireUserId, toCoachingEvent, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, toCoachingEvent, uid, isMissingTable } = await import(
+      "./db.server"
+    );
     const userId = await requireUserId();
-    const row = unwrap(
-      await db()
-        .from("coaching_events")
-        .insert({
+    const res = await db()
+      .from("coaching_events")
+      .insert({
           id: uid("ce"),
           user_id: userId,
           kind: data.kind,
@@ -576,12 +577,17 @@ export const persistCoachingEvent = createServerFn({ method: "POST" })
           exercise_id: data.exerciseId ?? null,
           workout_id: data.workoutId ?? null,
           cause: data.cause ?? null,
-          detail: data.detail ?? {},
-        })
-        .select("*")
-        .single(),
-    ) as Record<string, unknown>;
-    return toCoachingEvent(row);
+        detail: data.detail ?? {},
+      })
+      .select("*")
+      .single();
+    // The coaching tables are optional: without the migration the client keeps
+    // the event locally instead of crashing the screen.
+    if (res.error) {
+      if (isMissingTable(res.error)) return null;
+      throw new Error(res.error.message);
+    }
+    return toCoachingEvent(res.data as Record<string, unknown>);
   });
 
 export const persistCoachingReply = createServerFn({ method: "POST" })
