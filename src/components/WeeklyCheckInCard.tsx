@@ -19,6 +19,9 @@ import { saveCoachNote } from "@/lib/data/coach-notes";
 import { logCoachingEvent } from "@/lib/data/coaching";
 import { isoDate } from "@/lib/data/nutrition";
 import { sessionsThisWeek, weekStreak, weeklyVolume } from "@/lib/home-metrics";
+import { getCheckpoints } from "@/lib/data/route";
+import { currentCheckpoint } from "@/lib/route/status";
+import { formatDate } from "@/lib/format";
 import {
   ISSUE_KEYS,
   assignDays,
@@ -65,6 +68,9 @@ export function WeeklyCheckInCard() {
   const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
+  // The week is planned against the nearest checkpoint, not in a vacuum.
+  const checkpoint = currentCheckpoint(checkpointsQ.data ?? []);
 
   const last = useMemo(() => {
     const workouts = logQ.data?.workouts ?? [];
@@ -212,6 +218,14 @@ export function WeeklyCheckInCard() {
           streak: last.streak,
         })}
       </p>
+      {checkpoint ? (
+        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs leading-snug text-primary">
+          {t("Next checkpoint: {title} by {date}", {
+            title: checkpoint.title,
+            date: formatDate(checkpoint.targetDate),
+          })}
+        </p>
+      ) : null}
       <p className="text-sm font-medium">{t("How did it feel?")}</p>
       <div className="flex gap-2">
         {FEELINGS.map((f) => (
