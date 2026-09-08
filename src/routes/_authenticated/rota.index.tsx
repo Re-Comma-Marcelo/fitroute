@@ -45,7 +45,7 @@ export const Route = createFileRoute("/_authenticated/rota/")({
 
 function RoutePage() {
   const t = useT();
-  const { language } = useLanguage();
+  const { lang } = useLanguage();
   const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Checkpoint | null>(null);
   const [editing, setEditing] = useState<Checkpoint | null>(null);
@@ -116,7 +116,7 @@ function RoutePage() {
       if (!dates.length) throw new Error("too-short");
       const context = await buildCoachContext();
       const result = (await generateCheckpoints({
-        data: { context, goalDate, dates, language },
+        data: { context, goalDate, dates, lang },
       })) as
         | {
             ok: true;

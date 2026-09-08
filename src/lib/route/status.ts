@@ -16,7 +16,7 @@ export interface Evaluation {
 
 function bestLift(sets: WorkoutSet[], exerciseId: string, until: Date): number {
   return sets
-    .filter((s) => s.exercicioId === exerciseId && s.concluida !== false)
+    .filter((s) => s.exerciseId === exerciseId && s.concluida !== false)
     .reduce((max, s) => Math.max(max, s.pesoKg ?? 0), 0);
 }
 

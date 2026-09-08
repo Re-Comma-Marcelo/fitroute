@@ -51,7 +51,7 @@ export async function buildCoachContext(): Promise<CoachContext> {
   const best = new Map<string, number>();
   for (const s of log.sets) {
     if (s.concluida === false) continue;
-    best.set(s.exercicioId, Math.max(best.get(s.exercicioId) ?? 0, s.pesoKg ?? 0));
+    best.set(s.exerciseId, Math.max(best.get(s.exerciseId) ?? 0, s.pesoKg ?? 0));
   }
 
   return {
@@ -68,7 +68,7 @@ export async function buildCoachContext(): Promise<CoachContext> {
     routines: routines.map((r) => ({
       nome: r.nome,
       exercicios: r.exercicios
-        .map((e) => exercises.find((x) => x.id === e.exercicioId)?.nome ?? e.exercicioId)
+        .map((e) => exercises.find((x) => x.id === e.exerciseId)?.nome ?? e.exerciseId)
         .slice(0, 10),
     })),
     bestLifts: [...best.entries()]

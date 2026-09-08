@@ -64,7 +64,7 @@ export function CheckpointEditSheet({
     onSave({
       ...(checkpoint?.id ? { id: checkpoint.id } : {}),
       title: title.trim() || t("Checkpoint"),
-      description: description.trim() || undefined,
+      ...(description.trim() ? { description: description.trim() } : {}),
       targetDate: date,
       orderIndex: checkpoint?.orderIndex ?? 99,
       status: checkpoint?.status ?? "upcoming",
