@@ -159,6 +159,11 @@ export default function Inicio() {
           <>
             <WeeklyCheckInCard />
 
+            {/* One line, every day: am I still on my route? */}
+            <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
+
+
+
             <TodayCard
               loading={isLoading}
               activeLabel={active ? sessionLabel(active) : null}
