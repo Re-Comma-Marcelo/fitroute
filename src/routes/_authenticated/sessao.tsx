@@ -976,8 +976,6 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-
-
   /** Send the user to the library and swap the picked exercise into this slot. */
   function replaceExercise(exIdx: number) {
     setPendingReplaceSlot(exIdx);
@@ -1272,7 +1270,7 @@ function SessionPage() {
           <div className="relative mx-auto max-w-md border-t border-border">
             <nav
               aria-label={t("Jump to exercise")}
-              className="no-scrollbar overflow-x-auto px-2 py-2"
+              className="overflow-x-auto px-2 py-2"
               style={chipDrag ? { touchAction: "none", overflowX: "hidden" } : undefined}
             >
               <ul className="flex items-stretch gap-1.5">
