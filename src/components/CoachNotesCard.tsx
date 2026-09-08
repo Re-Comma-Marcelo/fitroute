@@ -86,7 +86,9 @@ export function CoachNotesCard() {
           ? t("Performance")
           : e.kind === "post_workout"
             ? t("Recovery")
-            : e.kind === "chat_swap"
+            : e.kind === "weekly_checkin"
+                ? t("Weekly check-in")
+                : e.kind === "chat_swap"
               ? t("Exercise swap")
               : t("Check-in"),
       content: e.message,

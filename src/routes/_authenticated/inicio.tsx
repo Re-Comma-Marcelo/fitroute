@@ -12,6 +12,7 @@ import { CountUp } from "@/components/CountUp";
 import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
 import { CoachNotesCard } from "@/components/CoachNotesCard";
+import { WeeklyCheckInCard } from "@/components/WeeklyCheckInCard";
 import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
 
 import { useT } from "@/lib/i18n";
@@ -157,6 +158,8 @@ export default function Inicio() {
           />
         ) : (
           <>
+            <WeeklyCheckInCard />
+
             <TodayCard
               loading={isLoading}
               activeLabel={active ? sessionLabel(active) : null}

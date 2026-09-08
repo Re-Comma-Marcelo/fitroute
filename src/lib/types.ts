@@ -123,6 +123,7 @@ export interface CoachNote {
 export type CoachingEventKind =
   | "performance_drop"
   | "inactivity_checkin"
+  | "weekly_checkin"
   | "post_workout"
   | "chat_swap";
 
