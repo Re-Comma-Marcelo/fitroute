@@ -442,7 +442,8 @@ export const fetchCustomMeals = createServerFn({ method: "GET" }).handler(async 
 export const persistCustomMeal = createServerFn({ method: "POST" })
   .inputValidator((data: { meal: Record<string, unknown>; source?: string }) => data)
   .handler(async ({ data }) => {
-    const { db, requireUserId, toCustomMeal, uid, unwrap, isMissingTable } = await import("./db.server");
+    const { db, requireUserId, toCustomMeal, uid, unwrap, isMissingTable } =
+      await import("./db.server");
     const userId = await requireUserId();
     const m = data.meal;
     const id = (m["id"] as string) || uid("cm");
@@ -463,11 +464,7 @@ export const persistCustomMeal = createServerFn({ method: "POST" })
     };
     try {
       const row = unwrap(
-        await db()
-          .from("custom_meals")
-          .upsert(rowInput, { onConflict: "id" })
-          .select("*")
-          .single(),
+        await db().from("custom_meals").upsert(rowInput, { onConflict: "id" }).select("*").single(),
       ) as Record<string, unknown>;
       return toCustomMeal(row);
     } catch (err) {
@@ -563,25 +560,29 @@ export const persistCoachingEvent = createServerFn({ method: "POST" })
   )
 
   .handler(async ({ data }) => {
-    const { db, requireUserId, toCoachingEvent, uid, unwrap } = await import("./db.server");
+    const { db, requireUserId, toCoachingEvent, uid, isMissingTable } = await import("./db.server");
     const userId = await requireUserId();
-    const row = unwrap(
-      await db()
-        .from("coaching_events")
-        .insert({
-          id: uid("ce"),
-          user_id: userId,
-          kind: data.kind,
-          message: data.message,
-          exercise_id: data.exerciseId ?? null,
-          workout_id: data.workoutId ?? null,
-          cause: data.cause ?? null,
-          detail: data.detail ?? {},
-        })
-        .select("*")
-        .single(),
-    ) as Record<string, unknown>;
-    return toCoachingEvent(row);
+    const res = await db()
+      .from("coaching_events")
+      .insert({
+        id: uid("ce"),
+        user_id: userId,
+        kind: data.kind,
+        message: data.message,
+        exercise_id: data.exerciseId ?? null,
+        workout_id: data.workoutId ?? null,
+        cause: data.cause ?? null,
+        detail: data.detail ?? {},
+      })
+      .select("*")
+      .single();
+    // The coaching tables are optional: without the migration the client keeps
+    // the event locally instead of crashing the screen.
+    if (res.error) {
+      if (isMissingTable(res.error)) return null;
+      throw new Error(res.error.message);
+    }
+    return toCoachingEvent(res.data as Record<string, unknown>);
   });
 
 export const persistCoachingReply = createServerFn({ method: "POST" })
@@ -617,13 +618,8 @@ export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(asyn
 
 export const persistCrossTraining = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: {
-      kind: string;
-      data: string;
-      duracaoMin: number;
-      intensidade: string;
-      nota: string;
-    }) => data,
+    (data: { kind: string; data: string; duracaoMin: number; intensidade: string; nota: string }) =>
+      data,
   )
   .handler(async ({ data }) => {
     const { db, requireUserId, toCrossTraining, uid, unwrap } = await import("./db.server");
