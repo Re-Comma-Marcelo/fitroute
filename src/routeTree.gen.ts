@@ -23,6 +23,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedPlanoRouteImport } from './routes/_authenticated/plano'
 import { Route as AuthenticatedProgressoRouteImport } from './routes/_authenticated/progresso'
+import { Route as AuthenticatedRotaRouteImport } from './routes/_authenticated/rota'
 import { Route as AuthenticatedSessaoRouteImport } from './routes/_authenticated/sessao'
 import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated/treino'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -106,6 +107,11 @@ const AuthenticatedProgressoRoute = AuthenticatedProgressoRouteImport.update({
   path: '/progresso',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRotaRoute = AuthenticatedRotaRouteImport.update({
+  id: '/rota',
+  path: '/rota',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSessaoRoute = AuthenticatedSessaoRouteImport.update({
   id: '/sessao',
   path: '/sessao',
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
   '/progresso': typeof AuthenticatedProgressoRouteWithChildren
+  '/rota': typeof AuthenticatedRotaRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -204,6 +211,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/plano': typeof AuthenticatedPlanoRoute
+  '/rota': typeof AuthenticatedRotaRoute
   '/sessao': typeof AuthenticatedSessaoRoute
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/plano': typeof AuthenticatedPlanoRoute
   '/_authenticated/progresso': typeof AuthenticatedProgressoRouteWithChildren
+  '/_authenticated/rota': typeof AuthenticatedRotaRoute
   '/_authenticated/sessao': typeof AuthenticatedSessaoRoute
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -260,6 +269,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/plano'
     | '/progresso'
+    | '/rota'
     | '/sessao'
     | '/treino'
     | '/.lovable/oauth/consent'
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/perfil'
     | '/plano'
+    | '/rota'
     | '/sessao'
     | '/treino'
     | '/.lovable/oauth/consent'
@@ -311,6 +322,7 @@ export interface FileRouteTypes {
     | '/_authenticated/perfil'
     | '/_authenticated/plano'
     | '/_authenticated/progresso'
+    | '/_authenticated/rota'
     | '/_authenticated/sessao'
     | '/_authenticated/treino'
     | '/.lovable/oauth/consent'
@@ -434,6 +446,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedProgressoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/rota': {
+      id: '/_authenticated/rota'
+      path: '/rota'
+      fullPath: '/rota'
+      preLoaderRoute: typeof AuthenticatedRotaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/sessao': {
       id: '/_authenticated/sessao'
       path: '/sessao'
@@ -555,6 +574,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPlanoRoute: typeof AuthenticatedPlanoRoute
   AuthenticatedProgressoRoute: typeof AuthenticatedProgressoRouteWithChildren
+  AuthenticatedRotaRoute: typeof AuthenticatedRotaRoute
   AuthenticatedSessaoRoute: typeof AuthenticatedSessaoRoute
   AuthenticatedTreinoRoute: typeof AuthenticatedTreinoRoute
   AuthenticatedResumoIdRoute: typeof AuthenticatedResumoIdRoute
@@ -571,6 +591,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPlanoRoute: AuthenticatedPlanoRoute,
   AuthenticatedProgressoRoute: AuthenticatedProgressoRouteWithChildren,
+  AuthenticatedRotaRoute: AuthenticatedRotaRoute,
   AuthenticatedSessaoRoute: AuthenticatedSessaoRoute,
   AuthenticatedTreinoRoute: AuthenticatedTreinoRoute,
   AuthenticatedResumoIdRoute: AuthenticatedResumoIdRoute,
