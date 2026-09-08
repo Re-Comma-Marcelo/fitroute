@@ -1268,43 +1268,102 @@ function SessionPage() {
           </p>
         ) : null}
         {session.exercicios.length > 1 ? (
-          <nav
-            aria-label={t("Jump to exercise")}
-            className="mx-auto max-w-md overflow-x-auto border-t border-border px-2 py-1.5"
-          >
-            <ul className="flex items-center gap-1.5">
-              {session.exercicios.map((ex, exIdx) => {
-                const validas = ex.sets.filter(isSerieValida).length;
-                const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
-                const done = validas > 0 && feitas >= validas;
-                const active = exIdx === session.atual;
-                return (
-                  <li key={`chip-${ex.exerciseId}-${exIdx}`}>
-                    <button
-                      type="button"
-                      aria-current={active ? "true" : undefined}
-                      onClick={() => {
-                        update((s) => ({ ...s, atual: exIdx }));
-                        setScrollTo(exIdx);
+          <div className="relative mx-auto max-w-md border-t border-border">
+            <nav
+              aria-label={t("Jump to exercise")}
+              className="no-scrollbar overflow-x-auto px-2 py-2"
+              style={chipDrag ? { touchAction: "none", overflowX: "hidden" } : undefined}
+            >
+              <ul className="flex items-stretch gap-1.5">
+                {session.exercicios.map((ex, exIdx) => {
+                  const validas = ex.sets.filter(isSerieValida).length;
+                  const feitas = ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
+                  const done = validas > 0 && feitas >= validas;
+                  const active = exIdx === session.atual;
+                  const dragging = chipDrag?.idx === exIdx;
+                  return (
+                    <li
+                      key={`chip-${ex.exerciseId}-${exIdx}`}
+                      ref={(el) => {
+                        chipRefs.current[exIdx] = el;
+                        if (el && active && !chipDrag && chipScrolledRef.current !== exIdx) {
+                          chipScrolledRef.current = exIdx;
+                          el.scrollIntoView({ block: "nearest", inline: "center" });
+                        }
                       }}
-                      className={cn(
-                        "tap-target flex h-8 max-w-[8.5rem] items-center gap-1 rounded-full px-2.5 text-[11px] font-semibold transition-colors",
-                        active
-                          ? "bg-primary text-primary-foreground"
-                          : done
-                            ? "bg-success/15 text-success"
-                            : "bg-surface-3 text-muted-foreground",
-                        ex.pulado && "opacity-50 line-through",
-                      )}
+                      className="shrink-0"
+                      style={
+                        dragging
+                          ? {
+                              transform: `translateX(${chipDrag.offset}px) scale(1.04)`,
+                              zIndex: 20,
+                              position: "relative",
+                            }
+                          : undefined
+                      }
                     >
-                      {done && !active ? <Check className="size-3" strokeWidth={3} /> : null}
-                      <span className="truncate">{ex.nome}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
+                      <button
+                        type="button"
+                        aria-current={active ? "true" : undefined}
+                        aria-label={`${exIdx + 1}. ${ex.nome} — ${t("{done}/{total} sets", {
+                          done: feitas,
+                          total: validas,
+                        })}`}
+                        title={t("Hold and drag to reorder exercises")}
+                        onPointerDown={(e) => beginChipDragHold(exIdx, e)}
+                        onClick={() => {
+                          if (chipDrag) return;
+                          chipScrolledRef.current = exIdx;
+                          update((s) => ({ ...s, atual: exIdx }));
+                          setScrollTo(exIdx);
+                        }}
+                        className={cn(
+                          "tap-target flex max-w-[10.5rem] select-none items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-left transition-all",
+                          active
+                            ? "bg-primary text-primary-foreground shadow-md"
+                            : done
+                              ? "bg-success/12 text-success"
+                              : "bg-surface-3 text-muted-foreground",
+                          !active && !done && "opacity-90",
+                          dragging && "ring-2 ring-primary",
+                          ex.pulado && "opacity-50 line-through",
+                        )}
+                      >
+                        <span
+                          className={cn(
+                            "flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
+                            active
+                              ? "bg-primary-foreground/20 text-primary-foreground"
+                              : done
+                                ? "bg-success/20 text-success"
+                                : "bg-surface-2 text-muted-foreground",
+                          )}
+                          aria-hidden="true"
+                        >
+                          {done ? <Check className="size-3.5" strokeWidth={3} /> : exIdx + 1}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[11px] font-semibold leading-tight">
+                            {ex.nome}
+                          </span>
+                          <span
+                            className={cn(
+                              "block text-[10px] font-medium leading-tight tabular-nums",
+                              active ? "text-primary-foreground/80" : "opacity-70",
+                            )}
+                          >
+                            {feitas}/{validas}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </nav>
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent" />
+          </div>
         ) : null}
       </header>
 
