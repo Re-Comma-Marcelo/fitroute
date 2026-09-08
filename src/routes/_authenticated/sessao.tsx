@@ -213,6 +213,11 @@ function SessionPage() {
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
   const dragIdxRef = useRef<number | null>(null);
   const baseYRef = useRef(0);
+  /** Horizontal drag of the top exercise strip. */
+  const chipRefs = useRef<Record<number, HTMLElement | null>>({});
+  const [chipDrag, setChipDrag] = useState<{ idx: number; offset: number } | null>(null);
+  const chipDragIdxRef = useRef<number | null>(null);
+  const chipBaseXRef = useRef(0);
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
