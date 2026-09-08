@@ -125,50 +125,9 @@ function RoutePage() {
   const generate = useMutation({
     mutationFn: async () => {
       if (!goalDate) throw new Error("no-goal");
-      const dates = checkpointDates(goalDate);
-      if (!dates.length) throw new Error("too-short");
-      const context = await buildCoachContext();
-      // Re-mapping replaces the coach's own checkpoints; hand-made ones stay.
-      for (const cp of checkpoints.filter((c) => c.source === "ai_suggested")) {
-        await removeCheckpoint(cp.id);
-      }
-      const result = (await generateCheckpoints({
-        data: { context, goalDate, dates, language: lang },
-      })) as
-        | {
-            ok: true;
-            checkpoints: {
-              title: string;
-              description: string;
-              date: string;
-              metricKind: "lift" | "sessions" | "weight" | "none";
-              exerciseId?: string;
-              value?: number;
-            }[];
-          }
-        | { ok: false; error: string };
-      if (!result.ok) throw new Error(result.error);
-      let index = 0;
-      for (const cp of result.checkpoints) {
-        const metric: CheckpointMetric | undefined =
-          cp.metricKind === "none" || !cp.value
-            ? undefined
-            : {
-                kind: cp.metricKind,
-                value: cp.value,
-                ...(cp.exerciseId ? { exerciseId: cp.exerciseId } : {}),
-              };
-        await saveCheckpoint({
-          title: cp.title,
-          description: cp.description,
-          targetDate: cp.date,
-          orderIndex: index++,
-          status: "upcoming",
-          source: "ai_suggested",
-          ...(metric ? { metric } : {}),
-        });
-      }
+      await mapRoute(goalDate, lang);
     },
+
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
       toast.success(t("Your route is mapped."));
