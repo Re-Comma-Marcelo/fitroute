@@ -34,6 +34,25 @@ export async function askCoach(
     if (scoped) return { answer: scoped, insights: [] };
   }
 
+  // Route questions: answer from the checkpoint the user is working towards.
+  if (
+    asks("goal", "route", "checkpoint", "meta", "rota", "doel", "route", "mijlpaal", "when will")
+  ) {
+    const { getCheckpoints } = await import("@/lib/data/route");
+    const { currentCheckpoint } = await import("@/lib/route/status");
+    const cp = currentCheckpoint(await getCheckpoints());
+    if (cp) {
+      return {
+        answer: tx("Your next checkpoint is {title}, planned for {date}. {note}", {
+          title: cp.title,
+          date: cp.targetDate,
+          note: cp.description ?? "",
+        }).trim(),
+        insights: [],
+      };
+    }
+  }
+
   // Keyword matching across the three supported languages (en / pt / nl).
   if (
     asks(
