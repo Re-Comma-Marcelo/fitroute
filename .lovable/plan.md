@@ -1,65 +1,66 @@
-# Eén duidelijke start, één route, en de app doet het werk
+# Overzicht: hoe het er nu voor staat
 
-Je hebt drie problemen die met elkaar te maken hebben: (1) de database mist tabellen/kolommen, waardoor dieet en route half werken, (2) er is geen echte eerste-keer-ervaring, dus je moet alles zelf blijven instellen, en (3) de route wordt nu door jou gemaakt in plaats van door de app. Dit plan pakt ze in die volgorde aan.
+Geen wijziging aan de eerste-keer-journey in dit plan — dit is eerst de stand van zaken, plus de kleine reparaties die nodig zijn om het bestaande werkend te krijgen.
 
-## Deel 1 — Wat je in Supabase moet doen (eenmalig)
+## 1. De start van de app zoals hij nu is
 
-Open de SQL-editor van je eigen Supabase-project en voer deze bestanden uit, in deze volgorde. Alles is veilig om opnieuw te draaien.
+Er zijn nu **twee losse startpunten**, en dat is precies waarom het onoverzichtelijk voelt.
+
+**A. De intro (1 minuut, verplicht bij een nieuw account)**
+Je landt na inloggen op de home; heb je nog geen enkele afgeronde training, dan word je één keer automatisch doorgestuurd naar de intro. Die intro vraagt:
+
+1. een welkomstscherm met voorbeelddashboard
+2. keuze: zelf beginnen of je Hevy-geschiedenis importeren
+3. je doel
+4. hoeveel keer per week je traint
+5. je ervaringsniveau
+
+Daarna bouwt hij één starter-routine (puur op regels, geen AI, geen voeding, geen doelgewicht, geen datum, geen route). Je kunt hem later opnieuw doorlopen via Profiel → "Onboarding opnieuw bekijken".
+
+**B. "Get a plan" (het echte interview, maar optioneel en verstopt)**
+Los daarvan bestaat er een uitgebreid interview van vijf stappen: Jij → Doel → Training → Je leven & tijd → Voeding. Dit is het interview dat je bedoelt: hier zit doelbevestiging in, je week, je beschikbare tijd en je voedselvoorkeuren, en het resultaat komt van de AI. Bij activeren schrijft het echt in de app: het maakt je trainingsroutines aan én vult je maaltijdplan voor de rest van de week.
+
+**Het probleem:** de verplichte intro is de zwakke versie, en de sterke versie moet je zelf gaan zoeken. Daardoor moet je later alsnog je doel, streefdatum en dieet handmatig instellen.
+
+## 2. Wat er in Supabase mist (en waarom je dieet vastloopt)
+
+De app verwacht meer tabellen dan er in je project staan. Voer in de SQL-editor van je eigen Supabase-project uit, in deze volgorde, en klik daarna op "Reload schema cache":
 
 ```text
-1. scripts/supabase-schema.sql              basis: profiel, oefeningen, routines,
-                                            workouts, sets, coach-notities, maaltijdplan,
-                                            maaltijdtijden, eigen maaltijden, boodschappen
+1. scripts/supabase-schema.sql               profiel, oefeningen, routines, workouts,
+                                             sets, coach-notities, maaltijdplan,
+                                             maaltijdtijden, eigen maaltijden, boodschappen
 2. scripts/supabase-seed.sql                 80 oefeningen + voorbeeldroutines
 3. scripts/supabase-migration-coaching.sql   coach-gebeurtenissen, cross-training, coach-chat
-4. scripts/supabase-migration-body-weight.sql gewichtslogboek + weekindeling van routines
-5. scripts/supabase-migration-route.sql      checkpoints + voortgangsfoto's van je route
+4. scripts/supabase-migration-body-weight.sql gewichtslogboek + weekindeling routines
+5. scripts/supabase-migration-route.sql      route-checkpoints + voortgangsfoto's
 ```
 
-Klik daarna op "Reload schema cache". Dit lost concreet op:
+Wat dit oplost:
 
-- "Could not find the table 'public.custom_meals'" → eigen maaltijden toevoegen en wisselen werkt echt en blijft bewaard op al je toestellen (nu alleen op dit toestel).
-- "Could not find the table 'public.coaching_events'" → de coach onthoudt wat hij eerder tegen je zei.
-- Route-checkpoints en foto's worden bewaard in plaats van alleen lokaal.
-- Streefdatum en streefgewicht verhuizen van dit toestel naar je account.
+- **Dieet:** `custom_meals` bestaat nu niet, daardoor mislukte het toevoegen van eigen maaltijden en werken maaltijdwissels maar half. Nu valt hij terug op dit toestel; na stap 1 wordt het echt bewaard.
+- **Coach:** `coaching_events` ontbreekt, dus de coach onthoudt niets tussen sessies.
+- **Route:** checkpoints en foto's staan alleen lokaal; na stap 5 horen ze bij je account.
+- **Doel:** streefdatum en streefgewicht staan nu op dit toestel; na stap 4 in je profiel.
 
-Er is één ontbrekend stuk dat ik erbij maak: een klein migratiebestand voor de nieuwe velden die de eerste-keer-interview oplevert (dagelijkse calorieën, proteïnedoel, voedselvoorkeuren en -afkeuren, gemiddelde week). Dat wordt `scripts/supabase-migration-intake.sql`, met dezelfde stijl: kolommen op `profiles` plus één tabel voor voedselvoorkeuren.
+De app blijft zonder deze stappen werken, maar dan lokaal en zonder geheugen — en dat is exact het gedrag dat je nu ervaart.
 
-Zolang je iets niet gedraaid hebt blijft de app werken (lokaal opslaan), maar dan mis je synchronisatie.
+## 3. De route zoals hij nu is
 
-## Deel 2 — De eerste-keer-journey (het belangrijkste onderdeel)
+De route bestaat, met een Route-tab en een Progressie-tab. Maar: hij vraagt jou om een streefdatum en om zelf "Zet mijn route uit" te drukken, en checkpoints kun je zelf toevoegen. Dat is nog niet "de app plant het voor je". De dagelijkse op-schema/afwijking-melding is er ook nog niet als vaste regel op de home.
 
-Nu zijn er drie losse startpunten: een korte onboarding, een "Get a plan"-kaart en een aparte doelinstelling. Die worden één gesprek dat één keer plaatsvindt, direct na je eerste inlog, en dat je nooit opnieuw hoeft te doen (wel opnieuw te openen via Profiel).
+## 4. Wat ik voorstel om nú te doen (klein, geen herontwerp)
 
-Het gesprek in vijf stappen, waarbij de app na elke stap terugpraat met een conclusie:
+1. Jij draait de vijf SQL-bestanden hierboven; ik verander daar niets aan.
+2. Ik laat de verplichte intro doorlopen naar het bestaande vijf-stappen-interview in plaats van naar de zwakke starter-routine, zodat er één journey is en geen tweede verstopte.
+3. Ik laat de route zichzelf uitzetten zodra dat interview klaar is (streefdatum inbegrepen), zodat jij niets meer hoeft te drukken.
+4. Ik voeg één vaste routestatus-regel toe bovenaan de home: op schema / iets achter / voor.
 
-1. **Wie ben je** — lengte, gewicht, leeftijd, geslacht, ervaring.
-2. **Je doel** — bijvoorbeeld "meer spier opbouwen". De app antwoordt meteen met wat dat betekent: "Dan eet je boven je verbruik: ~3.400 kcal en 165 g proteïne per dag. Een realistisch doel is 76 kg over 3 maanden." Daaronder twee knoppen: *Klopt, ga door* en *Nee, ik wil dit anders* (dan pas je gewicht of datum aan en herrekent de app).
-3. **Je gemiddelde week** — welke dagen kun je trainen, hoe lang, ochtend/avond, ander sport, werk/gezin. Met de uitleg: we vragen elke week naar je weekplanning, maar hiermee weten we je normaal.
-4. **Je voeding** — wat je lekker vindt, wat je nooit eet, allergieën, hoeveel tijd je hebt om te koken, hoeveel maaltijden per dag en op welke tijden.
-5. **Klaar** — de app bouwt in één keer: je trainingsroutines voor de week, je maaltijdplan met slots en macro's, je streefdatum, en je route met checkpoints.
-
-Daarna land je op de home met alles al ingevuld. Je hoeft alleen nog te loggen.
-
-## Deel 3 — De route plant de app, niet jij
-
-- Checkpoints worden automatisch gezet zodra de intake klaar is; jij hoeft niets te "uitzetten". Handmatig toevoegen/aanpassen blijft kunnen, maar is optioneel.
-- Elke dag herberekent de app of je op schema ligt (trainingen, gewicht, sleutel-lifts, voeding) en zet dat bovenaan Mijn route en als één regel op de home: op schema / iets achter / voor op schema, met de reden.
-- Wijk je af, dan past de app zelf aan (minder volume, meer calorieën, datum verschuiven) en vertelt wát hij aanpaste — jij hoeft alleen te bevestigen.
-- De weekcheck-in vult de route bij in plaats van los te staan.
-- Mijn route houdt twee tabbladen: Route en Progressie (ongewijzigde inhoud).
-
-## Deel 4 — Rustiger beeld
-
-- Home: één regel routestatus, de training van vandaag, drie cijfers, dieet-samenvatting. Kaarten zonder inhoud verdwijnen in plaats van leeg te staan.
-- Grotere tekst voor de belangrijke cijfers, kleine tekst alleen voor uitleg.
-- Geen dubbele instelknoppen meer: doel, week en voeding wonen op één plek in Profiel.
+Meer verander ik niet totdat je zegt dat je verder wilt.
 
 ## Technische aanpak
 
-- Nieuw: `src/lib/intake/` (schema, prompt, toepassen) dat de bestaande `src/lib/plan/`-gateway en `applyPlan` hergebruikt; `src/routes/_authenticated/onboarding.tsx` wordt de vijf-stappen-flow en `plano.tsx` wordt daarnaar doorverwezen, zodat er geen dode schermen achterblijven.
-- Rekenmodel voor kcal/proteïne/realistische datum deterministisch in `src/lib/intake/targets.ts` (Mifflin-St Jeor + activiteit + doelmarge), zodat de AI alleen tekst en keuzes doet, geen getallen verzint.
-- Intake-status in `profiles` (`intake_completed_at`), met lokale fallback zolang de migratie niet gedraaid is.
-- Route: `generateCheckpoints` wordt aan het eind van de intake aangeroepen; dagelijkse status via bestaande `src/lib/route/status.ts`, uitgebreid met voedings- en gewichtssignalen.
-- Voedselvoorkeuren voeden `nutrition-swap.ts`, zodat maaltijdwissels je afkeuren respecteren.
-- Geen wijziging aan Supabase vanuit de app: alle SQL blijft een bestand dat jij draait.
+- `src/routes/_authenticated/onboarding.tsx` houdt zijn welkomst- en importstap, maar stuurt daarna door naar `/plano` (het bestaande interview) in plaats van naar `buildStarterPlan`; de starter-routine blijft als noodoplossing voor "overslaan".
+- Na `applyPlan` in `src/lib/plan/apply.ts` volgt een aanroep van `generateCheckpoints`, zodat de route direct staat; `metaPrazo` wordt uit de doelstap gezet in plaats van uit het losse doelblok.
+- Homestatusregel via bestaande `src/lib/route/status.ts`, één regel boven de kaart van vandaag.
+- Geen SQL-uitvoer vanuit de app: de migratiebestanden blijven bestanden die jij draait.
