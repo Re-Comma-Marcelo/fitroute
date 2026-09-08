@@ -13,9 +13,10 @@ De app vraagt nu nooit om je weekplanning. Er bestaat alleen een check-in als je
 Vier korte stappen, één kaart bovenaan het startscherm:
 
 1. Hoe ging vorige week? Korte terugblik met je eigen cijfers (sessies, volume, streak) plus een gevoel-keuze: sterk / oké / zwaar.
-2. Welke dagen kun je deze week trainen? Dagen aantikken (ma–zo).
-3. Blessures of vermoeidheid? Optionele korte tekst plus snelkeuzes (schouder, rug, knie, algeheel moe, niets).
-4. Hoeveel weeg je vandaag? Optioneel getal, wordt bij je gewichtsgeschiedenis opgeslagen.
+2. wat is je planning deze week? school, werk, vrije tijd, vrienden afspreken etc.
+3. Welke dagen kun je deze week trainen? Dagen aantikken (ma–zo).
+4. Blessures of vermoeidheid? Optionele korte tekst plus snelkeuzes (schouder, rug, knie, algeheel moe, niets).
+5. Hoeveel weeg je vandaag? Optioneel getal, wordt bij je gewichtsgeschiedenis opgeslagen.
 
 Daarna een samenvatting: welk weekdoel is gezet, welke routines op welke dagen staan, en één coachopmerking die verwijst naar wat je invulde ("schouder gevoelig — bovenlichaam lichter beginnen").
 
