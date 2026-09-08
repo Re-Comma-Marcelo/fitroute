@@ -59,7 +59,7 @@ export async function getCoachingEvents(): Promise<CoachingEvent[]> {
 export async function logCoachingEvent(
   event: Omit<CoachingEvent, "id" | "createdAt">,
 ): Promise<CoachingEvent> {
-  let saved: CoachingEvent;
+  let saved: CoachingEvent | null = null;
   try {
     saved = (await persistCoachingEvent({
       data: {
@@ -70,8 +70,12 @@ export async function logCoachingEvent(
         cause: event.cause,
         detail: event.detail ?? {},
       },
-    })) as unknown as CoachingEvent;
+    })) as unknown as CoachingEvent | null;
   } catch {
+    saved = null;
+  }
+  // No database table yet (or the write failed): keep the event on this device.
+  if (!saved) {
     saved = { ...event, id: localId("ce"), createdAt: new Date().toISOString() };
     writeLocal(EVENTS_KEY, [saved, ...readLocal<CoachingEvent>(EVENTS_KEY)]);
   }
