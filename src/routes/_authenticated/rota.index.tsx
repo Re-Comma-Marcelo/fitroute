@@ -35,11 +35,11 @@ import { getProfile } from "@/lib/data/profile";
 import { getWorkoutLog } from "@/lib/data/workouts";
 import { getBodyWeightLog } from "@/lib/data/body-weight";
 import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
-import { buildCoachContext } from "@/lib/route/context";
-import { checkpointDates, isoDay, addDays } from "@/lib/route/cadence";
+import { mapRoute } from "@/lib/route/auto-map";
+import { isoDay, addDays } from "@/lib/route/cadence";
 import { currentCheckpoint, evaluateCheckpoints, nearestCheckpoint } from "@/lib/route/status";
-import type { Checkpoint, CheckpointMetric } from "@/lib/route/types";
-import { generateCheckpoints } from "@/lib/route-ai.functions";
+import type { Checkpoint } from "@/lib/route/types";
+
 import { formatDate } from "@/lib/format";
 import { useLanguage, useT } from "@/lib/i18n";
 
