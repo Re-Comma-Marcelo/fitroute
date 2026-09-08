@@ -24,8 +24,11 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getExercises } from "@/lib/data/exercises";
 import { getMeals } from "@/lib/data/nutrition";
-import { getProfile } from "@/lib/data/profile";
-import { useT } from "@/lib/i18n";
+import { getProfile, saveProfile } from "@/lib/data/profile";
+import { addDays, isoDay } from "@/lib/route/cadence";
+import { mapRoute } from "@/lib/route/auto-map";
+import { useLanguage, useT } from "@/lib/i18n";
+
 import {
   generatePlan as generatePlanFn,
   translateGoal as translateGoalFn,
@@ -78,6 +81,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function PlanPage() {
   const t = useT();
+  const { lang } = useLanguage();
+
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
@@ -176,17 +181,52 @@ function PlanPage() {
     }
   };
 
+  /**
+   * Activating is the end of the interview: routines and meals are written, the
+   * goal date is set from the answers, and the app maps the route itself.
+   */
   const activate = async () => {
     if (!current) return;
     setBusy("apply");
     try {
       const applied = await applyPlan(current.plan);
+
+      const weeks = goal?.timelineWeeks ?? intake.timelineWeeks ?? 12;
+      const goalDate = isoDay(addDays(new Date(), Math.max(6, weeks) * 7));
+      const targetWeight =
+        intake.targetWeightKg ??
+        (goal
+          ? Math.round(((goal.targetWeightLowKg + goal.targetWeightHighKg) / 2) * 10) / 10
+          : null);
+      try {
+        const profile = await getProfile();
+        await saveProfile({
+          ...profile,
+          metaPrazo: goalDate,
+          metaIniciadaEm: isoDay(new Date()),
+          ...(profile.pesoInicialKg ? {} : { pesoInicialKg: intake.weightKg || profile.pesoKg }),
+          ...(targetWeight ? { pesoMetaKg: targetWeight } : {}),
+        });
+      } catch {
+        /* the goal is not worth failing activation over */
+      }
+
       toast.success(
         t("Plan activated — {routines} routine(s) and {meals} meal slot(s) added.", {
           routines: applied.routines,
           meals: applied.meals,
         }),
       );
+
+      // Map the route without making the user press anything.
+      try {
+        await mapRoute(goalDate, lang);
+        toast.success(t("Your route is mapped."));
+        navigate({ to: "/rota" });
+        return;
+      } catch {
+        toast.message(t("I'll map your route in a moment — your plan is active."));
+      }
       navigate({ to: "/treino" });
     } catch {
       toast.error(t("Could not activate the plan. Your plan is still saved here."));

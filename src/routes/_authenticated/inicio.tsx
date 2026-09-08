@@ -38,6 +38,9 @@ import {
 import { RoutePreviewCard } from "@/components/RoutePreviewCard";
 import { getCheckpoints } from "@/lib/data/route";
 import { currentCheckpoint } from "@/lib/route/status";
+import { routePace } from "@/lib/route/pace";
+import type { Checkpoint } from "@/lib/route/types";
+
 import { cn } from "@/lib/utils";
 
 const QUICKSTART_KEY = "iron-logger-quickstart-done";
@@ -159,6 +162,9 @@ export default function Inicio() {
           <>
             <WeeklyCheckInCard />
 
+            {/* One line, every day: am I still on my route? */}
+            <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
+
             <TodayCard
               loading={isLoading}
               activeLabel={active ? sessionLabel(active) : null}
@@ -215,6 +221,43 @@ export default function Inicio() {
 }
 
 /* ---------- today's session + weekly goal ---------- */
+
+/** The daily verdict on your route, in one tappable line. */
+function RouteStatusLine({ checkpoints }: { checkpoints: Checkpoint[] }) {
+  const t = useT();
+  const pace = routePace(checkpoints);
+  if (pace.state === "no_route") return null;
+
+  const tone =
+    pace.state === "behind"
+      ? "text-warning"
+      : pace.state === "ahead"
+        ? "text-success"
+        : "text-muted-foreground";
+  const label =
+    pace.state === "behind"
+      ? t("Drifting off your route — {days} day(s) behind", { days: pace.daysBehind })
+      : pace.state === "ahead"
+        ? t("Ahead of your route")
+        : t("On your route");
+
+  return (
+    <Link
+      to="/rota"
+      className="tap-target flex items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 py-3"
+    >
+      <span className="min-w-0">
+        <span className={cn("block text-sm font-semibold", tone)}>{label}</span>
+        {pace.next ? (
+          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+            {t("Next: {title}", { title: pace.next.title })}
+          </span>
+        ) : null}
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+    </Link>
+  );
+}
 
 function TodayCard({
   loading,

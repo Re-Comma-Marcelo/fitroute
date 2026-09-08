@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Plus, Sparkles, Target } from "lucide-react";
@@ -35,11 +35,11 @@ import { getProfile } from "@/lib/data/profile";
 import { getWorkoutLog } from "@/lib/data/workouts";
 import { getBodyWeightLog } from "@/lib/data/body-weight";
 import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
-import { buildCoachContext } from "@/lib/route/context";
-import { checkpointDates, isoDay, addDays } from "@/lib/route/cadence";
+import { mapRoute } from "@/lib/route/auto-map";
+import { isoDay, addDays } from "@/lib/route/cadence";
 import { currentCheckpoint, evaluateCheckpoints, nearestCheckpoint } from "@/lib/route/status";
-import type { Checkpoint, CheckpointMetric } from "@/lib/route/types";
-import { generateCheckpoints } from "@/lib/route-ai.functions";
+import type { Checkpoint } from "@/lib/route/types";
+
 import { formatDate } from "@/lib/format";
 import { useLanguage, useT } from "@/lib/i18n";
 
@@ -125,50 +125,9 @@ function RoutePage() {
   const generate = useMutation({
     mutationFn: async () => {
       if (!goalDate) throw new Error("no-goal");
-      const dates = checkpointDates(goalDate);
-      if (!dates.length) throw new Error("too-short");
-      const context = await buildCoachContext();
-      // Re-mapping replaces the coach's own checkpoints; hand-made ones stay.
-      for (const cp of checkpoints.filter((c) => c.source === "ai_suggested")) {
-        await removeCheckpoint(cp.id);
-      }
-      const result = (await generateCheckpoints({
-        data: { context, goalDate, dates, language: lang },
-      })) as
-        | {
-            ok: true;
-            checkpoints: {
-              title: string;
-              description: string;
-              date: string;
-              metricKind: "lift" | "sessions" | "weight" | "none";
-              exerciseId?: string;
-              value?: number;
-            }[];
-          }
-        | { ok: false; error: string };
-      if (!result.ok) throw new Error(result.error);
-      let index = 0;
-      for (const cp of result.checkpoints) {
-        const metric: CheckpointMetric | undefined =
-          cp.metricKind === "none" || !cp.value
-            ? undefined
-            : {
-                kind: cp.metricKind,
-                value: cp.value,
-                ...(cp.exerciseId ? { exerciseId: cp.exerciseId } : {}),
-              };
-        await saveCheckpoint({
-          title: cp.title,
-          description: cp.description,
-          targetDate: cp.date,
-          orderIndex: index++,
-          status: "upcoming",
-          source: "ai_suggested",
-          ...(metric ? { metric } : {}),
-        });
-      }
+      await mapRoute(goalDate, lang);
     },
+
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
       toast.success(t("Your route is mapped."));
@@ -176,6 +135,18 @@ function RoutePage() {
     onError: () =>
       toast.error(t("Could not map your route right now. You can still add checkpoints yourself.")),
   });
+
+  // The app maps the route itself: with a goal date and no checkpoints yet,
+  // nobody has to press anything.
+  const autoMapped = useRef(false);
+  useEffect(() => {
+    if (autoMapped.current || !checkpointsQ.isSuccess || !profileQ.isSuccess) return;
+    if (!goalDate || checkpoints.length) return;
+    autoMapped.current = true;
+    generate.mutate();
+    // Only the first time this screen sees an unmapped goal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkpointsQ.isSuccess, profileQ.isSuccess, goalDate, checkpoints.length]);
 
   const savePhoto = useMutation({
     mutationFn: async (input: { dataUrl: string; visibleToAi: boolean }) => {

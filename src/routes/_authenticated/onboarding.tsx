@@ -166,10 +166,22 @@ function OnboardingPage() {
               />
               <BigCard
                 icon={<Dumbbell className="size-5 text-train" />}
-                title={t("Start from scratch")}
-                subtitle={t("Three quick questions and we suggest a routine.")}
-                onClick={() => setStep("goal")}
+                title={t("Set me up completely")}
+                subtitle={t(
+                  "One interview about your goal, your week and your food. Then the app builds your training, your meals and your route.",
+                )}
+                onClick={() => {
+                  markOnboardingDone();
+                  navigate({ to: "/plano" });
+                }}
               />
+              <button
+                type="button"
+                onClick={() => setStep("goal")}
+                className="tap-target mx-auto block text-xs font-semibold text-muted-foreground"
+              >
+                {t("Just suggest a routine for now")}
+              </button>
             </div>
             <SkipLink onSkip={finish} />
           </section>
