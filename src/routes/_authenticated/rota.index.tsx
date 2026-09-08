@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Plus, Sparkles } from "lucide-react";
+import { Camera, Plus, Sparkles, Target } from "lucide-react";
 import { toast } from "sonner";
 import { pageMeta } from "@/lib/route-meta";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { CheckpointSheet } from "@/components/CheckpointSheet";
 import { CheckpointEditSheet } from "@/components/CheckpointEditSheet";
 import { ProgressPhotoSheet } from "@/components/ProgressPhotoSheet";
 import { ProgressPhotoGallery } from "@/components/ProgressPhotoGallery";
+import { GoalSection } from "@/components/GoalSection";
 import {
   addProgressPhoto,
   getCheckpoints,
@@ -51,6 +52,7 @@ function RoutePage() {
   const [editing, setEditing] = useState<Checkpoint | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
+  const [goalOpen, setGoalOpen] = useState(false);
 
   const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
   const photosQ = useQuery({ queryKey: ["route-photos"], queryFn: getProgressPhotos });
@@ -115,8 +117,12 @@ function RoutePage() {
       const dates = checkpointDates(goalDate);
       if (!dates.length) throw new Error("too-short");
       const context = await buildCoachContext();
+      // Re-mapping replaces the coach's own checkpoints; hand-made ones stay.
+      for (const cp of checkpoints.filter((c) => c.source === "ai_suggested")) {
+        await removeCheckpoint(cp.id);
+      }
       const result = (await generateCheckpoints({
-        data: { context, goalDate, dates, lang },
+        data: { context, goalDate, dates, language: lang },
       })) as
         | {
             ok: true;
@@ -206,16 +212,27 @@ function RoutePage() {
               ? t(
                   "I'll set checkpoints between today and your goal, based on your training, your equipment and how your weeks actually run.",
                 )
-              : t("Set a goal and a target date in your profile, then I can map the way there.")}
+              : t("First: when do you want to be there? Then I can map the way.")}
           </p>
-          <Button
-            className="tap-target mt-3"
-            disabled={!goalDate || generate.isPending}
-            onClick={() => generate.mutate()}
-          >
-            <Sparkles className="size-4" />
-            {generate.isPending ? t("Mapping your route...") : t("Map my route")}
-          </Button>
+          {goalDate ? null : goalOpen ? (
+            <div className="mt-3 text-left">
+              <GoalSection onSaved={() => setGoalOpen(false)} />
+            </div>
+          ) : (
+            <Button className="tap-target mt-3" onClick={() => setGoalOpen(true)}>
+              <Target className="size-4" /> {t("Set my goal date")}
+            </Button>
+          )}
+          {goalDate ? (
+            <Button
+              className="tap-target mt-3"
+              disabled={generate.isPending}
+              onClick={() => generate.mutate()}
+            >
+              <Sparkles className="size-4" />
+              {generate.isPending ? t("Mapping your route...") : t("Map my route")}
+            </Button>
+          ) : null}
           <Button
             variant="ghost"
             className="tap-target mt-2 w-full"
