@@ -35,7 +35,21 @@ export function inactivityMessage(days: number): string {
   return tx("No sessions logged in {days} days. What are you up for today?", { days });
 }
 
-const SHORT_HINTS = ["short", "quick", "not much", "curto", "rápido", "kort", "snel", "geen zin", "don't feel", "dont feel", "tired", "cansado", "moe"];
+const SHORT_HINTS = [
+  "short",
+  "quick",
+  "not much",
+  "curto",
+  "rápido",
+  "kort",
+  "snel",
+  "geen zin",
+  "don't feel",
+  "dont feel",
+  "tired",
+  "cansado",
+  "moe",
+];
 const GROUP_HINTS: { keys: string[]; group: string }[] = [
   { keys: ["chest", "peito", "borst", "bench", "supino"], group: "chest" },
   { keys: ["back", "costas", "rug", "pull"], group: "back" },
@@ -57,9 +71,7 @@ export function proposeSession(
   const wantsShort = SHORT_HINTS.some((h) => q.includes(h));
   const group = GROUP_HINTS.find((g) => g.keys.some((k) => q.includes(k)))?.group;
 
-  const byName = group
-    ? routines.find((r) => r.nome.toLowerCase().includes(group))
-    : undefined;
+  const byName = group ? routines.find((r) => r.nome.toLowerCase().includes(group)) : undefined;
   const routine =
     byName ?? routines.find((r) => r.id === lastRoutineId) ?? routines[0] ?? undefined;
 

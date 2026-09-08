@@ -26,7 +26,6 @@ export interface ActiveSet {
   coachNote?: string;
 }
 
-
 export interface ActiveExercise {
   exerciseId: string;
   nome: string;
@@ -64,7 +63,6 @@ export interface ActiveSession {
   pausadoEm?: number | null;
   /** Seconds already spent paused, accumulated across pauses. */
   pausadoAcumSeg?: number;
-
 }
 
 /** Seconds left on the persisted rest countdown (0 when idle/finished). */
@@ -81,7 +79,6 @@ export function restOverdueSeconds(session: ActiveSession | null): number {
   const elapsed = Math.floor((Date.now() - session.restExpirouEm) / 1000);
   return elapsed > 0 && elapsed <= REST_OVERDUE_WINDOW_SEG ? elapsed : 0;
 }
-
 
 const KEY = "forja.activeSession.v1";
 const PENDING_EX_KEY = "forja.pendingExercise.v1";

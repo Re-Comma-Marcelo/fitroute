@@ -139,7 +139,10 @@ export function ManualWorkoutSheet({
         {rows.length > 0 ? (
           <ul className="mt-4 space-y-2">
             {rows.map((row, index) => (
-              <li key={`${row.exerciseId}-${index}`} className="rounded-2xl border border-border p-3">
+              <li
+                key={`${row.exerciseId}-${index}`}
+                className="rounded-2xl border border-border p-3"
+              >
                 <p className="truncate text-sm font-semibold">{row.nome}</p>
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   <NumberField

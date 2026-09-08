@@ -26,8 +26,7 @@ export const dict: DictFragment = {
       "Espaçar os treinos mantém cada um forte o suficiente para gerar progresso.",
     "You flagged soreness recently, so an extra day helps.":
       "Você relatou dor recentemente, então um dia extra ajuda.",
-    "Light walking or mobility today is plenty.":
-      "Uma caminhada leve ou mobilidade já basta hoje.",
+    "Light walking or mobility today is plenty.": "Uma caminhada leve ou mobilidade já basta hoje.",
     "You flagged soreness and trained yesterday — take today off.":
       "Você relatou dor e treinou ontem — descanse hoje.",
     "{remaining} sessions still fit in the {left} days left.":
@@ -68,8 +67,7 @@ export const dict: DictFragment = {
     "Train anyway": "Toch trainen",
     "You already trained today — the rest of the day is recovery.":
       "Je hebt vandaag al getraind — de rest van de dag is herstel.",
-    "{done} of {goal} sessions logged this week.":
-      "{done} van {goal} sessies deze week gelogd.",
+    "{done} of {goal} sessions logged this week.": "{done} van {goal} sessies deze week gelogd.",
     "Eat enough protein and sleep well; that's where the session pays off.":
       "Eet genoeg proteïne en slaap goed; daar betaalt de sessie zich uit.",
     "You've hit your {goal} sessions this week — today is a rest day.":

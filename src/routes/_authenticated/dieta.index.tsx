@@ -38,10 +38,7 @@ import {
   weekDates,
   weekTotalsFor,
 } from "@/lib/data/nutrition";
-import {
-  getMealFavorites,
-  toggleMealFavorite,
-} from "@/lib/nutrition-local";
+import { getMealFavorites, toggleMealFavorite } from "@/lib/nutrition-local";
 import type { Meal, MealSlot, TrainingTag } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/")({
@@ -110,10 +107,7 @@ function TodayPage() {
   const day = planQ.data?.[today];
   const plannedTotals = useMemo(() => totalsFor(day), [day]);
   const eatenDay = useMemo(() => eatenFor(today), [today, eatenTick]);
-  const eatenTotals = useMemo(
-    () => eatenTotalsFor(today),
-    [today, eatenTick],
-  );
+  const eatenTotals = useMemo(() => eatenTotalsFor(today), [today, eatenTick]);
   const hasEaten = Object.keys(eatenDay).length > 0;
   const totals = ringView === "eaten" && hasEaten ? eatenTotals : plannedTotals;
   const favorites = useMemo(() => getMealFavorites(), [favTick]);

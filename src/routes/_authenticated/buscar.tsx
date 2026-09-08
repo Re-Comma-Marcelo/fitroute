@@ -11,11 +11,7 @@ import { getRoutines } from "@/lib/data/routines";
 import { getMeals } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
 import { QueryError } from "@/components/QueryError";
-import {
-  clearRecentSearches,
-  getRecentSearches,
-  rememberSearch,
-} from "@/lib/recent-searches";
+import { clearRecentSearches, getRecentSearches, rememberSearch } from "@/lib/recent-searches";
 
 export const Route = createFileRoute("/_authenticated/buscar")({
   head: () => ({

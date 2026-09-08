@@ -108,7 +108,6 @@ function WeekPage() {
         {t("Suggestions lean high-protein on strength days and lighter on rest days.")}
       </p>
 
-
       <ul className="mt-4 space-y-3">
         {dates.map((date) => {
           const day = planQ.data?.[date];

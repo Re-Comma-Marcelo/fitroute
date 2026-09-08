@@ -76,8 +76,7 @@ export const dict: DictFragment = {
     "Time under tension": "Tijd onder spanning",
     "{seconds}s in timed sets": "{seconds}s in tijdsets",
     "~{minutes} min": "~{minutes} min",
-    "Longer than your {minutes} min session limit":
-      "Langer dan je sessielimiet van {minutes} min",
+    "Longer than your {minutes} min session limit": "Langer dan je sessielimiet van {minutes} min",
     "Start lighter (deload)": "Lichter beginnen (deload)",
     "Last {weight} · suggested {suggested}": "Laatst {weight} · voorstel {suggested}",
     "No load logged yet": "Nog geen gewicht gelogd",

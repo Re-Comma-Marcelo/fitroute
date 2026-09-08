@@ -20,8 +20,7 @@ export const dict: DictFragment = {
     "Weight unit": "Unidade de peso",
     "Kilograms (kg)": "Quilos (kg)",
     "Pounds (lb)": "Libras (lb)",
-    "Your history is converted, never rewritten.":
-      "Seu histórico é convertido, nunca reescrito.",
+    "Your history is converted, never rewritten.": "Seu histórico é convertido, nunca reescrito.",
     "Weight in {unit}": "Peso em {unit}",
 
     // Supersets
@@ -32,8 +31,7 @@ export const dict: DictFragment = {
     "Rest notifications": "Notificações de descanso",
     "Get a notification when rest ends, even with the app in the background.":
       "Receba uma notificação quando o descanso terminar, mesmo com o app em segundo plano.",
-    "This device does not support notifications.":
-      "Este dispositivo não suporta notificações.",
+    "This device does not support notifications.": "Este dispositivo não suporta notificações.",
     "Notifications are blocked in your browser settings.":
       "As notificações estão bloqueadas nas configurações do navegador.",
     "Rest is over": "Descanso terminou",
@@ -67,8 +65,7 @@ export const dict: DictFragment = {
     "Restored {routines} routine(s) and {workouts} workout(s).":
       "{routines} rotina(s) e {workouts} treino(s) restaurados.",
     "{n} item(s) could not be restored.": "{n} item(ns) não puderam ser restaurados.",
-    "This file is not an Iron Logger backup.":
-      "Este arquivo não é um backup do Iron Logger.",
+    "This file is not an Iron Logger backup.": "Este arquivo não é um backup do Iron Logger.",
 
     // Session editing
     "Edit session": "Editar treino",
@@ -115,8 +112,7 @@ export const dict: DictFragment = {
     "Rest notifications": "Rustmeldingen",
     "Get a notification when rest ends, even with the app in the background.":
       "Krijg een melding als de rust voorbij is, ook met de app op de achtergrond.",
-    "This device does not support notifications.":
-      "Dit apparaat ondersteunt geen meldingen.",
+    "This device does not support notifications.": "Dit apparaat ondersteunt geen meldingen.",
     "Notifications are blocked in your browser settings.":
       "Meldingen zijn geblokkeerd in je browserinstellingen.",
     "Rest is over": "Rust is voorbij",
@@ -150,8 +146,7 @@ export const dict: DictFragment = {
     "Restored {routines} routine(s) and {workouts} workout(s).":
       "{routines} routine(s) en {workouts} training(en) teruggezet.",
     "{n} item(s) could not be restored.": "{n} item(s) konden niet worden teruggezet.",
-    "This file is not an Iron Logger backup.":
-      "Dit bestand is geen Iron Logger-back-up.",
+    "This file is not an Iron Logger backup.": "Dit bestand is geen Iron Logger-back-up.",
 
     // Session editing
     "Edit session": "Training bewerken",

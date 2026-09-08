@@ -51,11 +51,7 @@ export function CountUp({
   const finalText = format ? format(value) : value.toFixed(decimals);
   return (
     <>
-      <span
-        aria-hidden="true"
-        className={className}
-        style={{ fontVariantNumeric: "tabular-nums" }}
-      >
+      <span aria-hidden="true" className={className} style={{ fontVariantNumeric: "tabular-nums" }}>
         {text}
       </span>
       {ariaLabel && <span className="sr-only">{ariaLabel}</span>}

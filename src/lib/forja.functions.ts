@@ -696,3 +696,188 @@ export const persistCoachChat = createServerFn({ method: "POST" })
     ) as Record<string, unknown>;
     return toChatEntry(row);
   });
+
+// ---- route (checkpoints + progress photos) ---------------------------------
+// Tolerant: when the route migration has not run yet, reads return empty and
+// writes return null so the client keeps the route on the device.
+
+type CheckpointInput = {
+  id: string;
+  title: string;
+  description?: string;
+  targetDate: string;
+  orderIndex: number;
+  status: string;
+  source: string;
+  adjustmentReason?: string;
+  achievedAt?: string;
+  metric?: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const toCheckpoint = (r: Record<string, unknown>) => ({
+  id: String(r["id"]),
+  title: String(r["title"] ?? ""),
+  description: (r["description"] as string | null) ?? undefined,
+  targetDate: String(r["target_date"] ?? "").slice(0, 10),
+  orderIndex: Number(r["order_index"] ?? 0),
+  status: String(r["status"] ?? "upcoming"),
+  source: String(r["source"] ?? "user_created"),
+  adjustmentReason: (r["adjustment_reason"] as string | null) ?? undefined,
+  achievedAt: (r["achieved_at"] as string | null) ?? undefined,
+  metric: (r["metric"] as unknown) ?? undefined,
+  createdAt: String(r["created_at"] ?? new Date().toISOString()),
+  updatedAt: String(r["updated_at"] ?? new Date().toISOString()),
+});
+
+export const fetchRouteCheckpoints = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, unwrapSoft } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrapSoft(
+    await db()
+      .from("route_checkpoints")
+      .select("*")
+      .eq("user_id", userId)
+      .order("target_date", { ascending: true }),
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
+  return rows.map(toCheckpoint);
+});
+
+export const persistRouteCheckpoint = createServerFn({ method: "POST" })
+  .inputValidator((data: CheckpointInput) => data)
+  .handler(async ({ data }) => {
+    const { db, isMissingTable, requireUserId } = await import("./db.server");
+    const userId = await requireUserId();
+    const res = await db()
+      .from("route_checkpoints")
+      .upsert(
+        {
+          id: data.id,
+          user_id: userId,
+          title: data.title,
+          description: data.description ?? null,
+          target_date: data.targetDate,
+          order_index: data.orderIndex,
+          status: data.status,
+          source: data.source,
+          adjustment_reason: data.adjustmentReason ?? null,
+          achieved_at: data.achievedAt ?? null,
+          metric: data.metric ?? null,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "id" },
+      )
+      .select("*")
+      .single();
+    if (res.error) {
+      if (isMissingTable(res.error)) return null;
+      throw new Error(res.error.message);
+    }
+    return toCheckpoint(res.data as Record<string, unknown>);
+  });
+
+export const deleteRouteCheckpoint = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, isMissingTable, requireUserId } = await import("./db.server");
+    const userId = await requireUserId();
+    const res = await db()
+      .from("route_checkpoints")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", data.id);
+    if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
+    return { ok: true };
+  });
+
+export const fetchRoutePhotos = createServerFn({ method: "GET" }).handler(async () => {
+  const { db, requireUserId, unwrapSoft } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrapSoft(
+    await db()
+      .from("route_progress_photos")
+      .select("*")
+      .eq("user_id", userId)
+      .order("taken_at", { ascending: false })
+      .limit(60),
+    [] as Record<string, unknown>[],
+  ) as Record<string, unknown>[];
+  const out: {
+    id: string;
+    checkpointId: string | null;
+    url: string;
+    takenAt: string;
+    visibleToAi: boolean;
+    createdAt: string;
+  }[] = [];
+  for (const r of rows) {
+    const path = String(r["storage_path"] ?? "");
+    const signed = await db()
+      .storage.from("route-photos")
+      .createSignedUrl(path, 60 * 60);
+    out.push({
+      id: String(r["id"]),
+      checkpointId: (r["checkpoint_id"] as string | null) ?? null,
+      url: signed.data?.signedUrl ?? "",
+      takenAt: String(r["taken_at"]),
+      visibleToAi: Boolean(r["visible_to_ai"]),
+      createdAt: String(r["created_at"] ?? r["taken_at"]),
+    });
+  }
+  return out.filter((p) => p.url);
+});
+
+export const persistRoutePhoto = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      dataUrl: string;
+      checkpointId: string | null;
+      visibleToAi: boolean;
+      takenAt: string;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, isMissingTable, requireUserId, uid } = await import("./db.server");
+    const userId = await requireUserId();
+    const match = /^data:(image\/[a-z+]+);base64,(.+)$/i.exec(data.dataUrl);
+    if (!match) throw new Error("Unsupported image data.");
+    const contentType = match[1]!;
+    const bytes = Buffer.from(match[2]!, "base64");
+    const id = uid("ph");
+    const path = `${userId}/${id}.jpg`;
+
+    const upload = await db()
+      .storage.from("route-photos")
+      .upload(path, bytes, { contentType, upsert: true });
+    if (upload.error) return null; // bucket missing -> keep the photo on device
+
+    const res = await db()
+      .from("route_progress_photos")
+      .insert({
+        id,
+        user_id: userId,
+        checkpoint_id: data.checkpointId,
+        storage_path: path,
+        taken_at: data.takenAt,
+        visible_to_ai: data.visibleToAi,
+      })
+      .select("*")
+      .single();
+    if (res.error) {
+      if (isMissingTable(res.error)) return null;
+      throw new Error(res.error.message);
+    }
+    const signed = await db()
+      .storage.from("route-photos")
+      .createSignedUrl(path, 60 * 60);
+    return {
+      id,
+      checkpointId: data.checkpointId,
+      url: signed.data?.signedUrl ?? data.dataUrl,
+      takenAt: data.takenAt,
+      visibleToAi: data.visibleToAi,
+      createdAt: new Date().toISOString(),
+    };
+  });

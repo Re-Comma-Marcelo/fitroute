@@ -79,9 +79,7 @@ export function WorkoutCalendar({ workouts }: { workouts: Workout[] }) {
             <span
               className={cn(
                 "flex aspect-square items-center justify-center rounded-lg text-xs tabular-nums",
-                workout
-                  ? "bg-primary/20 font-semibold text-primary"
-                  : "text-muted-foreground/60",
+                workout ? "bg-primary/20 font-semibold text-primary" : "text-muted-foreground/60",
                 isToday && "ring-1 ring-primary/60",
               )}
             >

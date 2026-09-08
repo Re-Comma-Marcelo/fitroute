@@ -97,7 +97,13 @@ export function CoachNotesCard() {
               ? t("Weekly check-in")
               : e.kind === "chat_swap"
                 ? t("Exercise swap")
-                : t("Check-in"),
+                : e.kind === "checkpoint_reached"
+                  ? t("Checkpoint")
+                  : e.kind === "checkpoint_adjusted"
+                    ? t("Route adjusted")
+                    : e.kind === "photo_reminder"
+                      ? t("Progress photo")
+                      : t("Check-in"),
       content: e.message,
       tags: e.cause && e.cause !== "none" ? [e.cause.replace("_", " ")] : [],
       adaptive: true,

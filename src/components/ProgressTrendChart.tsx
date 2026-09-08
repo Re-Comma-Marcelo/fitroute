@@ -54,7 +54,6 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
         </div>
       </header>
 
-
       <div className="mt-3 h-32">
         {hasData ? (
           <ResponsiveContainer width="100%" height="100%">
@@ -95,7 +94,6 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
               </LineChart>
             )}
-
           </ResponsiveContainer>
         ) : (
           <p className="flex h-full items-center justify-center text-xs text-muted-foreground">

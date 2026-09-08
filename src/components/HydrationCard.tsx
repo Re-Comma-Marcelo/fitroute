@@ -63,10 +63,7 @@ export function HydrationCard() {
       </div>
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3">
-        <div
-          className="h-full rounded-full bg-diet transition-all"
-          style={{ width: `${pct}%` }}
-        />
+        <div className="h-full rounded-full bg-diet transition-all" style={{ width: `${pct}%` }} />
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">

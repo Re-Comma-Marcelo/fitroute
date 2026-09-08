@@ -252,9 +252,7 @@ export function MealCard({
               type="button"
               onClick={onToggleEaten}
               className={`tap-target flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                eaten
-                  ? "bg-diet/15 text-diet"
-                  : "border border-border text-muted-foreground"
+                eaten ? "bg-diet/15 text-diet" : "border border-border text-muted-foreground"
               }`}
             >
               <Utensils className="size-3.5" />

@@ -34,12 +34,7 @@ export function BodyWeightCard() {
 
   /** Reads the log as a rate, so the goal gets a projected date. */
   const pace = useMemo(
-    () =>
-      weightPace(
-        entries,
-        profileQuery.data?.pesoMetaKg,
-        profileQuery.data?.metaPrazo,
-      ),
+    () => weightPace(entries, profileQuery.data?.pesoMetaKg, profileQuery.data?.metaPrazo),
     [entries, profileQuery.data?.pesoMetaKg, profileQuery.data?.metaPrazo],
   );
 
@@ -119,48 +114,48 @@ export function BodyWeightCard() {
         </Button>
       </div>
 
-      {goalConfigured && latest ? (
-        (() => {
-          const span = Math.abs(goalKg! - startKg!);
-          const done = Math.abs(latest!.pesoKg - startKg!);
-          const pct = Math.max(0, Math.min(100, (done / Math.max(0.1, span)) * 100));
-          const toGo = Math.abs(latest!.pesoKg - goalKg!);
-          const wrongWay =
-            (goalKg! < startKg! && latest!.pesoKg > startKg!) ||
-            (goalKg! > startKg! && latest!.pesoKg < startKg!);
-          return (
-            <div className="mt-3">
-              <div className="flex items-center justify-between text-[11px] tabular-nums text-muted-foreground">
-                <span>
-                  {startKg! > goalKg!
-                    ? t("Cut: {from} → {to} {unit}", {
-                        from: Math.round(toDisplayWeight(startKg!, unit) * 10) / 10,
-                        to: Math.round(toDisplayWeight(goalKg!, unit) * 10) / 10,
-                        unit: weightUnitLabel(),
-                      })
-                    : t("Bulk: {from} → {to} {unit}", {
-                        from: Math.round(toDisplayWeight(startKg!, unit) * 10) / 10,
-                        to: Math.round(toDisplayWeight(goalKg!, unit) * 10) / 10,
-                        unit: weightUnitLabel(),
-                      })}
-                </span>
-                <span className={wrongWay ? "text-warn" : "text-diet"}>
-                  {t("{n} {unit} to go", {
-                    n: Math.round(toDisplayWeight(toGo, unit) * 10) / 10,
-                    unit: weightUnitLabel(),
-                  })}
-                </span>
+      {goalConfigured && latest
+        ? (() => {
+            const span = Math.abs(goalKg! - startKg!);
+            const done = Math.abs(latest!.pesoKg - startKg!);
+            const pct = Math.max(0, Math.min(100, (done / Math.max(0.1, span)) * 100));
+            const toGo = Math.abs(latest!.pesoKg - goalKg!);
+            const wrongWay =
+              (goalKg! < startKg! && latest!.pesoKg > startKg!) ||
+              (goalKg! > startKg! && latest!.pesoKg < startKg!);
+            return (
+              <div className="mt-3">
+                <div className="flex items-center justify-between text-[11px] tabular-nums text-muted-foreground">
+                  <span>
+                    {startKg! > goalKg!
+                      ? t("Cut: {from} → {to} {unit}", {
+                          from: Math.round(toDisplayWeight(startKg!, unit) * 10) / 10,
+                          to: Math.round(toDisplayWeight(goalKg!, unit) * 10) / 10,
+                          unit: weightUnitLabel(),
+                        })
+                      : t("Bulk: {from} → {to} {unit}", {
+                          from: Math.round(toDisplayWeight(startKg!, unit) * 10) / 10,
+                          to: Math.round(toDisplayWeight(goalKg!, unit) * 10) / 10,
+                          unit: weightUnitLabel(),
+                        })}
+                  </span>
+                  <span className={wrongWay ? "text-warn" : "text-diet"}>
+                    {t("{n} {unit} to go", {
+                      n: Math.round(toDisplayWeight(toGo, unit) * 10) / 10,
+                      unit: weightUnitLabel(),
+                    })}
+                  </span>
+                </div>
+                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
+                  <div
+                    className={cn("h-full rounded-full", wrongWay ? "bg-warn" : "bg-diet")}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
               </div>
-              <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
-                <div
-                  className={cn("h-full rounded-full", wrongWay ? "bg-warn" : "bg-diet")}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          );
-        })()
-      ) : null}
+            );
+          })()
+        : null}
 
       {pace ? (
         <p className="mt-3 text-xs leading-snug text-muted-foreground">
@@ -183,7 +178,6 @@ export function BodyWeightCard() {
             : null}
         </p>
       ) : null}
-
 
       {data.length > 1 ? (
         <div className="mt-4 h-40">

@@ -51,10 +51,13 @@ export function nextSetTarget(
 
   const weight = formatNumber(pesoKg, 1);
   const line = easy
-    ? tx("Next set: {weight} kg x {reps}. That was clean, so the weight goes up — all {reps} reps.", {
-        weight,
-        reps: alvo,
-      })
+    ? tx(
+        "Next set: {weight} kg x {reps}. That was clean, so the weight goes up — all {reps} reps.",
+        {
+          weight,
+          reps: alvo,
+        },
+      )
     : hard
       ? tx("Next set: {weight} kg x {reps}. Hold this weight and keep the reps honest.", {
           weight,

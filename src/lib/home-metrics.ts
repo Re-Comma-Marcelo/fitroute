@@ -107,9 +107,7 @@ export function sessionsThisWeek(workouts: Workout[], now = new Date()): number 
 
 /** Consecutive weeks with at least one session, counting back from the current week. */
 export function weekStreak(workouts: Workout[], now = new Date()): number {
-  const weeks = new Set(
-    done(workouts).map((w) => isoDay(weekStartDate(new Date(w.iniciadoEm)))),
-  );
+  const weeks = new Set(done(workouts).map((w) => isoDay(weekStartDate(new Date(w.iniciadoEm)))));
   let cursor = weekStartDate(now);
   if (!weeks.has(isoDay(cursor))) {
     cursor = addDays(cursor, -7);

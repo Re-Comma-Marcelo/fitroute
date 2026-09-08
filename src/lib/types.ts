@@ -121,7 +121,14 @@ export interface CoachNote {
 
 /** Which adaptive detection produced a coaching message. */
 export type CoachingEventKind =
-  "performance_drop" | "inactivity_checkin" | "weekly_checkin" | "post_workout" | "chat_swap";
+  | "performance_drop"
+  | "inactivity_checkin"
+  | "weekly_checkin"
+  | "post_workout"
+  | "chat_swap"
+  | "checkpoint_reached"
+  | "checkpoint_adjusted"
+  | "photo_reminder";
 
 /** Why the coach thinks something happened — drives the tone of the message. */
 export type CoachingCause = "cross_training" | "pattern" | "one_off" | "none";

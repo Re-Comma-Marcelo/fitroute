@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Dumbbell, Home, Salad, TrendingUp, User } from "lucide-react";
+import { Dumbbell, Home, Map, Salad, User } from "lucide-react";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -7,7 +7,7 @@ const tabs = [
   { to: "/inicio", label: "Home", icon: Home, accent: "" },
   { to: "/treino", label: "Train", icon: Dumbbell, accent: "text-train" },
   { to: "/dieta", label: "Diet", icon: Salad, accent: "text-diet" },
-  { to: "/progresso", label: "Progress", icon: TrendingUp, accent: "text-train" },
+  { to: "/rota", label: "Route", icon: Map, accent: "text-primary" },
   { to: "/perfil", label: "Profile", icon: User, accent: "" },
 ] as const;
 

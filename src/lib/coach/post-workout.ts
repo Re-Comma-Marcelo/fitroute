@@ -64,11 +64,14 @@ export function buildPostWorkoutMessage(input: PostWorkoutInput): PostWorkoutMes
   };
   const foods = foodsFor(open);
   const nutrition = foods.length
-    ? tx("You still have {protein}g protein and {carbs}g carbs open today. Good options: {foods}.", {
-        protein: Math.round(open.proteinG),
-        carbs: Math.round(open.carbsG),
-        foods: foods.join(", "),
-      })
+    ? tx(
+        "You still have {protein}g protein and {carbs}g carbs open today. Good options: {foods}.",
+        {
+          protein: Math.round(open.proteinG),
+          carbs: Math.round(open.carbsG),
+          foods: foods.join(", "),
+        },
+      )
     : tx("Your macros for today are already covered. Water and a normal meal are enough.");
 
   return {

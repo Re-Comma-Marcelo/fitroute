@@ -94,7 +94,6 @@ function ConsentPage() {
         setClient({ name: data.client?.name ?? "", uri: data.client?.uri });
         setScopes(data.scope ? data.scope.split(/\s+/).filter(Boolean) : []);
         setState("ready");
-
       } catch (cause) {
         if (!alive) return;
         setState("ready");
@@ -218,9 +217,7 @@ function ConsentPage() {
             </ul>
           </div>
         ) : null}
-        <p className="mt-3 text-xs text-muted-foreground">
-          {t("Signed in as {email}", { email })}
-        </p>
+        <p className="mt-3 text-xs text-muted-foreground">{t("Signed in as {email}", { email })}</p>
         {error ? (
           <p role="alert" className="mt-3 text-sm text-destructive">
             {error}

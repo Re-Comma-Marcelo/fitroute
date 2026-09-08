@@ -152,8 +152,7 @@ function MacroStat({
   tone: "diet" | "train" | "primary";
 }) {
   const pct = target > 0 ? Math.max(0, Math.min(100, (value / target) * 100)) : 0;
-  const bar =
-    tone === "diet" ? "bg-diet" : tone === "train" ? "bg-train" : "bg-primary";
+  const bar = tone === "diet" ? "bg-diet" : tone === "train" ? "bg-train" : "bg-primary";
   return (
     <div className="rounded-xl border border-border bg-card p-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">

@@ -67,10 +67,7 @@ async function hydrate(): Promise<void> {
       // are merged in; remote rows win on id collisions.
       const local = getLocalCustomMeals();
       const remoteIds = new Set(remote.map((m) => m.id));
-      customCache = [
-        ...remote,
-        ...local.filter((m) => !remoteIds.has(m.id)),
-      ];
+      customCache = [...remote, ...local.filter((m) => !remoteIds.has(m.id))];
       planCache = (state.plan ?? {}) as WeekPlan;
       checkedCache = state.checked ?? [];
       const raw = (state.schedule ?? {}) as Partial<
@@ -150,7 +147,6 @@ export function addDays(ref: Date, days: number): Date {
   d.setDate(d.getDate() + days);
   return d;
 }
-
 
 /** Monday-based week containing `ref`. */
 export function weekDates(ref = new Date()): string[] {

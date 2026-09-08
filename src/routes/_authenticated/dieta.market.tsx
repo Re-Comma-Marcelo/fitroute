@@ -92,7 +92,9 @@ function MarketPage() {
       lines.push(`\n${aisle}`);
       for (const it of aisleItems) {
         const mark = checked.includes(it.key) ? "✓ " : "";
-        lines.push(`  ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`);
+        lines.push(
+          `  ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`,
+        );
       }
     }
     if (listQ.data?.orderOut.length) {

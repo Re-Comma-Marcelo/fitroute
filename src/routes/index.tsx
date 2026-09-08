@@ -134,7 +134,6 @@ function AuthPage() {
         if (error) throw error;
       }
       goAfterAuth();
-
     } catch (error) {
       const raw = error instanceof Error ? error.message : "";
       const code =

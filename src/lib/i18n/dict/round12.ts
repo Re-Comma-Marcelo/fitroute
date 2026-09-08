@@ -56,8 +56,7 @@ export const dict: DictFragment = {
     "Your setup photo": "Sua foto de setup",
     "Remove photo": "Remover foto",
     "Add setup photo": "Adicionar foto do setup",
-    "Could not use that image. Try another one.":
-      "Não foi possível usar essa imagem. Tente outra.",
+    "Could not use that image. Try another one.": "Não foi possível usar essa imagem. Tente outra.",
   },
   nl: {
     // Week summary

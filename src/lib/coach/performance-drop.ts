@@ -7,12 +7,7 @@
  * a soreness/energy note) and for whether the dip repeats across sessions.
  */
 import { tx } from "@/lib/format";
-import type {
-  CoachNote,
-  CoachingCause,
-  CrossTrainingLog,
-  WorkoutSet,
-} from "@/lib/types";
+import type { CoachNote, CoachingCause, CrossTrainingLog, WorkoutSet } from "@/lib/types";
 
 export interface DropInput {
   exerciseName: string;
@@ -125,7 +120,10 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
   // 3. Repeated pattern across three sessions -> name it, one suggestion only.
   const tail = sessions.slice(-2).map((s) => s.reps);
   const repeated =
-    tail.length === 2 && tail[0]! >= tail[1]! && tail[1]! >= current.reps && tail[0]! > current.reps;
+    tail.length === 2 &&
+    tail[0]! >= tail[1]! &&
+    tail[1]! >= current.reps &&
+    tail[0]! > current.reps;
   if (repeated) {
     return {
       cause: "pattern",
