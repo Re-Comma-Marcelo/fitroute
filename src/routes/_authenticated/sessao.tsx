@@ -218,6 +218,7 @@ function SessionPage() {
   const [chipDrag, setChipDrag] = useState<{ idx: number; offset: number } | null>(null);
   const chipDragIdxRef = useRef<number | null>(null);
   const chipBaseXRef = useRef(0);
+  const chipScrolledRef = useRef<number | null>(null);
   const loadedRef = useRef(false);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
