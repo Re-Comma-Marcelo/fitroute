@@ -81,6 +81,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function PlanPage() {
   const t = useT();
+  const { lang } = useLanguage();
+
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
