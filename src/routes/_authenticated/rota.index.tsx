@@ -136,6 +136,19 @@ function RoutePage() {
       toast.error(t("Could not map your route right now. You can still add checkpoints yourself.")),
   });
 
+  // The app maps the route itself: with a goal date and no checkpoints yet,
+  // nobody has to press anything.
+  const autoMapped = useRef(false);
+  useEffect(() => {
+    if (autoMapped.current || !checkpointsQ.isSuccess || !profileQ.isSuccess) return;
+    if (!goalDate || checkpoints.length) return;
+    autoMapped.current = true;
+    generate.mutate();
+    // Only the first time this screen sees an unmapped goal.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [checkpointsQ.isSuccess, profileQ.isSuccess, goalDate, checkpoints.length]);
+
+
   const savePhoto = useMutation({
     mutationFn: async (input: { dataUrl: string; visibleToAi: boolean }) => {
       const today = isoDay(new Date());
