@@ -36,6 +36,7 @@ import { LANGS, useLanguage, useT } from "@/lib/i18n";
 import { EMPTY_TARGETS, getWeeklyTargets, setWeeklyTargets } from "@/lib/weekly-targets";
 
 import { ClaudeBridgeSection } from "@/components/ClaudeBridgeSection";
+import { GoalSection } from "@/components/GoalSection";
 import { GetAPlanCard } from "@/components/plan/GetAPlanCard";
 import { Switch } from "@/components/ui/switch";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -466,6 +467,14 @@ function ProfilePage() {
             value={form.objetivo}
             onChange={(v) => patch({ objetivo: v as Objetivo })}
           />
+
+          <div className="rounded-xl border border-border/60 bg-card/40 p-3">
+            <p className="font-display text-sm font-semibold">{t("By when?")}</p>
+            <p className="mb-3 mt-0.5 text-xs leading-snug text-muted-foreground">
+              {t("Your route and its checkpoints are built between today and this date.")}
+            </p>
+            <GoalSection />
+          </div>
         </Section>
 
         <Section
