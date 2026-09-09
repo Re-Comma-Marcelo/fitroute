@@ -31,21 +31,21 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
     : ["volume", "sessions", "rpe"];
 
   return (
-    <section className="mt-4 rounded-2xl border border-border bg-card p-4">
+    <section className="mt-4 rounded-lg bg-card p-5">
       <header className="flex items-center justify-between gap-3">
         <div>
           <h2 className="label-caps">{t("Last 8 weeks")}</h2>
           <p className="font-display mt-0.5 text-base font-semibold tabular-nums">{headline}</p>
         </div>
-        <div className="flex rounded-full border border-border p-0.5">
+        <div className="flex border-b-[3px] border-stone-line">
           {modes.map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => setMode(m)}
               className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-semibold capitalize transition-colors",
-                mode === m ? "bg-primary text-primary-foreground" : "text-muted-foreground",
+                "border-b-[6px] border-transparent px-3 py-2 text-xs font-bold uppercase transition-colors",
+                mode === m ? "border-violet text-violet" : "text-muted-foreground",
               )}
             >
               {t(m)}
@@ -68,8 +68,8 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                 />
                 <Bar
                   dataKey={mode === "time" ? "tempoSeg" : "volume"}
-                  className={mode === "time" ? "fill-info" : "fill-train"}
-                  radius={[4, 4, 2, 2]}
+                  className="fill-steel"
+                  radius={0}
                   maxBarSize={22}
                 />
               </BarChart>
@@ -86,11 +86,20 @@ export function ProgressTrendChart({ data }: { data: WeekPoint[] }) {
                   tick={{ fill: "var(--muted-foreground)", fontSize: 10 }}
                 />
                 <Line
-                  type="monotone"
+                  type="linear"
                   dataKey={mode === "rpe" ? "rpe" : "sessions"}
-                  className="stroke-train"
+                  className="stroke-steel"
                   strokeWidth={2}
-                  dot={{ r: 2.5, className: "fill-train stroke-train" }}
+                  strokeLinecap="square"
+                  strokeLinejoin="miter"
+                  dot={(props) => {
+                    const index = Number(props.index ?? -1);
+                    const count = mode === "rpe" ? data.filter((d) => d.rpe > 0).length : data.length;
+                    if (index !== count - 1) return <g />;
+                    const cx = Number(props.cx ?? 0);
+                    const cy = Number(props.cy ?? 0);
+                    return <rect x={cx - 2} y={cy - 2} width={4} height={4} className="fill-oxide" />;
+                  }}
                 />
               </LineChart>
             )}

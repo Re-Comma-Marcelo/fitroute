@@ -27,7 +27,7 @@ export function RoutePath({
   const nodes = geo.nodes;
 
   return (
-    <div className="relative mx-auto w-full max-w-[340px]">
+    <div className="relative w-full max-w-[340px]">
       <svg
         viewBox={`0 0 ${geo.width} ${geo.height}`}
         className="w-full"
@@ -39,7 +39,8 @@ export function RoutePath({
           fill="none"
           stroke="currentColor"
           strokeWidth={3}
-          strokeLinecap="round"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
           strokeDasharray="2 10"
           className="text-border"
         />
@@ -47,7 +48,7 @@ export function RoutePath({
 
       {/* Start marker */}
       <Marker x={nodes[0]!.x} y={nodes[0]!.y} width={geo.width}>
-        <div className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5">
+        <div className="flex items-center gap-2 rounded-sm bg-card px-3 py-1.5">
           <MapPin className="size-3.5 text-muted-foreground" />
           <span className="text-[11px] font-semibold text-muted-foreground">{startLabel}</span>
         </div>
@@ -63,15 +64,15 @@ export function RoutePath({
               type="button"
               onClick={() => onSelect(cp)}
               className={cn(
-                "tap-target flex max-w-[190px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
-                achieved && "border-primary/40 bg-primary/10",
-                isCurrent && "border-primary bg-primary/15 shadow-lg shadow-primary/20",
-                !achieved && !isCurrent && "border-border bg-card",
+                "tap-target flex max-w-[190px] items-center gap-2 rounded-lg px-3 py-2 text-left transition-colors",
+                achieved && "bg-violet text-bone",
+                isCurrent && "bg-violet/15 text-violet",
+                !achieved && !isCurrent && "bg-card",
               )}
             >
               <span
                 className={cn(
-                  "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold tabular-nums",
+                  "grid size-6 shrink-0 place-items-center rounded-sm text-[11px] font-bold tabular-nums",
                   achieved ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
                 )}
               >
@@ -94,7 +95,7 @@ export function RoutePath({
 
       {/* Goal marker */}
       <Marker x={nodes[nodes.length - 1]!.x} y={nodes[nodes.length - 1]!.y} width={geo.width}>
-        <div className="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-3 py-1.5">
+        <div className="flex items-center gap-2 rounded-sm bg-primary/15 px-3 py-1.5">
           <Flag className="size-3.5 text-primary" />
           <span className="text-[11px] font-semibold text-primary">{goalLabel}</span>
         </div>

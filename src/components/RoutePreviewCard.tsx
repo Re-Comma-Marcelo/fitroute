@@ -5,6 +5,7 @@ import type { Checkpoint } from "@/lib/route/types";
 import { formatDate } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { PanelStop } from "@/components/brand/Stop";
 
 /**
  * Home-screen preview of the route: where you are, what is next, and how far
@@ -30,8 +31,9 @@ export function RoutePreviewCard({
   return (
     <Link
       to="/rota"
-      className="mt-3 block rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
+      className="relative mt-3 block rounded-lg bg-card p-5 transition-colors hover:bg-stone/80"
     >
+      <PanelStop />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="label-caps">{t("My route")}</p>
@@ -66,20 +68,22 @@ export function RoutePreviewCard({
           fill="none"
           stroke="currentColor"
           strokeWidth={2.5}
-          strokeLinecap="round"
+          strokeLinecap="square"
+          strokeLinejoin="miter"
           strokeDasharray="2 8"
           className="text-border"
         />
         {geo.nodes.map((n, i) => (
-          <circle
+          <rect
             key={i}
-            cx={n.x}
-            cy={n.y}
-            r={i === 1 ? 7 : 5}
+            x={n.x - (i === geo.nodes.length - 1 ? 3 : 2)}
+            y={n.y - (i === geo.nodes.length - 1 ? 3 : 2)}
+            width={i === geo.nodes.length - 1 ? 6 : 4}
+            height={i === geo.nodes.length - 1 ? 6 : 4}
             className={cn(
               i === 0 && "fill-muted",
               i === 1 && "fill-primary",
-              i === 2 && "fill-primary/40",
+              i === 2 && "fill-oxide",
             )}
           />
         ))}

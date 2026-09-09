@@ -13,7 +13,7 @@ export function BrandIcon({
   icon: ComponentType<SVGProps<SVGSVGElement>>;
   size?: keyof typeof sizes;
   stopped?: boolean;
-  className?: string;
+  className?: string | undefined;
 }) {
   return (
     <span className={cn("relative inline-flex shrink-0 text-ink", sizes[size], className)}>
