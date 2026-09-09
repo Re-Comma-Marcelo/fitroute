@@ -836,9 +836,7 @@ function AccountSection({ email }: { email: string | null }) {
 
   return (
     <div className="rounded-lg border border-border/60 bg-card/70 p-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("Account")}
-      </p>
+      <p className="eyebrow-type text-xs text-muted-foreground">{t("Account")}</p>
       <p className="mt-1 truncate text-sm">{email ?? t("Signed in")}</p>
       <Button
         type="button"

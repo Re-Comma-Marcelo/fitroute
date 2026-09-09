@@ -166,7 +166,7 @@ function MarketPage() {
         <>
           <section className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-primary/5 p-3.5">
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              <p className="eyebrow-type text-[10px] text-muted-foreground">
                 {t("Estimated cost")}
               </p>
               <p className="text-xl font-semibold tabular-nums">{formatCurrency(estTotal)}</p>
@@ -199,7 +199,7 @@ function MarketPage() {
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
               <section key={aisle} className="rounded-lg border border-border bg-card p-3.5">
-                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <h2 className="eyebrow-type text-[10px] text-muted-foreground">
                   {aisle}
                 </h2>
                 <ul className="mt-2 divide-y divide-border/60">
@@ -252,7 +252,7 @@ function MarketPage() {
 
       {listQ.data?.orderOut.length ? (
         <section className="mt-4 rounded-lg border border-border bg-card p-3.5">
-          <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <h2 className="eyebrow-type flex items-center gap-2 text-[10px] text-muted-foreground">
             <Truck className="size-3.5" /> {t("Ordering out")}
           </h2>
           <ul className="mt-2 space-y-1.5">

@@ -168,7 +168,7 @@ function WeekPage() {
                         onClick={() => setEditing({ date, slot })}
                         className="tap-target flex w-full items-center gap-3 rounded-lg border border-border/60 px-3 text-left"
                       >
-                        <span className="w-16 shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                        <span className="eyebrow-type w-16 shrink-0 text-[10px] text-muted-foreground">
                           {t(SLOT_LABEL[slot])}
                         </span>
                         <span

@@ -563,7 +563,7 @@ function NumField({
 }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <span className="eyebrow-type mb-1 block text-[11px] text-muted-foreground">
         {label}
       </span>
       <Input

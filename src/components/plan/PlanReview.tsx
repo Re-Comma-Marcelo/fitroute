@@ -169,7 +169,7 @@ export function PlanReview({
                 {macro.value(plan.diet)}
                 {macro.suffix}
               </p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+              <p className="eyebrow-type text-[10px] text-muted-foreground">
                 {t(macro.label)}
               </p>
             </div>
@@ -193,7 +193,7 @@ export function PlanReview({
                   className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    <span className="eyebrow-type block text-[10px] text-muted-foreground">
                       {t(meal.slot)}
                     </span>
                     <span className="block truncate text-sm">{found?.name ?? meal.mealId}</span>

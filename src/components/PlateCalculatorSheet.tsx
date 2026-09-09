@@ -95,9 +95,7 @@ export function PlateCalculatorSheet({
 
         <div className="mt-4 space-y-5">
           <div className="rounded-lg border border-border bg-card p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              {t("Target")}
-            </p>
+            <p className="eyebrow-type text-xs text-muted-foreground">{t("Target")}</p>
             <p className="num-big mt-1 text-steel">{formatKg(weight)}</p>
             <div className="mt-3 flex items-center justify-center gap-2">
               <Button
@@ -120,7 +118,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
               {t("Per side")}
             </p>
             {grouped.length ? (
@@ -147,7 +145,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
               {t("Bar")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -168,7 +166,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
               {t("Plates available")}
             </p>
             <div className="flex flex-wrap gap-2">

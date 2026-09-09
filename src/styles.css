@@ -21,6 +21,7 @@
 @theme inline {
   --font-sans: "Chivo", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
+  --font-eyebrow: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -247,11 +248,22 @@
   font-variant-numeric: tabular-nums;
 }
 
+@utility eyebrow-type {
+  /*
+   * Deliberate ROUTE brandbook exception: Plus Jakarta Sans is reserved for
+   * small eyebrow labels. Archivo remains display; Chivo remains UI/body.
+   */
+  font-family: var(--font-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 @utility label-caps {
-  font-family: var(--font-sans);
+  font-family: var(--font-eyebrow);
   font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.26em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }

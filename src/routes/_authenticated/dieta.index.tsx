@@ -378,7 +378,7 @@ function TodayPage() {
         </div>
       ) : (
         <>
-          <h3 className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          <h3 className="eyebrow-type mt-4 text-[11px] text-primary">
             {t("Your plan for this slot")}
           </h3>
           {plannedOptions.length ? (
@@ -391,7 +391,7 @@ function TodayPage() {
 
           {suggestedOptions.length ? (
             <>
-              <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="eyebrow-type mt-5 text-[11px] text-muted-foreground">
                 {t("Suggested for you")}
               </h3>
               <p className="mt-0.5 text-xs text-muted-foreground">

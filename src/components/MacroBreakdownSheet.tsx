@@ -127,9 +127,7 @@ export function MacroBreakdownSheet({
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "diet" }) {
   return (
     <div className="rounded-lg border border-border bg-card p-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="eyebrow-type text-[10px] text-muted-foreground">{label}</p>
       <p
         className={`mt-0.5 text-lg font-semibold tabular-nums ${tone === "diet" ? "text-steel" : ""}`}
       >
@@ -155,9 +153,7 @@ function MacroStat({
   const bar = tone === "diet" ? "bg-steel" : tone === "train" ? "bg-steel" : "bg-primary";
   return (
     <div className="rounded-lg border border-border bg-card p-2.5">
-      <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
+      <p className="eyebrow-type text-[10px] text-muted-foreground">{label}</p>
       <p className="mt-0.5 text-sm font-semibold tabular-nums">
         {Math.round(value * 10) / 10}
         <span className="text-muted-foreground"> / {target}g</span>

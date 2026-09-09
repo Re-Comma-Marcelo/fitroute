@@ -163,7 +163,7 @@ export function CoachNotesCard() {
 
       {checkIn ? (
         <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
-          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
+          <p className="eyebrow-type flex items-center gap-1.5 text-[11px] text-primary">
             <Sparkles className="size-3.5" /> {t("Coach")}
           </p>
           <p className="mt-1 text-sm leading-snug">{checkIn.message}</p>
@@ -226,7 +226,7 @@ export function CoachNotesCard() {
       <ul className="mt-3 space-y-3">
         {(showAll ? feed : feed.slice(0, 5)).map((item) => (
           <li key={item.id} className="border-t border-border/60 pt-3 first:border-0 first:pt-0">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="eyebrow-type text-[11px] text-muted-foreground">
               <span className={item.adaptive ? "text-primary" : undefined}>{item.label}</span> ·{" "}
               <span className="normal-case">{formatDateLong(item.createdAt)}</span>
             </p>

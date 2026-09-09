@@ -15,3 +15,10 @@
 - [x] Reserve uppercase tracking for section eyebrows
 - [x] Simplify the statistics row and compact the route preview
 - [x] Validate the updated Home at mobile size
+
+## Limited eyebrow typography exception
+
+- [x] Add Plus Jakarta Sans only for small eyebrow labels
+- [x] Reduce eyebrow weight and tracking without changing Display/Title typography
+- [x] Align true local section and field eyebrows while preserving badges, tabs, and statuses
+- [x] Document and validate the brandbook exception
