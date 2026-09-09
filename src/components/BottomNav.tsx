@@ -15,14 +15,14 @@ export function BottomNav() {
   const t = useT();
 
   return (
-    <nav className="z-40 shrink-0 border-t-[3px] border-stone-line bg-bone">
+    <nav className="z-40 shrink-0 border-t border-stone-line bg-bone">
       <ul className="flex w-full lg:max-w-6xl">
         {tabs.map(({ to, label, icon }) => (
           <li key={to} className="flex-1">
             <Link
               to={to}
-              className="tap-target flex flex-col items-center justify-center gap-1 py-2.5 font-sans text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground transition-colors"
-              activeProps={{ className: "border-t-[6px] border-violet text-violet" }}
+              className="tap-target flex flex-col items-center justify-center gap-1 py-2.5 font-sans text-[10px] font-medium text-muted-foreground/65 transition-colors"
+              activeProps={{ className: "border-t-[3px] border-violet font-semibold text-violet" }}
             >
               {({ isActive }: { isActive: boolean }) => (
                 <>

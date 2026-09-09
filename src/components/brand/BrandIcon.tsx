@@ -21,7 +21,7 @@ export function BrandIcon({
         className="size-full"
         fill="none"
         stroke="currentColor"
-        strokeWidth={2.4}
+        strokeWidth={1.8}
         strokeLinecap="square"
         strokeLinejoin="miter"
       />

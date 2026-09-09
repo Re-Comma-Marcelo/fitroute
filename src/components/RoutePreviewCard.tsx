@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight, Flag } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { buildPreview } from "@/lib/route/path";
 import type { Checkpoint } from "@/lib/route/types";
 import { formatDate } from "@/lib/format";
@@ -31,13 +31,13 @@ export function RoutePreviewCard({
   return (
     <Link
       to="/rota"
-      className="relative mt-3 block rounded-lg bg-card p-5 transition-colors hover:bg-stone/80"
+      className="relative block rounded-lg bg-card px-4 py-3 transition-colors hover:bg-stone/80"
     >
       <PanelStop />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="label-caps">{t("My route")}</p>
-          <p className="font-display mt-0.5 truncate text-base font-semibold leading-tight">
+          <p className="mt-0.5 truncate text-sm font-semibold leading-tight tracking-normal">
             {empty
               ? t("Map your route to your goal")
               : (current?.title ?? t("Every checkpoint reached"))}
@@ -54,13 +54,12 @@ export function RoutePreviewCard({
                 : t("{achieved} of {total} checkpoints", { achieved, total })}
           </p>
         </div>
-        <ChevronRight className="mt-1 size-5 shrink-0 text-muted-foreground" />
+        <ChevronRight className="mt-1 size-4 shrink-0 text-muted-foreground" />
       </div>
 
       <svg
         viewBox={`0 0 ${geo.width} ${geo.height}`}
-        className="mt-3 w-full"
-        style={{ height: geo.height }}
+        className="mt-1.5 h-10 w-full"
         aria-hidden
       >
         <path
@@ -90,8 +89,8 @@ export function RoutePreviewCard({
       </svg>
 
       {goalDate ? (
-        <p className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-primary tabular-nums">
-          <Flag className="size-3.5" /> {t("Goal {date}", { date: formatDate(goalDate) })}
+        <p className="mt-0.5 text-[11px] font-medium text-muted-foreground tabular-nums">
+          {t("Goal {date}", { date: formatDate(goalDate) })}
         </p>
       ) : null}
     </Link>

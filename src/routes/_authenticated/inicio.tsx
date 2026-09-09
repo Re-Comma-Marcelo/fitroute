@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Dumbbell, Search, Timer, Trophy } from "lucide-react";
+import { ArrowRight, Check, ChevronRight, Dumbbell, Search, Timer, Trophy } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -124,15 +124,17 @@ export default function Inicio() {
 
   return (
     <AppShell hideHeader title={t("Home")}>
-      <div className="route-enter space-y-6 pb-28">
+      <div className="route-enter space-y-9 pb-28">
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
-            <h1 className="font-display text-2xl font-semibold tracking-tight">
-              {greeting},{" "}
+            <h1 className="font-sans text-2xl font-normal normal-case tracking-normal">
+              <span>{greeting}, </span>
               {isLoading ? (
                 <Skeleton className="inline-block h-6 w-24 align-middle" />
               ) : (
-                (profileQ.data?.nome.split(" ")[0] ?? t("Athlete"))
+                <span className="font-bold">
+                  {profileQ.data?.nome.split(" ")[0] ?? t("Athlete")}
+                </span>
               )}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">{formatFullDate(new Date())}</p>
@@ -244,7 +246,7 @@ function RouteStatusLine({ checkpoints }: { checkpoints: Checkpoint[] }) {
   return (
     <Link
       to="/rota"
-      className="tap-target flex items-center justify-between gap-2 rounded-lg border border-border bg-card px-4 py-3"
+      className="tap-target flex items-center justify-between gap-2 border-b border-stone-line px-0 py-3"
     >
       <span className="min-w-0">
         <span className={cn("block text-sm font-semibold", tone)}>{label}</span>
@@ -281,7 +283,7 @@ function TodayCard({
   const done = Math.min(sessions, goal);
 
   return (
-    <Card className="rounded-lg border-border bg-surface-1 p-4 ">
+    <Card className="rounded-lg border-0 bg-surface-1 p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="label-caps">{activeLabel ? t("In progress") : t("Today's session")}</p>
@@ -294,7 +296,7 @@ function TodayCard({
               : t("Pick a routine and start logging.")}
           </p>
         </div>
-        <span className="grid size-11 shrink-0 place-items-center rounded-sm bg-steel/15 text-steel">
+        <span className="grid size-11 shrink-0 place-items-center rounded-sm border border-stone-line text-muted-foreground">
           {activeLabel ? <Timer className="size-5" /> : <Dumbbell className="size-5" />}
         </span>
       </div>
@@ -314,26 +316,18 @@ function TodayCard({
           {Array.from({ length: goal }, (_, i) => (
             <span
               key={i}
-              className={cn("h-1.5 flex-1 rounded-sm", i < done ? "bg-steel" : "bg-surface-3")}
+              className={cn("h-1.5 flex-1 rounded-sm", i < done ? "bg-ink" : "bg-stone-line/50")}
             />
           ))}
         </div>
       </div>
 
-      <Button onClick={onStart} className="mt-4 h-14 w-full text-base font-semibold">
-        {activeLabel ? (
-          <>
-            <Timer className="mr-2 size-5" /> {t("Resume workout")}
-          </>
-        ) : routine ? (
-          <>
-            <Dumbbell className="mr-2 size-5" /> {t("Start {routine}", { routine: routine.nome })}
-          </>
-        ) : (
-          <>
-            <Dumbbell className="mr-2 size-5" /> {t("Create my routine")}
-          </>
-        )}
+      <Button
+        onClick={onStart}
+        className="mt-5 h-14 w-full justify-between px-5 font-sans text-base font-semibold normal-case tracking-normal"
+      >
+        <span>{t("Begin training")}</span>
+        <ArrowRight className="size-5" />
       </Button>
     </Card>
   );
@@ -366,40 +360,38 @@ function StatsRow({
 
   return (
     <section>
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="rounded-lg border-border bg-card p-3">
+      <div className="grid grid-cols-3">
+        <div className="min-w-0 pr-3">
           <p className="label-caps">{t("Volume")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
+          <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {hasData ? (
               <>
                 <CountUp value={volume.current} format={(n) => formatNumber(Math.round(n))} />
-                <span className="ml-0.5 text-xs font-semibold text-muted-foreground">kg</span>
+                <span className="ml-0.5 text-xs font-medium text-muted-foreground">kg</span>
               </>
             ) : (
               <span className="text-muted-foreground/40">0</span>
             )}
           </p>
-        </Card>
-        <Card className="rounded-lg border-border bg-card p-3">
+        </div>
+        <div className="min-w-0 border-l border-stone-line px-3">
           <p className="label-caps">{t("Workouts")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">{sessions}</p>
-        </Card>
-        <Card className="rounded-lg border-border bg-card p-3">
+          <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">{sessions}</p>
+        </div>
+        <div className="min-w-0 border-l border-stone-line pl-3">
           <p className="label-caps">{t("Streak")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
+          <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {streak}
-            <span className="ml-0.5 text-xs font-semibold text-muted-foreground">{t("wks")}</span>
+            <span className="ml-0.5 text-xs font-medium text-muted-foreground">{t("wks")}</span>
           </p>
-        </Card>
+        </div>
       </div>
       <p
         className={cn(
           "mt-2 text-xs font-semibold",
-          volume.isRecord
-            ? "text-violet"
-            : pct !== null && pct >= 0
-              ? "text-steel"
-              : "text-muted-foreground",
+          volume.isRecord || (pct !== null && pct >= 0)
+            ? "text-foreground"
+            : "text-muted-foreground",
         )}
       >
         {hasData ? trend : t("Your first recorded workout sets this value.")}
@@ -456,7 +448,7 @@ function DietCard({
   const pct = target > 0 ? Math.max(0, Math.min(100, (kcal / target) * 100)) : 0;
   const pPct = proteinTarget > 0 ? Math.max(0, Math.min(100, (protein / proteinTarget) * 100)) : 0;
   return (
-    <Card className="rounded-lg border-border bg-card p-4">
+    <Card className="rounded-lg border-0 bg-card p-4">
       <div className="flex items-baseline justify-between gap-3">
         <p className="label-caps">{t("Today's plan")}</p>
         <Link to="/dieta" className="text-xs font-semibold text-primary underline-offset-2">
@@ -465,26 +457,26 @@ function DietCard({
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         <div>
-          <p className="text-base font-semibold tabular-nums text-steel">
+          <p className="text-base font-semibold tabular-nums text-foreground">
             {formatNumber(Math.round(kcal))}
             <span className="ml-1 text-xs font-semibold text-muted-foreground">
               {t("of {target} kcal", { target: formatNumber(Math.round(target)) })}
             </span>
           </p>
           <div className="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-surface-3">
-            <div className="h-full rounded-sm bg-steel" style={{ width: `${pct}%` }} />
+            <div className="h-full rounded-sm bg-ink" style={{ width: `${pct}%` }} />
           </div>
         </div>
         {proteinTarget > 0 ? (
           <div>
-            <p className="text-base font-semibold tabular-nums text-steel">
+            <p className="text-base font-semibold tabular-nums text-foreground">
               {formatNumber(Math.round(protein))}g
               <span className="ml-1 text-xs font-semibold text-muted-foreground">
                 {t("of {target}g protein", { target: formatNumber(Math.round(proteinTarget)) })}
               </span>
             </p>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-sm bg-surface-3">
-              <div className="h-full rounded-sm bg-steel/70" style={{ width: `${pPct}%` }} />
+              <div className="h-full rounded-sm bg-ink/70" style={{ width: `${pPct}%` }} />
             </div>
           </div>
         ) : null}
