@@ -362,7 +362,7 @@ function StatsRow({
     <section>
       <div className="grid grid-cols-3">
         <div className="min-w-0 pr-2">
-          <p className="label-caps text-xs tracking-[0.22em]">{t("Volume")}</p>
+          <p className="label-caps text-xs">{t("Volume")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {hasData ? (
               <>
@@ -375,11 +375,11 @@ function StatsRow({
           </p>
         </div>
         <div className="min-w-0 border-l border-stone-line px-2">
-          <p className="label-caps text-xs tracking-[0.22em]">{t("Workouts")}</p>
+          <p className="label-caps text-xs">{t("Workouts")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">{sessions}</p>
         </div>
         <div className="min-w-0 border-l border-stone-line pl-2">
-          <p className="label-caps text-xs tracking-[0.22em]">{t("Streak")}</p>
+          <p className="label-caps text-xs">{t("Streak")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {streak}
             <span className="ml-0.5 text-xs font-medium text-muted-foreground">{t("wks")}</span>
