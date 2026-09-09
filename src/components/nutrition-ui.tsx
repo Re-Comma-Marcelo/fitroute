@@ -33,7 +33,7 @@ export function Ring({
  strokeWidth={width}
  stroke={color}
  fill="none"
- strokeLinecap="round"
+ strokeLinecap="square"
  strokeDasharray={`${(c * Math.min(1, Math.max(0, pct))).toFixed(1)} ${c}`}
  />
  </svg>

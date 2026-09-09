@@ -275,7 +275,7 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
  : "var(--muted-foreground)";
  return (
  <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0" aria-hidden="true">
- <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" />
+ <path d={d} fill="none" stroke={stroke} strokeWidth={2} strokeLinecap="square" strokeLinejoin="miter" />
  </svg>
  );
 }

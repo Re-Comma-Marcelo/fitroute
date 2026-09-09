@@ -85,7 +85,7 @@ export function RestIsland({
  r={r}
  fill="none"
  strokeWidth={stroke}
- strokeLinecap="round"
+ strokeLinecap="square"
  strokeDasharray={circ}
  strokeDashoffset={circ * (1 - pct)}
  className={cn(

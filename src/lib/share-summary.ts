@@ -41,29 +41,30 @@ export async function renderSummaryCard(
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  const gradient = ctx.createLinearGradient(0, 0, size, size);
-  gradient.addColorStop(0, "#12101a");
-  gradient.addColorStop(1, "#1c1430");
-  ctx.fillStyle = gradient;
+  ctx.fillStyle = "#EFEBE4";
   ctx.fillRect(0, 0, size, size);
 
-  ctx.fillStyle = "#a78bfa";
-  ctx.font = "600 34px Inter, system-ui, sans-serif";
-  ctx.fillText("IRON LOGGER", 88, 140);
+  ctx.fillStyle = "#4B2FBF";
+  ctx.fillRect(88, 88, 320, 14);
+  ctx.fillStyle = "#B44A26";
+  ctx.fillRect(408, 81, 28, 28);
+  ctx.fillStyle = "#16151A";
+  ctx.font = "800 42px Archivo, system-ui, sans-serif";
+  ctx.fillText("ROUTE", 88, 170);
 
-  ctx.fillStyle = "#f5f3ff";
-  ctx.font = "700 68px Inter, system-ui, sans-serif";
-  ctx.fillText(data.routineName.slice(0, 22), 88, 250);
+  ctx.fillStyle = "#16151A";
+  ctx.font = "700 68px Archivo, system-ui, sans-serif";
+  ctx.fillText(data.routineName.slice(0, 22).toUpperCase(), 88, 280);
 
-  ctx.fillStyle = "#a1a1aa";
-  ctx.font = "400 34px Inter, system-ui, sans-serif";
-  ctx.fillText(data.dateLabel, 88, 306);
+  ctx.fillStyle = "#2C4A6E";
+  ctx.font = "400 34px Chivo, system-ui, sans-serif";
+  ctx.fillText(data.dateLabel, 88, 336);
 
-  ctx.fillStyle = "#71717a";
-  ctx.font = "600 30px Inter, system-ui, sans-serif";
+  ctx.fillStyle = "#16151A";
+  ctx.font = "700 30px Chivo, system-ui, sans-serif";
   ctx.fillText(labels["volume"]!.toUpperCase(), 88, 430);
-  ctx.fillStyle = "#fb923c";
-  ctx.font = "700 150px Inter, system-ui, sans-serif";
+  ctx.fillStyle = "#2C4A6E";
+  ctx.font = "400 150px Chivo, system-ui, sans-serif";
   ctx.fillText(data.volumeLabel, 88, 570);
 
   const stats: [string, string][] = [
@@ -73,22 +74,22 @@ export async function renderSummaryCard(
   ];
   stats.forEach(([label, value], i) => {
     const x = 88 + i * 310;
-    ctx.fillStyle = "#71717a";
-    ctx.font = "600 28px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#16151A";
+    ctx.font = "700 28px Chivo, system-ui, sans-serif";
     ctx.fillText(label.toUpperCase(), x, 690);
-    ctx.fillStyle = "#f5f3ff";
-    ctx.font = "700 62px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#2C4A6E";
+    ctx.font = "400 62px Chivo, system-ui, sans-serif";
     ctx.fillText(value, x, 760);
   });
 
   if (data.prs.length) {
-    ctx.fillStyle = "#34d399";
-    ctx.font = "600 32px Inter, system-ui, sans-serif";
+    ctx.fillStyle = "#B44A26";
+    ctx.font = "700 32px Chivo, system-ui, sans-serif";
     ctx.fillText(`${labels["prs"]}: ${data.prs[0]!.nome} ${data.prs[0]!.pesoKg}kg`, 88, 890);
   }
 
-  ctx.fillStyle = "#52525b";
-  ctx.font = "400 28px Inter, system-ui, sans-serif";
+  ctx.fillStyle = "#B4AFA6";
+  ctx.font = "300 28px Chivo, system-ui, sans-serif";
   ctx.fillText(labels["footer"]!, 88, 990);
 
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
@@ -105,7 +106,7 @@ export async function shareSummary(
     canShare?: (data: { files?: File[] }) => boolean;
   };
   if (blob) {
-    const file = new File([blob], "iron-logger.png", { type: "image/png" });
+    const file = new File([blob], "route-training.png", { type: "image/png" });
     if (nav.share && nav.canShare?.({ files: [file] })) {
       try {
         await nav.share({ files: [file], text });
@@ -127,7 +128,7 @@ export async function shareSummary(
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "iron-logger.png";
+    link.download = "route-training.png";
     link.click();
     URL.revokeObjectURL(url);
     return "downloaded";

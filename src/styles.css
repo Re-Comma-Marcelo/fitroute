@@ -144,7 +144,6 @@
   --sidebar-accent-foreground: var(--ink);
   --sidebar-border: var(--stone-line);
   --sidebar-ring: var(--violet);
-  --shadow-elegant: none;
 }
 
 
@@ -231,10 +230,6 @@
   text-align: center;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-}
-
-@utility shadow-elegant {
-  box-shadow: none;
 }
 
 @utility num-hero {

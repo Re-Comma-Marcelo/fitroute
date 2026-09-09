@@ -31,7 +31,7 @@ const SheetOverlay = React.forwardRef<
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
 const sheetVariants = cva(
- "fixed z-50 gap-4 bg-background p-6 transition ease-[cubic-bezier(.2,0,.2,1)] data-[state=closed]:duration-200 data-[state=open]:duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
+ "fixed z-50 gap-4 bg-bone p-6 transition ease-[cubic-bezier(.2,0,.2,1)] data-[state=closed]:duration-200 data-[state=open]:duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out",
  {
  variants: {
  side: {
@@ -72,7 +72,7 @@ const SheetContent = React.forwardRef<
 SheetContent.displayName = SheetPrimitive.Content.displayName;
 
 const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
- <div className={cn("flex flex-col space-y-2 text-center sm:text-left", className)} {...props} />
+ <div className={cn("flex flex-col space-y-2 text-left", className)} {...props} />
 );
 SheetHeader.displayName = "SheetHeader";
 
@@ -90,7 +90,7 @@ const SheetTitle = React.forwardRef<
 >(({ className, ...props }, ref) => (
  <SheetPrimitive.Title
  ref={ref}
- className={cn("text-lg font-semibold text-foreground", className)}
+ className={cn("font-display text-xl font-bold uppercase text-foreground", className)}
  {...props}
  />
 ));

@@ -48,7 +48,7 @@ export function ProgressRing({
  fill="none"
  stroke={complete ? "var(--success)" : "var(--train)"}
  strokeWidth={stroke}
- strokeLinecap="round"
+ strokeLinecap="square"
  strokeDasharray={circumference}
  strokeDashoffset={circumference * (1 - pct / 100)}
  transform={`rotate(-90 ${size / 2} ${size / 2})`}
