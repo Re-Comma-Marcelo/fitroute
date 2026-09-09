@@ -51,7 +51,7 @@ export function TrackedLiftPickerSheet({
                   type="button"
                   onClick={() => onToggle(e.id, !tracked)}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition-colors",
+                    "flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-colors",
                     tracked ? "border-primary/50 bg-primary/[0.06]" : "border-border bg-card",
                   )}
                 >

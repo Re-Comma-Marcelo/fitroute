@@ -55,7 +55,7 @@ export function RoutineTemplateSheet({
         </p>
         <ul className="mt-4 space-y-3 pb-4">
           {ROUTINE_TEMPLATES.map((template) => (
-            <li key={template.id} className="rounded-2xl border border-border bg-card p-4">
+            <li key={template.id} className="rounded-lg border border-border bg-card p-4">
               <p className="font-display text-sm font-semibold">{t(template.nome)}</p>
               <p className="mt-1 text-xs leading-snug text-muted-foreground">
                 {t(template.descricao)}

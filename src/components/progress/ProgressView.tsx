@@ -155,9 +155,9 @@ export function ProgressView() {
 
       {loading ? (
         <div className="space-y-3">
-          <Skeleton className="h-20 w-full rounded-2xl" />
-          <Skeleton className="h-12 w-full rounded-2xl" />
-          <Skeleton className="h-44 w-full rounded-2xl" />
+          <Skeleton className="h-20 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-44 w-full rounded-lg" />
         </div>
       ) : (
         <>
@@ -200,11 +200,11 @@ export function ProgressView() {
             />
           </dl>
 
-          <div className="mt-2 flex items-center gap-2 rounded-2xl border border-border/60 bg-background/40 px-4 py-3">
+          <div className="mt-2 flex items-center gap-2 rounded-lg border border-border/60 bg-background/40 px-4 py-3">
             <Flame
               className={cn(
                 "size-4 shrink-0",
-                consistency.streakWeeks > 0 ? "text-train" : "text-muted-foreground",
+                consistency.streakWeeks > 0 ? "text-steel" : "text-muted-foreground",
               )}
             />
             <p className="text-xs leading-snug text-muted-foreground">
@@ -218,8 +218,8 @@ export function ProgressView() {
               {consistency.streakWeeks > 0 ? (
                 <>
                   {" · "}
-                  <span className="font-semibold text-train tabular-nums">
-                    {t("{streakWeeks}-week streak", {
+                  <span className="font-semibold text-steel tabular-nums">
+                    {t("{streakWeeks} weeks consistent", {
                       streakWeeks: consistency.streakWeeks,
                     })}
                   </span>
@@ -257,11 +257,11 @@ export function ProgressView() {
       <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>
 
       {!workouts.length && !loading ? (
-        <div className="rounded-2xl border border-dashed border-border p-5 text-center">
+        <div className="rounded-lg border border-dashed border-border p-5 text-center">
           <p className="font-display text-sm font-semibold">{t("No workout logged yet")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {t(
-              "This screen tracks how your volume, streak and key lifts move over time. Log one session to start the trend.",
+              "This screen tracks how your volume, consistency and key lifts change over time. Record one session to establish the trend.",
             )}
           </p>
           <Button asChild className="tap-target mt-3">
@@ -276,7 +276,7 @@ export function ProgressView() {
             <Link
               to="/progresso/$id"
               params={{ id: w.id }}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
+              className="flex items-center gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
             >
               <div className="flex-1">
                 <p className="font-display text-base font-semibold leading-tight">
@@ -296,7 +296,7 @@ export function ProgressView() {
                   ).map((g) => (
                     <span
                       key={g}
-                      className="rounded-full bg-train/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-train"
+                      className="rounded-sm bg-steel/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-steel"
                     >
                       {g}
                     </span>
@@ -351,7 +351,7 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "tap-target shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-colors",
+        "tap-target shrink-0 rounded-sm border px-4 py-2 text-xs font-semibold transition-colors",
         active
           ? "border-primary/60 bg-primary/15 text-primary"
           : "border-border bg-card text-muted-foreground",
@@ -377,7 +377,7 @@ function Stat({
 }) {
   const t = useT();
   return (
-    <div className="rounded-2xl border border-border bg-card p-3">
+    <div className="rounded-lg border border-border bg-card p-3">
       <dt className="label-caps">{label}</dt>
       <dd className="font-display mt-1 whitespace-nowrap text-lg font-semibold tabular-nums">
         {value}
@@ -386,8 +386,8 @@ function Stat({
         <dd
           className={cn(
             "mt-0.5 text-[11px] font-semibold tabular-nums",
-            delta.diff > 0 && "text-emerald-400",
-            delta.diff < 0 && "text-destructive",
+            delta.diff > 0 && "text-violet",
+            delta.diff < 0 && "text-oxide",
             delta.diff === 0 && "text-muted-foreground",
           )}
         >

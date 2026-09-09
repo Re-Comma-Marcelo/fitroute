@@ -74,7 +74,7 @@ export function MealPickerSheet({
               key={f}
               type="button"
               onClick={() => setFilter(f)}
-              className={`flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${
+              className={`flex shrink-0 items-center gap-1 rounded-sm border px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors ${
                 f === filter
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground"
@@ -90,7 +90,7 @@ export function MealPickerSheet({
           <button
             type="button"
             onClick={onAddMeal}
-            className="tap-target mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-diet/50 text-xs font-semibold text-diet"
+            className="tap-target mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-dashed border-steel/50 text-xs font-semibold text-steel"
           >
             <Plus className="size-4" /> {t("Add a meal")}
           </button>
@@ -102,7 +102,7 @@ export function MealPickerSheet({
               <button
                 type="button"
                 onClick={() => onPick(null)}
-                className="tap-target w-full rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground"
+                className="tap-target w-full rounded-lg border border-dashed border-border text-xs font-semibold text-muted-foreground"
               >
                 {t("Clear this slot")}
               </button>

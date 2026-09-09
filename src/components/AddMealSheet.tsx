@@ -145,14 +145,14 @@ export function AddMealSheet({
 
         {mode === "input" ? (
           <div className="mt-4 space-y-4 pb-8">
-            <div className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
+            <div className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-card p-1">
               {(["text", "photo"] as Source[]).map((s) => (
                 <button
                   key={s}
                   type="button"
                   onClick={() => setSource(s)}
                   className={`tap-target rounded-lg text-xs font-semibold transition-colors ${
-                    s === source ? "bg-diet/15 text-diet" : "text-muted-foreground"
+                    s === source ? "bg-steel/15 text-steel" : "text-muted-foreground"
                   }`}
                 >
                   {s === "text" ? t("Describe it") : t("Use a photo")}
@@ -173,17 +173,17 @@ export function AddMealSheet({
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border p-6 text-center"
+                  className="flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border p-6 text-center"
                 >
                   {photo ? (
                     <img
                       src={photo}
                       alt={t("Meal photo")}
-                      className="max-h-48 w-full rounded-xl object-cover"
+                      className="max-h-48 w-full rounded-lg object-cover"
                     />
                   ) : (
                     <>
-                      <Camera className="size-6 text-diet" />
+                      <Camera className="size-6 text-steel" />
                       <span className="text-sm font-semibold">{t("Take or pick a photo")}</span>
                       <span className="text-xs text-muted-foreground">
                         {t("The AI reads the plate and estimates the portions.")}
@@ -218,7 +218,7 @@ export function AddMealSheet({
 
             <SlotPicker slot={slot} setSlot={setSlot} />
 
-            {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+            {error ? <p className="text-xs font-medium text-oxide">{error}</p> : null}
 
             <Button
               className="tap-target w-full"
@@ -238,8 +238,8 @@ export function AddMealSheet({
           </div>
         ) : draft ? (
           <div className="mt-4 space-y-4 pb-8">
-            <p className="rounded-xl border border-diet/25 bg-diet/5 p-3 text-xs leading-snug text-muted-foreground">
-              <span className="font-semibold text-diet">{t("AI estimate")}</span>
+            <p className="rounded-lg border border-steel/25 bg-steel/5 p-3 text-xs leading-snug text-muted-foreground">
+              <span className="font-semibold text-steel">{t("AI estimate")}</span>
               {confidence ? ` · ${t("confidence: {level}", { level: t(confidence) })}` : ""}
               {aiNote ? ` — ${aiNote}` : ""}
             </p>
@@ -381,9 +381,9 @@ function SlotPicker({ slot, setSlot }: { slot: MealSlot; setSlot: (s: MealSlot) 
             key={s}
             type="button"
             onClick={() => setSlot(s)}
-            className={`tap-target shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors ${
+            className={`tap-target shrink-0 rounded-sm border px-4 text-xs font-semibold transition-colors ${
               s === slot
-                ? "border-diet bg-diet/10 text-diet"
+                ? "border-steel bg-steel/10 text-steel"
                 : "border-border text-muted-foreground"
             }`}
           >

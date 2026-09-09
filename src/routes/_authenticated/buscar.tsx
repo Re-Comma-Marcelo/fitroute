@@ -42,7 +42,7 @@ function Shortcut({
     <button
       type="button"
       onClick={onClick}
-      className="tap-target flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left text-sm font-semibold"
+      className="tap-target flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-3 text-left text-sm font-semibold"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-muted-foreground">
         <Icon className="size-4" />
@@ -184,7 +184,7 @@ function SearchPage() {
                       key={term}
                       type="button"
                       onClick={() => setQ(term)}
-                      className="tap-target inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 text-sm font-medium"
+                      className="tap-target inline-flex items-center gap-1.5 rounded-sm border border-border bg-card px-3 py-2 text-sm font-medium"
                     >
                       <Clock className="size-3.5 text-muted-foreground" />
                       {term}
@@ -235,7 +235,7 @@ function SearchPage() {
                   <button
                     type="button"
                     onClick={() => open(hit)}
-                    className="tap-target flex w-full items-center gap-3 rounded-xl border border-border bg-card px-3 py-3 text-left"
+                    className="tap-target flex w-full items-center gap-3 rounded-lg border border-border bg-card px-3 py-3 text-left"
                   >
                     <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-surface-3 text-muted-foreground">
                       <HitIcon className="size-4" />

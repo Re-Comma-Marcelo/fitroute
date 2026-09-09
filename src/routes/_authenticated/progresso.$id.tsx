@@ -221,7 +221,7 @@ function WorkoutDetail() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="tap-target text-destructive"
+                    className="tap-target text-oxide"
                     aria-label={t("Delete session")}
                   >
                     <Trash2 className="size-5" />
@@ -237,7 +237,7 @@ function WorkoutDetail() {
                   <AlertDialogFooter>
                     <AlertDialogCancel className="tap-target">{t("Cancel")}</AlertDialogCancel>
                     <AlertDialogAction
-                      className="tap-target bg-destructive text-destructive-foreground"
+                      className="tap-target bg-oxide text-oxide-foreground"
                       onClick={() => void removeWorkout()}
                     >
                       {t("Delete")}
@@ -252,7 +252,7 @@ function WorkoutDetail() {
 
       <div className="mx-auto max-w-md space-y-4 px-4 py-4">
         {workout ? (
-          <div className="rounded-xl border border-border bg-card p-4">
+          <div className="rounded-lg border border-border bg-card p-4">
             <p className="text-sm text-muted-foreground first-letter:uppercase">
               {formatDateLong(workout.iniciadoEm)}
             </p>
@@ -294,7 +294,7 @@ function WorkoutDetail() {
           }));
 
           return (
-            <section key={exId} className="rounded-xl border border-border bg-card p-4">
+            <section key={exId} className="rounded-lg border border-border bg-card p-4">
               <h2 className="text-base font-semibold">{exerciseName(exId)}</h2>
               <ul className="mt-2 space-y-1 text-sm">
                 {exSets.map((s) => (

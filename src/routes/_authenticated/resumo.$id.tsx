@@ -103,7 +103,7 @@ function SummaryPage() {
         sets: t("Sets"),
         exercises: t("Exercises"),
         prs: t("Personal records"),
-        footer: t("Logged with Iron Logger"),
+        footer: t("Logged with ROUTE"),
       },
     );
     setSharing(false);
@@ -127,7 +127,9 @@ function SummaryPage() {
       <div className="relative mx-auto max-w-md">
         <p className="label-caps">{t("Session finished")}</p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {t("Session recorded. Here is the summary.")}
+        </p>
 
         {/* Hero: the volume moved in this session. */}
         <section className="mt-8" aria-label={t("Total volume")}>
@@ -135,7 +137,7 @@ function SummaryPage() {
           <CountUp
             value={volume}
             format={formatKg}
-            className="num-hero mt-1 block text-train"
+            className="num-hero mt-1 block text-steel"
             aria-label={formatKg(volume)}
           />
         </section>
@@ -143,13 +145,13 @@ function SummaryPage() {
         {coachMessage ? (
           <section
             aria-label={t("Coach")}
-            className="mt-6 rounded-3xl border border-primary/30 bg-primary/10 p-5"
+            className="mt-6 rounded-lg border border-primary/30 bg-primary/10 p-5"
           >
             <p className="label-caps text-primary">{t("Coach")}</p>
             <p className="mt-2 text-sm leading-relaxed text-foreground">{coachMessage}</p>
           </section>
         ) : (
-          <p className="mt-6 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-xs leading-snug text-muted-foreground">
+          <p className="mt-6 rounded-lg border border-dashed border-border bg-card px-4 py-3 text-xs leading-snug text-muted-foreground">
             {t(
               "The coach note and records for this workout are only shown right after you finish.",
             )}
@@ -166,10 +168,10 @@ function SummaryPage() {
               return (
                 <div
                   key={pr.nome}
-                  className="pr-pop overflow-hidden rounded-3xl border border-success/40 bg-success-bg p-5"
+                  className="pr-pop overflow-hidden rounded-lg border border-violet/40 bg-violet/10 p-5"
                   style={{ animationDelay: `${index * 90}ms` }}
                 >
-                  <div className="flex items-center gap-2 text-success">
+                  <div className="flex items-center gap-2 text-violet">
                     <Trophy className="size-5" />
                     <p className="text-xs font-medium uppercase tracking-[0.02em]">
                       {t("New personal record")}
@@ -179,7 +181,7 @@ function SummaryPage() {
                   <CountUp
                     value={pr.pesoKg}
                     format={formatKg}
-                    className="num-hero block text-success"
+                    className="num-hero block text-violet"
                     aria-label={formatKg(pr.pesoKg)}
                   />
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -197,11 +199,11 @@ function SummaryPage() {
         ) : null}
 
         {streak > 0 ? (
-          <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-success">
+          <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-violet">
             <Flame className="size-4" />
             {streak > 1
               ? t("{count} weeks training in a row", { count: streak })
-              : t("First week training — keep it going")}
+              : t("First week recorded")}
           </p>
         ) : null}
 
@@ -229,7 +231,7 @@ function SummaryPage() {
         ) : null}
 
         {workout?.notas ? (
-          <p className="mt-4 rounded-xl border border-border bg-card p-4 text-sm">
+          <p className="mt-4 rounded-lg border border-border bg-card p-4 text-sm">
             {workout.notas}
           </p>
         ) : null}
@@ -263,7 +265,7 @@ function SummaryPage() {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="rounded-lg border border-border bg-card p-4">
       <dt className="label-caps">{label}</dt>
       <dd className="num-big mt-1">{value}</dd>
     </div>

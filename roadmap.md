@@ -1,0 +1,10 @@
+# ROUTE rebrand roadmap
+
+- [x] Replace global tokens, typography, motion, and light-mode shell
+- [x] Add ROUTE stop, rules, logos, icon and chart primitives
+- [x] Rebuild shared controls and navigation
+- [x] Rebrand PWA assets, metadata, and visible product naming
+- [x] Restyle every route and feature component
+- [x] Rewrite user-facing English, Portuguese, and Dutch copy
+- [x] Audit forbidden legacy styles and brand references
+- [x] Validate types, build, public flow, mobile and desktop visuals

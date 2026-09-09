@@ -41,12 +41,12 @@ export function WorkoutCalendar({ workouts }: { workouts: Workout[] }) {
   const todayKey = new Date().toDateString();
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-4">
+    <section className="rounded-lg border border-border bg-card p-4">
       <header className="flex items-center justify-between">
         <button
           type="button"
           aria-label={t("Previous month")}
-          className="tap-target rounded-full px-2 text-muted-foreground"
+          className="tap-target rounded-sm px-2 text-muted-foreground"
           onClick={() => setOffset((o) => o - 1)}
         >
           <ChevronLeft className="size-5" />
@@ -58,7 +58,7 @@ export function WorkoutCalendar({ workouts }: { workouts: Workout[] }) {
           type="button"
           aria-label={t("Next month")}
           disabled={offset >= 0}
-          className="tap-target rounded-full px-2 text-muted-foreground disabled:opacity-30"
+          className="tap-target rounded-sm px-2 text-muted-foreground disabled:opacity-30"
           onClick={() => setOffset((o) => Math.min(0, o + 1))}
         >
           <ChevronRight className="size-5" />

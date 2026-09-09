@@ -26,7 +26,7 @@ const TIME_LABEL: Record<Profile["preferredTime"], string> = {
 
 const DONE_KEY = "forja.claude.steps";
 const EXAMPLE_PROMPT =
-  "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
+  "Use the ROUTE tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
 
 function useStepsDone() {
   const [done, setDone] = useState<Record<string, boolean>>({});
@@ -68,7 +68,7 @@ function Step({
   return (
     <div
       className={cn(
-        "space-y-2 rounded-xl border p-3 transition-colors",
+        "space-y-2 rounded-lg border p-3 transition-colors",
         done ? "border-primary/40 bg-primary/[0.06]" : "border-border bg-card",
       )}
     >
@@ -76,7 +76,7 @@ function Step({
         <span
           aria-hidden
           className={cn(
-            "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold",
+            "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-sm text-[11px] font-semibold",
             done ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground",
           )}
         >
@@ -144,7 +144,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       : [];
 
     return [
-      "Here is my Forja training context. Use the Forja MCP tools to plan for me.",
+      "Here is my ROUTE training context. Use the Forja MCP tools to plan for me.",
       "",
       "## Me",
       `- Name: ${profile.nome}`,
@@ -187,7 +187,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         raw.trim().includes("FORJA1.")
           ? t(result.error)
           : t(
-              "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.",
+              "That does not look like a ROUTE import code — copy the whole block Claude returned, including the part that starts with FORJA1.",
             ),
       );
       setPending(null);
@@ -221,22 +221,22 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
   ];
 
   return (
-    <section className="space-y-4 rounded-2xl border border-primary/25 bg-primary/[0.05] p-4">
+    <section className="space-y-4 rounded-lg border border-primary/25 bg-primary/[0.05] p-4">
       <header className="flex items-start gap-3">
-        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
+        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary/15 text-primary">
           <Sparkles className="size-4" />
         </span>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-foreground">{t("Claude / AI assistant")}</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {t(
-              "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
+              "Connect ROUTE to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
             )}
           </p>
         </div>
       </header>
 
-      <div className="space-y-1.5 rounded-xl border border-border bg-card p-3">
+      <div className="space-y-1.5 rounded-lg border border-border bg-card p-3">
         <p className="label-caps text-muted-foreground">{t("What Claude gets")}</p>
         <ul className="space-y-1 text-xs text-muted-foreground">
           {tools.map((label) => (
@@ -260,8 +260,8 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         onToggle={() => toggle("url")}
       >
         {target.url && target.unreachable ? (
-          <div className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <div className="flex gap-2 rounded-lg border border-oxide/40 bg-oxide/10 p-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-oxide" />
             <p className="min-w-0 text-xs leading-relaxed text-foreground">
               {t(
                 "You are on the editor preview. Use the URL below — it points to the published app.",
@@ -282,8 +282,8 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
             </Button>
           </>
         ) : target.unreachable ? (
-          <div className="flex gap-2 rounded-lg border border-destructive/40 bg-destructive/10 p-2.5">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+          <div className="flex gap-2 rounded-lg border border-oxide/40 bg-oxide/10 p-2.5">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0 text-oxide" />
             <p className="min-w-0 text-xs leading-relaxed text-foreground">
               {t(
                 "You are on the editor preview. Claude cannot reach this address. Publish the app, open this screen on the published address, and the connector URL will appear here to copy.",
@@ -358,9 +358,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           aria-invalid={!!error}
           className="text-xs"
         />
-        {error ? (
-          <p className="text-xs font-semibold leading-relaxed text-destructive">{error}</p>
-        ) : null}
+        {error ? <p className="text-xs font-semibold leading-relaxed text-oxide">{error}</p> : null}
         {pending ? (
           <div className="space-y-2 rounded-lg border border-primary/30 bg-primary/[0.06] p-3">
             <p className="text-sm font-semibold text-foreground">{pending.preview.title}</p>
@@ -370,7 +368,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
               ))}
             </ul>
             {pending.preview.warnings.map((w, i) => (
-              <p key={i} className="text-xs font-semibold text-destructive">
+              <p key={i} className="text-xs font-semibold text-oxide">
                 {w}
               </p>
             ))}
@@ -401,7 +399,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
         )}
       </Step>
 
-      <div className="rounded-xl border border-border bg-card">
+      <div className="rounded-lg border border-border bg-card">
         <button
           type="button"
           className="flex min-h-11 w-full items-center justify-between gap-2 px-3 py-2.5 text-left"

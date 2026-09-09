@@ -165,8 +165,8 @@ export function SessionCoachSheet({
           type="button"
           className={
             compact
-              ? "grid size-10 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
-              : "tap-target inline-flex h-8 items-center gap-1 rounded-full bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
+              ? "grid size-10 shrink-0 place-items-center rounded-sm bg-primary/10 text-primary"
+              : "tap-target inline-flex h-8 items-center gap-1 rounded-sm bg-primary/10 px-2.5 text-[11px] font-semibold text-primary"
           }
           aria-label={t("Ask your coach")}
           title={t("Ask your coach")}
@@ -190,7 +190,7 @@ export function SessionCoachSheet({
                 className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
               >
                 <div
-                  className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+                  className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm leading-relaxed ${
                     m.role === "user"
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-foreground"
@@ -228,7 +228,7 @@ export function SessionCoachSheet({
             />
             <button
               type="submit"
-              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
+              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground"
               aria-label={t("Send")}
               disabled={busy}
             >

@@ -5,8 +5,8 @@ export const dict: DictFragment = {
   pt: {
     "Weekly check-in": "Check-in semanal",
     "Let's plan your week": "Vamos planejar sua semana",
-    "Last week: {sessions} sessions · {volume} kg · {streak} week streak":
-      "Semana passada: {sessions} treinos · {volume} kg · {streak} semanas seguidas",
+    "Last week: {sessions} sessions · {volume} kg · {streak} consistent weeks":
+      "Semana passada: {sessions} treinos · {volume} kg · {streak} semanas consistentes",
     "How did it feel?": "Como foi a sensação?",
     Strong: "Forte",
     Okay: "Ok",
@@ -53,8 +53,8 @@ export const dict: DictFragment = {
   nl: {
     "Weekly check-in": "Wekelijkse check-in",
     "Let's plan your week": "Laten we je week plannen",
-    "Last week: {sessions} sessions · {volume} kg · {streak} week streak":
-      "Vorige week: {sessions} sessies · {volume} kg · {streak} weken op rij",
+    "Last week: {sessions} sessions · {volume} kg · {streak} consistent weeks":
+      "Vorige week: {sessions} sessies · {volume} kg · {streak} consistente weken",
     "How did it feel?": "Hoe voelde het?",
     Strong: "Sterk",
     Okay: "Oké",

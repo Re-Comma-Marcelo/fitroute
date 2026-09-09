@@ -21,7 +21,7 @@ export function MealSwapCard({
   const t = useT();
   const { meal, current, reason, deltas } = suggestion;
   return (
-    <section className="mt-4 overflow-hidden rounded-2xl border border-primary/25 bg-primary/5">
+    <section className="mt-4 overflow-hidden rounded-lg border border-primary/25 bg-primary/5">
       <div className="flex items-center gap-2 px-4 pt-3">
         <Sparkles className="size-4 text-primary" />
         <h3 className="text-xs font-semibold tracking-wide text-primary uppercase">
@@ -34,7 +34,7 @@ export function MealSwapCard({
           src={mealImage(meal.slots[0])}
           alt={meal.name}
           loading="lazy"
-          className="size-20 shrink-0 rounded-xl object-cover"
+          className="size-20 shrink-0 rounded-lg object-cover"
         />
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
@@ -54,7 +54,7 @@ export function MealSwapCard({
               .map((d) => (
                 <li
                   key={d.label}
-                  className={`rounded-full border px-2 py-0.5 ${
+                  className={`rounded-sm border px-2 py-0.5 ${
                     d.v > 0
                       ? "border-primary/30 text-primary"
                       : "border-border text-muted-foreground"

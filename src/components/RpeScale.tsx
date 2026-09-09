@@ -74,10 +74,10 @@ export function RpeScale({
           }
         }}
       >
-        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-muted" />
+        <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-muted" />
         {ratio !== null ? (
           <div
-            className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-info/70"
+            className="absolute left-0 top-1/2 h-1.5 -translate-y-1/2 rounded-sm bg-info/70"
             style={{ width: `${ratio * 100}%` }}
           />
         ) : null}
@@ -99,9 +99,9 @@ export function RpeScale({
             >
               <span
                 className={cn(
-                  "flex items-center justify-center rounded-full border font-semibold tabular-nums transition-all",
+                  "flex items-center justify-center rounded-sm border font-semibold tabular-nums transition-colors",
                   active
-                    ? "h-10 w-10 border-info bg-info text-sm text-info-foreground shadow-lg"
+                    ? "h-10 w-10 border-info bg-info text-sm text-info-foreground "
                     : whole
                       ? "h-6 w-6 border-border bg-card text-[10px] text-muted-foreground"
                       : "h-3 w-3 border-border bg-card text-[0px] text-transparent",
@@ -168,7 +168,7 @@ export function RpeSheet({
           <RpeScale value={draft} onChange={setDraft} />
         </div>
 
-        <p className="mt-5 min-h-10 rounded-xl border border-border bg-card px-3 py-2 text-center text-sm font-medium text-foreground">
+        <p className="mt-5 min-h-10 rounded-lg border border-border bg-card px-3 py-2 text-center text-sm font-medium text-foreground">
           {meaning ? t(meaning) : t("Pick how many reps you had left in the tank.")}
         </p>
 

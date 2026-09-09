@@ -47,7 +47,7 @@ export function CheckpointSheet({
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span
                 className={cn(
-                  "rounded-full px-2.5 py-1 text-[11px] font-semibold",
+                  "rounded-sm px-2.5 py-1 text-[11px] font-semibold",
                   cp.status === "achieved"
                     ? "bg-primary/15 text-primary"
                     : "bg-muted text-muted-foreground",
@@ -73,7 +73,7 @@ export function CheckpointSheet({
             ) : null}
 
             {cp.adjustmentReason ? (
-              <p className="mt-3 rounded-2xl border border-border bg-background/40 p-3 text-xs leading-snug text-muted-foreground">
+              <p className="mt-3 rounded-lg border border-border bg-background/40 p-3 text-xs leading-snug text-muted-foreground">
                 {cp.adjustmentReason}
               </p>
             ) : null}

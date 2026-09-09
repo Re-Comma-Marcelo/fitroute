@@ -176,9 +176,9 @@ export function WeeklyCheckInCard() {
   if (done) {
     const planned = assignDays(routinesQ.data ?? [], done.days);
     return (
-      <Card className="rounded-2xl border-border bg-surface-1 p-4">
+      <Card className="rounded-lg border-border bg-surface-1 p-4">
         <div className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-full bg-success-bg text-success">
+          <span className="grid size-8 place-items-center rounded-sm bg-violet/10 text-violet">
             <Check className="size-4" />
           </span>
           <p className="font-semibold">{t("Your week is planned")}</p>
@@ -198,7 +198,7 @@ export function WeeklyCheckInCard() {
               </li>
             ))}
         </ul>
-        <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm leading-snug">
+        <p className="mt-3 rounded-lg bg-surface-2 p-3 text-sm leading-snug">
           {t(coachLine(done))}
         </p>
         <Button variant="ghost" className="mt-2 w-full" onClick={() => setDismissed(true)}>
@@ -212,14 +212,14 @@ export function WeeklyCheckInCard() {
     // 1 — last week
     <div key="review" className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        {t("Last week: {sessions} sessions · {volume} kg · {streak} week streak", {
+        {t("Last week: {sessions} sessions · {volume} kg · {streak} consistent weeks", {
           sessions: last.sessions,
           volume: formatNumber(Math.round(last.volume)),
           streak: last.streak,
         })}
       </p>
       {checkpoint ? (
-        <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs leading-snug text-primary">
+        <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs leading-snug text-primary">
           {t("Next checkpoint: {title} by {date}", {
             title: checkpoint.title,
             date: formatDate(checkpoint.targetDate),
@@ -234,7 +234,7 @@ export function WeeklyCheckInCard() {
             type="button"
             onClick={() => setFeeling(f.key)}
             className={cn(
-              "tap-target flex-1 rounded-xl border px-3 py-2 text-sm font-semibold",
+              "tap-target flex-1 rounded-lg border px-3 py-2 text-sm font-semibold",
               feeling === f.key ? "border-primary bg-primary/10 text-primary" : "border-border",
             )}
           >
@@ -264,8 +264,8 @@ export function WeeklyCheckInCard() {
             onClick={() => toggleDay(d)}
             aria-pressed={days.includes(d)}
             className={cn(
-              "tap-target rounded-xl border py-2 text-xs font-semibold",
-              days.includes(d) ? "border-train bg-train/15 text-train" : "border-border",
+              "tap-target rounded-lg border py-2 text-xs font-semibold",
+              days.includes(d) ? "border-steel bg-steel/15 text-steel" : "border-border",
             )}
           >
             {t(DAY_LABELS[d] ?? "")}
@@ -283,7 +283,7 @@ export function WeeklyCheckInCard() {
             type="button"
             onClick={() => toggleIssue(key)}
             className={cn(
-              "rounded-full border px-3 py-1.5 text-xs font-semibold",
+              "rounded-sm border px-3 py-1.5 text-xs font-semibold",
               issues.includes(key) ? "border-primary bg-primary/10 text-primary" : "border-border",
             )}
           >
@@ -313,10 +313,10 @@ export function WeeklyCheckInCard() {
   const isLast = step === steps.length - 1;
 
   return (
-    <Card className="rounded-2xl border-border bg-surface-1 p-4 shadow-elegant">
+    <Card className="rounded-lg border-border bg-surface-1 p-4 ">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="grid size-8 place-items-center rounded-full bg-primary/15 text-primary">
+          <span className="grid size-8 place-items-center rounded-sm bg-primary/15 text-primary">
             <CalendarCheck className="size-4" />
           </span>
           <div>

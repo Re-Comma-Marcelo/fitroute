@@ -9,18 +9,18 @@ export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="mt-4 overflow-hidden rounded-2xl border border-train/25 bg-train/[0.06]">
+    <section className="mt-4 overflow-hidden rounded-lg border border-steel/25 bg-steel/[0.06]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className="flex w-full items-start gap-3 p-4 text-left"
       >
-        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-train/15 text-train">
+        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-sm bg-steel/15 text-steel">
           <Sparkles className="size-4" />
         </span>
         <span className="flex-1">
-          <span className="label-caps text-train/80">{t("Coach")}</span>
+          <span className="label-caps text-steel/80">{t("Coach")}</span>
           <span className="font-display mt-0.5 block text-base font-semibold leading-tight">
             {flag.insight.title}
           </span>
@@ -35,16 +35,16 @@ export function PlateauCoachCard({ flag }: { flag: PlateauFlag }) {
       </button>
 
       {open ? (
-        <div className="space-y-3 border-t border-train/15 px-4 pb-4 pt-3">
+        <div className="space-y-3 border-t border-steel/15 px-4 pb-4 pt-3">
           <ul className="space-y-1.5">
             {flag.reasoning.map((line) => (
               <li key={line} className="flex gap-2 text-sm leading-snug text-muted-foreground">
-                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-train/60" />
+                <span className="mt-1.5 size-1.5 shrink-0 rounded-sm bg-steel/60" />
                 {line}
               </li>
             ))}
           </ul>
-          <p className="rounded-xl bg-background/40 p-3 text-sm font-medium leading-snug">
+          <p className="rounded-lg bg-background/40 p-3 text-sm font-medium leading-snug">
             {flag.action}
           </p>
         </div>

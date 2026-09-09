@@ -33,7 +33,7 @@ export function Ring({
         strokeWidth={width}
         stroke={color}
         fill="none"
-        strokeLinecap="round"
+        strokeLinecap="square"
         strokeDasharray={`${(c * Math.min(1, Math.max(0, pct))).toFixed(1)} ${c}`}
       />
     </svg>
@@ -76,7 +76,7 @@ export function MacroRings({
             "aria-label": t("Where today's numbers come from"),
           }
         : {})}
-      className={`rounded-2xl border border-border bg-card p-5 ${
+      className={`rounded-lg border border-border bg-card p-5 ${
         onOpenBreakdown ? "cursor-pointer transition-colors active:bg-surface-2" : ""
       }`}
     >
@@ -109,9 +109,9 @@ export function MacroRings({
                   {m.current}/{m.target}g
                 </span>
               </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
+              <div className="mt-1 h-1.5 overflow-hidden rounded-sm bg-surface-3">
                 <div
-                  className="h-full rounded-full"
+                  className="h-full rounded-sm"
                   style={{
                     width: `${Math.min(100, (m.current / Math.max(1, m.target)) * 100)}%`,
                     background: m.color,
@@ -155,9 +155,9 @@ export function MealCard({
   const t = useT();
   return (
     <div
-      className={`w-full overflow-hidden rounded-2xl border text-left transition-colors ${
+      className={`w-full overflow-hidden rounded-lg border text-left transition-colors ${
         eaten
-          ? "border-diet/60 bg-card"
+          ? "border-steel/60 bg-card"
           : selected
             ? "border-primary bg-card"
             : suggested
@@ -197,23 +197,23 @@ export function MealCard({
                 e.stopPropagation();
                 onToggleFavorite();
               }}
-              className="tap-target absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-full bg-background/70 backdrop-blur"
+              className="tap-target absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-sm bg-background/70 backdrop-blur"
             >
               <Star
-                className={`size-4 ${favorite ? "fill-diet text-diet" : "text-muted-foreground"}`}
+                className={`size-4 ${favorite ? "fill-steel text-steel" : "text-muted-foreground"}`}
               />
             </button>
           ) : null}
           {eaten ? (
-            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-diet px-2 py-1 text-[10px] font-semibold text-background">
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-sm bg-steel px-2 py-1 text-[10px] font-semibold text-background">
               <Check className="size-3" /> {t("Eaten")}
             </span>
           ) : selected ? (
-            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
+            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-sm bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
               <Check className="size-3" /> {t("Planned")}
             </span>
           ) : suggested ? (
-            <span className="absolute right-3 top-3 rounded-full border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
+            <span className="absolute right-3 top-3 rounded-sm border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
               {t("Suggested")}
             </span>
           ) : null}
@@ -251,8 +251,8 @@ export function MealCard({
             <button
               type="button"
               onClick={onToggleEaten}
-              className={`tap-target flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                eaten ? "bg-diet/15 text-diet" : "border border-border text-muted-foreground"
+              className={`tap-target flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-semibold transition-colors ${
+                eaten ? "bg-steel/15 text-steel" : "border border-border text-muted-foreground"
               }`}
             >
               <Utensils className="size-3.5" />
@@ -276,7 +276,7 @@ export function MealCard({
 
 function Tag({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
   return (
-    <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
+    <span className="flex items-center gap-1 rounded-sm border border-border px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
       {icon}
       {children}
     </span>

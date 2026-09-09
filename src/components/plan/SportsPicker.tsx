@@ -47,7 +47,7 @@ export function SportsPicker({
   return (
     <div className="space-y-3">
       {value.map((sport) => (
-        <div key={sport.id} className="space-y-3 rounded-xl border border-border/60 bg-card/40 p-3">
+        <div key={sport.id} className="space-y-3 rounded-lg border border-border/60 bg-card/40 p-3">
           <div className="flex items-center gap-2">
             <Input
               value={sport.name}

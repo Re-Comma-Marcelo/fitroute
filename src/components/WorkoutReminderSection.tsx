@@ -37,7 +37,7 @@ export function WorkoutReminderSection() {
   if (!supported) return null;
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-card px-4 py-3">
+    <div className="space-y-3 rounded-lg border border-border bg-card px-4 py-3">
       <div className="flex items-start justify-between gap-3">
         <div>
           <Label>{t("Workout reminder")}</Label>

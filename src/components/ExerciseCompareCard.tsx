@@ -48,7 +48,7 @@ export function ExerciseCompareCard({
   if (logged.length < 2) return null;
 
   return (
-    <section className="mt-4 rounded-2xl border border-border bg-card p-4">
+    <section className="mt-4 rounded-lg border border-border bg-card p-4">
       <h2 className="label-caps">{t("Compare two lifts")}</h2>
       <p className="mt-1 text-xs leading-snug text-muted-foreground">
         {t("Estimated 1RM per session, side by side.")}
@@ -60,7 +60,7 @@ export function ExerciseCompareCard({
           value={idA}
           options={logged}
           onChange={setFirst}
-          accentClass="text-train"
+          accentClass="text-steel"
         />
         <Picker
           label={t("Lift B")}
@@ -101,9 +101,9 @@ export function ExerciseCompareCard({
                 type="monotone"
                 dataKey="a"
                 connectNulls
-                className="stroke-train"
+                className="stroke-steel"
                 strokeWidth={2}
-                dot={{ r: 2.5, className: "fill-train stroke-train" }}
+                dot={{ r: 2.5, className: "fill-steel stroke-steel" }}
               />
               <Line
                 type="monotone"
@@ -144,7 +144,7 @@ function Picker({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="tap-target mt-1 w-full truncate rounded-xl border border-border bg-background px-3 py-2 text-xs font-semibold"
+        className="tap-target mt-1 w-full truncate rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold"
       >
         {options.map((option) => (
           <option key={option.id} value={option.id}>

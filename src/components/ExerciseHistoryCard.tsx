@@ -51,11 +51,11 @@ export function ExerciseHistoryCard({ exerciseId }: { exerciseId: string }) {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [logQ.data, exerciseId]);
 
-  if (logQ.isLoading) return <Skeleton className="h-24 w-full rounded-2xl" />;
+  if (logQ.isLoading) return <Skeleton className="h-24 w-full rounded-lg" />;
 
   if (!rows.length) {
     return (
-      <div className="rounded-2xl border border-dashed border-border p-4 text-center">
+      <div className="rounded-lg border border-dashed border-border p-4 text-center">
         <p className="text-sm font-semibold">{t("No history for this exercise yet")}</p>
         <p className="mt-1 text-xs leading-snug text-muted-foreground">
           {t("Log it once and you will see your PR, estimated 1RM and session trend here.")}
@@ -78,7 +78,7 @@ export function ExerciseHistoryCard({ exerciseId }: { exerciseId: string }) {
 
       {points.length > 1 ? <Sparkline points={points} /> : null}
 
-      <ul className="divide-y divide-border/60 rounded-2xl border border-border bg-card">
+      <ul className="divide-y divide-border/60 rounded-lg border border-border bg-card">
         {rows.slice(0, 6).map((r) => (
           <li key={r.date} className="flex items-center justify-between gap-3 px-3.5 py-2.5">
             <span className="text-xs text-muted-foreground first-letter:uppercase">
@@ -103,7 +103,7 @@ export function ExerciseHistoryCard({ exerciseId }: { exerciseId: string }) {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-3">
+    <div className="rounded-lg border border-border bg-card p-3">
       <p className="label-caps">{label}</p>
       <p className="mt-1 whitespace-nowrap font-display text-base font-semibold tabular-nums">
         {value}
@@ -128,7 +128,7 @@ function Sparkline({ points }: { points: number[] }) {
       viewBox="0 0 100 28"
       preserveAspectRatio="none"
       aria-hidden="true"
-      className="h-10 w-full rounded-2xl border border-border bg-card px-2 py-1"
+      className="h-10 w-full rounded-lg border border-border bg-card px-2 py-1"
     >
       <path d={path} fill="none" stroke="currentColor" className="text-primary" strokeWidth={2} />
     </svg>

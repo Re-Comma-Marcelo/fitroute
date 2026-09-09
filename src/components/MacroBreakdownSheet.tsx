@@ -70,11 +70,11 @@ export function MacroBreakdownSheet({
             const eatenMeal = mealName(eaten[slot]);
             const shown = eatenMeal ?? plannedMeal;
             return (
-              <li key={slot} className="rounded-xl border border-border bg-card p-3">
+              <li key={slot} className="rounded-lg border border-border bg-card p-3">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-semibold">{t(SLOT_LABEL[slot])}</span>
                   {eatenMeal ? (
-                    <span className="flex items-center gap-1 text-[10px] font-semibold text-diet">
+                    <span className="flex items-center gap-1 text-[10px] font-semibold text-steel">
                       <Check className="size-3" /> {t("Eaten")}
                     </span>
                   ) : plannedMeal ? (
@@ -105,7 +105,7 @@ export function MacroBreakdownSheet({
           })}
         </ul>
 
-        <div className="mt-4 rounded-xl border border-border bg-surface-2 p-3">
+        <div className="mt-4 rounded-lg border border-border bg-surface-2 p-3">
           <p className="text-xs font-semibold">{t("Your daily targets")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {t(
@@ -126,12 +126,12 @@ export function MacroBreakdownSheet({
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "diet" }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-3">
+    <div className="rounded-lg border border-border bg-card p-3">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <p
-        className={`mt-0.5 text-lg font-semibold tabular-nums ${tone === "diet" ? "text-diet" : ""}`}
+        className={`mt-0.5 text-lg font-semibold tabular-nums ${tone === "diet" ? "text-steel" : ""}`}
       >
         {value}
       </p>
@@ -152,9 +152,9 @@ function MacroStat({
   tone: "diet" | "train" | "primary";
 }) {
   const pct = target > 0 ? Math.max(0, Math.min(100, (value / target) * 100)) : 0;
-  const bar = tone === "diet" ? "bg-diet" : tone === "train" ? "bg-train" : "bg-primary";
+  const bar = tone === "diet" ? "bg-steel" : tone === "train" ? "bg-steel" : "bg-primary";
   return (
-    <div className="rounded-xl border border-border bg-card p-2.5">
+    <div className="rounded-lg border border-border bg-card p-2.5">
       <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
@@ -162,8 +162,8 @@ function MacroStat({
         {Math.round(value * 10) / 10}
         <span className="text-muted-foreground"> / {target}g</span>
       </p>
-      <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-surface-3">
-        <div className={`h-full rounded-full ${bar}`} style={{ width: `${pct}%` }} />
+      <div className="mt-1 h-1 w-full overflow-hidden rounded-sm bg-surface-3">
+        <div className={`h-full rounded-sm ${bar}`} style={{ width: `${pct}%` }} />
       </div>
     </div>
   );

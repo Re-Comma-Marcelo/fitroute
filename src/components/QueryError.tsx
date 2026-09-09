@@ -19,9 +19,9 @@ export function QueryError({
   return (
     <div
       role="alert"
-      className={`rounded-2xl border border-destructive/30 bg-destructive/5 p-5 text-center ${className ?? ""}`}
+      className={`rounded-lg border border-oxide/30 bg-oxide/5 p-5 text-center ${className ?? ""}`}
     >
-      <AlertTriangle className="mx-auto size-5 text-destructive" />
+      <AlertTriangle className="mx-auto size-5 text-oxide" />
       <p className="mt-2 font-display text-sm font-semibold">
         {message ?? t("Could not load this data.")}
       </p>

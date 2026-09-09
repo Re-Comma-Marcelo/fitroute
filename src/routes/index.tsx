@@ -3,7 +3,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
-import heroLogin from "@/assets/hero-login.jpg";
+import { RouteLogo } from "@/components/brand/RouteLogo";
+import { StoppedRule } from "@/components/brand/Stop";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,10 +17,8 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: pageMeta({
       title: "Sign in",
-      description:
-        "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.",
-      ogDescription:
-        "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
+      description: "Sign in to ROUTE. Training and nutrition adjusted to your recorded progress.",
+      ogDescription: "Training that adjusts to your schedule, recovery and recorded progress.",
     }),
   }),
   component: AuthPage,
@@ -157,47 +156,23 @@ function AuthPage() {
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col justify-end overflow-hidden bg-background">
-      <img
-        src={heroLogin}
-        alt=""
-        aria-hidden
-        className="absolute inset-0 h-full w-full object-cover opacity-45"
-      />
-      <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/85 to-background" />
-      <div className="absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-primary/20 to-transparent" />
-
-      <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-24">
-        <div className="flex items-center gap-3">
-          <img
-            src="/icon-192.png"
-            alt=""
-            aria-hidden
-            width={192}
-            height={192}
-            className="size-11 rounded-2xl border border-border/60"
-          />
-          <div>
-            <p className="font-display text-lg font-semibold leading-none text-foreground">
-              {APP_NAME}
-            </p>
-            <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-              {t("Strength, tracked")}
-            </p>
-          </div>
+    <main className="min-h-screen bg-bone px-6 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-10 text-ink">
+      <div className="grid min-h-[calc(100vh-5rem)] w-full grid-cols-12 content-between gap-x-4 lg:max-w-6xl">
+        <div className="col-span-12 lg:col-span-7">
+          <RouteLogo variant="stacked" />
+          <StoppedRule tone="violet" weight="heavy" className="mt-10 max-w-md" />
+          <h1 className="mt-8 max-w-[12ch] font-display text-display font-extrabold uppercase leading-[0.95]">
+            {t("Training adjusted to your actual life")}
+          </h1>
+          <p className="mt-5 max-w-[52ch] text-[17px] font-light leading-relaxed text-muted-foreground">
+            {t("Your training, nutrition and recovery use the progress you record.")}
+          </p>
         </div>
 
-        <h1 className="mt-7 font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
-          {t("An AI trainer that adapts to your actual life")}
-        </h1>
-        <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-          {t("Log sets in two taps. Get routines, diet and coaching grounded in your own history.")}
-        </p>
-
-        <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 backdrop-blur-xl">
+        <div className="col-span-12 mt-12 rounded-lg bg-stone p-5 lg:col-span-5 lg:mt-0 lg:self-end">
           {checkEmail ? (
-            <div className="space-y-3 text-center">
-              <h2 className="font-display text-lg font-semibold text-foreground">
+            <div className="space-y-3 text-left">
+              <h2 className="font-display text-xl font-bold uppercase text-foreground">
                 {t("Check your email")}
               </h2>
               <p className="text-sm text-muted-foreground">
@@ -222,21 +197,16 @@ function AuthPage() {
                 type="button"
                 disabled={busy}
                 onClick={handleGoogle}
-                className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
+                variant="outline"
+                className="tap-target h-12 w-full gap-2.5"
               >
                 <GoogleMark />
                 {t("Continue with Google")}
               </Button>
 
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {t("or")}
-                </span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
+              <StoppedRule weight="hairline" tone="ink" className="my-5" />
 
-              <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+              <div className="mb-4 grid grid-cols-2 border-b-[3px] border-stone-line">
                 {(["signin", "signup"] as Mode[]).map((value) => (
                   <button
                     key={value}
@@ -246,8 +216,8 @@ function AuthPage() {
                       setFormError("");
                     }}
                     className={cn(
-                      "tap-target rounded-lg text-sm font-medium transition-colors",
-                      mode === value ? "bg-surface-3 text-foreground" : "text-muted-foreground",
+                      "tap-target border-b-[6px] border-transparent px-2 font-sans text-xs font-bold uppercase tracking-[0.16em] transition-colors",
+                      mode === value ? "border-violet text-violet" : "text-muted-foreground",
                     )}
                   >
                     {t(value === "signin" ? "Sign in" : "Create account")}
@@ -259,7 +229,7 @@ function AuthPage() {
                 {formError ? (
                   <div
                     role="alert"
-                    className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+                    className="rounded-lg border-l-[6px] border-oxide bg-bone px-3 py-2.5 text-sm leading-relaxed text-foreground"
                   >
                     <p>{formError}</p>
                     <button

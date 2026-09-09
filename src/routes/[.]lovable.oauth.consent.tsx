@@ -17,7 +17,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   head: () => ({
     meta: pageMeta({
       title: "Connect an AI assistant",
-      description: "Approve access so your AI assistant can read and update your Iron Logger data.",
+      description: "Approve access so your AI assistant can read and update your ROUTE data.",
     }),
   }),
   component: ConsentPage,
@@ -184,7 +184,7 @@ function ConsentPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
-      <div className="w-full max-w-md rounded-3xl border border-border/60 bg-card p-6">
+      <div className="w-full max-w-md rounded-lg border border-border/60 bg-card p-6">
         <h1 className="font-display text-xl font-semibold text-foreground">
           {client?.name
             ? t("{client} wants to access your account", { client: client.name })
@@ -193,7 +193,7 @@ function ConsentPage() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {client?.name
             ? t(
-                "{client} is requesting access to your Iron Logger data. Review the permissions below before allowing it.",
+                "{client} is requesting access to your ROUTE data. Review the permissions below before allowing it.",
                 { client: client.name },
               )
             : t(
@@ -219,7 +219,7 @@ function ConsentPage() {
         ) : null}
         <p className="mt-3 text-xs text-muted-foreground">{t("Signed in as {email}", { email })}</p>
         {error ? (
-          <p role="alert" className="mt-3 text-sm text-destructive">
+          <p role="alert" className="mt-3 text-sm text-oxide">
             {error}
           </p>
         ) : null}

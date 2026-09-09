@@ -1,6 +1,6 @@
 import { currentLangFromStorage, translate } from "@/lib/i18n";
 
-export const APP_NAME = "Iron Logger";
+export const APP_NAME = "ROUTE";
 
 export interface PageMetaInput {
   /** English source title, without the app name. */

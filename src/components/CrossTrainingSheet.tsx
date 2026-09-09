@@ -62,11 +62,11 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
         <button
           type="button"
           className={cn(
-            "tap-target flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left",
+            "tap-target flex w-full items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left",
             className,
           )}
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
             <Activity className="size-4" strokeWidth={2} />
           </span>
           <span className="min-w-0 flex-1">
@@ -90,7 +90,7 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
                 type="button"
                 onClick={() => setKind(k)}
                 className={cn(
-                  "tap-target rounded-full border px-4 text-xs font-semibold",
+                  "tap-target rounded-sm border px-4 text-xs font-semibold",
                   kind === k
                     ? "border-primary/60 bg-primary/15 text-primary"
                     : "border-border text-muted-foreground",
@@ -132,7 +132,7 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
                   type="button"
                   onClick={() => setIntensity(i)}
                   className={cn(
-                    "tap-target flex-1 rounded-full border px-3 text-xs font-semibold",
+                    "tap-target flex-1 rounded-sm border px-3 text-xs font-semibold",
                     intensity === i
                       ? "border-primary/60 bg-primary/15 text-primary"
                       : "border-border text-muted-foreground",

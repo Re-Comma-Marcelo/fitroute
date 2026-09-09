@@ -117,7 +117,7 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
   if (step === "upload") {
     return (
       <div className="space-y-4">
-        <Card className="rounded-2xl border-border bg-card p-4">
+        <Card className="rounded-lg border-border bg-card p-4">
           <p className="label-caps">{t("Step 1 of 3")}</p>
           <h2 className="mt-1 text-lg font-semibold">{t("Bring your Hevy history")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -146,7 +146,7 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
             {t("Nothing is saved until you confirm.")}
           </p>
         </Card>
-        {error ? <p className="text-sm font-semibold text-destructive">{error}</p> : null}
+        {error ? <p className="text-sm font-semibold text-oxide">{error}</p> : null}
       </div>
     );
   }
@@ -157,13 +157,13 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
     const s = built.stats;
     return (
       <div className="space-y-4">
-        <Card className="rounded-2xl border-border bg-card p-4">
+        <Card className="rounded-lg border-border bg-card p-4">
           <p className="label-caps">{t("Step 2 of 3")}</p>
           <h2 className="mt-1 text-lg font-semibold">{t("Here is what we found")}</h2>
 
           <div className="mt-4">
-            <p className="label-caps text-train">{t("Total volume")}</p>
-            <p className="num-hero text-train">
+            <p className="label-caps text-steel">{t("Total volume")}</p>
+            <p className="num-hero text-steel">
               <CountUp value={s.volumeKg} format={(n) => formatNumber(n)} />
               <span className="ml-1 text-base font-semibold">kg</span>
             </p>
@@ -192,8 +192,8 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
                     cell.level === 0
                       ? "bg-surface-3"
                       : cell.level === 1
-                        ? "bg-train/40"
-                        : "bg-train",
+                        ? "bg-steel/40"
+                        : "bg-steel",
                   )}
                 />
               ))}
@@ -211,7 +211,7 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
         </Card>
 
         {unresolved.length > 0 ? (
-          <Card className="rounded-2xl border-border bg-card p-4">
+          <Card className="rounded-lg border-border bg-card p-4">
             <p className="label-caps text-warn">{t("Unrecognized exercises")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {t("Pick a match from your library or skip it. No new exercises are created.")}
@@ -268,14 +268,14 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
   if (step === "saving") {
     const pct = progress.total > 0 ? (progress.current / progress.total) * 100 : 0;
     return (
-      <Card className="rounded-2xl border-border bg-card p-6 text-center">
+      <Card className="rounded-lg border-border bg-card p-6 text-center">
         <Loader2 className="mx-auto size-6 animate-spin text-primary" />
         <p className="mt-3 text-sm font-semibold">
           {t("Saving {current} of {total}", { current: progress.current, total: progress.total })}
         </p>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-3">
+        <div className="mt-3 h-2 w-full overflow-hidden rounded-sm bg-surface-3">
           <div
-            className="h-full rounded-full bg-primary transition-[width] duration-300"
+            className="h-full rounded-sm bg-primary transition-[width] duration-200"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -286,8 +286,8 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
   /* ------------------------------------------------------------------ done */
 
   return (
-    <Card className="rounded-2xl border-border bg-card p-6 text-center">
-      <CheckCircle2 className="mx-auto size-7 text-success" />
+    <Card className="rounded-lg border-border bg-card p-6 text-center">
+      <CheckCircle2 className="mx-auto size-7 text-violet" />
       <h2 className="mt-3 text-lg font-semibold">{t("History imported")}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
         {t("{saved} workout(s) added.", { saved: result.saved })}
@@ -304,7 +304,7 @@ export function HevyImportPanel({ onFinished }: { onFinished?: () => void }) {
 
 function PreviewStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-xl bg-surface-3/60 py-2">
+    <div className="rounded-lg bg-surface-3/60 py-2">
       <dt className="label-caps">{label}</dt>
       <dd className="mt-0.5 text-lg font-semibold tabular-nums">
         <CountUp value={value} />

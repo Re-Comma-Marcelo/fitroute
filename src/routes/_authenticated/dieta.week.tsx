@@ -73,7 +73,7 @@ function WeekPage() {
             }
             refresh();
           }}
-          className="tap-target flex flex-1 items-center justify-center gap-2 rounded-xl bg-primary text-sm font-semibold text-primary-foreground"
+          className="tap-target flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
         >
           <Wand2 className="size-4" /> {t("Fill the week")}
         </button>
@@ -88,7 +88,7 @@ function WeekPage() {
             refresh();
           }}
           aria-label={t("Clear week")}
-          className="tap-target flex w-12 items-center justify-center rounded-xl border border-border text-muted-foreground"
+          className="tap-target flex w-12 items-center justify-center rounded-lg border border-border text-muted-foreground"
         >
           <Trash2 className="size-4" />
         </button>
@@ -114,7 +114,7 @@ function WeekPage() {
           const totals = totalsFor(day);
           const d = new Date(`${date}T12:00:00`);
           return (
-            <li key={date} className="rounded-2xl border border-border bg-card p-3.5">
+            <li key={date} className="rounded-lg border border-border bg-card p-3.5">
               <div className="flex items-baseline justify-between">
                 <h2 className="text-sm font-semibold">
                   {formatWeekdayDayMonth(d)}
@@ -124,7 +124,7 @@ function WeekPage() {
                 </h2>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
                   {tagsQ.data?.[date] === "Strength" ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-train/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-train">
+                    <span className="inline-flex items-center gap-1 rounded-sm bg-steel/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-steel">
                       <Dumbbell className="size-3" />
                       {t("Training day")}
                     </span>
@@ -141,7 +141,7 @@ function WeekPage() {
               </p>
               {targets ? (
                 <div
-                  className="mt-1.5 h-1 overflow-hidden rounded-full bg-surface-3"
+                  className="mt-1.5 h-1 overflow-hidden rounded-sm bg-surface-3"
                   role="progressbar"
                   aria-valuemin={0}
                   aria-valuemax={targets.kcal}
@@ -149,7 +149,7 @@ function WeekPage() {
                   aria-label={t("Calories against the daily target")}
                 >
                   <div
-                    className={`h-full rounded-full ${
+                    className={`h-full rounded-sm ${
                       totals.kcal > targets.kcal * 1.1 ? "bg-warn" : "bg-primary"
                     }`}
                     style={{

@@ -77,7 +77,7 @@ export function SessionExercisePickerSheet({
               <button
                 type="button"
                 onClick={() => onPick(e)}
-                className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-3 text-left"
+                className="flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left"
               >
                 <ExerciseThumb grupo={e.grupoPrimario} nome={e.nome} src={exerciseThumbUrl(e)} />
                 <span className="min-w-0 flex-1">
@@ -89,7 +89,7 @@ export function SessionExercisePickerSheet({
                   </span>
                 </span>
                 {favorites.includes(e.id) ? (
-                  <Star className="size-4 shrink-0 fill-train text-train" />
+                  <Star className="size-4 shrink-0 fill-steel text-steel" />
                 ) : null}
               </button>
             </li>

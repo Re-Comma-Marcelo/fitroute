@@ -71,7 +71,7 @@ export function ProgressPhotoSheet({
           <img
             src={dataUrl}
             alt={t("Progress photo")}
-            className="mt-4 max-h-72 w-full rounded-2xl object-cover"
+            className="mt-4 max-h-72 w-full rounded-lg object-cover"
           />
         ) : (
           <Button
@@ -84,7 +84,7 @@ export function ProgressPhotoSheet({
           </Button>
         )}
 
-        {error ? <p className="mt-2 text-xs text-destructive">{error}</p> : null}
+        {error ? <p className="mt-2 text-xs text-oxide">{error}</p> : null}
 
         <div className="mt-4 grid grid-cols-2 gap-2">
           <VisibilityOption
@@ -133,7 +133,7 @@ function VisibilityOption({
       type="button"
       onClick={onClick}
       className={cn(
-        "tap-target rounded-2xl border p-3 text-left",
+        "tap-target rounded-lg border p-3 text-left",
         active ? "border-primary/60 bg-primary/10" : "border-border bg-card",
       )}
     >

@@ -48,11 +48,11 @@ export function ProgressRing({
           fill="none"
           stroke={complete ? "var(--success)" : "var(--train)"}
           strokeWidth={stroke}
-          strokeLinecap="round"
+          strokeLinecap="square"
           strokeDasharray={circumference}
           strokeDashoffset={circumference * (1 - pct / 100)}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          className="motion-safe:transition-all motion-safe:duration-300"
+          className="motion-safe:transition-colors motion-safe:duration-200"
         />
       </svg>
       {showLabel ? (
@@ -60,7 +60,7 @@ export function ProgressRing({
           aria-hidden="true"
           className={cn(
             "absolute text-[9px] font-semibold tabular-nums",
-            complete ? "text-success" : "text-train",
+            complete ? "text-violet" : "text-steel",
           )}
         >
           {Math.round(pct)}
