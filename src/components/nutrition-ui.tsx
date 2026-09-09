@@ -4,281 +4,281 @@ import { Check, Clock, Info, Star, Truck, Utensils } from "lucide-react";
 import { useT } from "@/lib/i18n";
 
 export function Ring({
-  pct,
-  color,
-  size = 88,
-  width = 8,
+ pct,
+ color,
+ size = 88,
+ width = 8,
 }: {
-  pct: number;
-  color: string;
-  size?: number;
-  width?: number;
+ pct: number;
+ color: string;
+ size?: number;
+ width?: number;
 }) {
-  const r = size / 2 - width / 2 - 2;
-  const c = 2 * Math.PI * r;
-  return (
-    <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        strokeWidth={width}
-        stroke="var(--surface-3)"
-        fill="none"
-      />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={r}
-        strokeWidth={width}
-        stroke={color}
-        fill="none"
-        strokeLinecap="round"
-        strokeDasharray={`${(c * Math.min(1, Math.max(0, pct))).toFixed(1)} ${c}`}
-      />
-    </svg>
-  );
+ const r = size / 2 - width / 2 - 2;
+ const c = 2 * Math.PI * r;
+ return (
+ <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
+ <circle
+ cx={size / 2}
+ cy={size / 2}
+ r={r}
+ strokeWidth={width}
+ stroke="var(--surface-3)"
+ fill="none"
+ />
+ <circle
+ cx={size / 2}
+ cy={size / 2}
+ r={r}
+ strokeWidth={width}
+ stroke={color}
+ fill="none"
+ strokeLinecap="round"
+ strokeDasharray={`${(c * Math.min(1, Math.max(0, pct))).toFixed(1)} ${c}`}
+ />
+ </svg>
+ );
 }
 
 export function MacroRings({
-  totals,
-  targets,
-  onOpenBreakdown,
+ totals,
+ targets,
+ onOpenBreakdown,
 }: {
-  totals: NutritionTargets;
-  targets: NutritionTargets;
-  onOpenBreakdown?: () => void;
+ totals: NutritionTargets;
+ targets: NutritionTargets;
+ onOpenBreakdown?: () => void;
 }) {
-  const t = useT();
-  const macros = [
-    {
-      label: t("Protein"),
-      current: totals.proteinG,
-      target: targets.proteinG,
-      color: "var(--diet)",
-    },
-    { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
-    { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
-  ];
-  return (
-    <div
-      {...(onOpenBreakdown
-        ? {
-            role: "button",
-            tabIndex: 0,
-            onClick: onOpenBreakdown,
-            onKeyDown: (e: React.KeyboardEvent) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onOpenBreakdown();
-              }
-            },
-            "aria-label": t("Where today's numbers come from"),
-          }
-        : {})}
-      className={`rounded-2xl border border-border bg-card p-5 ${
-        onOpenBreakdown ? "cursor-pointer transition-colors active:bg-surface-2" : ""
-      }`}
-    >
-      {onOpenBreakdown ? (
-        <p className="mb-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-          <Info className="size-3" /> {t("Tap for the full breakdown")}
-        </p>
-      ) : null}
-      <div className="flex items-center gap-5">
-        <div className="relative shrink-0">
-          <Ring
-            pct={totals.kcal / Math.max(1, targets.kcal)}
-            color="var(--diet)"
-            size={120}
-            width={9}
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-semibold tabular-nums">{totals.kcal}</span>
-            <span className="text-[10px] font-medium tracking-wide text-muted-foreground">
-              {t("of {kcal} kcal", { kcal: targets.kcal })}
-            </span>
-          </div>
-        </div>
-        <ul className="flex-1 space-y-2.5">
-          {macros.map((m) => (
-            <li key={m.label}>
-              <div className="flex items-baseline justify-between text-xs">
-                <span className="font-medium">{m.label}</span>
-                <span className="tabular-nums text-muted-foreground">
-                  {m.current}/{m.target}g
-                </span>
-              </div>
-              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-3">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${Math.min(100, (m.current / Math.max(1, m.target)) * 100)}%`,
-                    background: m.color,
-                  }}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  );
+ const t = useT();
+ const macros = [
+ {
+ label: t("Protein"),
+ current: totals.proteinG,
+ target: targets.proteinG,
+ color: "var(--diet)",
+ },
+ { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
+ { label: t("Fat"), current: totals.fatG, target: targets.fatG, color: "var(--chart-3)" },
+ ];
+ return (
+ <div
+ {...(onOpenBreakdown
+ ? {
+ role: "button",
+ tabIndex: 0,
+ onClick: onOpenBreakdown,
+ onKeyDown: (e: React.KeyboardEvent) => {
+ if (e.key === "Enter" || e.key === " ") {
+ e.preventDefault();
+ onOpenBreakdown();
+ }
+ },
+ "aria-label": t("Where today's numbers come from"),
+ }
+ : {})}
+ className={`rounded-lg border border-border bg-card p-5 ${
+ onOpenBreakdown ? "cursor-pointer transition-colors active:bg-surface-2" : ""
+ }`}
+ >
+ {onOpenBreakdown ? (
+ <p className="mb-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+ <Info className="size-3" /> {t("Tap for the full breakdown")}
+ </p>
+ ) : null}
+ <div className="flex items-center gap-5">
+ <div className="relative shrink-0">
+ <Ring
+ pct={totals.kcal / Math.max(1, targets.kcal)}
+ color="var(--diet)"
+ size={120}
+ width={9}
+ />
+ <div className="absolute inset-0 flex flex-col items-center justify-center">
+ <span className="text-2xl font-semibold tabular-nums">{totals.kcal}</span>
+ <span className="text-[10px] font-medium tracking-wide text-muted-foreground">
+ {t("of {kcal} kcal", { kcal: targets.kcal })}
+ </span>
+ </div>
+ </div>
+ <ul className="flex-1 space-y-2.5">
+ {macros.map((m) => (
+ <li key={m.label}>
+ <div className="flex items-baseline justify-between text-xs">
+ <span className="font-medium">{m.label}</span>
+ <span className="tabular-nums text-muted-foreground">
+ {m.current}/{m.target}g
+ </span>
+ </div>
+ <div className="mt-1 h-1.5 overflow-hidden rounded-sm bg-surface-3">
+ <div
+ className="h-full rounded-sm"
+ style={{
+ width: `${Math.min(100, (m.current / Math.max(1, m.target)) * 100)}%`,
+ background: m.color,
+ }}
+ />
+ </div>
+ </li>
+ ))}
+ </ul>
+ </div>
+ </div>
+ );
 }
 
 export function MealCard({
-  meal,
-  slot,
-  selected,
-  eaten,
-  favorite,
-  note,
-  suggested,
-  onSelect,
-  onDetails,
-  onToggleEaten,
-  onToggleFavorite,
+ meal,
+ slot,
+ selected,
+ eaten,
+ favorite,
+ note,
+ suggested,
+ onSelect,
+ onDetails,
+ onToggleEaten,
+ onToggleFavorite,
 }: {
-  meal: Meal;
-  slot: MealSlot;
-  selected?: boolean;
-  eaten?: boolean;
-  favorite?: boolean;
-  note?: string | undefined;
-  /** Only a suggestion: never looks like something you already decided on. */
-  suggested?: boolean;
-  onSelect?: () => void;
-  onDetails?: () => void;
-  onToggleEaten?: () => void;
-  onToggleFavorite?: () => void;
+ meal: Meal;
+ slot: MealSlot;
+ selected?: boolean;
+ eaten?: boolean;
+ favorite?: boolean;
+ note?: string | undefined;
+ /** Only a suggestion: never looks like something you already decided on. */
+ suggested?: boolean;
+ onSelect?: () => void;
+ onDetails?: () => void;
+ onToggleEaten?: () => void;
+ onToggleFavorite?: () => void;
 }) {
-  const t = useT();
-  return (
-    <div
-      className={`w-full overflow-hidden rounded-2xl border text-left transition-colors ${
-        eaten
-          ? "border-diet/60 bg-card"
-          : selected
-            ? "border-primary bg-card"
-            : suggested
-              ? "border-dashed border-border/70 bg-surface-2"
-              : "border-border bg-card"
-      }`}
-    >
-      <div
-        role={onSelect ? "button" : undefined}
-        tabIndex={onSelect ? 0 : undefined}
-        onClick={onSelect}
-        onKeyDown={(e) => {
-          if (!onSelect) return;
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onSelect();
-          }
-        }}
-        className={`block w-full text-left ${onSelect ? "cursor-pointer" : ""}`}
-      >
-        <div className={`relative w-full overflow-hidden ${suggested ? "h-24" : "h-32"}`}>
-          <img
-            src={mealImage(slot)}
-            alt={meal.name}
-            loading="lazy"
-            width={768}
-            height={512}
-            className={`h-full w-full object-cover ${
-              suggested ? "opacity-70 brightness-90" : "brightness-110"
-            }`}
-          />
-          {onToggleFavorite ? (
-            <button
-              type="button"
-              aria-label={t("Favorite")}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite();
-              }}
-              className="tap-target absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-full bg-background/70 backdrop-blur"
-            >
-              <Star
-                className={`size-4 ${favorite ? "fill-diet text-diet" : "text-muted-foreground"}`}
-              />
-            </button>
-          ) : null}
-          {eaten ? (
-            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-diet px-2 py-1 text-[10px] font-semibold text-background">
-              <Check className="size-3" /> {t("Eaten")}
-            </span>
-          ) : selected ? (
-            <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
-              <Check className="size-3" /> {t("Planned")}
-            </span>
-          ) : suggested ? (
-            <span className="absolute right-3 top-3 rounded-full border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
-              {t("Suggested")}
-            </span>
-          ) : null}
-        </div>
-        <div className="p-3.5">
-          <div className="flex items-start justify-between gap-3">
-            <h3 className="text-sm font-semibold leading-snug">{meal.name}</h3>
-            <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-              {meal.kcal} kcal
-            </span>
-          </div>
-          <p className="mt-1 text-xs tabular-nums text-muted-foreground">
-            {t("P")} {meal.proteinG}g · {t("C")} {meal.carbsG}g · {t("F")} {meal.fatG}g
-          </p>
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            {meal.orderOut ? (
-              <Tag icon={<Truck className="size-3" />}>{t("Order out")}</Tag>
-            ) : (
-              <Tag icon={<Clock className="size-3" />}>
-                {t("{prepMin} min", { prepMin: meal.prepMin })}
-              </Tag>
-            )}
-            {meal.tags
-              .filter((t_tag) => t_tag !== "order-out")
-              .map((t_tag) => (
-                <Tag key={t_tag}>{t(t_tag.replace("-", " "))}</Tag>
-              ))}
-          </div>
-          {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
-        </div>
-      </div>
-      <div className="border-t border-border px-3.5 py-2">
-        <div className="flex items-center gap-1.5">
-          {onToggleEaten ? (
-            <button
-              type="button"
-              onClick={onToggleEaten}
-              className={`tap-target flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold transition-colors ${
-                eaten ? "bg-diet/15 text-diet" : "border border-border text-muted-foreground"
-              }`}
-            >
-              <Utensils className="size-3.5" />
-              {eaten ? t("Eaten") : t("Log eaten")}
-            </button>
-          ) : null}
-          {onDetails ? (
-            <button
-              type="button"
-              onClick={onDetails}
-              className="tap-target flex items-center gap-1.5 text-xs font-semibold text-primary"
-            >
-              <Info className="size-3.5" /> {t("Macros & nutrition details")}
-            </button>
-          ) : null}
-        </div>
-      </div>
-    </div>
-  );
+ const t = useT();
+ return (
+ <div
+ className={`w-full overflow-hidden rounded-lg border text-left transition-colors ${
+ eaten
+ ? "border-steel/60 bg-card"
+ : selected
+ ? "border-primary bg-card"
+ : suggested
+ ? "border-dashed border-border/70 bg-surface-2"
+ : "border-border bg-card"
+ }`}
+ >
+ <div
+ role={onSelect ? "button" : undefined}
+ tabIndex={onSelect ? 0 : undefined}
+ onClick={onSelect}
+ onKeyDown={(e) => {
+ if (!onSelect) return;
+ if (e.key === "Enter" || e.key === " ") {
+ e.preventDefault();
+ onSelect();
+ }
+ }}
+ className={`block w-full text-left ${onSelect ? "cursor-pointer" : ""}`}
+ >
+ <div className={`relative w-full overflow-hidden ${suggested ? "h-24" : "h-32"}`}>
+ <img
+ src={mealImage(slot)}
+ alt={meal.name}
+ loading="lazy"
+ width={768}
+ height={512}
+ className={`h-full w-full object-cover ${
+ suggested ? "opacity-70 brightness-90" : "brightness-110"
+ }`}
+ />
+ {onToggleFavorite ? (
+ <button
+ type="button"
+ aria-label={t("Favorite")}
+ onClick={(e) => {
+ e.stopPropagation();
+ onToggleFavorite();
+ }}
+ className="tap-target absolute left-2.5 top-2.5 flex size-8 items-center justify-center rounded-sm bg-background/70 backdrop-blur"
+ >
+ <Star
+ className={`size-4 ${favorite ? "fill-steel text-steel" : "text-muted-foreground"}`}
+ />
+ </button>
+ ) : null}
+ {eaten ? (
+ <span className="absolute right-3 top-3 flex items-center gap-1 rounded-sm bg-steel px-2 py-1 text-[10px] font-semibold text-background">
+ <Check className="size-3" /> {t("Eaten")}
+ </span>
+ ) : selected ? (
+ <span className="absolute right-3 top-3 flex items-center gap-1 rounded-sm bg-primary px-2 py-1 text-[10px] font-semibold text-primary-foreground">
+ <Check className="size-3" /> {t("Planned")}
+ </span>
+ ) : suggested ? (
+ <span className="absolute right-3 top-3 rounded-sm border border-border bg-background/80 px-2 py-1 text-[10px] font-semibold text-muted-foreground backdrop-blur">
+ {t("Suggested")}
+ </span>
+ ) : null}
+ </div>
+ <div className="p-3.5">
+ <div className="flex items-start justify-between gap-3">
+ <h3 className="text-sm font-semibold leading-snug">{meal.name}</h3>
+ <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
+ {meal.kcal} kcal
+ </span>
+ </div>
+ <p className="mt-1 text-xs tabular-nums text-muted-foreground">
+ {t("P")} {meal.proteinG}g · {t("C")} {meal.carbsG}g · {t("F")} {meal.fatG}g
+ </p>
+ <div className="mt-2 flex flex-wrap items-center gap-1.5">
+ {meal.orderOut ? (
+ <Tag icon={<Truck className="size-3" />}>{t("Order out")}</Tag>
+ ) : (
+ <Tag icon={<Clock className="size-3" />}>
+ {t("{prepMin} min", { prepMin: meal.prepMin })}
+ </Tag>
+ )}
+ {meal.tags
+ .filter((t_tag) => t_tag !== "order-out")
+ .map((t_tag) => (
+ <Tag key={t_tag}>{t(t_tag.replace("-", " "))}</Tag>
+ ))}
+ </div>
+ {note ? <p className="mt-2.5 text-xs text-primary">{note}</p> : null}
+ </div>
+ </div>
+ <div className="border-t border-border px-3.5 py-2">
+ <div className="flex items-center gap-1.5">
+ {onToggleEaten ? (
+ <button
+ type="button"
+ onClick={onToggleEaten}
+ className={`tap-target flex items-center gap-1.5 rounded-sm px-2.5 py-1 text-xs font-semibold transition-colors ${
+ eaten ? "bg-steel/15 text-steel" : "border border-border text-muted-foreground"
+ }`}
+ >
+ <Utensils className="size-3.5" />
+ {eaten ? t("Eaten") : t("Log eaten")}
+ </button>
+ ) : null}
+ {onDetails ? (
+ <button
+ type="button"
+ onClick={onDetails}
+ className="tap-target flex items-center gap-1.5 text-xs font-semibold text-primary"
+ >
+ <Info className="size-3.5" /> {t("Macros & nutrition details")}
+ </button>
+ ) : null}
+ </div>
+ </div>
+ </div>
+ );
 }
 
 function Tag({ children, icon }: { children: React.ReactNode; icon?: React.ReactNode }) {
-  return (
-    <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
-      {icon}
-      {children}
-    </span>
-  );
+ return (
+ <span className="flex items-center gap-1 rounded-sm border border-border px-2 py-0.5 text-[10px] font-medium capitalize text-muted-foreground">
+ {icon}
+ {children}
+ </span>
+ );
 }
