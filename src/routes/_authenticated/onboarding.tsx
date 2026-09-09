@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
  head: () => ({
  meta: pageMeta({
  title: "Welcome",
- description: "Set up Iron Logger in under a minute or import your Hevy history.",
+ description: "Set up ROUTE in under a minute or import your Hevy history.",
  twitterCard: "summary",
  }),
  }),
@@ -161,7 +161,7 @@ function OnboardingPage() {
  <BigCard
  icon={<Import className="size-5 text-primary" />}
  title={t("Import my Hevy history")}
- subtitle={t("Your dashboard starts full, with PRs and streaks.")}
+ subtitle={t("Your dashboard starts with your imported sessions and records.")}
  onClick={() => setStep("import")}
  />
  <BigCard

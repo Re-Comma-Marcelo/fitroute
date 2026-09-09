@@ -219,7 +219,7 @@ export function ProgressView() {
  <>
  {" · "}
  <span className="font-semibold text-steel tabular-nums">
- {t("{streakWeeks}-week streak", {
+ {t("{streakWeeks} weeks consistent", {
  streakWeeks: consistency.streakWeeks,
  })}
  </span>
@@ -261,7 +261,7 @@ export function ProgressView() {
  <p className="font-display text-sm font-semibold">{t("No workout logged yet")}</p>
  <p className="mt-1 text-xs leading-snug text-muted-foreground">
  {t(
- "This screen tracks how your volume, streak and key lifts move over time. Log one session to start the trend.",
+ "This screen tracks how your volume, consistency and key lifts change over time. Record one session to establish the trend.",
  )}
  </p>
  <Button asChild className="tap-target mt-3">

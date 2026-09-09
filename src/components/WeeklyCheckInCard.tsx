@@ -212,7 +212,7 @@ export function WeeklyCheckInCard() {
  // 1 — last week
  <div key="review" className="space-y-3">
  <p className="text-sm text-muted-foreground">
- {t("Last week: {sessions} sessions · {volume} kg · {streak} week streak", {
+ {t("Last week: {sessions} sessions · {volume} kg · {streak} consistent weeks", {
  sessions: last.sessions,
  volume: formatNumber(Math.round(last.volume)),
  streak: last.streak,

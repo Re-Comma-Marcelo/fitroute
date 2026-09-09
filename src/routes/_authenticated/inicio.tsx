@@ -402,7 +402,7 @@ function StatsRow({
  : "text-muted-foreground",
  )}
  >
- {hasData ? trend : t("Your first workout lights this number up.")}
+ {hasData ? trend : t("Your first recorded workout sets this value.")}
  </p>
  </section>
  );

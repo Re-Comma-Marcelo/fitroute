@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/importar")({
  meta: pageMeta({
  title: "Import from Hevy",
  description:
- "Bring your Hevy workout history into Iron Logger, with a preview before saving.",
+ "Bring your Hevy workout history into ROUTE, with a preview before saving.",
  twitterCard: "summary",
  }),
  }),

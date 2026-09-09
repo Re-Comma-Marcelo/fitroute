@@ -103,7 +103,7 @@ function SummaryPage() {
  sets: t("Sets"),
  exercises: t("Exercises"),
  prs: t("Personal records"),
- footer: t("Logged with Iron Logger"),
+ footer: t("Logged with ROUTE"),
  },
  );
  setSharing(false);
@@ -127,7 +127,7 @@ function SummaryPage() {
  <div className="relative mx-auto max-w-md">
  <p className="label-caps">{t("Session finished")}</p>
  <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
- <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
+ <p className="mt-1 text-sm text-muted-foreground">{t("Session recorded. Here is the summary.")}</p>
 
  {/* Hero: the volume moved in this session. */}
  <section className="mt-8" aria-label={t("Total volume")}>
@@ -201,7 +201,7 @@ function SummaryPage() {
  <Flame className="size-4" />
  {streak > 1
  ? t("{count} weeks training in a row", { count: streak })
- : t("First week training — keep it going")}
+ : t("First week recorded")}
  </p>
  ) : null}
 

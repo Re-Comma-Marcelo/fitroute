@@ -12,7 +12,7 @@ import { ToolError, type ToolContext } from "@lovable.dev/mcp-js";
 import { OAUTH_ISSUER, SUPABASE_ORIGIN } from "./issuer";
 
 export const CONNECT_HINT =
-  "This tool needs to act as your Iron Logger account. Reconnect the Iron Logger connector in Claude (Settings → Connectors) and approve access, then try again.";
+  "This tool needs to act as your ROUTE account. Reconnect the ROUTE connector in Claude (Settings → Connectors) and approve access, then try again.";
 
 type DbModule = typeof import("../db.server");
 

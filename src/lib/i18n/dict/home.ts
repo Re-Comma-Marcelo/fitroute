@@ -54,7 +54,7 @@ export const dict: DictFragment = {
     "{sessions}/{target} sessions": "{sessions}/{target} sessões",
     Resume: "Retomar",
     Train: "Treinar",
-    "Weekly goal hit. Well done.": "Meta semanal atingida. Bom trabalho.",
+    "Weekly target complete.": "Meta semanal concluída.",
     "{count} more to hit your weekly target.": "Mais {count} para atingir sua meta semanal.",
     "Weekly check-in": "Check-in semanal",
     "Two quick questions to keep your coach aligned.":
@@ -73,13 +73,13 @@ export const dict: DictFragment = {
     "Save check-in": "Salvar check-in",
     "{count} exercises": "{count} exercícios",
     "This week's volume": "Volume desta semana",
-    "Your first workout lights this number up.": "Seu primeiro treino acende este número.",
+    "Your first recorded workout sets this value.": "Seu primeiro treino registrado define este valor.",
     "{pct}% vs last week": "{pct}% vs semana anterior",
     "New weekly record": "Novo recorde semanal",
     "First week logged": "Primeira semana registrada",
     Consistency: "Consistência",
-    "{sessions} workouts this week · {weeks} week streak":
-      "{sessions} treinos nesta semana · sequência de {weeks} semanas",
+    "{sessions} workouts this week · {weeks} consistent weeks":
+      "{sessions} treinos nesta semana · {weeks} semanas consistentes",
     "Your first square shows up today.": "Seu primeiro quadradinho aparece hoje.",
     "Trained on {days} of the last {total} days": "Treinou em {days} dos últimos {total} dias",
     "Latest PR": "Último recorde",
@@ -150,7 +150,7 @@ export const dict: DictFragment = {
     "{sessions}/{target} sessions": "{sessions}/{target} sessies",
     Resume: "Hervatten",
     Train: "Trainen",
-    "Weekly goal hit. Well done.": "Weekdoel bereikt. Goed gedaan.",
+    "Weekly target complete.": "Weekdoel voltooid.",
     "{count} more to hit your weekly target.": "Nog {count} om je weekdoel te halen.",
     "Weekly check-in": "Wekelijkse check-in",
     "Two quick questions to keep your coach aligned.":
@@ -169,13 +169,13 @@ export const dict: DictFragment = {
     "Save check-in": "Check-in opslaan",
     "{count} exercises": "{count} oefeningen",
     "This week's volume": "Volume van deze week",
-    "Your first workout lights this number up.": "Je eerste training laat dit getal oplichten.",
+    "Your first recorded workout sets this value.": "Je eerste geregistreerde training bepaalt deze waarde.",
     "{pct}% vs last week": "{pct}% t.o.v. vorige week",
     "New weekly record": "Nieuw weekrecord",
     "First week logged": "Eerste week gelogd",
     Consistency: "Consistentie",
-    "{sessions} workouts this week · {weeks} week streak":
-      "{sessions} trainingen deze week · {weeks} weken op rij",
+    "{sessions} workouts this week · {weeks} consistent weeks":
+      "{sessions} trainingen deze week · {weeks} consistente weken",
     "Your first square shows up today.": "Je eerste blokje verschijnt vandaag.",
     "Trained on {days} of the last {total} days": "Getraind op {days} van de laatste {total} dagen",
     "Latest PR": "Laatste PR",

@@ -26,7 +26,7 @@ const TIME_LABEL: Record<Profile["preferredTime"], string> = {
 
 const DONE_KEY = "forja.claude.steps";
 const EXAMPLE_PROMPT =
- "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
+ "Use the ROUTE tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
 
 function useStepsDone() {
  const [done, setDone] = useState<Record<string, boolean>>({});
@@ -144,7 +144,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
  : [];
 
  return [
- "Here is my Forja training context. Use the Forja MCP tools to plan for me.",
+ "Here is my ROUTE training context. Use the Forja MCP tools to plan for me.",
  "",
  "## Me",
  `- Name: ${profile.nome}`,
@@ -187,7 +187,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
  raw.trim().includes("FORJA1.")
  ? t(result.error)
  : t(
- "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.",
+ "That does not look like a ROUTE import code — copy the whole block Claude returned, including the part that starts with FORJA1.",
  ),
  );
  setPending(null);
@@ -230,7 +230,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
  <h2 className="text-sm font-semibold text-foreground">{t("Claude / AI assistant")}</h2>
  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
  {t(
- "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
+ "Connect ROUTE to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
  )}
  </p>
  </div>

@@ -65,7 +65,7 @@ export const dict: DictFragment = {
     "Restored {routines} routine(s) and {workouts} workout(s).":
       "{routines} rotina(s) e {workouts} treino(s) restaurados.",
     "{n} item(s) could not be restored.": "{n} item(ns) não puderam ser restaurados.",
-    "This file is not an Iron Logger backup.": "Este arquivo não é um backup do Iron Logger.",
+    "This file is not an ROUTE backup.": "Este arquivo não é um backup do ROUTE.",
 
     // Session editing
     "Edit session": "Editar treino",
@@ -146,7 +146,7 @@ export const dict: DictFragment = {
     "Restored {routines} routine(s) and {workouts} workout(s).":
       "{routines} routine(s) en {workouts} training(en) teruggezet.",
     "{n} item(s) could not be restored.": "{n} item(s) konden niet worden teruggezet.",
-    "This file is not an Iron Logger backup.": "Dit bestand is geen Iron Logger-back-up.",
+    "This file is not an ROUTE backup.": "Dit bestand is geen ROUTE-back-up.",
 
     // Session editing
     "Edit session": "Training bewerken",

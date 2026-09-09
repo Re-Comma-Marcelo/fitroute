@@ -1029,7 +1029,7 @@ function DataBackupSection() {
  const raw = await file.text();
  setPending({ raw, preview: previewBackup(raw) });
  } catch {
- toast.error(t("This file is not an Iron Logger backup."));
+ toast.error(t("This file is not an ROUTE backup."));
  }
  }
 
@@ -1051,7 +1051,7 @@ function DataBackupSection() {
  toast.error(t("{n} item(s) could not be restored.", { n: result.errors.length }));
  }
  } catch {
- toast.error(t("This file is not an Iron Logger backup."));
+ toast.error(t("This file is not an ROUTE backup."));
  } finally {
  setBusy(false);
  }
