@@ -99,26 +99,26 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Forja — AI strength training tracker" },
+      { title: "ROUTE — Adaptive strength training" },
       {
         name: "description",
         content:
-          "Log sets, weight and rest between sets with two taps. Routines, history, and an AI coach that adapts to your recovery.",
+          "Training, nutrition and recovery adjusted to your actual schedule and recorded progress.",
       },
-      { property: "og:title", content: "Forja — AI strength training tracker" },
+      { property: "og:title", content: "ROUTE — Adaptive strength training" },
       {
         property: "og:description",
         content:
-          "Mobile-first strength training app with fast session logging, routines, and adaptive coaching.",
+          "A precise training system that adjusts to your schedule, recovery and recorded progress.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "theme-color", content: "#0A0B0D" },
+      { name: "theme-color", content: "#EFEBE4" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Iron" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "ROUTE" },
     ],
 
     links: [
@@ -130,7 +130,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112..125,500..800&family=Chivo:wght@300;400;700&display=swap",
       },
 
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -146,7 +146,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <HeadContent />
       </head>

@@ -63,9 +63,9 @@ export function AppShell({
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
       {hideHeader ? null : (
-        <header className="z-30 shrink-0 bg-background/80 backdrop-blur-xl">
-          <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
+        <header className="z-30 shrink-0 bg-background">
+          <div className="grid w-full grid-cols-[minmax(0,7fr)_3fr_2fr] items-start gap-3 px-6 pb-4 pt-6 lg:max-w-6xl">
+            <h1 className="col-span-1 truncate font-display text-title font-bold uppercase">{title}</h1>
             {action}
           </div>
         </header>
@@ -73,7 +73,7 @@ export function AppShell({
       <PendingSync />
       <main
         ref={mainRef}
-        className={`route-enter mx-auto w-full max-w-md flex-1 overflow-y-auto px-4 pb-6 ${hideHeader ? "pt-6" : "pt-2"}`}
+        className={`route-enter w-full flex-1 overflow-y-auto px-6 pb-6 lg:max-w-6xl ${hideHeader ? "pt-6" : "pt-2"}`}
       >
         {children}
       </main>
@@ -93,10 +93,10 @@ export function PageHeader({
   right?: ReactNode;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-md items-center gap-2 px-2 py-2">
+    <header className="sticky top-0 z-30 border-b-[3px] border-stone-line bg-background">
+      <div className="flex w-full items-center gap-2 px-6 py-3 lg:max-w-6xl">
         {left}
-        <h1 className="flex-1 truncate text-lg font-semibold tracking-tight">{title}</h1>
+        <h1 className="flex-1 truncate font-display text-xl font-bold uppercase">{title}</h1>
         {right}
       </div>
     </header>
