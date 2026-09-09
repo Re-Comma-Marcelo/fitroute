@@ -7,39 +7,37 @@ import { cn } from "@/lib/utils";
  * ilustração do grupo muscular se a imagem falhar ou não houver mídia.
  */
 export function ExerciseThumb({
- grupo,
- nome,
- src,
- className,
+  grupo,
+  nome,
+  src,
+  className,
 }: {
- grupo?: string | null | undefined;
- nome?: string | undefined;
- src?: string | null | undefined;
- className?: string | undefined;
+  grupo?: string | null | undefined;
+  nome?: string | undefined;
+  src?: string | null | undefined;
+  className?: string | undefined;
 }) {
- const [failed, setFailed] = useState(false);
- const useMedia = Boolean(src) && !failed;
+  const [failed, setFailed] = useState(false);
+  const useMedia = Boolean(src) && !failed;
 
- return (
- <span
- className={cn(
- "relative block size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted",
- className,
- )}
- >
- <img
- src={useMedia ? (src as string) : exerciseImage(grupo)}
- alt={nome ? `Illustration of ${nome}` : ""}
- loading="lazy"
- decoding="async"
- width={512}
- height={512}
- onError={() => setFailed(true)}
- className={cn("size-full", useMedia ? "object-contain" : "object-cover brightness-110")}
- />
- {useMedia ? null : (
- <span className="absolute inset-0 " />
- )}
- </span>
- );
+  return (
+    <span
+      className={cn(
+        "relative block size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted",
+        className,
+      )}
+    >
+      <img
+        src={useMedia ? (src as string) : exerciseImage(grupo)}
+        alt={nome ? `Illustration of ${nome}` : ""}
+        loading="lazy"
+        decoding="async"
+        width={512}
+        height={512}
+        onError={() => setFailed(true)}
+        className={cn("size-full", useMedia ? "object-contain" : "object-cover brightness-110")}
+      />
+      {useMedia ? null : <span className="absolute inset-0 " />}
+    </span>
+  );
 }

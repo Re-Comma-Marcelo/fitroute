@@ -73,7 +73,8 @@ export const dict: DictFragment = {
     "Save check-in": "Salvar check-in",
     "{count} exercises": "{count} exercícios",
     "This week's volume": "Volume desta semana",
-    "Your first recorded workout sets this value.": "Seu primeiro treino registrado define este valor.",
+    "Your first recorded workout sets this value.":
+      "Seu primeiro treino registrado define este valor.",
     "{pct}% vs last week": "{pct}% vs semana anterior",
     "New weekly record": "Novo recorde semanal",
     "First week logged": "Primeira semana registrada",
@@ -169,7 +170,8 @@ export const dict: DictFragment = {
     "Save check-in": "Check-in opslaan",
     "{count} exercises": "{count} oefeningen",
     "This week's volume": "Volume van deze week",
-    "Your first recorded workout sets this value.": "Je eerste geregistreerde training bepaalt deze waarde.",
+    "Your first recorded workout sets this value.":
+      "Je eerste geregistreerde training bepaalt deze waarde.",
     "{pct}% vs last week": "{pct}% t.o.v. vorige week",
     "New weekly record": "Nieuw weekrecord",
     "First week logged": "Eerste week gelogd",
