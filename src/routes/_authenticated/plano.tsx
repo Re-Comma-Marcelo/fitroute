@@ -73,7 +73,7 @@ const EQUIPMENT = ["Barbell", "Dumbbells", "Machine", "Cable", "Kettlebell", "Bo
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
+      <Label className="eyebrow-type text-xs text-muted-foreground">{label}</Label>
       {children}
     </div>
   );

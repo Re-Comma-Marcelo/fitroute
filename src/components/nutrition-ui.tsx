@@ -81,7 +81,7 @@ export function MacroRings({
       }`}
     >
       {onOpenBreakdown ? (
-        <p className="mb-3 flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="eyebrow-type mb-3 flex items-center gap-1 text-[10px] text-muted-foreground">
           <Info className="size-3" /> {t("Tap for the full breakdown")}
         </p>
       ) : null}
