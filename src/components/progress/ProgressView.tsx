@@ -386,7 +386,7 @@ function Stat({
         <dd
           className={cn(
             "mt-0.5 text-[11px] font-semibold tabular-nums",
-            delta.diff > 0 && "text-emerald-400",
+            delta.diff > 0 && "text-violet",
             delta.diff < 0 && "text-oxide",
             delta.diff === 0 && "text-muted-foreground",
           )}
