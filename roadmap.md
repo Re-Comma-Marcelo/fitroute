@@ -8,3 +8,10 @@
 - [x] Rewrite user-facing English, Portuguese, and Dutch copy
 - [x] Audit forbidden legacy styles and brand references
 - [x] Validate types, build, public flow, mobile and desktop visuals
+
+## Home hierarchy refinement
+
+- [x] Shorten and stabilize the primary training action
+- [x] Reserve uppercase tracking for section eyebrows
+- [x] Simplify the statistics row and compact the route preview
+- [x] Validate the updated Home at mobile size
