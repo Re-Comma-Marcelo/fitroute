@@ -248,11 +248,18 @@
   font-variant-numeric: tabular-nums;
 }
 
-@utility label-caps {
+@utility eyebrow-type {
   /*
    * Deliberate ROUTE brandbook exception: Plus Jakarta Sans is reserved for
    * small eyebrow labels. Archivo remains display; Chivo remains UI/body.
    */
+  font-family: var(--font-eyebrow);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@utility label-caps {
   font-family: var(--font-eyebrow);
   font-size: 0.8125rem;
   font-weight: 500;

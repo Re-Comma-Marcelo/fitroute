@@ -1235,7 +1235,7 @@ function SessionPage() {
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <div className="flex items-center justify-center gap-1 px-1 py-2">
             <div className="min-w-0">
-              <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <dt className="eyebrow-type text-[10px] text-muted-foreground">
                 {t("Duration")}
               </dt>
               <dd
@@ -1574,7 +1574,7 @@ function SessionPage() {
                   />
 
                   <div
-                    className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
+                    className={`${ROW_GRID} eyebrow-type pb-1 text-[10px] text-muted-foreground`}
                   >
                     <span className="text-center">{t("Set")}</span>
                     <span className="truncate">{t("Previous")}</span>
@@ -1669,7 +1669,7 @@ function SessionPage() {
                       className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg border border-violet/40 bg-violet/10 px-3 py-2.5 text-left"
                     >
                       <span className="min-w-0">
-                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-violet">
+                        <span className="eyebrow-type block text-[11px] text-violet">
                           {t("Exercise done")}
                         </span>
                         <span className="block truncate text-sm font-semibold text-foreground">
@@ -1945,7 +1945,7 @@ function ExerciseHistorySheet({
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="px-3 py-2">
-      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <dt className="eyebrow-type text-[10px] text-muted-foreground">
         {label}
       </dt>
       <dd className={`text-lg font-semibold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
@@ -1990,7 +1990,7 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
           {t("Rest for this exercise")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
