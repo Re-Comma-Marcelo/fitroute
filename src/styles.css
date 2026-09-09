@@ -169,7 +169,7 @@
 
   ::-webkit-scrollbar-thumb {
     background-color: color-mix(in oklab, var(--color-border) 85%, transparent);
-    border-radius: 9999px;
+    border-radius: 0;
   }
 
   body {
@@ -188,7 +188,7 @@
     font-family: var(--font-display);
     font-stretch: 112%;
     font-weight: 700;
-    letter-spacing: -0.015em;
+    letter-spacing: 0;
     text-transform: uppercase;
   }
 

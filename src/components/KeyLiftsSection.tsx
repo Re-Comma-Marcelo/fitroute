@@ -242,7 +242,7 @@ function DirectionChip({ trend }: { trend: LiftTrend }) {
     <span
       className={cn(
         "flex shrink-0 items-center gap-1 rounded-sm px-2 py-1 text-[11px] font-semibold tabular-nums",
-        trend.direction === "up" && "bg-emerald-500/15 text-emerald-400",
+        trend.direction === "up" && "bg-violet/15 text-violet",
         trend.direction === "down" && "bg-oxide/15 text-oxide",
         trend.direction === "flat" && "bg-muted text-muted-foreground",
       )}
@@ -269,7 +269,7 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
     .join(" ");
   const stroke =
     direction === "up"
-      ? "rgb(52 211 153)"
+      ? "var(--violet)"
       : direction === "down"
         ? "var(--destructive)"
         : "var(--muted-foreground)";
