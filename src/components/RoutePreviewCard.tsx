@@ -80,9 +80,8 @@ export function RoutePreviewCard({
             width={i === geo.nodes.length - 1 ? 6 : 4}
             height={i === geo.nodes.length - 1 ? 6 : 4}
             className={cn(
-              i === 0 && "fill-muted",
-              i === 1 && "fill-primary",
-              i === 2 && "fill-oxide",
+              i < geo.nodes.length - 1 && "fill-muted-foreground",
+              i === geo.nodes.length - 1 && "fill-oxide",
             )}
           />
         ))}

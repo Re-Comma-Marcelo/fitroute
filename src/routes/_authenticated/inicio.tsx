@@ -234,7 +234,7 @@ function RouteStatusLine({ checkpoints }: { checkpoints: Checkpoint[] }) {
     pace.state === "behind"
       ? "text-oxide"
       : pace.state === "ahead"
-        ? "text-violet"
+        ? "text-foreground"
         : "text-muted-foreground";
   const label =
     pace.state === "behind"
@@ -361,8 +361,8 @@ function StatsRow({
   return (
     <section>
       <div className="grid grid-cols-3">
-        <div className="min-w-0 pr-3">
-          <p className="label-caps">{t("Volume")}</p>
+        <div className="min-w-0 pr-2">
+          <p className="label-caps text-xs tracking-[0.22em]">{t("Volume")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {hasData ? (
               <>
@@ -374,12 +374,12 @@ function StatsRow({
             )}
           </p>
         </div>
-        <div className="min-w-0 border-l border-stone-line px-3">
-          <p className="label-caps">{t("Workouts")}</p>
+        <div className="min-w-0 border-l border-stone-line px-2">
+          <p className="label-caps text-xs tracking-[0.22em]">{t("Workouts")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">{sessions}</p>
         </div>
-        <div className="min-w-0 border-l border-stone-line pl-3">
-          <p className="label-caps">{t("Streak")}</p>
+        <div className="min-w-0 border-l border-stone-line pl-2">
+          <p className="label-caps text-xs tracking-[0.22em]">{t("Streak")}</p>
           <p className="mt-2 text-xl font-semibold tracking-normal tabular-nums">
             {streak}
             <span className="ml-0.5 text-xs font-medium text-muted-foreground">{t("wks")}</span>
@@ -412,7 +412,7 @@ function PRStrip({ loading, pr, name }: { loading: boolean; pr: PRInfo | null; n
       to="/rota/progresso"
       className="tap-target flex items-center gap-3 rounded-lg border border-border bg-surface-1 px-4 py-3"
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-sm bg-violet/10 text-violet">
+      <span className="grid size-9 shrink-0 place-items-center rounded-sm border border-stone-line text-muted-foreground">
         <Trophy className="size-4" />
       </span>
       <span className="min-w-0 flex-1">
@@ -529,12 +529,12 @@ function QuickStartChecklist({
             <span
               className={cn(
                 "flex size-5 items-center justify-center rounded-sm border",
-                item.done ? "border-violet bg-violet/10 text-violet" : "border-border",
+                item.done ? "border-ink bg-transparent text-ink" : "border-border",
               )}
             >
               {item.done && <Check className="size-3" />}
             </span>
-            <span className={item.done ? "text-violet" : "text-muted-foreground"}>
+            <span className={item.done ? "text-foreground" : "text-muted-foreground"}>
               {item.label}
             </span>
           </li>

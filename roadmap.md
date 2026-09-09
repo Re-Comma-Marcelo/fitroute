@@ -14,4 +14,4 @@
 - [x] Shorten and stabilize the primary training action
 - [x] Reserve uppercase tracking for section eyebrows
 - [x] Simplify the statistics row and compact the route preview
-- [ ] Validate the updated Home at mobile size
+- [x] Validate the updated Home at mobile size
