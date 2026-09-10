@@ -79,7 +79,7 @@ export function BodyWeightCard() {
   }
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
+    <section className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="label-caps">{t("Body weight")}</h2>
         {latest ? (
@@ -139,16 +139,16 @@ export function BodyWeightCard() {
                           unit: weightUnitLabel(),
                         })}
                   </span>
-                  <span className={wrongWay ? "text-warn" : "text-steel"}>
+                  <span className={wrongWay ? "text-warn" : "text-diet"}>
                     {t("{n} {unit} to go", {
                       n: Math.round(toDisplayWeight(toGo, unit) * 10) / 10,
                       unit: weightUnitLabel(),
                     })}
                   </span>
                 </div>
-                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-sm bg-surface-3">
+                <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-surface-3">
                   <div
-                    className={cn("h-full rounded-sm", wrongWay ? "bg-warn" : "bg-steel")}
+                    className={cn("h-full rounded-full", wrongWay ? "bg-warn" : "bg-diet")}
                     style={{ width: `${pct}%` }}
                   />
                 </div>

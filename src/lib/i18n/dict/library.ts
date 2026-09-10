@@ -40,8 +40,8 @@ export const dict: DictFragment = {
     "Exercise notes": "Notas do exercício",
     "Save routine": "Salvar rotina",
     "Claude / AI assistant": "Claude / Assistente IA",
-    "Connect ROUTE to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
-      "Conecte a ROUTE ao seu chat do Claude, peça uma rotina ou um plano de refeições e importe o código de volta.",
+    "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
+      "Conecte o Forja ao seu chat do Claude, peça uma rotina ou um plano de refeições e importe o código de volta.",
     "1 · Connector URL": "1 · URL do Conector",
     "In Claude: Settings → Connectors → Add custom connector, and paste this URL.":
       "No Claude: Settings → Connectors → Add custom connector, e cole esta URL.",
@@ -66,8 +66,8 @@ export const dict: DictFragment = {
     middays: "meio-dias",
     afternoons: "tardes",
     evenings: "noites",
-    "No ROUTE import code found. It should start with FORJA1.":
-      "Nenhum código de importação ROUTE encontrado. Ele deve começar com {prefix}",
+    "No Forja code found. It should start with FORJA1.":
+      "Nenhum código Forja encontrado. Ele deve começar com {prefix}",
     "That code is damaged — copy the whole code from Claude again.":
       "Esse código está danificado — copie o código completo do Claude novamente.",
     "Unsupported code contents.": "Conteúdo de código não suportado.",
@@ -110,8 +110,8 @@ export const dict: DictFragment = {
     "Exercise notes": "Notities bij oefening",
     "Save routine": "Routine opslaan",
     "Claude / AI assistant": "Claude / AI assistent",
-    "Connect ROUTE to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
-      "Verbind ROUTE met je eigen Claude-chat, vraag om een routine of maaltijdplan, en importeer de code die je terugkrijgt.",
+    "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
+      "Verbind Forja met je eigen Claude-chat, vraag om een routine of maaltijdplan, en importeer de code die je terugkrijgt.",
     "1 · Connector URL": "1 · Connector-URL",
     "In Claude: Settings → Connectors → Add custom connector, and paste this URL.":
       "In Claude: Settings → Connectors → Add custom connector, en plak deze URL.",
@@ -136,8 +136,8 @@ export const dict: DictFragment = {
     middays: "middagen",
     afternoons: "namiddagen",
     evenings: "avonden",
-    "No ROUTE import code found. It should start with FORJA1.":
-      "Geen ROUTE-importcode gevonden. Het moet beginnen met {prefix}",
+    "No Forja code found. It should start with FORJA1.":
+      "Geen Forja-code gevonden. Het moet beginnen met {prefix}",
     "That code is damaged — copy the whole code from Claude again.":
       "Die code is beschadigd — kopieer de volledige code opnieuw uit Claude.",
     "Unsupported code contents.": "Niet-ondersteunde code-inhoud.",

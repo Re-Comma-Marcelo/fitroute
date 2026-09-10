@@ -16,7 +16,7 @@ function DietLayout() {
 
   return (
     <AppShell title={t("Nutrition")}>
-      <nav className="grid grid-cols-3 gap-1 rounded-lg border border-border bg-card p-1">
+      <nav className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1">
         {modes.map((m) => (
           <Link
             key={m.to}

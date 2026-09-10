@@ -36,7 +36,7 @@ export function MacroConsistencyStrip({
   const proteinDays = days.filter((d) => d.proteinPct >= 90).length;
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
+    <section className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-sm font-semibold">{t("Macro consistency")}</h2>
         <p className="text-xs tabular-nums text-muted-foreground">
@@ -53,10 +53,10 @@ export function MacroConsistencyStrip({
                   d.empty
                     ? "bg-transparent"
                     : d.onTarget
-                      ? "bg-steel"
+                      ? "bg-diet"
                       : d.kcalPct > 110
-                        ? "bg-oxide"
-                        : "bg-steel/40",
+                        ? "bg-warning"
+                        : "bg-diet/40",
                 )}
                 style={{ height: `${Math.min(100, Math.round(d.kcalPct))}%` }}
               />

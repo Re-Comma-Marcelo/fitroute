@@ -59,7 +59,7 @@ export function PendingSync() {
     if (!offline) return null;
     return (
       <div className="mx-auto w-full max-w-md px-4 pb-2">
-        <div className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2">
+        <div className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2">
           <CloudOff className="size-4 shrink-0 text-warn" />
           <p className="flex-1 text-xs font-medium text-foreground">
             {t("You are offline — logging keeps working and syncs later.")}
@@ -71,7 +71,7 @@ export function PendingSync() {
 
   return (
     <div className="mx-auto w-full max-w-md px-4 pb-2">
-      <div className="flex items-center gap-2 rounded-lg border border-warn/40 bg-warn/10 px-3 py-2">
+      <div className="flex items-center gap-2 rounded-xl border border-warn/40 bg-warn/10 px-3 py-2">
         <CloudOff className="size-4 shrink-0 text-warn" />
         <p className="flex-1 text-xs font-medium text-foreground">
           {t("{n} workout(s) waiting to sync", { n: count })}

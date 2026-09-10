@@ -23,9 +23,10 @@ export const dict: DictFragment = {
       "As séries registradas para {routineNome} serão perdidas. Isso não pode ser desfeito.",
     "Keep training": "Continuar treinando",
     Discard: "Descartar",
-    "Training adjusted to your actual life": "Treino ajustado à sua vida real",
-    "Your training, nutrition and recovery use the progress you record.":
-      "Seu treino, nutrição e recuperação usam o progresso que você registra.",
+    "An AI trainer that adapts to your actual life":
+      "Um treinador de IA que se adapta à sua vida real",
+    "Log sets in two taps. Get routines, diet and coaching grounded in your own history.":
+      "Registre séries em dois toques. Receba rotinas, dieta e coaching baseados no seu histórico.",
     "Check your email": "Verifique seu e-mail",
     "We sent a confirmation link to {email}. Confirm it, then sign in.":
       "Enviamos um link de confirmação para {email}. Confirme-o e faça login.",
@@ -67,9 +68,10 @@ export const dict: DictFragment = {
       "Sets geregistreerd voor {routineNome} gaan verloren. Dit kan niet ongedaan worden gemaakt.",
     "Keep training": "Verder trainen",
     Discard: "Verwijderen",
-    "Training adjusted to your actual life": "Training afgestemd op je echte leven",
-    "Your training, nutrition and recovery use the progress you record.":
-      "Je training, voeding en herstel gebruiken de voortgang die je registreert.",
+    "An AI trainer that adapts to your actual life":
+      "Een AI-trainer die zich aanpast aan je echte leven",
+    "Log sets in two taps. Get routines, diet and coaching grounded in your own history.":
+      "Log sets in twee tikken. Ontvang schema's, dieet en coaching op basis van je eigen geschiedenis.",
     "Check your email": "Controleer je e-mail",
     "We sent a confirmation link to {email}. Confirm it, then sign in.":
       "We hebben een bevestigingslink gestuurd naar {email}. Bevestig deze en log in.",

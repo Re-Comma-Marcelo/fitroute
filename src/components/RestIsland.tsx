@@ -56,7 +56,7 @@ export function RestIsland({
   return (
     <div
       className={cn(
-        "pointer-events-auto mx-auto max-w-md rounded-lg border px-2 py-1.5 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
+        "pointer-events-auto mx-auto max-w-md rounded-3xl border px-2 py-1.5 shadow-2xl backdrop-blur-xl motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2",
         isLow ? "border-warn/40 bg-warn/10" : "border-info/30 bg-card/95",
         className,
       )}
@@ -67,7 +67,7 @@ export function RestIsland({
           onClick={onOpenSettings}
           disabled={!onOpenSettings}
           aria-label={t("Rest")}
-          className="flex min-w-0 shrink items-center gap-2 rounded-sm pl-0.5 pr-1 disabled:cursor-default"
+          className="flex min-w-0 shrink items-center gap-2 rounded-full pl-0.5 pr-1 disabled:cursor-default"
         >
           <span className="relative flex shrink-0 items-center justify-center">
             <svg width={size} height={size} className="-rotate-90">
@@ -85,7 +85,7 @@ export function RestIsland({
                 r={r}
                 fill="none"
                 strokeWidth={stroke}
-                strokeLinecap="square"
+                strokeLinecap="round"
                 strokeDasharray={circ}
                 strokeDashoffset={circ * (1 - pct)}
                 className={cn(
@@ -98,7 +98,10 @@ export function RestIsland({
               <TimerOff className="absolute size-4 text-warn" />
             ) : (
               <Timer
-                className={cn("absolute size-4", isLow ? "text-warn motion-safe:" : "text-info")}
+                className={cn(
+                  "absolute size-4",
+                  isLow ? "text-warn motion-safe:animate-pulse" : "text-info",
+                )}
               />
             )}
           </span>
@@ -132,7 +135,7 @@ export function RestIsland({
                 type="button"
                 onClick={onSubtract}
                 aria-label={t("Subtract 15 seconds")}
-                className="tap-target flex h-11 min-w-11 items-center justify-center rounded-sm bg-surface-3 px-3 text-xs font-semibold tabular-nums"
+                className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
               >
                 −15
               </button>
@@ -140,7 +143,7 @@ export function RestIsland({
                 type="button"
                 onClick={onAdd}
                 aria-label={t("Add 15 seconds")}
-                className="tap-target flex h-11 min-w-11 items-center justify-center rounded-sm bg-surface-3 px-3 text-xs font-semibold tabular-nums"
+                className="tap-target flex h-11 min-w-11 items-center justify-center rounded-full bg-surface-3 px-3 text-xs font-semibold tabular-nums"
               >
                 +15
               </button>
@@ -151,7 +154,7 @@ export function RestIsland({
             onClick={onSkip}
             aria-label={isOverdue ? t("Dismiss") : t("Skip rest")}
             className={cn(
-              "tap-target flex size-11 items-center justify-center rounded-sm",
+              "tap-target flex size-11 items-center justify-center rounded-full",
               isOverdue ? "bg-warn/20 text-warn" : "bg-info text-info-foreground",
             )}
           >
@@ -168,7 +171,7 @@ export function RestIsland({
               type="button"
               onClick={() => onPreset?.(segundos)}
               className={cn(
-                "flex h-9 shrink-0 items-center justify-center rounded-sm px-3 text-xs font-semibold tabular-nums",
+                "flex h-9 shrink-0 items-center justify-center rounded-full px-3 text-xs font-semibold tabular-nums",
                 total === segundos
                   ? "bg-info text-info-foreground"
                   : "bg-surface-3 text-muted-foreground",
@@ -181,7 +184,7 @@ export function RestIsland({
             <button
               type="button"
               onClick={onSaveDefault}
-              className="ml-auto flex h-9 shrink-0 items-center gap-1 rounded-sm border border-border px-3 text-xs font-semibold"
+              className="ml-auto flex h-9 shrink-0 items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold"
             >
               <Check className="size-3.5" /> {t("Save as default")}
             </button>

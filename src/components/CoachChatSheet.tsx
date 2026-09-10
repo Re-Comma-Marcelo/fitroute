@@ -46,7 +46,7 @@ export function CoachChatButton({
         type="button"
         className={
           className ??
-          "tap-target inline-flex size-11 items-center justify-center rounded-sm border border-border bg-card text-primary"
+          "tap-target inline-flex size-11 items-center justify-center rounded-full border border-border bg-card text-primary"
         }
         aria-label={t("Ask your coach")}
       >
@@ -63,10 +63,10 @@ export function CoachChatRow({ label }: { label?: string }) {
     <CoachSheet>
       <button
         type="button"
-        className="tap-target flex w-full items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left"
+        className="tap-target flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-left"
         aria-label={t("Ask your coach")}
       >
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-sm bg-primary/10 text-primary">
+        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
           <MessageSquare className="size-4" strokeWidth={2} />
         </span>
         <span className="min-w-0 flex-1">
@@ -149,7 +149,7 @@ function ChatPanel({
               type="button"
               onClick={() => void ask(s)}
               disabled={loading}
-              className="tap-target h-8 rounded-sm border border-border px-3 text-[11px] font-semibold text-muted-foreground"
+              className="tap-target h-8 rounded-full border border-border px-3 text-[11px] font-semibold text-muted-foreground"
             >
               {s}
             </button>
@@ -160,7 +160,7 @@ function ChatPanel({
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm leading-relaxed ${
+              className={`max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                 msg.role === "user"
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-foreground"
@@ -188,7 +188,7 @@ function ChatPanel({
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="max-w-[80%] space-y-2 rounded-lg bg-muted px-4 py-3">
+            <div className="max-w-[80%] space-y-2 rounded-2xl bg-muted px-4 py-3">
               <Skeleton className="h-3 w-32" />
               <Skeleton className="h-3 w-48" />
             </div>

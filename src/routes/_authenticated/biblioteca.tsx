@@ -247,7 +247,7 @@ function LibraryPage() {
                 key={term}
                 type="button"
                 onClick={() => setQ(term)}
-                className="tap-target rounded-sm bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
+                className="tap-target rounded-full bg-surface-3 px-3 text-xs font-semibold text-muted-foreground"
               >
                 {term}
               </button>
@@ -277,7 +277,7 @@ function LibraryPage() {
               <>
                 <div className="mt-5 flex items-end justify-between">
                   <p className="label-caps flex items-center gap-1.5">
-                    <Star className="size-3.5 fill-steel text-steel" /> {t("Favorites")}
+                    <Star className="size-3.5 fill-train text-train" /> {t("Favorites")}
                   </p>
                   <button
                     type="button"
@@ -287,7 +287,7 @@ function LibraryPage() {
                     {t("See all")}
                   </button>
                 </div>
-                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
                   {favoriteList.slice(0, 5).map((e) => (
                     <ExerciseRow
                       key={e.id}
@@ -309,7 +309,7 @@ function LibraryPage() {
                     <Clock className="size-3.5 text-muted-foreground" /> {t("Recent")}
                   </p>
                 </div>
-                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+                <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
                   {recentList.map((e) => (
                     <ExerciseRow
                       key={e.id}
@@ -331,7 +331,7 @@ function LibraryPage() {
                   <button
                     type="button"
                     onClick={() => setGrupo(folder.group)}
-                    className="relative block h-28 w-full overflow-hidden rounded-lg border border-border text-left"
+                    className="relative block h-28 w-full overflow-hidden rounded-2xl border border-border text-left"
                   >
                     <img
                       src={exerciseImage(folder.group)}
@@ -363,7 +363,7 @@ function LibraryPage() {
                 <button
                   type="button"
                   onClick={() => setGrupo(null)}
-                  className="tap-target inline-flex items-center gap-1 rounded-sm border border-primary/60 bg-primary/15 px-3 py-2 text-sm font-semibold text-primary"
+                  className="tap-target inline-flex items-center gap-1 rounded-full border border-primary/60 bg-primary/15 px-3 py-2 text-sm font-semibold text-primary"
                 >
                   <ChevronLeft className="size-4" /> {grupo}
                 </button>
@@ -372,7 +372,7 @@ function LibraryPage() {
                 <button
                   type="button"
                   onClick={() => setQ("")}
-                  className="tap-target rounded-sm border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
+                  className="tap-target rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
                 >
                   {t("Clear search")}
                 </button>
@@ -381,18 +381,18 @@ function LibraryPage() {
                 type="button"
                 onClick={() => setOnlyFavorites((v) => !v)}
                 className={cn(
-                  "tap-target inline-flex items-center gap-1.5 rounded-sm border px-3 py-2 text-sm font-semibold transition-colors",
+                  "tap-target inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
                   onlyFavorites
-                    ? "border-steel/60 bg-steel/15 text-steel"
+                    ? "border-train/60 bg-train/15 text-train"
                     : "border-border bg-card text-muted-foreground",
                 )}
               >
-                <Star className={cn("size-4", onlyFavorites && "fill-steel")} /> {t("Favorites")}
+                <Star className={cn("size-4", onlyFavorites && "fill-train")} /> {t("Favorites")}
               </button>
               <button
                 type="button"
                 onClick={() => setSortBy((v) => (v === "name" ? "used" : "name"))}
-                className="tap-target rounded-sm border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
+                className="tap-target rounded-full border border-border bg-card px-3 py-2 text-sm font-medium text-muted-foreground"
               >
                 {sortBy === "used" ? t("Most used") : t("A–Z")}
               </button>
@@ -407,7 +407,7 @@ function LibraryPage() {
 
             <p className="label-caps mt-5">{t("{count} exercises", { count: lista.length })}</p>
 
-            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card">
+            <ul className="mt-2 divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
               {lista.map((e) => (
                 <ExerciseRow
                   key={e.id}
@@ -452,15 +452,15 @@ function LibraryPage() {
               <ExerciseExecutionCard exercise={detail} />
 
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-sm bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
+                <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
                   {detail.grupoPrimario}
                 </span>
                 {detail.gruposSecundarios.map((g) => (
-                  <span key={g} className="rounded-sm bg-muted px-3 py-1 text-xs font-semibold">
+                  <span key={g} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
                     {g}
                   </span>
                 ))}
-                <span className="rounded-sm bg-muted px-3 py-1 text-xs font-semibold">
+                <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
                   {detail.equipamento}
                 </span>
                 <button
@@ -468,13 +468,13 @@ function LibraryPage() {
                   onClick={() => star(detail.id)}
                   aria-label={t("Favorite")}
                   className={cn(
-                    "tap-target ml-auto inline-flex items-center gap-1.5 rounded-sm border px-3 text-xs font-semibold",
+                    "tap-target ml-auto inline-flex items-center gap-1.5 rounded-full border px-3 text-xs font-semibold",
                     favorites.includes(detail.id)
-                      ? "border-steel/60 bg-steel/15 text-steel"
+                      ? "border-train/60 bg-train/15 text-train"
                       : "border-border text-muted-foreground",
                   )}
                 >
-                  <Star className={cn("size-4", favorites.includes(detail.id) && "fill-steel")} />
+                  <Star className={cn("size-4", favorites.includes(detail.id) && "fill-train")} />
                   {t("Favorite")}
                 </button>
               </div>
@@ -703,7 +703,7 @@ function FilterChip({
     <button
       type="button"
       onClick={onClick}
-      className={`tap-target shrink-0 rounded-sm border px-4 py-2 text-sm font-medium transition-colors ${
+      className={`tap-target shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
         active
           ? "border-primary/60 bg-primary/15 text-primary"
           : "border-border bg-card text-muted-foreground"
@@ -761,7 +761,7 @@ function ExerciseRow({
         onClick={onStar}
       >
         <Star
-          className={cn("size-5", favorite ? "fill-steel text-steel" : "text-muted-foreground")}
+          className={cn("size-5", favorite ? "fill-train text-train" : "text-muted-foreground")}
         />
       </Button>
       <Button
@@ -809,14 +809,14 @@ function ExerciseMedia({ exercise }: { exercise: Exercise }) {
           src={exercise.midiaUrl || exerciseImage(exercise.grupoPrimario)}
           alt={t("How to perform {name}", { name: exercise.nome })}
           loading="lazy"
-          className="h-28 w-full rounded-lg border border-border object-cover"
+          className="h-28 w-full rounded-xl border border-border object-cover"
         />
         {photo ? (
           <div className="relative">
             <img
               src={photo}
               alt={t("Your setup photo")}
-              className="h-28 w-full rounded-lg border border-border object-cover"
+              className="h-28 w-full rounded-xl border border-border object-cover"
             />
             <Button
               variant="secondary"
@@ -832,7 +832,7 @@ function ExerciseMedia({ exercise }: { exercise: Exercise }) {
             </Button>
           </div>
         ) : (
-          <label className="tap-target flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-border text-xs font-semibold text-muted-foreground">
+          <label className="tap-target flex h-28 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border text-xs font-semibold text-muted-foreground">
             <Camera className="size-5" />
             {busy ? t("Loading…") : t("Add setup photo")}
             <input

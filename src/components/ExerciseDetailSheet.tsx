@@ -59,11 +59,11 @@ export function ExerciseDetailSheet({
         </SheetHeader>
 
         {tipsQ.isLoading ? (
-          <Skeleton className="h-40 w-full rounded-lg" />
+          <Skeleton className="h-40 w-full rounded-2xl" />
         ) : (
           <div className="space-y-5 pb-4">
             {src && !mediaFailed ? (
-              <div className="aspect-[3/2] w-full overflow-hidden rounded-lg bg-surface-3">
+              <div className="aspect-[3/2] w-full overflow-hidden rounded-2xl bg-surface-3">
                 <img
                   src={src}
                   alt={t("How to perform {name}", { name: nome })}
@@ -106,7 +106,7 @@ export function ExerciseDetailSheet({
                   {tipsQ.data.tips.map((tip) => (
                     <li
                       key={tip}
-                      className="rounded-lg border border-border bg-card px-3 py-2 text-xs leading-snug"
+                      className="rounded-xl border border-border bg-card px-3 py-2 text-xs leading-snug"
                     >
                       {tip}
                     </li>
@@ -153,7 +153,7 @@ export function ExerciseDetailSheet({
 
 function Chip({ text }: { text: string }) {
   return (
-    <span className="rounded-sm border border-border px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+    <span className="rounded-full border border-border px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
       {text}
     </span>
   );
@@ -178,7 +178,7 @@ export function ExerciseCoachSection({ exerciseId, nome }: { exerciseId: string;
             {tipsQ.data.tips.map((tip) => (
               <li
                 key={tip}
-                className="rounded-lg border border-border bg-card px-3 py-2 text-xs leading-snug"
+                className="rounded-xl border border-border bg-card px-3 py-2 text-xs leading-snug"
               >
                 {tip}
               </li>

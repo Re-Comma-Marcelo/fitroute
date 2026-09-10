@@ -46,7 +46,7 @@ export function ExerciseExecutionCard({
   const src = reduced ? (thumb ?? loop) : loop;
 
   return (
-    <div className={cn("overflow-hidden rounded-lg border border-border bg-surface-2", className)}>
+    <div className={cn("overflow-hidden rounded-2xl border border-border bg-surface-2", className)}>
       <button
         type="button"
         onClick={() => {
@@ -70,7 +70,7 @@ export function ExerciseExecutionCard({
       </button>
 
       {open ? (
-        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-lg bg-surface-3">
+        <div className="relative aspect-[3/2] w-full overflow-hidden rounded-2xl bg-surface-3">
           {failed ? (
             <p className="flex h-full items-center justify-center px-4 text-center text-xs text-muted-foreground">
               {t("No image for this exercise")}

@@ -1208,7 +1208,7 @@ function SessionPage() {
           <Button
             variant="ghost"
             size="icon"
-            className={cn("tap-target", focusMode && "text-steel")}
+            className={cn("tap-target", focusMode && "text-train")}
             aria-label={focusMode ? t("Show all exercises") : t("Focus on current exercise")}
             aria-pressed={focusMode}
             onClick={() => {
@@ -1235,7 +1235,7 @@ function SessionPage() {
         <dl className="mx-auto grid max-w-md grid-cols-3 border-t border-border">
           <div className="flex items-center justify-center gap-1 px-1 py-2">
             <div className="min-w-0">
-              <dt className="eyebrow-type text-[10px] text-muted-foreground">
+              <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("Duration")}
               </dt>
               <dd
@@ -1317,11 +1317,11 @@ function SessionPage() {
                           setScrollTo(exIdx);
                         }}
                         className={cn(
-                          "tap-target flex max-w-[10.5rem] select-none items-center gap-2 rounded-sm py-1.5 pl-1.5 pr-3 text-left transition-colors",
+                          "tap-target flex max-w-[10.5rem] select-none items-center gap-2 rounded-full py-1.5 pl-1.5 pr-3 text-left transition-all",
                           active
-                            ? "bg-primary text-primary-foreground "
+                            ? "bg-primary text-primary-foreground shadow-md"
                             : done
-                              ? "bg-violet/12 text-violet"
+                              ? "bg-success/12 text-success"
                               : "bg-surface-3 text-muted-foreground",
                           !active && !done && "opacity-90",
                           dragging && "ring-2 ring-primary",
@@ -1330,11 +1330,11 @@ function SessionPage() {
                       >
                         <span
                           className={cn(
-                            "flex size-6 shrink-0 items-center justify-center rounded-sm text-[10px] font-bold tabular-nums",
+                            "flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold tabular-nums",
                             active
                               ? "bg-primary-foreground/20 text-primary-foreground"
                               : done
-                                ? "bg-violet/20 text-violet"
+                                ? "bg-success/20 text-success"
                                 : "bg-surface-2 text-muted-foreground",
                           )}
                           aria-hidden="true"
@@ -1360,15 +1360,15 @@ function SessionPage() {
                 })}
               </ul>
             </nav>
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-4 " />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-4 " />
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-4 bg-gradient-to-r from-background to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-4 bg-gradient-to-l from-background to-transparent" />
           </div>
         ) : null}
       </header>
 
       <main className="mx-auto max-w-md space-y-3 px-3 py-3">
         {focusMode ? (
-          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-steel">
+          <p className="text-center text-[11px] font-semibold uppercase tracking-wide text-train">
             {t("Focus mode · one exercise at a time")}
           </p>
         ) : null}
@@ -1400,10 +1400,10 @@ function SessionPage() {
                   : null),
               }}
               className={cn(
-                "relative rounded-lg border bg-card",
+                "relative rounded-xl border bg-card",
                 aberto ? "border-primary/50" : "border-border",
                 ex.pulado && "opacity-50",
-                dragging && "border-primary ",
+                dragging && "border-primary shadow-lg",
                 drag && !dragging && "opacity-60",
               )}
             >
@@ -1428,7 +1428,7 @@ function SessionPage() {
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-2 text-base font-semibold leading-tight">
                         {blockLabel[ex.exerciseId] ? (
-                          <span className="shrink-0 rounded-md bg-steel/15 px-1.5 py-0.5 text-[11px] font-bold text-steel">
+                          <span className="shrink-0 rounded-md bg-train/15 px-1.5 py-0.5 text-[11px] font-bold text-train">
                             {blockLabel[ex.exerciseId]}
                           </span>
                         ) : null}
@@ -1452,14 +1452,14 @@ function SessionPage() {
 
                         {exDone ? (
                           <Check
-                            className="size-3.5 shrink-0 text-violet"
+                            className="size-3.5 shrink-0 text-success"
                             strokeWidth={3}
                             aria-label={t("Exercise complete")}
                           />
                         ) : null}
                       </p>
                       <div
-                        className="mt-1.5 h-0.5 w-full overflow-hidden rounded-sm bg-surface-3"
+                        className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-surface-3"
                         role="img"
                         aria-label={t("{done} of {total} sets completed", {
                           done: feitas,
@@ -1468,8 +1468,8 @@ function SessionPage() {
                       >
                         <div
                           className={cn(
-                            "h-full rounded-sm motion-safe:transition-colors motion-safe:duration-200",
-                            justExercise === exIdx ? "bg-violet" : "bg-steel",
+                            "h-full rounded-full motion-safe:transition-all motion-safe:duration-300",
+                            justExercise === exIdx ? "bg-success" : "bg-train",
                           )}
                           style={{ width: `${validas > 0 ? (feitas / validas) * 100 : 0}%` }}
                         />
@@ -1558,7 +1558,10 @@ function SessionPage() {
                     <DropdownMenuItem onClick={() => setHistoryFor(ex)}>
                       <History className="mr-2 size-4" /> {t("Exercise history")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem className="text-oxide" onClick={() => removeExercise(exIdx)}>
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => removeExercise(exIdx)}
+                    >
                       <Trash2 className="mr-2 size-4" /> {t("Remove exercise")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -1574,7 +1577,7 @@ function SessionPage() {
                   />
 
                   <div
-                    className={`${ROW_GRID} eyebrow-type pb-1 text-[10px] text-muted-foreground`}
+                    className={`${ROW_GRID} pb-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground`}
                   >
                     <span className="text-center">{t("Set")}</span>
                     <span className="truncate">{t("Previous")}</span>
@@ -1666,10 +1669,10 @@ function SessionPage() {
                         setScrollTo(next);
                         hapticTick();
                       }}
-                      className="mt-3 flex w-full items-center justify-between gap-2 rounded-lg border border-violet/40 bg-violet/10 px-3 py-2.5 text-left"
+                      className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2.5 text-left"
                     >
                       <span className="min-w-0">
-                        <span className="eyebrow-type block text-[11px] text-violet">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wide text-success">
                           {t("Exercise done")}
                         </span>
                         <span className="block truncate text-sm font-semibold text-foreground">
@@ -1678,7 +1681,7 @@ function SessionPage() {
                           })}
                         </span>
                       </span>
-                      <span className="shrink-0 rounded-sm bg-violet px-3 py-1.5 text-xs font-bold text-background">
+                      <span className="shrink-0 rounded-full bg-success px-3 py-1.5 text-xs font-bold text-background">
                         {t("Next")}
                       </span>
                     </button>
@@ -1818,7 +1821,7 @@ function SessionPage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           {pendCount > 0 ? (
-            <ul className="max-h-40 space-y-1 overflow-y-auto rounded-lg border border-border bg-surface-2 p-2 text-xs">
+            <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
               {pendingList.map((item) => (
                 <li key={item.key} className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-muted-foreground">{item.nome}</span>
@@ -1912,7 +1915,7 @@ function ExerciseHistorySheet({
             </p>
           ) : (
             sessions.map(([workoutId, sets]) => (
-              <div key={workoutId} className="rounded-lg border border-border bg-card p-3">
+              <div key={workoutId} className="rounded-xl border border-border bg-card p-3">
                 <p className="text-xs font-semibold text-muted-foreground">
                   {dates.get(workoutId) ? formatDateLong(dates.get(workoutId)!) : t("Session")}
                 </p>
@@ -1945,7 +1948,7 @@ function ExerciseHistorySheet({
 function HeaderStat({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="px-3 py-2">
-      <dt className="eyebrow-type text-[10px] text-muted-foreground">
+      <dt className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </dt>
       <dd className={`text-lg font-semibold tabular-nums ${mono ? "font-mono" : ""}`}>{value}</dd>
@@ -1962,7 +1965,7 @@ function ProgressBadge({ motivo }: { motivo: string }) {
           type="button"
           aria-label={t("Weight increased")}
           title={t("Weight increased")}
-          className="grid size-10 shrink-0 place-items-center rounded-sm bg-primary/15 text-primary"
+          className="grid size-10 shrink-0 place-items-center rounded-full bg-primary/15 text-primary"
         >
           <TrendingUp className="size-4" strokeWidth={3} />
         </button>
@@ -1983,14 +1986,14 @@ function RestPicker({ value, onChange }: { value: number; onChange: (segundos: n
         <button
           type="button"
           aria-label={t("Rest for this exercise")}
-          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-sm bg-info/15 px-3.5 text-xs font-semibold text-info"
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-3.5 text-xs font-semibold text-info"
         >
           <Timer className="size-4" strokeWidth={2.6} />
           <span className="tabular-nums">{formatRest(value)}</span>
         </button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64">
-        <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           {t("Rest for this exercise")}
         </p>
         <div className="grid grid-cols-3 gap-1.5">
@@ -2161,7 +2164,7 @@ function SetRow({
                 {typeName[tipo]}
               </DropdownMenuItem>
             ))}
-            <DropdownMenuItem className="text-oxide" onClick={onRemove}>
+            <DropdownMenuItem className="text-destructive" onClick={onRemove}>
               <Trash2 className="mr-2 size-4" /> {t("Remove set")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -2328,7 +2331,7 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       aria-label={t("Rest done")}
       className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-background/95 p-6 backdrop-blur-sm"
     >
-      <div className="flex size-24 items-center justify-center rounded-sm bg-info/15 text-info">
+      <div className="flex size-24 items-center justify-center rounded-full bg-info/15 text-info">
         <Volume2 className="size-12" />
       </div>
       <h2 className="mt-6 text-center font-display text-3xl font-semibold" aria-live="assertive">
@@ -2354,7 +2357,7 @@ function CoachMark({ text, onDismiss, t }: { text: string; onDismiss: () => void
     <div
       role="note"
       onClick={onDismiss}
-      className="motion-safe:animate-fade-in mt-2 flex items-start gap-2 rounded-lg border border-foreground/10 bg-surface-2 p-3"
+      className="motion-safe:animate-fade-in mt-2 flex items-start gap-2 rounded-xl border border-foreground/10 bg-surface-2 p-3"
     >
       <p className="flex-1 text-xs leading-snug text-muted-foreground">{text}</p>
       <button
@@ -2380,7 +2383,7 @@ function ExerciseInfoButton({ exerciseId, nome }: { exerciseId: string; nome: st
         onClick={() => setOpen(true)}
         aria-label={label}
         title={label}
-        className="grid size-10 shrink-0 place-items-center rounded-sm border border-border text-muted-foreground"
+        className="grid size-10 shrink-0 place-items-center rounded-full border border-border text-muted-foreground"
       >
         <PlayCircle className="size-4" />
       </button>
@@ -2406,7 +2409,7 @@ function ExercisePlanLine({
   const [open, setOpen] = useState(false);
   if (!target && !note) return null;
   return (
-    <div className="mb-2 rounded-lg border border-steel/30 bg-steel/10 px-3 py-2">
+    <div className="mb-2 rounded-xl border border-train/30 bg-train/10 px-3 py-2">
       {target ? (
         <p className="text-xs font-semibold leading-snug text-foreground">{target}</p>
       ) : null}
@@ -2420,7 +2423,7 @@ function ExercisePlanLine({
               type="button"
               aria-expanded={open}
               onClick={() => setOpen((v) => !v)}
-              className="mt-1 text-[11px] font-semibold text-steel underline-offset-2 hover:underline"
+              className="mt-1 text-[11px] font-semibold text-train underline-offset-2 hover:underline"
             >
               {open ? t("Hide why") : t("Why this target")}
             </button>

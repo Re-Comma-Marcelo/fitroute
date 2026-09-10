@@ -16,7 +16,7 @@ export function SessionDiffCard({
   if (!moved.length) return null;
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
+    <section className="rounded-2xl border border-border bg-card p-4">
       <h2 className="label-caps">{t("Versus last time")}</h2>
       <p className="mt-1 text-xs leading-snug text-muted-foreground">
         {t("Compared with {date}", { date: formatDateLong(diff.previous.iniciadoEm) })}
@@ -24,8 +24,8 @@ export function SessionDiffCard({
         <span
           className={cn(
             "font-semibold",
-            diff.volumeDelta > 0 && "text-violet",
-            diff.volumeDelta < 0 && "text-oxide",
+            diff.volumeDelta > 0 && "text-success",
+            diff.volumeDelta < 0 && "text-destructive",
           )}
         >
           {diff.volumeDelta > 0 ? "+" : diff.volumeDelta < 0 ? "−" : ""}
@@ -50,8 +50,8 @@ export function SessionDiffCard({
                 <span
                   className={cn(
                     "ml-2",
-                    (weightDelta || volumeDelta) > 0 && "text-violet",
-                    (weightDelta || volumeDelta) < 0 && "text-oxide",
+                    (weightDelta || volumeDelta) > 0 && "text-success",
+                    (weightDelta || volumeDelta) < 0 && "text-destructive",
                   )}
                 >
                   {weightDelta !== 0

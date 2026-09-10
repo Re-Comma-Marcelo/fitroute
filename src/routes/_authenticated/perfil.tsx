@@ -186,9 +186,9 @@ function ProfilePage() {
     return (
       <AppShell title={t("Profile")}>
         <div className="space-y-3">
-          <div className="h-28 rounded-lg bg-card" />
-          <div className="h-16 rounded-lg bg-card" />
-          <div className="h-16 rounded-lg bg-card" />
+          <div className="h-28 animate-pulse rounded-2xl bg-card" />
+          <div className="h-16 animate-pulse rounded-2xl bg-card" />
+          <div className="h-16 animate-pulse rounded-2xl bg-card" />
         </div>
       </AppShell>
     );
@@ -281,11 +281,11 @@ function ProfilePage() {
     <AppShell
       title={t("Profile")}
       action={
-        <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-sm border border-border bg-card text-primary" />
+        <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
       }
     >
       {/* Identity header — photo-led, one metadata line */}
-      <section className="rounded-lg border border-border/60 bg-card/70 p-4">
+      <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3.5">
           <div className="relative shrink-0">
             {form.avatarUrl ? (
@@ -294,7 +294,7 @@ function ProfilePage() {
                   <button
                     type="button"
                     aria-label={t("Change photo")}
-                    className="tap-target grid size-16 place-items-center overflow-hidden rounded-lg bg-primary/15"
+                    className="tap-target grid size-16 place-items-center overflow-hidden rounded-2xl bg-primary/15"
                   >
                     <img
                       src={form.avatarUrl}
@@ -328,7 +328,7 @@ function ProfilePage() {
               <label
                 htmlFor="avatar"
                 aria-label={t("Add photo")}
-                className="tap-target grid size-16 cursor-pointer place-items-center overflow-hidden rounded-lg bg-primary/15 font-display text-2xl font-semibold text-primary"
+                className="tap-target grid size-16 cursor-pointer place-items-center overflow-hidden rounded-2xl bg-primary/15 font-display text-2xl font-semibold text-primary"
               >
                 {(form.nome || "?").trim().charAt(0).toUpperCase()}
               </label>
@@ -344,7 +344,7 @@ function ProfilePage() {
                 setPhotoMenu(false);
               }}
             />
-            <span className="pointer-events-none absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-sm border border-border bg-card text-primary">
+            <span className="pointer-events-none absolute -bottom-1 -right-1 grid size-6 place-items-center rounded-full border border-border bg-card text-primary">
               <Camera className="size-3.5" />
             </span>
           </div>
@@ -468,7 +468,7 @@ function ProfilePage() {
             onChange={(v) => patch({ objetivo: v as Objetivo })}
           />
 
-          <div className="rounded-lg border border-border/60 bg-card/40 p-3">
+          <div className="rounded-xl border border-border/60 bg-card/40 p-3">
             <p className="font-display text-sm font-semibold">{t("By when?")}</p>
             <p className="mb-3 mt-0.5 text-xs leading-snug text-muted-foreground">
               {t("Your route and its checkpoints are built between today and this date.")}
@@ -526,7 +526,7 @@ function ProfilePage() {
                     type="button"
                     onClick={() => toggleEquipment(item)}
                     className={cn(
-                      "tap-target rounded-sm border px-3.5 py-2 text-xs font-semibold transition-colors",
+                      "tap-target rounded-full border px-3.5 py-2 text-xs font-semibold transition-colors",
                       on
                         ? "border-primary bg-primary/10 text-primary"
                         : "border-border bg-card text-muted-foreground",
@@ -555,7 +555,7 @@ function ProfilePage() {
               <button
                 type="button"
                 onClick={() => setAvoidOpen(true)}
-                className="tap-target inline-flex items-center gap-1 rounded-sm border border-border px-3 py-1.5 text-xs font-semibold text-primary"
+                className="tap-target inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-primary"
               >
                 <Plus className="size-3.5" />
                 {t("Add exercise")}
@@ -563,7 +563,7 @@ function ProfilePage() {
             </div>
 
             {form.avoidExercises.length === 0 ? (
-              <p className="rounded-lg border border-dashed border-border/70 p-3 text-xs text-muted-foreground">
+              <p className="rounded-xl border border-dashed border-border/70 p-3 text-xs text-muted-foreground">
                 {t("Nothing flagged. Add an exercise if pain or equipment blocks it.")}
               </p>
             ) : (
@@ -573,7 +573,7 @@ function ProfilePage() {
                   return (
                     <li
                       key={a.exerciseId}
-                      className="rounded-lg border border-border/60 bg-card/70 p-2.5"
+                      className="rounded-xl border border-border/60 bg-card/70 p-2.5"
                     >
                       <div className="flex items-center gap-2.5">
                         <ExerciseThumb
@@ -588,7 +588,7 @@ function ProfilePage() {
                           type="button"
                           onClick={() => toggleAvoid(a.exerciseId)}
                           aria-label={t("Remove")}
-                          className="tap-target grid size-9 place-items-center rounded-sm text-muted-foreground"
+                          className="tap-target grid size-9 place-items-center rounded-full text-muted-foreground"
                         >
                           <X className="size-4" />
                         </button>
@@ -605,7 +605,7 @@ function ProfilePage() {
                             key={s}
                             type="button"
                             onClick={() => setAvoidReason(a.exerciseId, t(s))}
-                            className="rounded-sm border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
+                            className="rounded-full border border-border px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
                           >
                             {t(s)}
                           </button>
@@ -647,7 +647,7 @@ function ProfilePage() {
                     patch({ idioma: option.value });
                   }}
                   className={cn(
-                    "tap-target rounded-lg border px-2 py-3 text-sm font-semibold transition-colors",
+                    "tap-target rounded-xl border px-2 py-3 text-sm font-semibold transition-colors",
                     lang === option.value
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-border bg-card text-muted-foreground",
@@ -690,7 +690,7 @@ function ProfilePage() {
 
       {dirty ? (
         <div className="fixed inset-x-0 bottom-24 z-40 px-4">
-          <div className="mx-auto flex max-w-md items-center gap-2 rounded-lg border border-border bg-card/95 p-2.5 backdrop-blur">
+          <div className="mx-auto flex max-w-md items-center gap-2 rounded-2xl border border-border bg-card/95 p-2.5 backdrop-blur">
             <p className="min-w-0 flex-1 pl-1 text-xs font-semibold text-muted-foreground">
               {t("Unsaved changes")}
             </p>
@@ -749,7 +749,7 @@ function Section({
     });
   }
   return (
-    <section className="overflow-hidden rounded-lg border border-border/60 bg-card/40">
+    <section className="overflow-hidden rounded-2xl border border-border/60 bg-card/40">
       <button
         type="button"
         onClick={toggle}
@@ -805,7 +805,7 @@ function Segmented({
               type="button"
               onClick={() => onChange(o.value)}
               className={cn(
-                "tap-target rounded-lg border px-1 py-2.5 text-xs font-semibold tabular-nums transition-colors",
+                "tap-target rounded-xl border px-1 py-2.5 text-xs font-semibold tabular-nums transition-colors",
                 on
                   ? "border-primary bg-primary/10 text-primary ring-1 ring-primary/40"
                   : "border-border bg-card text-muted-foreground",
@@ -835,8 +835,10 @@ function AccountSection({ email }: { email: string | null }) {
   }
 
   return (
-    <div className="rounded-lg border border-border/60 bg-card/70 p-3">
-      <p className="eyebrow-type text-xs text-muted-foreground">{t("Account")}</p>
+    <div className="rounded-xl border border-border/60 bg-card/70 p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {t("Account")}
+      </p>
       <p className="mt-1 truncate text-sm">{email ?? t("Signed in")}</p>
       <Button
         type="button"
@@ -861,7 +863,7 @@ function AskRpeToggle() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
       <div>
         <Label htmlFor="ask-rpe">{t("Ask for effort after each set")}</Label>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -891,7 +893,7 @@ function VibrationToggle() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
       <div>
         <Label htmlFor="haptics">{t("Vibration")}</Label>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -926,7 +928,7 @@ function UnitToggle() {
             type="button"
             onClick={() => setUnit(option)}
             className={cn(
-              "tap-target rounded-lg border px-2 py-3 text-sm font-semibold transition-colors",
+              "tap-target rounded-xl border px-2 py-3 text-sm font-semibold transition-colors",
               unit === option
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border bg-card text-muted-foreground",
@@ -954,7 +956,7 @@ function RestNotifyToggle() {
   }, []);
 
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-card px-4 py-3">
       <div>
         <Label htmlFor="rest-notify">{t("Rest notifications")}</Label>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -1027,7 +1029,7 @@ function DataBackupSection() {
       const raw = await file.text();
       setPending({ raw, preview: previewBackup(raw) });
     } catch {
-      toast.error(t("This file is not an ROUTE backup."));
+      toast.error(t("This file is not an Iron Logger backup."));
     }
   }
 
@@ -1049,14 +1051,14 @@ function DataBackupSection() {
         toast.error(t("{n} item(s) could not be restored.", { n: result.errors.length }));
       }
     } catch {
-      toast.error(t("This file is not an ROUTE backup."));
+      toast.error(t("This file is not an Iron Logger backup."));
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <div className="space-y-2 rounded-lg border border-border bg-card px-4 py-3">
+    <div className="space-y-2 rounded-xl border border-border bg-card px-4 py-3">
       <div>
         <Label>{t("Your data")}</Label>
         <p className="mt-0.5 text-xs text-muted-foreground">
@@ -1088,7 +1090,7 @@ function DataBackupSection() {
           <Download className="mr-2 size-4" /> {t("CSV")}
         </Button>
       </div>
-      <label className="tap-target flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-border px-3 py-3 text-sm font-semibold text-muted-foreground">
+      <label className="tap-target flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border px-3 py-3 text-sm font-semibold text-muted-foreground">
         <Upload className="size-4 shrink-0" />
         {t("Restore from a backup file")}
         <input
@@ -1154,7 +1156,7 @@ function ImportAndQaSection() {
     <div className="space-y-2">
       <Link
         to="/importar"
-        className="tap-target flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3"
+        className="tap-target flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3"
       >
         <Import className="size-4 shrink-0 text-primary" />
         <span className="min-w-0 flex-1">
@@ -1171,7 +1173,7 @@ function ImportAndQaSection() {
           resetOnboarding();
           navigate({ to: "/onboarding" });
         }}
-        className="tap-target flex w-full items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-left"
+        className="tap-target flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-left"
       >
         <RotateCcw className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">

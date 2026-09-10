@@ -5,7 +5,7 @@ function prefersReducedMotion() {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
-/** Conta de 0 até `value` em ~600ms com ease-[cubic-bezier(.2,0,.2,1)]. Respeita prefers-reduced-motion. */
+/** Conta de 0 até `value` em ~600ms com ease-out. Respeita prefers-reduced-motion. */
 export function useCountUp(value: number, durationMs = 600) {
   const [display, setDisplay] = useState(value);
   const frame = useRef<number | null>(null);

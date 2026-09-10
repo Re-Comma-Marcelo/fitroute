@@ -34,7 +34,7 @@ export function WeeklySlotGrid({
 
   return (
     <div className="space-y-2">
-      <div className="eyebrow-type grid grid-cols-[3rem_repeat(3,1fr)] gap-1.5 text-[11px] text-muted-foreground">
+      <div className="grid grid-cols-[3rem_repeat(3,1fr)] gap-1.5 text-[11px] uppercase tracking-wide text-muted-foreground">
         <span />
         {SLOT_PARTS.map((part) => (
           <span key={part} className="text-center">

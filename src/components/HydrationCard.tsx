@@ -25,7 +25,7 @@ export function HydrationCard() {
   const pct = Math.min(100, (glasses / Math.max(1, goal)) * 100);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="rounded-2xl border border-border bg-card p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold">{t("Hydration")}</h2>
@@ -33,7 +33,7 @@ export function HydrationCard() {
             {t("{ml} of {goalMl} ml", { ml, goalMl })}
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-sm border border-border px-1 py-0.5">
+        <div className="flex items-center gap-1 rounded-full border border-border px-1 py-0.5">
           <button
             type="button"
             aria-label={t("Lower goal")}
@@ -41,7 +41,7 @@ export function HydrationCard() {
               setWaterGoal(Math.max(4, (goal || DEFAULT_WATER_GOAL) - 1));
               setTick((n) => n + 1);
             }}
-            className="tap-target flex size-7 items-center justify-center rounded-sm text-muted-foreground"
+            className="tap-target flex size-7 items-center justify-center rounded-full text-muted-foreground"
           >
             <Minus className="size-3.5" />
           </button>
@@ -55,18 +55,15 @@ export function HydrationCard() {
               setWaterGoal(Math.min(16, (goal || DEFAULT_WATER_GOAL) + 1));
               setTick((n) => n + 1);
             }}
-            className="tap-target flex size-7 items-center justify-center rounded-sm text-muted-foreground"
+            className="tap-target flex size-7 items-center justify-center rounded-full text-muted-foreground"
           >
             <Plus className="size-3.5" />
           </button>
         </div>
       </div>
 
-      <div className="mt-3 h-2 overflow-hidden rounded-sm bg-surface-3">
-        <div
-          className="h-full rounded-sm bg-steel transition-colors"
-          style={{ width: `${pct}%` }}
-        />
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-3">
+        <div className="h-full rounded-full bg-diet transition-all" style={{ width: `${pct}%` }} />
       </div>
 
       <div className="mt-3 flex items-center justify-between gap-3">
@@ -74,8 +71,8 @@ export function HydrationCard() {
           {Array.from({ length: Math.max(goal, glasses, 8) }).map((_, i) => (
             <span
               key={i}
-              className={`size-3.5 rounded-sm border transition-colors ${
-                i < glasses ? "border-steel bg-steel" : "border-border bg-transparent"
+              className={`size-3.5 rounded-full border transition-colors ${
+                i < glasses ? "border-diet bg-diet" : "border-border bg-transparent"
               }`}
             />
           ))}
@@ -88,7 +85,7 @@ export function HydrationCard() {
               setWaterForDate(today, glasses - 1);
               setTick((n) => n + 1);
             }}
-            className="tap-target flex size-9 items-center justify-center rounded-sm border border-border text-muted-foreground"
+            className="tap-target flex size-9 items-center justify-center rounded-full border border-border text-muted-foreground"
           >
             <Minus className="size-4" />
           </button>
@@ -100,7 +97,7 @@ export function HydrationCard() {
               setWaterForDate(today, glasses + 1);
               setTick((n) => n + 1);
             }}
-            className="tap-target flex size-9 items-center justify-center rounded-sm bg-steel text-background"
+            className="tap-target flex size-9 items-center justify-center rounded-full bg-diet text-background"
           >
             <Plus className="size-4" />
           </button>

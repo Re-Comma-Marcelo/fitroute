@@ -78,9 +78,7 @@ export function decodeBridgeCode(
   if (!match) {
     return {
       ok: false,
-      error: tx("No ROUTE import code found. It should start with {prefix}", {
-        prefix: CODE_PREFIX,
-      }),
+      error: tx("No Forja code found. It should start with {prefix}", { prefix: CODE_PREFIX }),
     };
   }
   const body = match[0].slice(CODE_PREFIX.length).replace(/\s+/g, "");

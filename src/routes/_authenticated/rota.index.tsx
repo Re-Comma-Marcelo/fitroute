@@ -178,8 +178,8 @@ function RoutePage() {
   if (checkpointsQ.isLoading) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-24 w-full rounded-lg" />
-        <Skeleton className="h-64 w-full rounded-lg" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-64 w-full rounded-2xl" />
       </div>
     );
   }
@@ -187,7 +187,7 @@ function RoutePage() {
   return (
     <>
       {!checkpoints.length ? (
-        <div className="rounded-lg border border-dashed border-border p-5 text-center">
+        <div className="rounded-2xl border border-dashed border-border p-5 text-center">
           <p className="font-display text-base font-semibold">{t("Your route starts here")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {goalDate
@@ -229,7 +229,7 @@ function RoutePage() {
       ) : (
         <>
           {current ? (
-            <div className="rounded-lg border border-primary/40 bg-primary/10 p-4">
+            <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4">
               <p className="label-caps">{t("Working towards")}</p>
               <p className="font-display mt-0.5 text-base font-semibold leading-tight">
                 {current.title}
@@ -249,7 +249,7 @@ function RoutePage() {
             <button
               type="button"
               onClick={() => setPhotoOpen(true)}
-              className="tap-target mt-3 flex w-full items-center gap-3 rounded-lg border border-border bg-card p-4 text-left"
+              className="tap-target mt-3 flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-4 text-left"
             >
               <Camera className="size-5 shrink-0 text-primary" />
               <span>

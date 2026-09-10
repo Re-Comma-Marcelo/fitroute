@@ -49,7 +49,7 @@ export function PlanImportPanel() {
       </Button>
 
       {parsed ? (
-        <div className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3 text-xs">
+        <div className="space-y-2 rounded-xl border border-border/60 bg-card/40 p-3 text-xs">
           <p className="font-medium">
             {t("{sessions} session(s) and {weights} weigh-in(s) found", {
               sessions: parsed.sessions.length,

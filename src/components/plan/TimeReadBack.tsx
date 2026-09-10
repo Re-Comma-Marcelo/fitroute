@@ -35,7 +35,7 @@ export function TimeReadBack({
     .join(", ");
 
   return (
-    <div className="space-y-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
+    <div className="space-y-3 rounded-xl border border-primary/30 bg-primary/5 p-4">
       <p className="text-sm leading-relaxed">
         {budget.gymSlots.length === 0
           ? t("I can't find a usable slot in your week yet — mark at least one block above.")
@@ -61,7 +61,7 @@ export function TimeReadBack({
         {budget.gymSlots.map((slot) => (
           <span
             key={`${slot.day}-${slot.part}`}
-            className="rounded-sm bg-background/60 px-2.5 py-1 text-xs text-muted-foreground"
+            className="rounded-full bg-background/60 px-2.5 py-1 text-xs text-muted-foreground"
           >
             {t(DAY_LABEL[slot.day] ?? "")} · {slot.minutes} {t("min")}
           </span>

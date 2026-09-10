@@ -73,7 +73,7 @@ const EQUIPMENT = ["Barbell", "Dumbbells", "Machine", "Cable", "Kettlebell", "Bo
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <Label className="eyebrow-type text-xs text-muted-foreground">{label}</Label>
+      <Label className="text-xs uppercase tracking-wide text-muted-foreground">{label}</Label>
       {children}
     </div>
   );
@@ -280,7 +280,7 @@ function PlanPage() {
             {STEPS.map((label, i) => (
               <span
                 key={label}
-                className={cn("h-1 flex-1 rounded-sm", i <= step ? "bg-primary" : "bg-surface-3")}
+                className={cn("h-1 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-surface-3")}
               />
             ))}
           </div>
@@ -401,7 +401,7 @@ function PlanPage() {
             </Field>
 
             {pace && !pace.ok ? (
-              <div className="rounded-lg border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
+              <div className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
                 {t(
                   "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
                   { rate: pace.weeklyKg, safe: pace.safeWeeklyKg, weeks: pace.suggestedWeeks },
@@ -417,7 +417,7 @@ function PlanPage() {
               </div>
             ) : null}
 
-            <div className="space-y-2 rounded-lg border border-border/60 bg-card/40 p-3">
+            <div className="space-y-2 rounded-xl border border-border/60 bg-card/40 p-3">
               <p className="text-xs text-muted-foreground">
                 {t(
                   "We translate this into concrete numbers and show them to you before building anything.",
@@ -631,7 +631,7 @@ function PlanPage() {
               </Field>
             </div>
 
-            <label className="flex min-h-11 items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/40 px-3">
+            <label className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/40 px-3">
               <span className="text-sm">{t("I have care duties (kids, family)")}</span>
               <Switch
                 checked={intake.careDuties}
@@ -656,7 +656,7 @@ function PlanPage() {
             />
 
             {timeWarning ? (
-              <p className="rounded-lg border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
+              <p className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
                 {t(timeWarning)}
               </p>
             ) : null}
@@ -732,7 +732,7 @@ function PlanPage() {
               </Select>
             </Field>
 
-            <details className="rounded-lg border border-border/60 bg-card/40 p-3">
+            <details className="rounded-xl border border-border/60 bg-card/40 p-3">
               <summary className="min-h-11 cursor-pointer text-sm font-medium">
                 {t("Import notes from another app (optional)")}
               </summary>

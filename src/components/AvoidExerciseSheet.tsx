@@ -59,7 +59,7 @@ export function AvoidExerciseSheet({
               type="button"
               onClick={() => setGroup(g)}
               className={cn(
-                "shrink-0 rounded-sm border px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors",
+                "shrink-0 rounded-full border px-3 py-1.5 text-[11px] font-semibold capitalize transition-colors",
                 g === group
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border text-muted-foreground",
@@ -79,8 +79,8 @@ export function AvoidExerciseSheet({
                   type="button"
                   onClick={() => onToggle(ex.id)}
                   className={cn(
-                    "tap-target flex w-full items-center gap-3 rounded-lg border p-2 text-left transition-colors",
-                    selected ? "border-oxide/60 bg-oxide/10" : "border-border bg-card",
+                    "tap-target flex w-full items-center gap-3 rounded-xl border p-2 text-left transition-colors",
+                    selected ? "border-destructive/60 bg-destructive/10" : "border-border bg-card",
                   )}
                 >
                   <ExerciseThumb grupo={ex.grupoPrimario} nome={ex.nome} className="size-10" />
@@ -92,9 +92,9 @@ export function AvoidExerciseSheet({
                   </span>
                   <span
                     className={cn(
-                      "shrink-0 rounded-sm px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
+                      "shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide",
                       selected
-                        ? "bg-oxide text-oxide-foreground"
+                        ? "bg-destructive text-destructive-foreground"
                         : "bg-muted text-muted-foreground",
                     )}
                   >

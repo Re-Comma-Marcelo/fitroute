@@ -113,7 +113,7 @@ export function CheckpointEditSheet({
                   type="button"
                   onClick={() => setKind(k.key)}
                   className={cn(
-                    "tap-target rounded-sm border px-3 py-1.5 text-xs font-semibold",
+                    "tap-target rounded-full border px-3 py-1.5 text-xs font-semibold",
                     kind === k.key
                       ? "border-primary/60 bg-primary/15 text-primary"
                       : "border-border bg-card text-muted-foreground",
@@ -129,7 +129,7 @@ export function CheckpointEditSheet({
             <label className="block">
               <span className="label-caps">{t("Exercise")}</span>
               <select
-                className="tap-target mt-1 w-full rounded-lg border border-border bg-card px-3 text-sm"
+                className="tap-target mt-1 w-full rounded-xl border border-border bg-card px-3 text-sm"
                 value={exerciseId}
                 onChange={(e) => setExerciseId(e.target.value)}
               >

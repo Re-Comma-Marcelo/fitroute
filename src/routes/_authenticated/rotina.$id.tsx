@@ -307,7 +307,7 @@ function RoutineEditor() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="tap-target text-oxide"
+                  className="tap-target text-destructive"
                   aria-label={t("Delete routine")}
                   disabled={saving}
                 >
@@ -328,7 +328,7 @@ function RoutineEditor() {
                 <AlertDialogFooter>
                   <AlertDialogCancel className="tap-target">{t("Keep routine")}</AlertDialogCancel>
                   <AlertDialogAction
-                    className="tap-target bg-oxide text-oxide-foreground hover:bg-oxide/90"
+                    className="tap-target bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     onClick={() => void handleDelete()}
                   >
                     {t("Delete routine")}
@@ -380,7 +380,7 @@ function RoutineEditor() {
                     })
                   }
                   className={cn(
-                    "tap-target flex-1 rounded-lg border px-0 py-2 text-xs font-semibold capitalize transition-colors",
+                    "tap-target flex-1 rounded-xl border px-0 py-2 text-xs font-semibold capitalize transition-colors",
                     active
                       ? "border-primary/60 bg-primary/15 text-primary"
                       : "border-border bg-card text-muted-foreground",
@@ -401,7 +401,7 @@ function RoutineEditor() {
         </h2>
 
         {routine.exercicios.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-border p-6 text-center">
+          <div className="rounded-xl border border-dashed border-border p-6 text-center">
             <p className="text-sm text-muted-foreground">
               {t("No exercises yet. Add the first one from the library.")}
             </p>
@@ -421,7 +421,7 @@ function RoutineEditor() {
                   if (dragIdx !== null && dragIdx !== idx) move(dragIdx, idx);
                   setDragIdx(null);
                 }}
-                className={`rounded-lg border border-border bg-card p-3 ${
+                className={`rounded-xl border border-border bg-card p-3 ${
                   dragIdx === idx ? "opacity-60" : ""
                 }`}
               >
@@ -467,7 +467,7 @@ function RoutineEditor() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="tap-target text-oxide"
+                    className="tap-target text-destructive"
                     aria-label={t("Remove exercise")}
                     onClick={() => removeExercise(idx)}
                   >
@@ -508,9 +508,9 @@ function RoutineEditor() {
                     type="button"
                     onClick={() => toggleSuperset(idx)}
                     aria-pressed={Boolean(groupLabels[rex.exerciseId])}
-                    className={`tap-target mt-2 inline-flex items-center gap-2 rounded-sm px-3 text-xs font-semibold ${
+                    className={`tap-target mt-2 inline-flex items-center gap-2 rounded-full px-3 text-xs font-semibold ${
                       groupLabels[rex.exerciseId]
-                        ? "bg-steel/15 text-steel"
+                        ? "bg-train/15 text-train"
                         : "bg-surface-3 text-muted-foreground"
                     }`}
                   >
@@ -520,7 +520,7 @@ function RoutineEditor() {
                       : t("Superset with the exercise above")}
                   </button>
                 ) : groupLabels[rex.exerciseId] ? (
-                  <p className="mt-2 inline-flex rounded-sm bg-steel/15 px-3 py-1 text-xs font-semibold text-steel">
+                  <p className="mt-2 inline-flex rounded-full bg-train/15 px-3 py-1 text-xs font-semibold text-train">
                     {t("Superset {label}", { label: groupLabels[rex.exerciseId] ?? "" })}
                   </p>
                 ) : null}
@@ -563,7 +563,7 @@ function NumField({
 }) {
   return (
     <label className="block">
-      <span className="eyebrow-type mb-1 block text-[11px] text-muted-foreground">
+      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </span>
       <Input

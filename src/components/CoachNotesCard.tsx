@@ -158,12 +158,12 @@ export function CoachNotesCard() {
   if (!feed.length && !checkIn) return null;
 
   return (
-    <section className="rounded-lg border border-border bg-card p-4">
+    <section className="rounded-2xl border border-border bg-card p-4">
       <h2 className="label-caps">{t("Coach notes")}</h2>
 
       {checkIn ? (
-        <div className="mt-3 rounded-lg border border-primary/40 bg-primary/10 p-3">
-          <p className="eyebrow-type flex items-center gap-1.5 text-[11px] text-primary">
+        <div className="mt-3 rounded-2xl border border-primary/40 bg-primary/10 p-3">
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-primary">
             <Sparkles className="size-3.5" /> {t("Coach")}
           </p>
           <p className="mt-1 text-sm leading-snug">{checkIn.message}</p>
@@ -171,7 +171,7 @@ export function CoachNotesCard() {
             <p
               key={i}
               className={cn(
-                "mt-2 rounded-lg px-3 py-2 text-sm leading-snug",
+                "mt-2 rounded-xl px-3 py-2 text-sm leading-snug",
                 m.role === "user"
                   ? "ml-6 bg-primary text-primary-foreground"
                   : "mr-6 bg-surface-3 text-foreground",
@@ -192,7 +192,7 @@ export function CoachNotesCard() {
         />
         <button
           type="submit"
-          className="tap-target flex size-11 shrink-0 items-center justify-center rounded-sm bg-primary text-primary-foreground"
+          className="tap-target flex size-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground"
           aria-label={t("Send")}
         >
           <Send className="size-4" />
@@ -206,7 +206,7 @@ export function CoachNotesCard() {
             type="button"
             onClick={() => setFilter(option)}
             className={cn(
-              "tap-target rounded-sm border px-3 text-xs font-semibold transition-colors",
+              "tap-target rounded-full border px-3 text-xs font-semibold transition-colors",
               filter === option
                 ? "border-primary/60 bg-primary/15 text-primary"
                 : "border-border text-muted-foreground",
@@ -226,7 +226,7 @@ export function CoachNotesCard() {
       <ul className="mt-3 space-y-3">
         {(showAll ? feed : feed.slice(0, 5)).map((item) => (
           <li key={item.id} className="border-t border-border/60 pt-3 first:border-0 first:pt-0">
-            <p className="eyebrow-type text-[11px] text-muted-foreground">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <span className={item.adaptive ? "text-primary" : undefined}>{item.label}</span> ·{" "}
               <span className="normal-case">{formatDateLong(item.createdAt)}</span>
             </p>
@@ -241,7 +241,7 @@ export function CoachNotesCard() {
                 {item.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-sm bg-surface-3 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
+                    className="rounded-full bg-surface-3 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground"
                   >
                     {tag}
                   </span>

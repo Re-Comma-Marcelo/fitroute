@@ -60,7 +60,7 @@ export function MealScheduleSheet({ open, onOpenChange, schedule }: Props) {
             return (
               <li
                 key={slot}
-                className="flex items-center gap-3 rounded-lg border border-border bg-card p-3"
+                className="flex items-center gap-3 rounded-xl border border-border bg-card p-3"
               >
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold">{t(SLOT_LABEL[slot])}</p>

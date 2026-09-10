@@ -205,7 +205,7 @@ function TodayPage() {
 
   if (loadError) {
     return (
-      <div className="mt-6 rounded-lg border border-dashed border-border p-6 text-center">
+      <div className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center">
         <p className="font-display text-sm font-semibold">{t("Could not load today's meals.")}</p>
         <Button
           variant="outline"
@@ -226,15 +226,15 @@ function TodayPage() {
   if (firstLoad) {
     return (
       <div className="space-y-4" aria-busy="true">
-        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
         <div className="flex gap-2">
-          <Skeleton className="h-11 w-24 rounded-sm" />
-          <Skeleton className="h-11 w-24 rounded-sm" />
-          <Skeleton className="h-11 w-24 rounded-sm" />
+          <Skeleton className="h-11 w-24 rounded-full" />
+          <Skeleton className="h-11 w-24 rounded-full" />
+          <Skeleton className="h-11 w-24 rounded-full" />
         </div>
-        <Skeleton className="h-11 w-full rounded-lg" />
-        <Skeleton className="h-28 w-full rounded-lg" />
-        <Skeleton className="h-28 w-full rounded-lg" />
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
       </div>
     );
   }
@@ -242,7 +242,7 @@ function TodayPage() {
   return (
     <>
       {insightQ.data ? (
-        <section className="mb-4 rounded-lg border border-primary/20 bg-primary/5 p-4">
+        <section className="mb-4 rounded-2xl border border-primary/20 bg-primary/5 p-4">
           <div className="flex items-start gap-3">
             <Sparkles className="mt-0.5 size-5 shrink-0 text-primary" />
             <div>
@@ -254,16 +254,16 @@ function TodayPage() {
       ) : null}
 
       <div className="flex items-center justify-between gap-2">
-        <div className="flex rounded-sm border border-border p-0.5">
+        <div className="flex rounded-full border border-border p-0.5">
           {(["eaten", "planned"] as const).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setRingView(v)}
               disabled={v === "eaten" && !hasEaten}
-              className={`tap-target rounded-sm px-3 py-1 text-xs font-semibold transition-colors ${
+              className={`tap-target rounded-full px-3 py-1 text-xs font-semibold transition-colors ${
                 ringView === v
-                  ? "bg-steel/15 text-steel"
+                  ? "bg-diet/15 text-diet"
                   : "text-muted-foreground disabled:opacity-40"
               }`}
             >
@@ -288,7 +288,7 @@ function TodayPage() {
               toast.error(t("Could not copy yesterday's meals."));
             }
           }}
-          className="tap-target flex items-center gap-1.5 rounded-sm border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground"
+          className="tap-target flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground"
         >
           <Repeat className="size-4" /> {t("Repeat yesterday")}
         </button>
@@ -306,7 +306,7 @@ function TodayPage() {
             key={s}
             type="button"
             onClick={() => setSlot(s)}
-            className={`tap-target shrink-0 rounded-sm border px-4 text-xs font-semibold transition-colors ${
+            className={`tap-target shrink-0 rounded-full border px-4 text-xs font-semibold transition-colors ${
               s === currentSlot
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-border text-muted-foreground"
@@ -324,7 +324,7 @@ function TodayPage() {
           type="button"
           onClick={() => setTimingOpen(true)}
           aria-label={t("Timing")}
-          className="tap-target ml-auto flex shrink-0 items-center gap-1.5 rounded-sm border border-border px-3 text-xs font-semibold text-muted-foreground"
+          className="tap-target ml-auto flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground"
         >
           <Clock className="size-4" /> {t("Timing")}
         </button>
@@ -363,7 +363,7 @@ function TodayPage() {
       </div>
 
       {!options.length && !mealsQ.isLoading ? (
-        <div className="mt-3 rounded-lg border border-dashed border-border p-5 text-center">
+        <div className="mt-3 rounded-2xl border border-dashed border-border p-5 text-center">
           <p className="font-display text-sm font-semibold">
             {t("No meal planned for this slot yet")}
           </p>
@@ -378,20 +378,20 @@ function TodayPage() {
         </div>
       ) : (
         <>
-          <h3 className="eyebrow-type mt-4 text-[11px] text-primary">
+          <h3 className="mt-4 text-[11px] font-semibold uppercase tracking-wide text-primary">
             {t("Your plan for this slot")}
           </h3>
           {plannedOptions.length ? (
             <ul className="mt-2 space-y-3">{plannedOptions.map(renderMeal)}</ul>
           ) : (
-            <p className="mt-2 rounded-lg border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
+            <p className="mt-2 rounded-xl border border-dashed border-border px-3 py-2.5 text-xs text-muted-foreground">
               {t("Nothing planned yet — pick one of the suggestions below.")}
             </p>
           )}
 
           {suggestedOptions.length ? (
             <>
-              <h3 className="eyebrow-type mt-5 text-[11px] text-muted-foreground">
+              <h3 className="mt-5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 {t("Suggested for you")}
               </h3>
               <p className="mt-0.5 text-xs text-muted-foreground">

@@ -17,7 +17,7 @@ export function ProgressPhotoGallery({ photos }: { photos: ProgressPhoto[] }) {
             <img
               src={p.url}
               alt={t("Progress photo")}
-              className="h-36 w-28 rounded-lg object-cover"
+              className="h-36 w-28 rounded-xl object-cover"
               loading="lazy"
             />
             <p className="mt-1 flex items-center gap-1 text-[10px] text-muted-foreground tabular-nums">

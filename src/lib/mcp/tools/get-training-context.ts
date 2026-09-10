@@ -32,7 +32,7 @@ const mapExercise = (r: ExerciseRow) => ({
 
 export default defineTool({
   name: "get_training_context",
-  title: "Get ROUTE context",
+  title: "Get Iron Logger context",
   description:
     "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
   inputSchema: {},
@@ -96,9 +96,9 @@ export default defineTool({
       authenticated: Boolean(userId),
       note: userId
         ? "Connected: routines, diets and notes written by these tools land directly in the user's app."
-        : "Not connected: only the shared libraries are available. Profile, workout history and coach notes require connecting the ROUTE connector in Claude, and the write tools will refuse until then.",
+        : "Not connected: only the shared libraries are available. Profile, workout history and coach notes require connecting the Iron Logger connector in Claude, and the write tools will refuse until then.",
       howToUse: [
-        "ROUTE is a strength-training + nutrition app.",
+        "Iron Logger is a strength-training + nutrition app.",
         "Use create_routine to build a workout routine, create_week_diet to plan meals and log_coach_note to record soreness/injuries or a weekly check-in. When the user is connected these write straight into the app (and still return an import code as a fallback).",
         "Only use exerciseId / mealId values from the libraries below. Respect anything in the profile's avoidExercises and available equipment, and only pick meals whose slots include the slot you are filling.",
       ],

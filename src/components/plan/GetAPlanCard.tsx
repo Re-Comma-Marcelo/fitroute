@@ -37,7 +37,7 @@ export function GetAPlanCard({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-lg border border-primary/25 bg-primary/5 p-4",
+        "relative overflow-hidden rounded-2xl border border-primary/25 bg-primary/5 p-4",
         className,
       )}
     >
@@ -49,7 +49,7 @@ export function GetAPlanCard({
             dismissPlanPrompt();
             setVisible(false);
           }}
-          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-sm text-muted-foreground"
+          className="absolute right-2 top-2 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground"
         >
           <X className="h-4 w-4" />
         </button>

@@ -31,14 +31,14 @@ export function TodayCoachCard({
   const preview = previewText(model);
 
   return (
-    <section className="mt-5 overflow-hidden rounded-lg border border-primary/25 bg-primary/[0.06]">
+    <section className="mt-5 overflow-hidden rounded-2xl border border-primary/25 bg-primary/[0.06]">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         className="flex w-full items-start gap-3 p-4 text-left"
       >
-        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-sm bg-primary/15 text-primary">
+        <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-primary">
           <Sparkles className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
@@ -125,7 +125,7 @@ export function TodayCoachCard({
           </div>
 
           {swapFor ? (
-            <div className="space-y-2 rounded-lg border border-border bg-background/40 p-3">
+            <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
               <div className="flex flex-wrap gap-1.5">
                 {model.flagged.map((f) => (
                   <button
@@ -133,7 +133,7 @@ export function TodayCoachCard({
                     type="button"
                     onClick={() => setSwapFor(f.exerciseId)}
                     className={cn(
-                      "rounded-sm border px-2.5 py-1 text-[11px] font-semibold",
+                      "rounded-full border px-2.5 py-1 text-[11px] font-semibold",
                       swapFor === f.exerciseId
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-border text-muted-foreground",
@@ -195,7 +195,7 @@ function Bullet({ children, tone }: { children: React.ReactNode; tone?: "warn" }
     <li className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
       <span
         className={cn(
-          "mt-1.5 size-1.5 shrink-0 rounded-sm",
+          "mt-1.5 size-1.5 shrink-0 rounded-full",
           tone === "warn" ? "bg-warn" : "bg-primary/60",
         )}
       />

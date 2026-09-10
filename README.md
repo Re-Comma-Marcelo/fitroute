@@ -27,9 +27,3 @@ npm run dev
 - TypeScript
 - React
 - Tailwind CSS
-
-## ROUTE typography
-
-- **Archivo** remains the display family for brand marks and Display/Title headings.
-- **Chivo** remains the primary family for body copy, controls, and general interface text.
-- **Plus Jakarta Sans** at regular or medium weight is a deliberate, limited brandbook exception for small uppercase eyebrow labels only. It must not replace Archivo or Chivo elsewhere.

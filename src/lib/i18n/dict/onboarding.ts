@@ -20,7 +20,7 @@ export const dict: DictFragment = {
     "Skip for now": "Pular por agora",
     "Do you already train with another app?": "Você já treina com outro app?",
     "Import my Hevy history": "Importar meu histórico do Hevy",
-    "Your dashboard starts with your imported sessions and records.":
+    "Your dashboard starts full, with PRs and streaks.":
       "Seu painel já nasce cheio, com recordes e sequências.",
     "Start from scratch": "Começar do zero",
     "Three quick questions and we suggest a routine.":
@@ -101,7 +101,7 @@ export const dict: DictFragment = {
     "Skip for now": "Nu overslaan",
     "Do you already train with another app?": "Train je al met een andere app?",
     "Import my Hevy history": "Mijn Hevy-geschiedenis importeren",
-    "Your dashboard starts with your imported sessions and records.":
+    "Your dashboard starts full, with PRs and streaks.":
       "Je dashboard begint gevuld, met PR's en reeksen.",
     "Start from scratch": "Vanaf nul beginnen",
     "Three quick questions and we suggest a routine.":

@@ -23,7 +23,7 @@ export function ExerciseThumb({
   return (
     <span
       className={cn(
-        "relative block size-11 shrink-0 overflow-hidden rounded-lg border border-border bg-muted",
+        "relative block size-11 shrink-0 overflow-hidden rounded-xl border border-border bg-muted",
         className,
       )}
     >
@@ -37,7 +37,9 @@ export function ExerciseThumb({
         onError={() => setFailed(true)}
         className={cn("size-full", useMedia ? "object-contain" : "object-cover brightness-110")}
       />
-      {useMedia ? null : <span className="absolute inset-0 " />}
+      {useMedia ? null : (
+        <span className="absolute inset-0 bg-gradient-to-t from-background/40 via-transparent to-transparent" />
+      )}
     </span>
   );
 }

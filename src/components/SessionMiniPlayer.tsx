@@ -119,11 +119,11 @@ export function SessionMiniPlayer() {
         />
       ) : null}
 
-      <div className="mx-auto flex max-w-md items-center gap-1 rounded-sm border border-primary/30 bg-card/90 py-1.5 pl-2 pr-1.5 ">
+      <div className="mx-auto flex max-w-md items-center gap-1 rounded-full border border-primary/30 bg-card/90 py-1.5 pl-2 pr-1.5 shadow-2xl backdrop-blur-xl">
         <Link
           to="/sessao"
           aria-label={t("Return to workout session")}
-          className="tap-target flex min-w-0 flex-1 items-center gap-2 rounded-sm px-1 text-left"
+          className="tap-target flex min-w-0 flex-1 items-center gap-2 rounded-full px-1 text-left"
         >
           <ChevronUp className="size-5 shrink-0 text-primary" />
           <ProgressRing
@@ -134,8 +134,8 @@ export function SessionMiniPlayer() {
             showLabel={false}
           />
           <span className="relative flex size-2.5 shrink-0">
-            <span className="absolute inline-flex size-full rounded-sm bg-primary opacity-75" />
-            <span className="relative inline-flex size-2.5 rounded-sm bg-primary" />
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-primary" />
           </span>
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
@@ -154,7 +154,7 @@ export function SessionMiniPlayer() {
             <button
               type="button"
               aria-label={t("Discard active workout")}
-              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-sm bg-oxide/10 text-oxide"
+              className="tap-target flex size-11 shrink-0 items-center justify-center rounded-full bg-destructive/10 text-destructive"
             >
               <Trash2 className="size-5" />
             </button>
@@ -171,7 +171,7 @@ export function SessionMiniPlayer() {
             <AlertDialogFooter>
               <AlertDialogCancel className="tap-target">{t("Keep training")}</AlertDialogCancel>
               <AlertDialogAction
-                className="tap-target bg-oxide text-oxide-foreground"
+                className="tap-target bg-destructive text-destructive-foreground"
                 onClick={() => {
                   clearActiveSession();
                   setSession(null);

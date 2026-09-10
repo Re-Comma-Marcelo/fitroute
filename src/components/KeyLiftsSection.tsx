@@ -63,7 +63,7 @@ export function KeyLiftsSection({
           type="button"
           onClick={onAdd}
           aria-label={t("Track a lift")}
-          className="tap-target flex items-center gap-1 rounded-sm border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
+          className="tap-target flex items-center gap-1 rounded-full border border-border px-3 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground"
         >
           <Plus className="size-4" /> {t("Track a lift")}
         </button>
@@ -73,7 +73,7 @@ export function KeyLiftsSection({
         <button
           type="button"
           onClick={onAdd}
-          className="w-full rounded-lg border border-dashed border-border p-5 text-left"
+          className="w-full rounded-2xl border border-dashed border-border p-5 text-left"
         >
           <p className="font-display text-sm font-semibold">{t("Pick the lifts you care about")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
@@ -85,7 +85,7 @@ export function KeyLiftsSection({
       ) : (
         <ul className="space-y-2">
           {rows.map(({ exercise, trend }) => (
-            <li key={exercise.id} className="rounded-lg border border-border bg-card p-3">
+            <li key={exercise.id} className="rounded-2xl border border-border bg-card p-3">
               <div className="flex items-center gap-3">
                 <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
                 <div className="min-w-0 flex-1">
@@ -220,13 +220,13 @@ function GoalRow({
         <span className="text-muted-foreground">
           {t("Goal {target} {unit}", { target, unit: weightUnitLabel() })}
         </span>
-        <span className={cn(pct >= 100 ? "text-violet" : "text-foreground")}>
+        <span className={cn(pct >= 100 ? "text-success" : "text-foreground")}>
           {t("{current} {unit} · {pct}%", { current, unit: weightUnitLabel(), pct })}
         </span>
       </div>
-      <div className="mt-1.5 h-1.5 overflow-hidden rounded-sm bg-surface-3">
+      <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
         <div
-          className={cn("h-full rounded-sm", pct >= 100 ? "bg-violet" : "bg-primary")}
+          className={cn("h-full rounded-full", pct >= 100 ? "bg-success" : "bg-primary")}
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -241,9 +241,9 @@ function DirectionChip({ trend }: { trend: LiftTrend }) {
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center gap-1 rounded-sm px-2 py-1 text-[11px] font-semibold tabular-nums",
-        trend.direction === "up" && "bg-violet/15 text-violet",
-        trend.direction === "down" && "bg-oxide/15 text-oxide",
+        "flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-[11px] font-semibold tabular-nums",
+        trend.direction === "up" && "bg-emerald-500/15 text-emerald-400",
+        trend.direction === "down" && "bg-destructive/15 text-destructive",
         trend.direction === "flat" && "bg-muted text-muted-foreground",
       )}
     >
@@ -269,20 +269,13 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
     .join(" ");
   const stroke =
     direction === "up"
-      ? "var(--violet)"
+      ? "rgb(52 211 153)"
       : direction === "down"
         ? "var(--destructive)"
         : "var(--muted-foreground)";
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} className="shrink-0" aria-hidden="true">
-      <path
-        d={d}
-        fill="none"
-        stroke={stroke}
-        strokeWidth={2}
-        strokeLinecap="square"
-        strokeLinejoin="miter"
-      />
+      <path d={d} fill="none" stroke={stroke} strokeWidth={1.75} strokeLinecap="round" />
     </svg>
   );
 }

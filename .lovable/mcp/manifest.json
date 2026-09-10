@@ -13,12 +13,12 @@
     "server": {
       "name": "iron-logger",
       "version": "0.3.0",
-      "title": "ROUTE"
+      "title": "Iron Logger"
     },
     "tools": [
       {
         "name": "get_training_context",
-        "title": "Get ROUTE context",
+        "title": "Get Iron Logger context",
         "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
         "annotations": {
           "readOnlyHint": true,

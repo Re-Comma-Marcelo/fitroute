@@ -1,11 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Flag } from "lucide-react";
 import { buildPreview } from "@/lib/route/path";
 import type { Checkpoint } from "@/lib/route/types";
 import { formatDate } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { PanelStop } from "@/components/brand/Stop";
 
 /**
  * Home-screen preview of the route: where you are, what is next, and how far
@@ -31,13 +30,12 @@ export function RoutePreviewCard({
   return (
     <Link
       to="/rota"
-      className="relative block rounded-lg bg-card px-4 py-3 transition-colors hover:bg-stone/80"
+      className="mt-3 block rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
     >
-      <PanelStop />
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="label-caps">{t("My route")}</p>
-          <p className="mt-0.5 truncate text-sm font-semibold leading-tight tracking-normal">
+          <p className="font-display mt-0.5 truncate text-base font-semibold leading-tight">
             {empty
               ? t("Map your route to your goal")
               : (current?.title ?? t("Every checkpoint reached"))}
@@ -54,12 +52,13 @@ export function RoutePreviewCard({
                 : t("{achieved} of {total} checkpoints", { achieved, total })}
           </p>
         </div>
-        <ChevronRight className="mt-1 size-4 shrink-0 text-muted-foreground" />
+        <ChevronRight className="mt-1 size-5 shrink-0 text-muted-foreground" />
       </div>
 
       <svg
         viewBox={`0 0 ${geo.width} ${geo.height}`}
-        className="mt-1.5 h-10 w-full"
+        className="mt-3 w-full"
+        style={{ height: geo.height }}
         aria-hidden
       >
         <path
@@ -67,29 +66,28 @@ export function RoutePreviewCard({
           fill="none"
           stroke="currentColor"
           strokeWidth={2.5}
-          strokeLinecap="square"
-          strokeLinejoin="miter"
+          strokeLinecap="round"
           strokeDasharray="2 8"
           className="text-border"
         />
         {geo.nodes.map((n, i) => (
-          <rect
+          <circle
             key={i}
-            x={n.x - (i === geo.nodes.length - 1 ? 3 : 2)}
-            y={n.y - (i === geo.nodes.length - 1 ? 3 : 2)}
-            width={i === geo.nodes.length - 1 ? 6 : 4}
-            height={i === geo.nodes.length - 1 ? 6 : 4}
+            cx={n.x}
+            cy={n.y}
+            r={i === 1 ? 7 : 5}
             className={cn(
-              i < geo.nodes.length - 1 && "fill-muted-foreground",
-              i === geo.nodes.length - 1 && "fill-oxide",
+              i === 0 && "fill-muted",
+              i === 1 && "fill-primary",
+              i === 2 && "fill-primary/40",
             )}
           />
         ))}
       </svg>
 
       {goalDate ? (
-        <p className="mt-0.5 text-[11px] font-medium text-muted-foreground tabular-nums">
-          {t("Goal {date}", { date: formatDate(goalDate) })}
+        <p className="mt-1 flex items-center gap-1.5 text-[11px] font-semibold text-primary tabular-nums">
+          <Flag className="size-3.5" /> {t("Goal {date}", { date: formatDate(goalDate) })}
         </p>
       ) : null}
     </Link>

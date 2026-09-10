@@ -78,8 +78,8 @@ export function PlateCalculatorSheet({
           className={cn(
             "shrink-0 font-semibold text-muted-foreground",
             compact
-              ? "grid size-10 place-items-center rounded-sm border border-border"
-              : "tap-target inline-flex h-9 items-center gap-1 rounded-sm bg-surface-3 px-3 text-xs",
+              ? "grid size-10 place-items-center rounded-full border border-border"
+              : "tap-target inline-flex h-9 items-center gap-1 rounded-full bg-surface-3 px-3 text-xs",
           )}
         >
           <Calculator className={compact ? "size-4" : "size-3.5"} strokeWidth={2.6} />
@@ -94,9 +94,11 @@ export function PlateCalculatorSheet({
         </SheetHeader>
 
         <div className="mt-4 space-y-5">
-          <div className="rounded-lg border border-border bg-card p-4 text-center">
-            <p className="eyebrow-type text-xs text-muted-foreground">{t("Target")}</p>
-            <p className="num-big mt-1 text-steel">{formatKg(weight)}</p>
+          <div className="rounded-2xl border border-border bg-card p-4 text-center">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {t("Target")}
+            </p>
+            <p className="num-big mt-1 text-train">{formatKg(weight)}</p>
             <div className="mt-3 flex items-center justify-center gap-2">
               <Button
                 variant="secondary"
@@ -118,7 +120,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("Per side")}
             </p>
             {grouped.length ? (
@@ -126,7 +128,7 @@ export function PlateCalculatorSheet({
                 {grouped.map(({ plate, count }) => (
                   <li
                     key={plate}
-                    className="rounded-lg bg-steel/15 px-3 py-2 text-sm font-semibold tabular-nums text-steel"
+                    className="rounded-xl bg-train/15 px-3 py-2 text-sm font-semibold tabular-nums text-train"
                   >
                     {t("{count}× {weight}", { count, weight: formatKg(plate) })}
                   </li>
@@ -145,7 +147,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("Bar")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -155,7 +157,7 @@ export function PlateCalculatorSheet({
                   type="button"
                   onClick={() => pickBar(kg)}
                   className={cn(
-                    "tap-target rounded-lg border px-3 text-sm font-semibold tabular-nums",
+                    "tap-target rounded-xl border px-3 text-sm font-semibold tabular-nums",
                     kg === bar ? "border-primary bg-primary/15 text-primary" : "border-border",
                   )}
                 >
@@ -166,7 +168,7 @@ export function PlateCalculatorSheet({
           </div>
 
           <div>
-            <p className="eyebrow-type mb-2 text-xs text-muted-foreground">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {t("Plates available")}
             </p>
             <div className="flex flex-wrap gap-2">
@@ -177,9 +179,9 @@ export function PlateCalculatorSheet({
                   aria-pressed={plates.includes(plate)}
                   onClick={() => togglePlate(plate)}
                   className={cn(
-                    "tap-target rounded-lg border px-3 text-sm font-semibold tabular-nums",
+                    "tap-target rounded-xl border px-3 text-sm font-semibold tabular-nums",
                     plates.includes(plate)
-                      ? "border-steel bg-steel/15 text-steel"
+                      ? "border-train bg-train/15 text-train"
                       : "border-border text-muted-foreground",
                   )}
                 >

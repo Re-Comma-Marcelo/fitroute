@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: pageMeta({
       title: "Welcome",
-      description: "Set up ROUTE in under a minute or import your Hevy history.",
+      description: "Set up Iron Logger in under a minute or import your Hevy history.",
       twitterCard: "summary",
     }),
   }),
@@ -97,9 +97,9 @@ function OnboardingPage() {
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-6">
       {questionIndex > 0 ? (
-        <div className="mb-6 h-1.5 w-full overflow-hidden rounded-sm bg-surface-3">
+        <div className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
           <div
-            className="h-full rounded-sm bg-primary transition-[width] duration-200"
+            className="h-full rounded-full bg-primary transition-[width] duration-500"
             style={{ width: `${progressPct}%` }}
           />
         </div>
@@ -115,13 +115,13 @@ function OnboardingPage() {
               {t("Every set you log feeds a dashboard like this one.")}
             </p>
 
-            <Card className="mt-5 rounded-lg border-border bg-card p-4">
-              <p className="label-caps text-steel">{t("This week")}</p>
-              <p className="num-hero text-steel">
+            <Card className="mt-5 rounded-2xl border-border bg-card p-4">
+              <p className="label-caps text-train">{t("This week")}</p>
+              <p className="num-hero text-train">
                 <CountUp value={DEMO_VOLUME} format={(n) => formatNumber(n)} />
                 <span className="ml-1 text-base font-semibold">kg</span>
               </p>
-              <p className="mt-1 text-xs font-semibold text-violet">
+              <p className="mt-1 text-xs font-semibold text-success">
                 {t("+{pct}% vs last week", { pct: formatNumber(12) })}
               </p>
 
@@ -131,15 +131,15 @@ function OnboardingPage() {
                     key={i}
                     className={cn(
                       "size-3 rounded-[3px]",
-                      level === 0 ? "bg-surface-3" : level === 1 ? "bg-steel/40" : "bg-steel",
+                      level === 0 ? "bg-surface-3" : level === 1 ? "bg-train/40" : "bg-train",
                     )}
                   />
                 ))}
               </div>
 
-              <div className="mt-4 flex items-center gap-2 rounded-lg border border-violet/30 bg-violet/10 px-3 py-2">
-                <Trophy className="size-4 text-violet" />
-                <p className="text-xs font-semibold text-violet">
+              <div className="mt-4 flex items-center gap-2 rounded-xl border border-success/30 bg-success-bg px-3 py-2">
+                <Trophy className="size-4 text-success" />
+                <p className="text-xs font-semibold text-success">
                   {t("New PR: Bench Press 92.5 kg")}
                 </p>
               </div>
@@ -161,11 +161,11 @@ function OnboardingPage() {
               <BigCard
                 icon={<Import className="size-5 text-primary" />}
                 title={t("Import my Hevy history")}
-                subtitle={t("Your dashboard starts with your imported sessions and records.")}
+                subtitle={t("Your dashboard starts full, with PRs and streaks.")}
                 onClick={() => setStep("import")}
               />
               <BigCard
-                icon={<Dumbbell className="size-5 text-steel" />}
+                icon={<Dumbbell className="size-5 text-train" />}
                 title={t("Set me up completely")}
                 subtitle={t(
                   "One interview about your goal, your week and your food. Then the app builds your training, your meals and your route.",
@@ -251,13 +251,13 @@ function OnboardingPage() {
               {[0, 1, 2, 3].map((i) => (
                 <span
                   key={i}
-                  className="w-3 rounded-sm bg-primary"
+                  className="w-3 rounded-full bg-primary"
                   style={{
                     height: `${16 + i * 10}px`,
                     ...(reducedMotion
                       ? {}
                       : {
-                          animation: "pulse 1.2s ease-[cubic-bezier(.2,0,.2,1)] infinite",
+                          animation: "pulse 1.2s ease-in-out infinite",
                           animationDelay: `${i * 120}ms`,
                         }),
                   }}
@@ -279,11 +279,11 @@ function OnboardingPage() {
             </div>
             <h1 className="mt-1 text-2xl font-semibold tracking-tight">{plan.name}</h1>
 
-            <Card className="mt-4 rounded-lg border-border bg-card p-4">
+            <Card className="mt-4 rounded-2xl border-border bg-card p-4">
               <ul className="space-y-2.5">
                 {plan.exercises.map((item) => (
                   <li key={item.exercise.id} className="flex items-center gap-3">
-                    <Flame className="size-4 shrink-0 text-steel" />
+                    <Flame className="size-4 shrink-0 text-train" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold">{item.exercise.nome}</p>
                       <p className="text-xs text-muted-foreground tabular-nums">
@@ -369,10 +369,10 @@ function BigCard({
     <button
       type="button"
       onClick={onClick}
-      className="tap-target w-full rounded-lg border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
+      className="tap-target w-full rounded-2xl border border-border bg-card p-4 text-left transition-transform active:scale-[0.98]"
     >
       <div className="flex items-center gap-3">
-        <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-3">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-surface-3">
           {icon}
         </span>
         <div className="min-w-0">
@@ -404,7 +404,7 @@ function Question({
             key={o.value}
             type="button"
             onClick={() => onPick(o.value)}
-            className="tap-target w-full rounded-lg border border-border bg-card px-4 py-4 text-left text-sm font-semibold transition-transform active:scale-[0.98]"
+            className="tap-target w-full rounded-2xl border border-border bg-card px-4 py-4 text-left text-sm font-semibold transition-transform active:scale-[0.98]"
           >
             {o.label}
           </button>

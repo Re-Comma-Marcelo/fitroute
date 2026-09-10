@@ -72,7 +72,7 @@ export function PlanReview({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-lg border border-primary/25 bg-primary/5 p-4">
+      <section className="rounded-xl border border-primary/25 bg-primary/5 p-4">
         <p className="text-sm leading-relaxed text-foreground/90">{plan.summary}</p>
       </section>
 
@@ -89,7 +89,7 @@ export function PlanReview({
             <div
               key={day.day}
               className={cn(
-                "overflow-hidden rounded-lg border border-border/60 bg-card/40 border-l-[3px]",
+                "overflow-hidden rounded-xl border border-border/60 bg-card/40 border-l-[3px]",
                 day.kind === "gym" && "border-l-primary",
                 day.kind === "sport" && "border-l-accent",
                 day.kind === "rest" && "border-l-muted-foreground/40",
@@ -163,13 +163,13 @@ export function PlanReview({
           {MACROS.map((macro) => (
             <div
               key={macro.label}
-              className={cn("rounded-lg border p-2 text-center", macro.className)}
+              className={cn("rounded-xl border p-2 text-center", macro.className)}
             >
               <p className="text-sm font-semibold tabular-nums">
                 {macro.value(plan.diet)}
                 {macro.suffix}
               </p>
-              <p className="eyebrow-type text-[10px] text-muted-foreground">
+              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
                 {t(macro.label)}
               </p>
             </div>
@@ -184,7 +184,7 @@ export function PlanReview({
             return (
               <div
                 key={key}
-                className="overflow-hidden rounded-lg border border-border/60 bg-card/40"
+                className="overflow-hidden rounded-xl border border-border/60 bg-card/40"
               >
                 <button
                   type="button"
@@ -193,7 +193,7 @@ export function PlanReview({
                   className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="eyebrow-type block text-[10px] text-muted-foreground">
+                    <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                       {t(meal.slot)}
                     </span>
                     <span className="block truncate text-sm">{found?.name ?? meal.mealId}</span>
@@ -234,7 +234,7 @@ export function PlanReview({
           })}
 
           {plan.diet.notes.length > 0 || plan.diet.sportDayNote ? (
-            <div className="overflow-hidden rounded-lg border border-border/60 bg-card/40">
+            <div className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
               <button
                 type="button"
                 onClick={() => setOpenMeal(openMeal === NOTES_KEY ? null : NOTES_KEY)}

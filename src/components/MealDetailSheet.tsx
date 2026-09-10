@@ -157,10 +157,10 @@ export function MealDetailSheet({
         <SheetHeader className="px-4 pb-0 pt-3 text-left">
           <SheetTitle className="sr-only">{meal.name}</SheetTitle>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-            <span className="flex items-center gap-1 rounded-sm border border-border px-2 py-0.5">
+            <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
               <Flame className="size-3" /> {meal.kcal} kcal
             </span>
-            <span className="flex items-center gap-1 rounded-sm border border-border px-2 py-0.5">
+            <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
               {meal.orderOut ? <Truck className="size-3" /> : <Clock className="size-3" />}
               {meal.orderOut ? t("Order out") : t("{prepMin} min prep", { prepMin: meal.prepMin })}
             </span>
@@ -169,7 +169,7 @@ export function MealDetailSheet({
               .map((t_tag) => (
                 <span
                   key={t_tag}
-                  className="rounded-sm border border-border px-2 py-0.5 capitalize"
+                  className="rounded-full border border-border px-2 py-0.5 capitalize"
                 >
                   {t(t_tag.replace("-", " "))}
                 </span>
@@ -181,7 +181,7 @@ export function MealDetailSheet({
           {/* Macro breakdown */}
           <section>
             <h3 className="label-caps text-xs text-muted-foreground">{t("Macro breakdown")}</h3>
-            <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-sm bg-surface-3">
+            <div className="mt-2 flex h-2.5 w-full overflow-hidden rounded-full bg-surface-3">
               {macros.map((m) => (
                 <div
                   key={m.label}
@@ -197,7 +197,7 @@ export function MealDetailSheet({
                 <li key={m.label} className="flex items-baseline justify-between gap-3 text-sm">
                   <span className="flex items-center gap-2">
                     <span
-                      className="size-2.5 rounded-sm"
+                      className="size-2.5 rounded-full"
                       style={{ background: m.color }}
                       aria-hidden="true"
                     />
@@ -217,7 +217,7 @@ export function MealDetailSheet({
           </section>
 
           {/* Why it fits */}
-          <section className="rounded-lg border border-primary/20 bg-primary/5 p-3.5">
+          <section className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
             <h3 className="text-sm font-semibold">{t("Why this meal")}</h3>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
               {explanation(meal, targets, trainingTag, t)}
@@ -250,13 +250,13 @@ export function MealDetailSheet({
                       })}
                     </span>
                   </div>
-                  <div className="mt-1 flex h-1.5 overflow-hidden rounded-sm bg-surface-3">
+                  <div className="mt-1 flex h-1.5 overflow-hidden rounded-full bg-surface-3">
                     <div
                       className="h-full bg-muted-foreground/60"
                       style={{ width: `${Math.min(100, pct(before, target))}%` }}
                     />
                     <div
-                      className="h-full bg-steel"
+                      className="h-full bg-diet"
                       style={{
                         width: `${Math.min(100 - Math.min(100, pct(before, target)), pct(after - before, target))}%`,
                       }}
@@ -285,9 +285,9 @@ export function MealDetailSheet({
                 },
               )}
             </p>
-            <div className="mt-2 h-1.5 overflow-hidden rounded-sm bg-surface-3">
+            <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-3">
               <div
-                className="h-full rounded-sm bg-steel"
+                className="h-full rounded-full bg-diet"
                 style={{ width: `${Math.min(100, pct(weekAfter.kcal, weeklyTargets.kcal))}%` }}
               />
             </div>

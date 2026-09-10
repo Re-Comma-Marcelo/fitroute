@@ -92,12 +92,14 @@ function MarketPage() {
       lines.push(`\n${aisle}`);
       for (const it of aisleItems) {
         const mark = checked.includes(it.key) ? "✓ " : "";
-        lines.push(` ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`);
+        lines.push(
+          `  ${mark}${it.name} — ${formatNumber(Math.round(it.qty * 10) / 10)} ${it.unit}`,
+        );
       }
     }
     if (listQ.data?.orderOut.length) {
       lines.push(`\n${t("Ordering out")}`);
-      for (const o of listQ.data.orderOut) lines.push(` ${o.meal.name}`);
+      for (const o of listQ.data.orderOut) lines.push(`  ${o.meal.name}`);
     }
     return lines.join("\n");
   }, [groups, checked, listQ.data, t]);
@@ -133,7 +135,7 @@ function MarketPage() {
 
   return (
     <>
-      <nav className="grid grid-cols-2 gap-1 rounded-lg border border-border bg-card p-1">
+      <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
         {ranges.map((r) => (
           <button
             key={r.id}
@@ -155,7 +157,7 @@ function MarketPage() {
           onRetry={() => void listQ.refetch()}
         />
       ) : total === 0 ? (
-        <section className="mt-6 flex flex-col items-center rounded-lg border border-dashed border-border p-8 text-center">
+        <section className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
           <ShoppingBasket className="size-9 text-muted-foreground" />
           <h2 className="mt-3 text-base font-semibold">{t("Nothing to buy yet")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -164,9 +166,9 @@ function MarketPage() {
         </section>
       ) : (
         <>
-          <section className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-primary/5 p-3.5">
+          <section className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-primary/5 p-3.5">
             <div>
-              <p className="eyebrow-type text-[10px] text-muted-foreground">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {t("Estimated cost")}
               </p>
               <p className="text-xl font-semibold tabular-nums">{formatCurrency(estTotal)}</p>
@@ -183,7 +185,7 @@ function MarketPage() {
             <button
               type="button"
               onClick={shareList}
-              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-semibold"
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold"
             >
               <Share2 className="size-4" /> {t("Share list")}
             </button>
@@ -191,15 +193,15 @@ function MarketPage() {
               type="button"
               onClick={clearChecked}
               disabled={!done}
-              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-xs font-semibold disabled:opacity-40"
+              className="tap-target flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-card text-xs font-semibold disabled:opacity-40"
             >
               <Eraser className="size-4" /> {t("Clear checked")}
             </button>
           </div>
           <div className="mt-2 space-y-4">
             {groups.map(([aisle, items]) => (
-              <section key={aisle} className="rounded-lg border border-border bg-card p-3.5">
-                <h2 className="eyebrow-type text-[10px] text-muted-foreground">
+              <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
+                <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {aisle}
                 </h2>
                 <ul className="mt-2 divide-y divide-border/60">
@@ -251,8 +253,8 @@ function MarketPage() {
       )}
 
       {listQ.data?.orderOut.length ? (
-        <section className="mt-4 rounded-lg border border-border bg-card p-3.5">
-          <h2 className="eyebrow-type flex items-center gap-2 text-[10px] text-muted-foreground">
+        <section className="mt-4 rounded-2xl border border-border bg-card p-3.5">
+          <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             <Truck className="size-3.5" /> {t("Ordering out")}
           </h2>
           <ul className="mt-2 space-y-1.5">

@@ -49,7 +49,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="tap-target w-full rounded-lg border border-dashed border-border px-3 py-3 text-left text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
+        className="tap-target w-full rounded-xl border border-dashed border-border px-3 py-3 text-left text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground"
       >
         {t("Log an issue (soreness, injury, low energy)")}
       </button>
@@ -57,7 +57,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
   }
 
   return (
-    <div className="space-y-3 rounded-lg border border-border bg-background/40 p-3">
+    <div className="space-y-3 rounded-xl border border-border bg-background/40 p-3">
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -71,7 +71,7 @@ export function CoachIssueForm({ onSaved }: { onSaved?: () => void }) {
             type="button"
             onClick={() => toggle(tagItem.value)}
             className={cn(
-              "rounded-sm border px-3 py-1.5 text-xs font-semibold transition-colors",
+              "rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
               tags.includes(tagItem.value)
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border bg-card text-muted-foreground",

@@ -141,7 +141,7 @@ export function ManualWorkoutSheet({
             {rows.map((row, index) => (
               <li
                 key={`${row.exerciseId}-${index}`}
-                className="rounded-lg border border-border p-3"
+                className="rounded-2xl border border-border p-3"
               >
                 <p className="truncate text-sm font-semibold">{row.nome}</p>
                 <div className="mt-2 grid grid-cols-3 gap-2">
@@ -225,7 +225,7 @@ function Chip({
       type="button"
       onClick={onClick}
       className={cn(
-        "tap-target shrink-0 rounded-sm border px-3 text-xs font-semibold transition-colors",
+        "tap-target shrink-0 rounded-full border px-3 text-xs font-semibold transition-colors",
         active
           ? "border-primary bg-primary/15 text-foreground"
           : "border-border text-muted-foreground",

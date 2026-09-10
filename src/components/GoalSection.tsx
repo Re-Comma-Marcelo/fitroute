@@ -127,7 +127,7 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
                 setReason(null);
               }}
               className={cn(
-                "tap-target flex-1 rounded-lg border px-2 py-2 text-xs font-semibold transition-colors",
+                "tap-target flex-1 rounded-xl border px-2 py-2 text-xs font-semibold transition-colors",
                 date === q.date
                   ? "border-primary bg-primary/10 text-primary"
                   : "border-border bg-card text-muted-foreground",
@@ -148,12 +148,12 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
           {suggest.isPending ? t("Working it out...") : t("Let the coach decide what's realistic")}
         </Button>
         {reason ? (
-          <p className="rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs leading-snug text-primary">
+          <p className="rounded-xl border border-primary/40 bg-primary/10 px-3 py-2 text-xs leading-snug text-primary">
             {reason}
           </p>
         ) : null}
         {tooClose ? (
-          <p className="text-xs leading-snug text-oxide">
+          <p className="text-xs leading-snug text-destructive">
             {t(
               "Pick a date at least {n} days out — there is no room for checkpoints before that.",
               {

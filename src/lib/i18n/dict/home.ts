@@ -47,7 +47,6 @@ export const dict: DictFragment = {
     "Use it to recover. Hydrate and sleep well.": "Use para recuperar. Hidrate-se e durma bem.",
     "Train anyway": "Treinar assim mesmo",
     "Start a workout": "Começar um treino",
-    "Begin training": "Começar treino",
     "Pick a routine and start logging.": "Escolha uma rotina e comece a registrar.",
     "Start recommended": "Começar recomendado",
     "Start blank workout": "Começar treino vazio",
@@ -55,7 +54,7 @@ export const dict: DictFragment = {
     "{sessions}/{target} sessions": "{sessions}/{target} sessões",
     Resume: "Retomar",
     Train: "Treinar",
-    "Weekly target complete.": "Meta semanal concluída.",
+    "Weekly goal hit. Well done.": "Meta semanal atingida. Bom trabalho.",
     "{count} more to hit your weekly target.": "Mais {count} para atingir sua meta semanal.",
     "Weekly check-in": "Check-in semanal",
     "Two quick questions to keep your coach aligned.":
@@ -74,14 +73,13 @@ export const dict: DictFragment = {
     "Save check-in": "Salvar check-in",
     "{count} exercises": "{count} exercícios",
     "This week's volume": "Volume desta semana",
-    "Your first recorded workout sets this value.":
-      "Seu primeiro treino registrado define este valor.",
+    "Your first workout lights this number up.": "Seu primeiro treino acende este número.",
     "{pct}% vs last week": "{pct}% vs semana anterior",
     "New weekly record": "Novo recorde semanal",
     "First week logged": "Primeira semana registrada",
     Consistency: "Consistência",
-    "{sessions} workouts this week · {weeks} consistent weeks":
-      "{sessions} treinos nesta semana · {weeks} semanas consistentes",
+    "{sessions} workouts this week · {weeks} week streak":
+      "{sessions} treinos nesta semana · sequência de {weeks} semanas",
     "Your first square shows up today.": "Seu primeiro quadradinho aparece hoje.",
     "Trained on {days} of the last {total} days": "Treinou em {days} dos últimos {total} dias",
     "Latest PR": "Último recorde",
@@ -145,7 +143,6 @@ export const dict: DictFragment = {
       "Gebruik het om te herstellen. Hydrateer en slaap goed.",
     "Train anyway": "Toch trainen",
     "Start a workout": "Begin een training",
-    "Begin training": "Begin training",
     "Pick a routine and start logging.": "Kies een routine en begin met loggen.",
     "Start recommended": "Start aanbevolen",
     "Start blank workout": "Start lege training",
@@ -153,7 +150,7 @@ export const dict: DictFragment = {
     "{sessions}/{target} sessions": "{sessions}/{target} sessies",
     Resume: "Hervatten",
     Train: "Trainen",
-    "Weekly target complete.": "Weekdoel voltooid.",
+    "Weekly goal hit. Well done.": "Weekdoel bereikt. Goed gedaan.",
     "{count} more to hit your weekly target.": "Nog {count} om je weekdoel te halen.",
     "Weekly check-in": "Wekelijkse check-in",
     "Two quick questions to keep your coach aligned.":
@@ -172,14 +169,13 @@ export const dict: DictFragment = {
     "Save check-in": "Check-in opslaan",
     "{count} exercises": "{count} oefeningen",
     "This week's volume": "Volume van deze week",
-    "Your first recorded workout sets this value.":
-      "Je eerste geregistreerde training bepaalt deze waarde.",
+    "Your first workout lights this number up.": "Je eerste training laat dit getal oplichten.",
     "{pct}% vs last week": "{pct}% t.o.v. vorige week",
     "New weekly record": "Nieuw weekrecord",
     "First week logged": "Eerste week gelogd",
     Consistency: "Consistentie",
-    "{sessions} workouts this week · {weeks} consistent weeks":
-      "{sessions} trainingen deze week · {weeks} consistente weken",
+    "{sessions} workouts this week · {weeks} week streak":
+      "{sessions} trainingen deze week · {weeks} weken op rij",
     "Your first square shows up today.": "Je eerste blokje verschijnt vandaag.",
     "Trained on {days} of the last {total} days": "Getraind op {days} van de laatste {total} dagen",
     "Latest PR": "Laatste PR",

@@ -243,7 +243,7 @@ function TrainPage() {
       }
     >
       {active ? (
-        <div className="mb-6 rounded-lg border border-primary/20 bg-primary/10 p-4">
+        <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
           <p className="text-sm font-semibold text-primary">{t("Unfinished workout")}</p>
           <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -266,7 +266,7 @@ function TrainPage() {
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" size="icon" className="tap-target size-11 shrink-0">
-                  <Trash2 className="size-5 text-oxide" />
+                  <Trash2 className="size-5 text-destructive" />
                   <span className="sr-only">{t("Discard workout")}</span>
                 </Button>
               </AlertDialogTrigger>
@@ -298,7 +298,7 @@ function TrainPage() {
         <div className="flex items-end justify-between">
           <h2 className="label-caps">{t("Weekly goal")}</h2>
           <p className="font-display text-sm font-semibold tabular-nums">
-            <span className="text-steel">{doneThisWeek}</span>
+            <span className="text-train">{doneThisWeek}</span>
             <span className="text-muted-foreground">/{meta}</span>
           </p>
         </div>
@@ -311,8 +311,8 @@ function TrainPage() {
             <span
               key={i}
               className={cn(
-                "h-1.5 flex-1 rounded-sm",
-                i < doneThisWeek ? "bg-steel" : "bg-surface-3",
+                "h-1.5 flex-1 rounded-full",
+                i < doneThisWeek ? "bg-train" : "bg-surface-3",
               )}
             />
           ))}
@@ -325,9 +325,9 @@ function TrainPage() {
                 {formatKg(volumeThisWeek)} / {formatKg(targets.volumeKg)}
               </p>
             </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-sm bg-surface-3">
+            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
               <span
-                className="block h-full rounded-sm bg-steel"
+                className="block h-full rounded-full bg-train"
                 style={{
                   width: `${Math.min(100, Math.round((volumeThisWeek / targets.volumeKg) * 100))}%`,
                 }}
@@ -338,20 +338,20 @@ function TrainPage() {
       </section>
 
       {coach?.restDay && !overrideRest && !active ? (
-        <section className="mt-5 rounded-lg border border-border bg-card p-4">
+        <section className="mt-5 rounded-2xl border border-border bg-card p-4">
           <p className="label-caps text-muted-foreground">{t("Coach · today")}</p>
           <p className="mt-1 font-display text-lg font-semibold">{coach.restDay.title}</p>
           <p className="mt-1 text-sm leading-snug text-muted-foreground">{coach.restDay.line}</p>
           <ul className="mt-3 space-y-1.5">
             {coach.restDay.why.map((w) => (
               <li key={w} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                <span className="mt-1.5 size-1 shrink-0 rounded-sm bg-muted-foreground/60" />
+                <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/60" />
                 {w}
               </li>
             ))}
           </ul>
           {nextPreview ? (
-            <div className="mt-3 rounded-lg border border-border/70 bg-surface-2 p-3">
+            <div className="mt-3 rounded-xl border border-border/70 bg-surface-2 p-3">
               <p className="label-caps text-muted-foreground">{t("Next session")}</p>
               <p className="mt-1 truncate text-sm font-semibold">{nextPreview.nome}</p>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -376,7 +376,7 @@ function TrainPage() {
 
       {coachQuery.isLoading || !coach ? (
         routines.length ? (
-          <div className="mt-5 h-24 rounded-lg bg-card" />
+          <div className="mt-5 h-24 animate-pulse rounded-2xl bg-card" />
         ) : null
       ) : coach.restDay && !overrideRest && !active ? null : (
         <TodayCoachCard
@@ -428,11 +428,11 @@ function TrainPage() {
       ) : routinesQuery.isLoading ? (
         <div className="space-y-3">
           {[0, 1].map((i) => (
-            <div key={i} className="h-28 rounded-lg bg-card" />
+            <div key={i} className="h-28 animate-pulse rounded-2xl bg-card" />
           ))}
         </div>
       ) : routines.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border bg-card p-6 text-center">
+        <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
           <p className="font-display text-sm font-semibold">{t("No routines yet.")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
             {t(
@@ -543,7 +543,7 @@ function RoutineCard({
   return (
     <li
       className={cn(
-        "overflow-hidden rounded-lg border bg-card",
+        "overflow-hidden rounded-2xl border bg-card",
         isChoice ? "border-primary/40" : "border-border",
       )}
     >
@@ -553,13 +553,13 @@ function RoutineCard({
         aria-expanded={open}
         className="flex w-full items-center gap-3 p-3 text-left"
       >
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-lg">
+        <div className="relative size-14 shrink-0 overflow-hidden rounded-xl">
           <img src={routineCover(r.id)} alt="" loading="lazy" className="size-full object-cover" />
           <div className="veil absolute inset-0" />
         </div>
         <div className="min-w-0 flex-1">
           {recommended ? (
-            <span className="mb-1 inline-flex items-center gap-1 rounded-sm bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
+            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
               <Sparkles className="size-3" /> {t("Recommended today")}
             </span>
           ) : null}
@@ -580,7 +580,7 @@ function RoutineCard({
                 <span
                   key={f.nome}
                   className={cn(
-                    "inline-flex items-center gap-1 rounded-sm px-2 py-0.5 text-[10px] font-semibold",
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                     f.insight.severity === "warning"
                       ? "bg-warn/15 text-warn"
                       : "bg-primary/15 text-primary",
@@ -613,7 +613,7 @@ function RoutineCard({
                     type="button"
                     onClick={() => setDetail({ id: re.exerciseId, nome })}
                     aria-label={t("How to perform {name}", { name: nome })}
-                    className="tap-target flex w-full items-center gap-3 rounded-lg px-1 py-2 text-left transition-colors active:bg-surface-3"
+                    className="tap-target flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition-colors active:bg-surface-3"
                   >
                     <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
                     <div className="min-w-0 flex-1">
@@ -716,7 +716,7 @@ function InsightBadge({ insight }: { insight: CoachInsight }) {
           type="button"
           aria-label={t("{title} — see details", { title: insight.title })}
           className={cn(
-            "inline-flex h-6 shrink-0 items-center gap-1 rounded-sm px-2 text-[10px] font-semibold",
+            "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[10px] font-semibold",
             isWarning ? "bg-warn/15 text-warn" : "bg-primary/15 text-primary",
           )}
         >

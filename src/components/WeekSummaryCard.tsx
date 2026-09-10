@@ -20,7 +20,7 @@ export function WeekSummaryCard({
   const highlight = buildHighlight(t, summary);
 
   return (
-    <section className="mt-4 rounded-lg border border-border bg-card p-4">
+    <section className="mt-4 rounded-2xl border border-border bg-card p-4">
       <h2 className="label-caps flex items-center gap-1.5">
         <CalendarRange className="size-3.5 text-primary" /> {t("Your week")}
       </h2>
@@ -72,7 +72,7 @@ export function WeekSummaryCard({
         ) : null}
       </ul>
 
-      <p className="mt-3 rounded-lg bg-background/40 p-3 text-sm font-medium leading-snug">
+      <p className="mt-3 rounded-xl bg-background/40 p-3 text-sm font-medium leading-snug">
         {highlight}
       </p>
     </section>
@@ -110,7 +110,7 @@ function Cell({
   format: (value: number) => string;
 }) {
   return (
-    <div className="rounded-lg border border-border/60 bg-background/40 p-3">
+    <div className="rounded-xl border border-border/60 bg-background/40 p-3">
       <dt className="label-caps">{label}</dt>
       <dd className="font-display mt-1 whitespace-nowrap text-base font-semibold tabular-nums">
         {value}
@@ -118,8 +118,8 @@ function Cell({
       <dd
         className={cn(
           "mt-0.5 text-[11px] font-semibold tabular-nums",
-          delta > 0 && "text-violet",
-          delta < 0 && "text-oxide",
+          delta > 0 && "text-success",
+          delta < 0 && "text-destructive",
           delta === 0 && "text-muted-foreground",
         )}
       >

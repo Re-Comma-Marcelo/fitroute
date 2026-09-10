@@ -31,19 +31,19 @@ export function PersonalRecordsCard({
   const visible = expanded ? rows : rows.slice(0, 5);
 
   return (
-    <section className="mt-4 rounded-lg border border-border bg-card p-4">
+    <section className="mt-4 rounded-2xl border border-border bg-card p-4">
       <header className="flex items-center justify-between gap-2">
         <h2 className="label-caps flex items-center gap-1.5">
-          <Trophy className="size-3.5 text-steel" /> {t("Personal records")}
+          <Trophy className="size-3.5 text-train" /> {t("Personal records")}
         </h2>
-        <div className="flex rounded-sm border border-border p-0.5">
+        <div className="flex rounded-full border border-border p-0.5">
           {(["recent", "e1rm"] as const).map((option) => (
             <button
               key={option}
               type="button"
               onClick={() => setSort(option)}
               className={cn(
-                "rounded-sm px-3 py-1 text-[11px] font-semibold transition-colors",
+                "rounded-full px-3 py-1 text-[11px] font-semibold transition-colors",
                 sort === option ? "bg-primary text-primary-foreground" : "text-muted-foreground",
               )}
             >
@@ -69,7 +69,7 @@ export function PersonalRecordsCard({
                 </p>
               </div>
               <p className="shrink-0 text-right">
-                <span className="font-display block text-sm font-semibold tabular-nums text-steel">
+                <span className="font-display block text-sm font-semibold tabular-nums text-train">
                   {formatKg(row.bestE1rm)}
                 </span>
                 <span className="label-caps">{t("e1RM")}</span>
