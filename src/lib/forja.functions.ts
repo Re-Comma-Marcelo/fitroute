@@ -881,3 +881,78 @@ export const persistRoutePhoto = createServerFn({ method: "POST" })
       createdAt: new Date().toISOString(),
     };
   });
+
+// ---- Meal entries (flexible diary; tolerant of a missing table) ------------
+
+export const fetchMealEntries = createServerFn({ method: "POST" })
+  .inputValidator((data: { date: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrapSoft } = await import("./db.server");
+    const userId = await requireUserId();
+    const rows = unwrapSoft(
+      await db().from("meal_entries").select("*").eq("user_id", userId).eq("entry_date", data.date),
+      [] as Record<string, unknown>[],
+    );
+    return (rows as Record<string, unknown>[]).map((r) => ({
+      id: String(r["id"]),
+      date: String(r["entry_date"]),
+      slot: String(r["slot"]),
+      mealId: String(r["meal_id"]),
+      time: r["entry_time"] ? String(r["entry_time"]) : undefined,
+      planned: Boolean(r["planned"]),
+      eaten: Boolean(r["eaten"]),
+      createdAt: String(r["created_at"] ?? new Date().toISOString()),
+    }));
+  });
+
+export const persistMealEntry = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      id: string;
+      date: string;
+      slot: string;
+      mealId: string;
+      time?: string | undefined;
+      planned: boolean;
+      eaten: boolean;
+      createdAt: string;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireUserId, isMissingTable } = await import("./db.server");
+    const userId = await requireUserId();
+    const res = await db()
+      .from("meal_entries")
+      .upsert(
+        {
+          id: data.id,
+          user_id: userId,
+          entry_date: data.date,
+          slot: data.slot,
+          meal_id: data.mealId,
+          entry_time: data.time ?? null,
+          planned: data.planned,
+          eaten: data.eaten,
+          created_at: data.createdAt,
+        },
+        { onConflict: "id" },
+      )
+      .select("id");
+    if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
+    return { ok: true, synced: !res.error };
+  });
+
+export const deleteMealEntry = createServerFn({ method: "POST" })
+  .inputValidator((data: { id: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, isMissingTable } = await import("./db.server");
+    const userId = await requireUserId();
+    const res = await db()
+      .from("meal_entries")
+      .delete()
+      .eq("user_id", userId)
+      .eq("id", data.id)
+      .select("id");
+    if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
+    return { ok: true };
+  });
