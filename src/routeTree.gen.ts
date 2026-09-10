@@ -29,6 +29,7 @@ import { Route as AuthenticatedTreinoRouteImport } from './routes/_authenticated
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
+import { Route as AuthenticatedDietaInterviewRouteImport } from './routes/_authenticated/dieta.interview'
 import { Route as AuthenticatedDietaMarketRouteImport } from './routes/_authenticated/dieta.market'
 import { Route as AuthenticatedDietaWeekRouteImport } from './routes/_authenticated/dieta.week'
 import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
@@ -140,6 +141,12 @@ const AuthenticatedDietaIndexRoute = AuthenticatedDietaIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedDietaRoute,
 } as any)
+const AuthenticatedDietaInterviewRoute =
+  AuthenticatedDietaInterviewRouteImport.update({
+    id: '/interview',
+    path: '/interview',
+    getParentRoute: () => AuthenticatedDietaRoute,
+  } as any)
 const AuthenticatedDietaMarketRoute =
   AuthenticatedDietaMarketRouteImport.update({
     id: '/market',
@@ -204,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
   '/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
@@ -261,6 +270,7 @@ export interface FileRoutesById {
   '/_authenticated/treino': typeof AuthenticatedTreinoRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/_authenticated/dieta/market': typeof AuthenticatedDietaMarketRoute
   '/_authenticated/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/_authenticated/progresso/$id': typeof AuthenticatedProgressoIdRoute
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/treino'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/dieta/interview'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/treino'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/dieta/interview'
     | '/dieta/market'
     | '/dieta/week'
     | '/progresso/$id'
@@ -348,6 +360,7 @@ export interface FileRouteTypes {
     | '/_authenticated/treino'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/dieta/interview'
     | '/_authenticated/dieta/market'
     | '/_authenticated/dieta/week'
     | '/_authenticated/progresso/$id'
@@ -511,6 +524,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDietaIndexRouteImport
       parentRoute: typeof AuthenticatedDietaRoute
     }
+    '/_authenticated/dieta/interview': {
+      id: '/_authenticated/dieta/interview'
+      path: '/interview'
+      fullPath: '/dieta/interview'
+      preLoaderRoute: typeof AuthenticatedDietaInterviewRouteImport
+      parentRoute: typeof AuthenticatedDietaRoute
+    }
     '/_authenticated/dieta/market': {
       id: '/_authenticated/dieta/market'
       path: '/market'
@@ -571,12 +591,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedDietaRouteChildren {
+  AuthenticatedDietaInterviewRoute: typeof AuthenticatedDietaInterviewRoute
   AuthenticatedDietaMarketRoute: typeof AuthenticatedDietaMarketRoute
   AuthenticatedDietaWeekRoute: typeof AuthenticatedDietaWeekRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
 }
 
 const AuthenticatedDietaRouteChildren: AuthenticatedDietaRouteChildren = {
+  AuthenticatedDietaInterviewRoute: AuthenticatedDietaInterviewRoute,
   AuthenticatedDietaMarketRoute: AuthenticatedDietaMarketRoute,
   AuthenticatedDietaWeekRoute: AuthenticatedDietaWeekRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,

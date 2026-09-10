@@ -1,21 +1,27 @@
 import { pageMeta } from "@/lib/route-meta";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Check, ClipboardCheck, Eraser, Share2, ShoppingBasket, Truck } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Check, ChevronDown, Eraser, Plus, Share2, ShoppingBasket, Truck, X } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { undoToast } from "@/lib/undo";
-import { formatCurrency, formatNumber, formatWeekdayShort } from "@/lib/format";
+import { formatCurrency, formatNumber } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import {
-  SLOT_LABEL,
   getCheckedItems,
-  getShoppingList,
+  getMeals,
   isoDate,
+  shoppingListFromMeals,
   toggleCheckedItem,
+  weekDates,
 } from "@/lib/data/nutrition";
+import { getArchivedWeeks, getWeekMenu, removeListItem } from "@/lib/data/week-menu";
+import { addEntry, getDayEntries } from "@/lib/data/diet-entries";
 import { estimateItemPrice, estimateTotalPrice } from "@/lib/data/prices";
-import type { ShoppingItem } from "@/lib/nutrition-types";
+import { WeekMenuSection } from "@/components/diet/WeekMenuSection";
+import { MealDetailSheet } from "@/components/MealDetailSheet";
+import type { Meal, MealSlot, ShoppingItem } from "@/lib/nutrition-types";
 import { QueryError } from "@/components/QueryError";
 
 export const Route = createFileRoute("/_authenticated/dieta/market")({
@@ -23,9 +29,9 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
     meta: pageMeta({
       title: "Shopping list",
       description:
-        "Ingredients from your planned meals, merged and grouped by aisle so shopping takes one trip.",
+        "One weekly shopping list, merged from the meals you picked for the week and grouped by aisle.",
       ogDescription:
-        "An aisle-grouped shopping list generated from the meals you planned this week.",
+        "An aisle-grouped weekly shopping list generated from the meals you chose for this week.",
     }),
   }),
   component: MarketPage,
@@ -33,58 +39,64 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
 
 function MarketPage() {
   const t = useT();
-  const ranges = useMemo(
-    () =>
-      [
-        { id: "3", label: t("Next 3 days") },
-        { id: "7", label: t("Next 7 days") },
-      ] as const,
-    [t],
-  );
-
-  const [range, setRange] = useState<"3" | "7">("3");
+  const qc = useQueryClient();
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [detail, setDetail] = useState<{ meal: Meal; slot: MealSlot } | null>(null);
 
-  // Both ranges roll forward from today so the shorter one is always a subset.
-  const dates = useMemo(() => {
-    const length = range === "7" ? 7 : 3;
-    return Array.from({ length }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() + i);
-      return isoDate(d);
-    });
-  }, [range]);
-
-  const listQ = useQuery({
-    queryKey: ["shoppingList", dates.join()],
-    queryFn: () => getShoppingList(dates),
+  const dates = useMemo(() => weekDates(), []);
+  const menuQ = useQuery({ queryKey: ["weekMenu"], queryFn: getWeekMenu });
+  const mealsQ = useQuery({ queryKey: ["meals", "all"], queryFn: () => getMeals() });
+  const weekEntriesQ = useQuery({
+    queryKey: ["weekEntries", dates.join()],
+    queryFn: async () => (await Promise.all(dates.map((d) => getDayEntries(d)))).flat(),
   });
 
+  const menu = menuQ.data;
+  const allMeals = mealsQ.data ?? [];
+  const selectedMeals = useMemo(
+    () => (menu?.mealIds ?? []).flatMap((id) => allMeals.filter((m) => m.id === id)),
+    [menu?.mealIds, allMeals],
+  );
+
+  const list = useMemo(() => shoppingListFromMeals(selectedMeals), [selectedMeals]);
+  const items = useMemo(
+    () => list.items.filter((i) => !(menu?.removedKeys ?? []).includes(i.key)),
+    [list.items, menu?.removedKeys],
+  );
+
   // getCheckedItems() reads a cache filled during hydration, so the initial
-  // state can be empty on a cold reload — re-sync once the list resolves.
+  // state can be empty on a cold reload — re-sync once the meals resolve.
   useEffect(() => {
-    if (!listQ.isSuccess) return;
+    if (!mealsQ.isSuccess) return;
     const stored = getCheckedItems();
     setChecked((prev) =>
       prev.length === stored.length && prev.every((k) => stored.includes(k)) ? prev : stored,
     );
-  }, [listQ.isSuccess, listQ.dataUpdatedAt]);
+  }, [mealsQ.isSuccess, mealsQ.dataUpdatedAt]);
 
   const groups = useMemo(() => {
     const map = new Map<string, ShoppingItem[]>();
-    for (const item of listQ.data?.items ?? []) {
+    for (const item of items) {
       const arr = map.get(item.aisle) ?? [];
       arr.push(item);
       map.set(item.aisle, arr);
     }
     return [...map.entries()];
-  }, [listQ.data]);
+  }, [items]);
 
-  const items = listQ.data?.items ?? [];
   const total = items.length;
   const done = items.filter((i) => checked.includes(i.key)).length;
   const estTotal = estimateTotalPrice(items);
   const estLeft = estimateTotalPrice(items.filter((i) => !checked.includes(i.key)));
+
+  const plannedOn = useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const e of weekEntriesQ.data ?? []) {
+      out[e.mealId] = [...new Set([...(out[e.mealId] ?? []), e.date])].sort();
+    }
+    return out;
+  }, [weekEntriesQ.data]);
 
   const shareText = useMemo(() => {
     const lines: string[] = [t("Shopping list")];
@@ -97,12 +109,12 @@ function MarketPage() {
         );
       }
     }
-    if (listQ.data?.orderOut.length) {
+    if (list.orderOut.length) {
       lines.push(`\n${t("Ordering out")}`);
-      for (const o of listQ.data.orderOut) lines.push(`  ${o.meal.name}`);
+      for (const o of list.orderOut) lines.push(`  ${o.name}`);
     }
     return lines.join("\n");
-  }, [groups, checked, listQ.data, t]);
+  }, [groups, checked, list.orderOut, t]);
 
   async function shareList() {
     try {
@@ -120,7 +132,6 @@ function MarketPage() {
   function clearChecked() {
     const removed = checked.filter((k) => items.some((i) => i.key === k));
     if (!removed.length) return;
-    // Optimistically clear from local state; persistence toggles each off.
     removed.forEach((key) => toggleCheckedItem(key, () => {}));
     setChecked([]);
     undoToast({
@@ -133,40 +144,62 @@ function MarketPage() {
     });
   }
 
+  async function dropItem(key: string) {
+    await removeListItem(key);
+    void qc.invalidateQueries({ queryKey: ["weekMenu"] });
+  }
+
+  async function assign(meal: Meal, date: string, slot: MealSlot) {
+    await addEntry({ date, slot, mealId: meal.id });
+    void qc.invalidateQueries({ queryKey: ["weekEntries"] });
+    void qc.invalidateQueries({ queryKey: ["dietEntries", date] });
+    toast.success(t("Added to your day."));
+  }
+
+  const archive = getArchivedWeeks();
+  const notStarted = !!menu && !menu.completedAt && !menu.mealIds.length;
+
+  if (menuQ.isError || mealsQ.isError) {
+    return (
+      <QueryError
+        message={t("Could not load your shopping list.")}
+        onRetry={() => {
+          void menuQ.refetch();
+          void mealsQ.refetch();
+        }}
+      />
+    );
+  }
+
   return (
     <>
-      <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
-        {ranges.map((r) => (
-          <button
-            key={r.id}
-            type="button"
-            onClick={() => setRange(r.id)}
-            className={`tap-target rounded-lg text-xs font-semibold transition-colors ${
-              r.id === range ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-            }`}
-          >
-            {r.label}
-          </button>
-        ))}
-      </nav>
-
-      {listQ.isError ? (
-        <QueryError
-          className="mt-4"
-          message={t("Could not load your shopping list.")}
-          onRetry={() => void listQ.refetch()}
-        />
+      {notStarted ? (
+        <section className="flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
+          <ShoppingBasket className="size-9 text-muted-foreground" />
+          <h2 className="mt-3 text-base font-semibold">{t("New week, empty shopping list")}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(
+              "Pick the meals you feel like eating this week and the app merges every ingredient into one list.",
+            )}
+          </p>
+          <Button asChild className="tap-target mt-4 w-full">
+            <Link to="/dieta/interview">{t("Start this week")}</Link>
+          </Button>
+        </section>
       ) : total === 0 ? (
-        <section className="mt-6 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
+        <section className="flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
           <ShoppingBasket className="size-9 text-muted-foreground" />
           <h2 className="mt-3 text-base font-semibold">{t("Nothing to buy yet")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            {t("Plan meals in the Week tab and the ingredients show up here, merged by aisle.")}
+            {t("You have not picked any meals for this week yet — choose a few to fill the list.")}
           </p>
+          <Button asChild className="tap-target mt-4 w-full">
+            <Link to="/dieta/interview">{t("Pick meals for this week")}</Link>
+          </Button>
         </section>
       ) : (
         <>
-          <section className="mt-3 flex items-center justify-between gap-3 rounded-2xl border border-border bg-primary/5 p-3.5">
+          <section className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-primary/5 p-3.5">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 {t("Estimated cost")}
@@ -177,10 +210,11 @@ function MarketPage() {
               </p>
             </div>
             <div className="text-right text-xs text-muted-foreground">
-              <p>{t("{days} days covered", { days: dates.length })}</p>
+              <p>{t("This week")}</p>
               <p className="mt-0.5">{t("{done} of {total} items checked", { done, total })}</p>
             </div>
           </section>
+
           <div className="mt-2 flex gap-2">
             <button
               type="button"
@@ -198,17 +232,18 @@ function MarketPage() {
               <Eraser className="size-4" /> {t("Clear checked")}
             </button>
           </div>
+
           <div className="mt-2 space-y-4">
-            {groups.map(([aisle, items]) => (
+            {groups.map(([aisle, aisleItems]) => (
               <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                   {aisle}
                 </h2>
                 <ul className="mt-2 divide-y divide-border/60">
-                  {items.map((item) => {
+                  {aisleItems.map((item) => {
                     const isChecked = checked.includes(item.key);
                     return (
-                      <li key={item.key}>
+                      <li key={item.key} className="flex items-center gap-1">
                         <button
                           type="button"
                           onClick={() =>
@@ -219,7 +254,7 @@ function MarketPage() {
                               }),
                             )
                           }
-                          className="tap-target flex w-full items-center gap-3 text-left"
+                          className="tap-target flex flex-1 items-center gap-3 text-left"
                         >
                           <span
                             className={`flex size-5 shrink-0 items-center justify-center rounded-md border ${
@@ -242,6 +277,14 @@ function MarketPage() {
                             </span>
                           </span>
                         </button>
+                        <button
+                          type="button"
+                          aria-label={t("Remove")}
+                          onClick={() => void dropItem(item.key)}
+                          className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground"
+                        >
+                          <X className="size-3.5" />
+                        </button>
                       </li>
                     );
                   })}
@@ -249,26 +292,88 @@ function MarketPage() {
               </section>
             ))}
           </div>
+
+          {list.orderOut.length ? (
+            <section className="mt-4 rounded-2xl border border-border bg-card p-3.5">
+              <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                <Truck className="size-3.5" /> {t("Ordering out")}
+              </h2>
+              <ul className="mt-2 space-y-1.5">
+                {list.orderOut.map((o) => (
+                  <li key={o.id} className="flex items-center justify-between text-sm">
+                    <span>{o.name}</span>
+                    <span className="text-xs tabular-nums text-muted-foreground">
+                      {o.kcal} kcal
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          <WeekMenuSection
+            meals={selectedMeals}
+            dates={dates}
+            plannedOn={plannedOn}
+            onAssign={(meal, date, slot) => void assign(meal, date, slot)}
+            onOpen={(meal) => setDetail({ meal, slot: meal.slots[0] ?? "dinner" })}
+          />
+
+          <Button asChild variant="outline" className="tap-target mt-3 w-full">
+            <Link to="/dieta/interview">
+              <Plus className="size-4" /> {t("Pick more meals")}
+            </Link>
+          </Button>
         </>
       )}
 
-      {listQ.data?.orderOut.length ? (
-        <section className="mt-4 rounded-2xl border border-border bg-card p-3.5">
-          <h2 className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-            <Truck className="size-3.5" /> {t("Ordering out")}
-          </h2>
-          <ul className="mt-2 space-y-1.5">
-            {listQ.data.orderOut.map((o) => (
-              <li key={`${o.date}-${o.slot}`} className="flex items-center justify-between text-sm">
-                <span>{o.meal.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatWeekdayShort(`${o.date}T12:00:00`)} · {t(SLOT_LABEL[o.slot])}
-                </span>
-              </li>
-            ))}
-          </ul>
+      {archive.length ? (
+        <section className="mt-6">
+          <button
+            type="button"
+            onClick={() => setArchiveOpen((v) => !v)}
+            className="flex w-full items-center gap-2 text-left"
+          >
+            <h2 className="flex-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              {t("Earlier weeks")}
+            </h2>
+            <ChevronDown
+              className={`size-4 text-muted-foreground transition-transform ${archiveOpen ? "rotate-180" : ""}`}
+            />
+          </button>
+          {archiveOpen ? (
+            <ul className="mt-2 space-y-1.5">
+              {archive.map((w) => (
+                <li
+                  key={w.weekStart}
+                  className="flex items-center justify-between rounded-xl border border-border bg-card px-3 py-2 text-sm"
+                >
+                  <span>{w.weekStart}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t("{n} meals", { n: w.mealIds.length })}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </section>
       ) : null}
+
+      <MealDetailSheet
+        meal={detail?.meal ?? null}
+        slot={detail?.slot ?? "dinner"}
+        open={!!detail}
+        onOpenChange={(v) => !v && setDetail(null)}
+        targets={{ kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 }}
+        dayTotals={{ kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }}
+        weekTotals={{ kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 }}
+        planned={false}
+        onToggle={async () => {
+          if (!detail) return;
+          await assign(detail.meal, isoDate(new Date()), detail.slot);
+          setDetail(null);
+        }}
+      />
     </>
   );
 }

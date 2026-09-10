@@ -956,3 +956,60 @@ export const deleteMealEntry = createServerFn({ method: "POST" })
     if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
     return { ok: true };
   });
+
+// ---- weekly meal selection (optional `week_menu` table) ---------------------
+
+export const fetchWeekMenu = createServerFn({ method: "GET" })
+  .inputValidator((data: { weekStart: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrapSoft } = await import("./db.server");
+    const userId = await requireUserId();
+    const rows = unwrapSoft(
+      await db()
+        .from("week_menu")
+        .select("meal_id, completed_at")
+        .eq("user_id", userId)
+        .eq("week_start", data.weekStart),
+      [] as Record<string, unknown>[],
+    );
+    const list = rows as Record<string, unknown>[];
+    return {
+      mealIds: list.map((r) => String(r["meal_id"])),
+      completedAt: list.find((r) => r["completed_at"])?.["completed_at"]
+        ? String(list.find((r) => r["completed_at"])!["completed_at"])
+        : null,
+    };
+  });
+
+export const persistWeekMenu = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: { weekStart: string; mealIds: string[]; completedAt?: string | null }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireUserId, isMissingTable } = await import("./db.server");
+    const userId = await requireUserId();
+    const del = await db()
+      .from("week_menu")
+      .delete()
+      .eq("user_id", userId)
+      .eq("week_start", data.weekStart)
+      .select("id");
+    if (del.error) {
+      if (isMissingTable(del.error)) return { ok: true, synced: false };
+      throw new Error(del.error.message);
+    }
+    if (!data.mealIds.length) return { ok: true, synced: true };
+    const res = await db()
+      .from("week_menu")
+      .insert(
+        data.mealIds.map((mealId) => ({
+          user_id: userId,
+          week_start: data.weekStart,
+          meal_id: mealId,
+          completed_at: data.completedAt ?? null,
+        })),
+      )
+      .select("id");
+    if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
+    return { ok: true, synced: !res.error };
+  });

@@ -13,6 +13,7 @@ import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
 import { CoachNotesCard } from "@/components/CoachNotesCard";
 import { WeeklyCheckInCard } from "@/components/WeeklyCheckInCard";
+import { WeekMenuPrompt } from "@/components/diet/WeekMenuPrompt";
 import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
 
 import { useT } from "@/lib/i18n";
@@ -161,6 +162,9 @@ export default function Inicio() {
         ) : (
           <>
             <WeeklyCheckInCard />
+
+            {/* Only while this week's meal choice is still open. */}
+            <WeekMenuPrompt />
 
             {/* One line, every day: am I still on my route? */}
             <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
