@@ -58,10 +58,12 @@ export function localEntries(date: string): DietEntry[] {
 export function upsertLocalEntry(entry: DietEntry): DietEntry[] {
   const store = read();
   const day = (store[entry.date] ?? []).filter((e) => e.id !== entry.id);
-  store[entry.date] = [...day, entry];
+  const next = [...day, entry];
+  store[entry.date] = next;
   write(store);
-  return store[entry.date];
+  return next;
 }
+
 
 export function upsertLocalEntries(date: string, entries: DietEntry[]): DietEntry[] {
   const store = read();
