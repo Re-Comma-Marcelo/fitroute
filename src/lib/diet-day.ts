@@ -64,7 +64,6 @@ export function upsertLocalEntry(entry: DietEntry): DietEntry[] {
   return next;
 }
 
-
 export function upsertLocalEntries(date: string, entries: DietEntry[]): DietEntry[] {
   const store = read();
   const byId = new Map((store[date] ?? []).map((e) => [e.id, e]));
