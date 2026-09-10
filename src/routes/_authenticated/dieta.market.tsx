@@ -2,16 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  Check,
-  ChevronDown,
-  Eraser,
-  Plus,
-  Share2,
-  ShoppingBasket,
-  Truck,
-  X,
-} from "lucide-react";
+import { Check, ChevronDown, Eraser, Plus, Share2, ShoppingBasket, Truck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { undoToast } from "@/lib/undo";

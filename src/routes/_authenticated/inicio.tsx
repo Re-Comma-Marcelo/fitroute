@@ -166,7 +166,6 @@ export default function Inicio() {
             {/* Only while this week's meal choice is still open. */}
             <WeekMenuPrompt />
 
-
             {/* One line, every day: am I still on my route? */}
             <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
 

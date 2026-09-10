@@ -51,8 +51,7 @@ export const dict: DictFragment = {
     "Build my list ({n})": "Maak mijn lijst ({n})",
     "Show me more": "Laat meer zien",
     "Your shopping list is ready.": "Je boodschappenlijst is klaar.",
-    "Could not save your choices. Try again.":
-      "Kon je keuzes niet opslaan. Probeer het nog eens.",
+    "Could not save your choices. Try again.": "Kon je keuzes niet opslaan. Probeer het nog eens.",
     "Could not load meal suggestions.": "Kon de maaltijdsuggesties niet laden.",
     "This week on the menu": "Deze week op het menu",
     "Plan on a day": "Plan op een dag",
