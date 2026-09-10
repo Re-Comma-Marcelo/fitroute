@@ -95,7 +95,10 @@ function TodayPage() {
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
   const mealsQ = useQuery({ queryKey: ["meals", "all"], queryFn: () => getMeals() });
-  const entriesQ = useQuery({ queryKey: ["dietEntries", date], queryFn: () => getDayEntries(date) });
+  const entriesQ = useQuery({
+    queryKey: ["dietEntries", date],
+    queryFn: () => getDayEntries(date),
+  });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const workoutsQ = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
   const tagsQ = useQuery({
@@ -110,15 +113,14 @@ function TodayPage() {
   const mealById = (id: string) => allMeals.find((m) => m.id === id);
 
   const plannedEntries = useMemo(() => entries.filter((e) => e.planned), [entries]);
-  const unplannedEaten = useMemo(
-    () => entries.filter((e) => !e.planned && e.eaten),
-    [entries],
-  );
+  const unplannedEaten = useMemo(() => entries.filter((e) => !e.planned && e.eaten), [entries]);
 
   const eatenTotals = useMemo(
     () =>
       sumMeals(
-        entries.filter((e) => e.eaten).flatMap((e) => (mealById(e.mealId) ? [mealById(e.mealId)!] : [])),
+        entries
+          .filter((e) => e.eaten)
+          .flatMap((e) => (mealById(e.mealId) ? [mealById(e.mealId)!] : [])),
       ),
     [entries, allMeals],
   );
@@ -128,9 +130,7 @@ function TodayPage() {
   );
 
   const burned = useMemo(() => {
-    const todays = (workoutsQ.data ?? []).filter(
-      (w) => isoDate(new Date(w.iniciadoEm)) === date,
-    );
+    const todays = (workoutsQ.data ?? []).filter((w) => isoDate(new Date(w.iniciadoEm)) === date);
     return estimateBurn(todays, profileQ.data?.pesoKg ?? 75);
   }, [workoutsQ.data, profileQ.data, date]);
 
@@ -202,7 +202,8 @@ function TodayPage() {
 
   const loadError = scheduleQ.isError || targetsQ.isError || mealsQ.isError || entriesQ.isError;
   const firstLoad =
-    !loadError && (scheduleQ.isLoading || targetsQ.isLoading || mealsQ.isLoading || entriesQ.isLoading);
+    !loadError &&
+    (scheduleQ.isLoading || targetsQ.isLoading || mealsQ.isLoading || entriesQ.isLoading);
 
   if (loadError) {
     return (
@@ -397,9 +398,7 @@ function TodayPage() {
         open={breakdownOpen}
         onOpenChange={setBreakdownOpen}
         planned={Object.fromEntries(plannedEntries.map((e) => [e.slot, e.mealId]))}
-        eaten={Object.fromEntries(
-          entries.filter((e) => e.eaten).map((e) => [e.slot, e.mealId]),
-        )}
+        eaten={Object.fromEntries(entries.filter((e) => e.eaten).map((e) => [e.slot, e.mealId]))}
         plannedTotals={dayTotals}
         eatenTotals={eatenTotals}
         targets={targets}

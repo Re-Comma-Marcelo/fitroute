@@ -99,9 +99,7 @@ export function PlanMealSheet({
             <li key={meal.id}>
               <button
                 type="button"
-                onClick={() =>
-                  onPick({ slot, mealId: meal.id, ...(time ? { time } : {}) })
-                }
+                onClick={() => onPick({ slot, mealId: meal.id, ...(time ? { time } : {}) })}
                 className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-2.5 text-left transition-colors active:bg-surface-2"
               >
                 <img

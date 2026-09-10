@@ -890,11 +890,7 @@ export const fetchMealEntries = createServerFn({ method: "POST" })
     const { db, requireUserId, unwrapSoft } = await import("./db.server");
     const userId = await requireUserId();
     const rows = unwrapSoft(
-      await db()
-        .from("meal_entries")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("entry_date", data.date),
+      await db().from("meal_entries").select("*").eq("user_id", userId).eq("entry_date", data.date),
       [] as Record<string, unknown>[],
     );
     return (rows as Record<string, unknown>[]).map((r) => ({

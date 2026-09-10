@@ -73,9 +73,12 @@ export function getDietCoachUpdate(input: DietUpdateInput): CoachInsight {
       ...base,
       severity: "warning",
       title: tx("Over your budget"),
-      body: tx("You're {kcal} kcal over today. One day doesn't undo a week — keep tomorrow normal.", {
-        kcal: Math.abs(openKcal),
-      }),
+      body: tx(
+        "You're {kcal} kcal over today. One day doesn't undo a week — keep tomorrow normal.",
+        {
+          kcal: Math.abs(openKcal),
+        },
+      ),
     };
   }
 
@@ -86,9 +89,12 @@ export function getDietCoachUpdate(input: DietUpdateInput): CoachInsight {
       ...base,
       severity: "info",
       title: tx("{days} days logged in a row", { days: streak }),
-      body: tx("You've logged your food {days} days straight. That's what makes the numbers usable.", {
-        days: streak,
-      }),
+      body: tx(
+        "You've logged your food {days} days straight. That's what makes the numbers usable.",
+        {
+          days: streak,
+        },
+      ),
     };
   }
 
@@ -116,10 +122,13 @@ export function getDietCoachUpdate(input: DietUpdateInput): CoachInsight {
     ...base,
     severity: "info",
     title: tx("Where today stands"),
-    body: tx("{kcal} kcal and {protein}g protein still open, spread over {meals} planned meal(s).", {
-      kcal: openKcal,
-      protein: Math.max(0, openProtein),
-      meals: input.entries.filter((e) => !e.eaten).length,
-    }),
+    body: tx(
+      "{kcal} kcal and {protein}g protein still open, spread over {meals} planned meal(s).",
+      {
+        kcal: openKcal,
+        protein: Math.max(0, openProtein),
+        meals: input.entries.filter((e) => !e.eaten).length,
+      },
+    ),
   };
 }
