@@ -398,12 +398,37 @@ export async function getTrainingTags(dates: string[]): Promise<Record<string, T
   return out;
 }
 
+/** Merges ingredients of several meals into one de-duplicated, sorted list. */
+function mergeIngredients(list: Meal[]): ShoppingItem[] {
+  const map = new Map<string, ShoppingItem>();
+  for (const meal of list) {
+    for (const ing of meal.ingredients) {
+      const key = `${ing.name}|${ing.unit}`;
+      const prev = map.get(key);
+      if (prev) prev.qty += ing.qty;
+      else map.set(key, { key, name: ing.name, qty: ing.qty, unit: ing.unit, aisle: ing.aisle });
+    }
+  }
+  return [...map.values()].sort(
+    (a, b) => a.aisle.localeCompare(b.aisle) || a.name.localeCompare(b.name),
+  );
+}
+
+/**
+ * Shopping list for an explicit set of meals (the weekly selection). Delivery
+ * meals contribute nothing to buy and are returned separately.
+ */
+export function shoppingListFromMeals(list: Meal[]): { items: ShoppingItem[]; orderOut: Meal[] } {
+  const cook = list.filter((m) => !m.orderOut);
+  return { items: mergeIngredients(cook), orderOut: list.filter((m) => m.orderOut) };
+}
+
 export async function getShoppingList(dates: string[]): Promise<{
   items: ShoppingItem[];
   orderOut: { date: string; slot: MealSlot; meal: Meal }[];
 }> {
   await hydrate();
-  const map = new Map<string, ShoppingItem>();
+  const cook: Meal[] = [];
   const orderOut: { date: string; slot: MealSlot; meal: Meal }[] = [];
   for (const date of dates) {
     const day = planCache[date];
@@ -411,22 +436,11 @@ export async function getShoppingList(dates: string[]): Promise<{
     for (const slot of MEAL_SLOTS) {
       const meal = allMeals().find((m) => m.id === day[slot]);
       if (!meal) continue;
-      if (meal.orderOut) {
-        orderOut.push({ date, slot, meal });
-        continue;
-      }
-      for (const ing of meal.ingredients) {
-        const key = `${ing.name}|${ing.unit}`;
-        const prev = map.get(key);
-        if (prev) prev.qty += ing.qty;
-        else map.set(key, { key, name: ing.name, qty: ing.qty, unit: ing.unit, aisle: ing.aisle });
-      }
+      if (meal.orderOut) orderOut.push({ date, slot, meal });
+      else cook.push(meal);
     }
   }
-  const items = [...map.values()].sort(
-    (a, b) => a.aisle.localeCompare(b.aisle) || a.name.localeCompare(b.name),
-  );
-  return { items, orderOut };
+  return { items: mergeIngredients(cook), orderOut };
 }
 
 export function getCheckedItems(): string[] {

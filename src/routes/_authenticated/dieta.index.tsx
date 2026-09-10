@@ -22,6 +22,7 @@ import { UnplannedEatenList } from "@/components/diet/UnplannedEatenList";
 import { CoachUpdateCard } from "@/components/diet/CoachUpdateCard";
 import { PlanMealSheet } from "@/components/diet/PlanMealSheet";
 import { rankMeals } from "@/lib/nutrition-swap";
+import { getWeekMenu } from "@/lib/data/week-menu";
 import { getDietCoachUpdate } from "@/lib/coach/diet-update";
 import { estimateBurn } from "@/lib/nutrition-burn";
 import { getProfile } from "@/lib/data/profile";
@@ -106,6 +107,9 @@ function TodayPage() {
     queryFn: () => getTrainingTags([date]),
   });
 
+  const weekMenuQ = useQuery({ queryKey: ["weekMenu"], queryFn: getWeekMenu });
+  const weekMenuIds = weekMenuQ.data?.mealIds ?? [];
+
   const schedule = scheduleQ.data;
   const targets = targetsQ.data ?? { kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 };
   const entries = entriesQ.data ?? [];
@@ -150,11 +154,18 @@ function TodayPage() {
     );
     const pool = slots.length ? slots : activeSlots(schedule);
     const out: CoachMealSuggestion[] = [];
+    // Meals picked in this week's interview come first: those are the
+    // ingredients the user actually has at home.
+    const weekIds = weekMenuIds;
     for (const slot of pool.slice(0, 3)) {
-      const ranked = rankMeals(
-        allMeals.filter((m) => m.slots.includes(slot) && !used.has(m.id)),
-        { slot, targets, dayTotals, tag },
-      );
+      const candidates = allMeals.filter((m) => m.slots.includes(slot) && !used.has(m.id));
+      const inWeek = candidates.filter((m) => weekIds.includes(m.id));
+      const ranked = rankMeals(inWeek.length ? inWeek : candidates, {
+        slot,
+        targets,
+        dayTotals,
+        tag,
+      });
       const best = ranked[0];
       if (best) {
         used.add(best.meal.id);
@@ -162,7 +173,7 @@ function TodayPage() {
       }
     }
     return out;
-  }, [schedule, allMeals, entries, targets, dayTotals, tag, openKcal, date]);
+  }, [schedule, allMeals, entries, targets, dayTotals, tag, openKcal, date, weekMenuIds]);
 
   const coachUpdate = useMemo(
     () =>
