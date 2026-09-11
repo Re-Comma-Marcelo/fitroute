@@ -130,12 +130,12 @@ function InterviewPage() {
         </p>
         <p className="mt-2 text-xs font-semibold tabular-nums">
           {picks.length
-            ? t("{n} of {total} selected", { n: picks.length, total: options.length })
+            ? t("{n} of {total} selected", { n: picks.length, total: totalOptions })
             : t("Pick a few to get started")}
         </p>
       </section>
 
-      <div className="mt-3 pb-28">
+      <div className="mt-3">
         {loading ? (
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -143,20 +143,35 @@ function InterviewPage() {
             ))}
           </div>
         ) : (
-          <>
-            <WeekMenuGrid options={options} selected={picks} onToggle={toggle} />
+          <div className="space-y-5">
+            {groups.map((g) => {
+              const picked = g.options.filter((o) => picks.includes(o.meal.id)).length;
+              return (
+                <section key={g.slot}>
+                  <header className="mb-2 flex items-baseline justify-between">
+                    <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {t(SLOT_LABEL[g.slot])}
+                    </h2>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {picked}/{g.options.length}
+                    </span>
+                  </header>
+                  <WeekMenuGrid options={g.options} selected={picks} onToggle={toggle} />
+                </section>
+              );
+            })}
             <Button
               variant="outline"
-              className="tap-target mt-3 w-full"
+              className="tap-target w-full"
               onClick={() => setRound((r) => r + 1)}
             >
               {t("Show me more")}
             </Button>
-          </>
+          </div>
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-20 z-30 px-4">
+      <div className="sticky bottom-4 z-30 mt-4 pb-2">
         <Button
           className="tap-target w-full shadow-lg"
           disabled={saving || !picks.length}
