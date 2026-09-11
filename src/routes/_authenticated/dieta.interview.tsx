@@ -11,6 +11,8 @@ import { WeekMenuGrid, type WeekMenuOption } from "@/components/diet/WeekMenuGri
 import { rankMeals } from "@/lib/nutrition-swap";
 import { useT } from "@/lib/i18n";
 import {
+  MEAL_SLOTS,
+  SLOT_LABEL,
   activeSlots,
   getMealSchedule,
   getMeals,
@@ -19,7 +21,7 @@ import {
   weekDates,
 } from "@/lib/data/nutrition";
 import { getWeekMenu, saveWeekSelection } from "@/lib/data/week-menu";
-import type { DayTotals } from "@/lib/nutrition-types";
+import type { DayTotals, MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/interview")({
   head: () => ({
