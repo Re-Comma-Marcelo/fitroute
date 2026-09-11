@@ -39,14 +39,20 @@ export const Route = createFileRoute("/_authenticated/dieta/interview")({
 });
 
 const EMPTY: DayTotals = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+/** Suggestions kept per category, so one slot never eats the whole pool. */
+const POOL_PER_SLOT = 12;
+const FIRST_PAGE = 4;
+const PAGE_STEP = 4;
 
 function InterviewPage() {
   const t = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [round, setRound] = useState(0);
+  const [open, setOpen] = useState<Partial<Record<MealSlot, boolean>>>({ breakfast: true });
+  const [rounds, setRounds] = useState<Partial<Record<MealSlot, number>>>({});
   const [selected, setSelected] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
+
 
   const dates = useMemo(() => weekDates(), []);
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
