@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { mealImage } from "@/lib/meal-image";
-import { SLOT_LABEL } from "@/lib/data/nutrition";
+
 import { useT } from "@/lib/i18n";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
 
