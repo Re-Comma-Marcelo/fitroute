@@ -11,6 +11,8 @@ import { WeekMenuGrid, type WeekMenuOption } from "@/components/diet/WeekMenuGri
 import { rankMeals } from "@/lib/nutrition-swap";
 import { useT } from "@/lib/i18n";
 import {
+  MEAL_SLOTS,
+  SLOT_LABEL,
   activeSlots,
   getMealSchedule,
   getMeals,
@@ -19,7 +21,7 @@ import {
   weekDates,
 } from "@/lib/data/nutrition";
 import { getWeekMenu, saveWeekSelection } from "@/lib/data/week-menu";
-import type { DayTotals } from "@/lib/nutrition-types";
+import type { DayTotals, MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/interview")({
   head: () => ({
@@ -57,7 +59,7 @@ function InterviewPage() {
   const picks = selected ?? menuQ.data?.mealIds ?? [];
 
   /** Same coach logic as the diet page: macro fit per eating moment. */
-  const options = useMemo<WeekMenuOption[]>(() => {
+  const groups = useMemo<{ slot: MealSlot; options: WeekMenuOption[] }[]>(() => {
     const schedule = scheduleQ.data;
     const meals = mealsQ.data ?? [];
     const targets = targetsQ.data;
@@ -65,19 +67,23 @@ function InterviewPage() {
     const tags = Object.values(tagsQ.data ?? {});
     const perSlot = 4 + round * 2;
     const seen = new Set<string>();
-    const out: WeekMenuOption[] = [];
-    for (const slot of activeSlots(schedule)) {
+    const slots = activeSlots(schedule);
+    // Fixed order so the day reads top to bottom, whatever the user's times are.
+    const ordered = MEAL_SLOTS.filter((s) => slots.includes(s));
+    return ordered.map((slot) => {
       const ranked = rankMeals(
         meals.filter((m) => m.slots.includes(slot) && !seen.has(m.id)),
         { slot, targets, dayTotals: EMPTY, recentTags: tags },
       );
-      for (const r of ranked.slice(0, perSlot)) {
+      const options = ranked.slice(0, perSlot).map((r) => {
         seen.add(r.meal.id);
-        out.push({ meal: r.meal, slot });
-      }
-    }
-    return out;
+        return { meal: r.meal, slot };
+      });
+      return { slot, options };
+    });
   }, [scheduleQ.data, mealsQ.data, targetsQ.data, tagsQ.data, round]);
+
+  const totalOptions = groups.reduce((n, g) => n + g.options.length, 0);
 
   const loadError = scheduleQ.isError || mealsQ.isError || targetsQ.isError;
   const loading = !loadError && (scheduleQ.isLoading || mealsQ.isLoading || targetsQ.isLoading);
@@ -124,12 +130,12 @@ function InterviewPage() {
         </p>
         <p className="mt-2 text-xs font-semibold tabular-nums">
           {picks.length
-            ? t("{n} of {total} selected", { n: picks.length, total: options.length })
+            ? t("{n} of {total} selected", { n: picks.length, total: totalOptions })
             : t("Pick a few to get started")}
         </p>
       </section>
 
-      <div className="mt-3 pb-28">
+      <div className="mt-3">
         {loading ? (
           <div className="grid grid-cols-2 gap-2">
             {Array.from({ length: 6 }).map((_, i) => (
@@ -137,20 +143,35 @@ function InterviewPage() {
             ))}
           </div>
         ) : (
-          <>
-            <WeekMenuGrid options={options} selected={picks} onToggle={toggle} />
+          <div className="space-y-5">
+            {groups.map((g) => {
+              const picked = g.options.filter((o) => picks.includes(o.meal.id)).length;
+              return (
+                <section key={g.slot}>
+                  <header className="mb-2 flex items-baseline justify-between">
+                    <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+                      {t(SLOT_LABEL[g.slot])}
+                    </h2>
+                    <span className="text-[11px] tabular-nums text-muted-foreground">
+                      {picked}/{g.options.length}
+                    </span>
+                  </header>
+                  <WeekMenuGrid options={g.options} selected={picks} onToggle={toggle} />
+                </section>
+              );
+            })}
             <Button
               variant="outline"
-              className="tap-target mt-3 w-full"
+              className="tap-target w-full"
               onClick={() => setRound((r) => r + 1)}
             >
               {t("Show me more")}
             </Button>
-          </>
+          </div>
         )}
       </div>
 
-      <div className="fixed inset-x-0 bottom-20 z-30 px-4">
+      <div className="sticky bottom-4 z-30 mt-4 pb-2">
         <Button
           className="tap-target w-full shadow-lg"
           disabled={saving || !picks.length}

@@ -1,6 +1,6 @@
 import { Check } from "lucide-react";
 import { mealImage } from "@/lib/meal-image";
-import { SLOT_LABEL } from "@/lib/data/nutrition";
+
 import { useT } from "@/lib/i18n";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
 
@@ -51,9 +51,6 @@ export function WeekMenuGrid({
                 ) : null}
               </span>
               <span className="flex flex-1 flex-col gap-0.5 p-2.5">
-                <span className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  {t(SLOT_LABEL[o.slot])}
-                </span>
                 <span className="text-sm font-semibold leading-tight">{o.meal.name}</span>
                 <span className="text-[11px] tabular-nums text-muted-foreground">
                   {o.meal.kcal} kcal · {t("P")} {o.meal.proteinG} · {t("C")} {o.meal.carbsG} ·{" "}
