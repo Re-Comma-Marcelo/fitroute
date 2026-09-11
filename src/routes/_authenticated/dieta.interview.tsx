@@ -53,7 +53,6 @@ function InterviewPage() {
   const [selected, setSelected] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
 
-
   const dates = useMemo(() => weekDates(), []);
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
   const mealsQ = useQuery({ queryKey: ["meals", "all"], queryFn: () => getMeals() });
@@ -91,7 +90,6 @@ function InterviewPage() {
   }, [scheduleQ.data, mealsQ.data, targetsQ.data, tagsQ.data]);
 
   const totalOptions = groups.reduce((n, g) => n + g.pool.length, 0);
-
 
   const loadError = scheduleQ.isError || mealsQ.isError || targetsQ.isError;
   const loading = !loadError && (scheduleQ.isLoading || mealsQ.isLoading || targetsQ.isLoading);
@@ -185,9 +183,7 @@ function InterviewPage() {
                       <Button
                         variant="outline"
                         className="tap-target mt-2 w-full"
-                        onClick={() =>
-                          setRounds((r) => ({ ...r, [g.slot]: (r[g.slot] ?? 0) + 1 }))
-                        }
+                        onClick={() => setRounds((r) => ({ ...r, [g.slot]: (r[g.slot] ?? 0) + 1 }))}
                       >
                         {t("Show me more")}
                       </Button>
@@ -198,7 +194,6 @@ function InterviewPage() {
             })}
           </div>
         )}
-
       </div>
 
       <div className="sticky bottom-4 z-30 mt-4 pb-2">
