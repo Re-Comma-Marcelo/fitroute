@@ -2,12 +2,14 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Sparkles } from "lucide-react";
+import { ChevronDown, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Skeleton } from "@/components/ui/skeleton";
 import { QueryError } from "@/components/QueryError";
 import { WeekMenuGrid, type WeekMenuOption } from "@/components/diet/WeekMenuGrid";
+
 import { rankMeals } from "@/lib/nutrition-swap";
 import { useT } from "@/lib/i18n";
 import {
@@ -37,12 +39,17 @@ export const Route = createFileRoute("/_authenticated/dieta/interview")({
 });
 
 const EMPTY: DayTotals = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
+/** Suggestions kept per category, so one slot never eats the whole pool. */
+const POOL_PER_SLOT = 12;
+const FIRST_PAGE = 4;
+const PAGE_STEP = 4;
 
 function InterviewPage() {
   const t = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [round, setRound] = useState(0);
+  const [open, setOpen] = useState<Partial<Record<MealSlot, boolean>>>({ breakfast: true });
+  const [rounds, setRounds] = useState<Partial<Record<MealSlot, number>>>({});
   const [selected, setSelected] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -59,13 +66,12 @@ function InterviewPage() {
   const picks = selected ?? menuQ.data?.mealIds ?? [];
 
   /** Same coach logic as the diet page: macro fit per eating moment. */
-  const groups = useMemo<{ slot: MealSlot; options: WeekMenuOption[] }[]>(() => {
+  const groups = useMemo<{ slot: MealSlot; pool: WeekMenuOption[] }[]>(() => {
     const schedule = scheduleQ.data;
     const meals = mealsQ.data ?? [];
     const targets = targetsQ.data;
     if (!schedule || !targets || !meals.length) return [];
     const tags = Object.values(tagsQ.data ?? {});
-    const perSlot = 4 + round * 2;
     const seen = new Set<string>();
     const slots = activeSlots(schedule);
     // Fixed order so the day reads top to bottom, whatever the user's times are.
@@ -75,15 +81,15 @@ function InterviewPage() {
         meals.filter((m) => m.slots.includes(slot) && !seen.has(m.id)),
         { slot, targets, dayTotals: EMPTY, recentTags: tags },
       );
-      const options = ranked.slice(0, perSlot).map((r) => {
+      const pool = ranked.slice(0, POOL_PER_SLOT).map((r) => {
         seen.add(r.meal.id);
         return { meal: r.meal, slot };
       });
-      return { slot, options };
+      return { slot, pool };
     });
-  }, [scheduleQ.data, mealsQ.data, targetsQ.data, tagsQ.data, round]);
+  }, [scheduleQ.data, mealsQ.data, targetsQ.data, tagsQ.data]);
 
-  const totalOptions = groups.reduce((n, g) => n + g.options.length, 0);
+  const totalOptions = groups.reduce((n, g) => n + g.pool.length, 0);
 
   const loadError = scheduleQ.isError || mealsQ.isError || targetsQ.isError;
   const loading = !loadError && (scheduleQ.isLoading || mealsQ.isLoading || targetsQ.isLoading);
@@ -143,30 +149,49 @@ function InterviewPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-2">
             {groups.map((g) => {
-              const picked = g.options.filter((o) => picks.includes(o.meal.id)).length;
+              const picked = g.pool.filter((o) => picks.includes(o.meal.id)).length;
+              const shown = FIRST_PAGE + (rounds[g.slot] ?? 0) * PAGE_STEP;
+              const visible = g.pool.slice(0, shown);
+              const isOpen = Boolean(open[g.slot]);
               return (
-                <section key={g.slot}>
-                  <header className="mb-2 flex items-baseline justify-between">
-                    <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      {t(SLOT_LABEL[g.slot])}
-                    </h2>
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
-                      {picked}/{g.options.length}
+                <Collapsible
+                  key={g.slot}
+                  open={isOpen}
+                  onOpenChange={(v) => setOpen((o) => ({ ...o, [g.slot]: v }))}
+                  className="overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <CollapsibleTrigger className="tap-target flex w-full items-center justify-between gap-2 px-3.5 text-left">
+                    <span className="text-sm font-semibold">{t(SLOT_LABEL[g.slot])}</span>
+                    <span className="flex items-center gap-2">
+                      {picked ? (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-primary">
+                          {t("{n} selected", { n: picked })}
+                        </span>
+                      ) : null}
+                      <ChevronDown
+                        className={`size-4 text-muted-foreground transition-transform ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
                     </span>
-                  </header>
-                  <WeekMenuGrid options={g.options} selected={picks} onToggle={toggle} />
-                </section>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-3 pb-3">
+                    <WeekMenuGrid options={visible} selected={picks} onToggle={toggle} />
+                    {g.pool.length > visible.length ? (
+                      <Button
+                        variant="outline"
+                        className="tap-target mt-2 w-full"
+                        onClick={() => setRounds((r) => ({ ...r, [g.slot]: (r[g.slot] ?? 0) + 1 }))}
+                      >
+                        {t("Show me more")}
+                      </Button>
+                    ) : null}
+                  </CollapsibleContent>
+                </Collapsible>
               );
             })}
-            <Button
-              variant="outline"
-              className="tap-target w-full"
-              onClick={() => setRound((r) => r + 1)}
-            >
-              {t("Show me more")}
-            </Button>
           </div>
         )}
       </div>
