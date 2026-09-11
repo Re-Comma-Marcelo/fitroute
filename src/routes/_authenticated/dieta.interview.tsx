@@ -57,7 +57,7 @@ function InterviewPage() {
   const picks = selected ?? menuQ.data?.mealIds ?? [];
 
   /** Same coach logic as the diet page: macro fit per eating moment. */
-  const options = useMemo<WeekMenuOption[]>(() => {
+  const groups = useMemo<{ slot: MealSlot; options: WeekMenuOption[] }[]>(() => {
     const schedule = scheduleQ.data;
     const meals = mealsQ.data ?? [];
     const targets = targetsQ.data;
@@ -65,19 +65,23 @@ function InterviewPage() {
     const tags = Object.values(tagsQ.data ?? {});
     const perSlot = 4 + round * 2;
     const seen = new Set<string>();
-    const out: WeekMenuOption[] = [];
-    for (const slot of activeSlots(schedule)) {
+    const slots = activeSlots(schedule);
+    // Fixed order so the day reads top to bottom, whatever the user's times are.
+    const ordered = MEAL_SLOTS.filter((s) => slots.includes(s));
+    return ordered.map((slot) => {
       const ranked = rankMeals(
         meals.filter((m) => m.slots.includes(slot) && !seen.has(m.id)),
         { slot, targets, dayTotals: EMPTY, recentTags: tags },
       );
-      for (const r of ranked.slice(0, perSlot)) {
+      const options = ranked.slice(0, perSlot).map((r) => {
         seen.add(r.meal.id);
-        out.push({ meal: r.meal, slot });
-      }
-    }
-    return out;
+        return { meal: r.meal, slot };
+      });
+      return { slot, options };
+    });
   }, [scheduleQ.data, mealsQ.data, targetsQ.data, tagsQ.data, round]);
+
+  const totalOptions = groups.reduce((n, g) => n + g.options.length, 0);
 
   const loadError = scheduleQ.isError || mealsQ.isError || targetsQ.isError;
   const loading = !loadError && (scheduleQ.isLoading || mealsQ.isLoading || targetsQ.isLoading);
