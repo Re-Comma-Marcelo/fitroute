@@ -48,6 +48,7 @@ export const dict: DictFragment = {
     "Tap the meals you want. Takes about 30 seconds — the shopping list follows.":
       "Tik de maaltijden aan die je wil. Kost ongeveer 30 seconden — daarna volgt de boodschappenlijst.",
     "{n} of {total} selected": "{n} van {total} gekozen",
+    "{n} selected": "{n} gekozen",
     "Pick a few to get started": "Kies er een paar om te starten",
     "Build my list ({n})": "Maak mijn lijst ({n})",
     "Show me more": "Laat meer zien",
