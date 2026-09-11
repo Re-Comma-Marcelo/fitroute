@@ -151,32 +151,54 @@ function InterviewPage() {
             ))}
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-2">
             {groups.map((g) => {
-              const picked = g.options.filter((o) => picks.includes(o.meal.id)).length;
+              const picked = g.pool.filter((o) => picks.includes(o.meal.id)).length;
+              const shown = FIRST_PAGE + (rounds[g.slot] ?? 0) * PAGE_STEP;
+              const visible = g.pool.slice(0, shown);
+              const isOpen = Boolean(open[g.slot]);
               return (
-                <section key={g.slot}>
-                  <header className="mb-2 flex items-baseline justify-between">
-                    <h2 className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      {t(SLOT_LABEL[g.slot])}
-                    </h2>
-                    <span className="text-[11px] tabular-nums text-muted-foreground">
-                      {picked}/{g.options.length}
+                <Collapsible
+                  key={g.slot}
+                  open={isOpen}
+                  onOpenChange={(v) => setOpen((o) => ({ ...o, [g.slot]: v }))}
+                  className="overflow-hidden rounded-2xl border border-border bg-card"
+                >
+                  <CollapsibleTrigger className="tap-target flex w-full items-center justify-between gap-2 px-3.5 text-left">
+                    <span className="text-sm font-semibold">{t(SLOT_LABEL[g.slot])}</span>
+                    <span className="flex items-center gap-2">
+                      {picked ? (
+                        <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-primary">
+                          {t("{n} selected", { n: picked })}
+                        </span>
+                      ) : null}
+                      <ChevronDown
+                        className={`size-4 text-muted-foreground transition-transform ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
                     </span>
-                  </header>
-                  <WeekMenuGrid options={g.options} selected={picks} onToggle={toggle} />
-                </section>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className="px-3 pb-3">
+                    <WeekMenuGrid options={visible} selected={picks} onToggle={toggle} />
+                    {g.pool.length > visible.length ? (
+                      <Button
+                        variant="outline"
+                        className="tap-target mt-2 w-full"
+                        onClick={() =>
+                          setRounds((r) => ({ ...r, [g.slot]: (r[g.slot] ?? 0) + 1 }))
+                        }
+                      >
+                        {t("Show me more")}
+                      </Button>
+                    ) : null}
+                  </CollapsibleContent>
+                </Collapsible>
               );
             })}
-            <Button
-              variant="outline"
-              className="tap-target w-full"
-              onClick={() => setRound((r) => r + 1)}
-            >
-              {t("Show me more")}
-            </Button>
           </div>
         )}
+
       </div>
 
       <div className="sticky bottom-4 z-30 mt-4 pb-2">
