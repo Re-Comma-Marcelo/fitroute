@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MessageSquare, Send } from "lucide-react";
+import { ChevronRight, MessageSquare, Send } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,33 +8,23 @@ import { tx } from "@/lib/format";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { saveCoachChat } from "@/lib/data/coaching";
+import { saveCoachNote } from "@/lib/data/coach-notes";
+import { getExerciseUsage } from "@/lib/exercise-usage";
+import { detectSwapIntent, rankSwapCandidates } from "@/lib/coach/swap";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
+import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 import type { Exercise } from "@/lib/types";
 
 interface Msg {
   role: "user" | "coach";
   text: string;
   swap?: Exercise[];
+  /** Label above the swap cards ("Easier variants" vs "Same muscle"). */
+  swapTitle?: string;
+  /** Extra coaching lines (execution steps) shown before the cards. */
+  steps?: string[];
 }
 
-const SWAP_HINTS = [
-  "alternative",
-  "swap",
-  "replace",
-  "instead",
-  "don't like",
-  "dont like",
-  "hurts",
-  "pain",
-  "alternativa",
-  "trocar",
-  "substituir",
-  "dói",
-  "doi",
-  "dor",
-  "alternatief",
-  "wisselen",
-  "pijn",
-];
 const FEEL_HINTS = [
   "feel",
   "where",
@@ -58,6 +48,7 @@ export function SessionCoachSheet({
   sessionExerciseIds,
   workoutId,
   onSwap,
+  onMoreOptions,
   compact = false,
 }: {
   exerciseId: string;
@@ -65,6 +56,8 @@ export function SessionCoachSheet({
   sessionExerciseIds: string[];
   workoutId: string;
   onSwap: (exercise: Exercise) => void;
+  /** Opens the full replace picker (search + all alternatives). */
+  onMoreOptions?: () => void;
   compact?: boolean;
 }) {
   const t = useT();
@@ -94,21 +87,44 @@ export function SessionCoachSheet({
     const q = question.toLowerCase();
     const [exercises, profile] = await Promise.all([getExercises(), getProfile()]);
     const target = exercises.find((e) => e.id === exerciseId);
+    const intent = detectSwapIntent(q);
+    const rank = (reason: ReturnType<typeof detectSwapIntent>["reason"], limit: number) =>
+      rankSwapCandidates(exerciseId, exercises, {
+        profile,
+        excludeIds: sessionExerciseIds,
+        historyIds: Object.keys(getExerciseUsage() as Record<string, number>),
+        reason,
+        limit,
+      });
 
-    if (SWAP_HINTS.some((h) => q.includes(h)) && target) {
-      const avoided = new Set((profile?.avoidExercises ?? []).map((a) => a.exerciseId));
-      const inSession = new Set(sessionExerciseIds);
-      const equipment = profile?.equipment ?? [];
-      const candidates = exercises
-        .filter(
-          (e) =>
-            e.id !== exerciseId &&
-            e.grupoPrimario === target.grupoPrimario &&
-            !avoided.has(e.id) &&
-            !inSession.has(e.id) &&
-            (equipment.length === 0 || equipment.includes(e.equipamento)),
-        )
-        .slice(0, 3);
+    // "I can't do this one right": prepare the body, then an easier variant.
+    if (intent.difficulty && target) {
+      void saveCoachNote({
+        kind: "observation",
+        content: tx("Found {exercise} hard: {note}", { exercise: target.nome, note: question }),
+        tags: ["difficulty", "issue"],
+      }).catch(() => {});
+      const easier = rank("difficulty", 3);
+      const steps = [
+        target.instrucoes?.trim() || "",
+        tx(
+          "Drop the load by about 30% and do 2 slow sets of 8 — learn the groove before you chase weight.",
+        ),
+        tx("Brace before you move and stop the rep where the form starts to change."),
+      ].filter(Boolean);
+      return {
+        role: "coach",
+        text: tx(
+          "Fair enough. Here is how to prepare, and easier variants that train the same muscle.",
+        ),
+        steps,
+        swap: easier,
+        swapTitle: tx("Easier variants"),
+      };
+    }
+
+    if (intent.swap && target) {
+      const candidates = rank(intent.reason, 3);
       if (!candidates.length) {
         return {
           role: "coach",
@@ -118,11 +134,15 @@ export function SessionCoachSheet({
           ),
         };
       }
-      return {
-        role: "coach",
-        text: tx("Same muscle, easier on that complaint. Pick one and I'll swap it in now."),
-        swap: candidates,
-      };
+      const text =
+        intent.reason === "busy"
+          ? tx(
+              "Machine taken? These hit the same muscle with other equipment. Pick one and I swap it in.",
+            )
+          : intent.reason === "pain"
+            ? tx("Same muscle, easier on that complaint. Pick one and I'll swap it in now.")
+            : tx("Same muscle, pick one and I swap it in now.");
+      return { role: "coach", text, swap: candidates, swapTitle: tx("Same muscle") };
     }
 
     if (FEEL_HINTS.some((h) => q.includes(h)) && target) {
@@ -197,21 +217,59 @@ export function SessionCoachSheet({
                   }`}
                 >
                   <p>{m.text}</p>
+                  {m.steps?.length ? (
+                    <ol className="mt-2 list-decimal space-y-1 pl-4 text-xs leading-snug">
+                      {m.steps.map((step) => (
+                        <li key={step}>{step}</li>
+                      ))}
+                    </ol>
+                  ) : null}
                   {m.swap?.length ? (
                     <div className="mt-2 space-y-1.5">
+                      {m.swapTitle ? (
+                        <p className="label-caps text-[10px] text-muted-foreground">
+                          {m.swapTitle}
+                        </p>
+                      ) : null}
                       {m.swap.map((candidate) => (
-                        <Button
+                        <button
                           key={candidate.id}
-                          variant="secondary"
-                          className="h-10 w-full justify-start text-xs font-semibold"
+                          type="button"
+                          className="tap-target flex w-full items-center gap-2 rounded-xl border border-border bg-card p-2 text-left"
                           onClick={() => {
                             onSwap(candidate);
                             setOpen(false);
                           }}
                         >
-                          {candidate.nome}
-                        </Button>
+                          <ExerciseThumb
+                            grupo={candidate.grupoPrimario}
+                            nome={candidate.nome}
+                            src={exerciseThumbUrl(candidate)}
+                            className="size-9"
+                          />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate text-xs font-semibold">
+                              {candidate.nome}
+                            </span>
+                            <span className="block truncate text-[11px] capitalize text-muted-foreground">
+                              {candidate.grupoPrimario} · {candidate.equipamento}
+                            </span>
+                          </span>
+                          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                        </button>
                       ))}
+                      {onMoreOptions ? (
+                        <Button
+                          variant="ghost"
+                          className="h-9 w-full text-xs font-semibold text-primary"
+                          onClick={() => {
+                            setOpen(false);
+                            onMoreOptions();
+                          }}
+                        >
+                          {t("More options")}
+                        </Button>
+                      ) : null}
                     </div>
                   ) : null}
                 </div>

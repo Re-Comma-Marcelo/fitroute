@@ -151,7 +151,6 @@
   --shadow-elegant: none;
 }
 
-
 @layer base {
   * {
     border-color: var(--color-border);
@@ -187,7 +186,6 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-
   h1,
   h2,
   h3 {
@@ -219,7 +217,6 @@
     }
   }
 }
-
 
 /* Tipografia grande e alvos de toque de 44px mínimos */
 @utility tap-target {
@@ -257,7 +254,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-
 @utility label-caps {
   font-size: 0.6875rem;
   font-weight: 500;
@@ -265,7 +261,6 @@
   text-transform: uppercase;
   color: var(--color-muted-foreground);
 }
-
 
 /* ---- Standalone / installed app behaviour ---------------------------------
  * In standalone mode there is no browser chrome, so fixed bars sit on top of
@@ -320,8 +315,11 @@
   0% {
     transform: scale(1);
   }
-  45% {
-    transform: scale(1.15);
+  40% {
+    transform: scale(1.28) rotate(-6deg);
+  }
+  70% {
+    transform: scale(0.96);
   }
   100% {
     transform: scale(1);
@@ -334,6 +332,67 @@
   }
   100% {
     background-color: transparent;
+  }
+}
+
+/* "+240 kg" chip rising into the header volume counter after a tick. */
+@keyframes volume-burst {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 14px) scale(0.8);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1.05);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -6px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -18px) scale(0.9);
+  }
+}
+
+@keyframes pr-banner {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.9);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.04);
+  }
+  25% {
+    transform: scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes confetti {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(540deg);
+  }
+}
+
+@keyframes exercise-done-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--success) 45%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 14px transparent;
   }
 }
 
@@ -358,7 +417,7 @@
 
 /* Feedback for completing a set: the check pops, the row flashes green. */
 @utility set-pop {
-  animation: set-pop 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation: set-pop 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 @utility set-flash {
@@ -369,16 +428,39 @@
   animation: fade-in 150ms ease-out both;
 }
 
+@utility volume-burst {
+  animation: volume-burst 850ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+@utility pr-banner {
+  animation: pr-banner 2100ms ease-out both;
+}
+
+@utility confetti {
+  animation: confetti 900ms cubic-bezier(0.1, 0.8, 0.3, 1) both;
+}
+
+@utility exercise-done-pulse {
+  animation: exercise-done-pulse 600ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .route-enter,
   .pr-pop,
   .set-pop,
   .set-flash,
-  .fade-in {
+  .fade-in,
+  .volume-burst,
+  .pr-banner,
+  .confetti,
+  .exercise-done-pulse {
     animation: none;
   }
+  .volume-burst,
+  .confetti {
+    display: none;
+  }
 }
-
 
 /* Keyboard users always see where they are. */
 @layer base {

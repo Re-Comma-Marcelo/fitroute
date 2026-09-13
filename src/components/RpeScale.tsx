@@ -2,7 +2,9 @@ import { useRef, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
+import { formatDuration } from "@/lib/format";
 import { hapticTick } from "@/lib/haptics";
+import { Timer } from "lucide-react";
 import { RPE_VALUES, rpeMeaning, snapRpe } from "@/lib/rpe";
 import { cn } from "@/lib/utils";
 
@@ -13,9 +15,12 @@ const MAX = RPE_VALUES[RPE_VALUES.length - 1]!;
 export function RpeScale({
   value,
   onChange,
+  onCommit,
 }: {
   value: number | null;
   onChange: (value: number) => void;
+  /** Fired once the choice is final: a tap, or the finger lifting after a drag. */
+  onCommit?: (value: number) => void;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const lastRef = useRef<number | null>(value);
@@ -63,6 +68,11 @@ export function RpeScale({
         onPointerMove={(e) => {
           if (e.currentTarget.hasPointerCapture(e.pointerId)) pick(e.clientX);
         }}
+        onPointerUp={(e) => {
+          if (!e.currentTarget.hasPointerCapture(e.pointerId)) return;
+          e.currentTarget.releasePointerCapture(e.pointerId);
+          if (lastRef.current !== null) onCommit?.(lastRef.current);
+        }}
         onKeyDown={(e) => {
           const index = value === null ? -1 : RPE_VALUES.indexOf(snapRpe(value));
           if (e.key === "ArrowRight" || e.key === "ArrowUp") {
@@ -93,6 +103,7 @@ export function RpeScale({
               onClick={() => {
                 if (value !== option) hapticTick();
                 onChange(option);
+                onCommit?.(option);
               }}
               className="absolute top-0 flex h-12 w-9 -translate-x-1/2 items-center justify-center"
               style={{ left: `${left}%` }}
@@ -131,6 +142,8 @@ export function RpeSheet({
   value,
   onSave,
   onSkip,
+  restLeft = 0,
+  restTotal = 0,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -139,10 +152,20 @@ export function RpeSheet({
   value: string;
   onSave: (value: string) => void;
   onSkip: () => void;
+  /** Rest countdown already running behind the sheet, so it stays visible. */
+  restLeft?: number;
+  restTotal?: number;
 }) {
   const t = useT();
   const [draft, setDraft] = useState<number | null>(value ? Number(value) : null);
   const meaning = rpeMeaning(draft);
+  const restPct = restTotal > 0 ? Math.max(0, Math.min(1, restLeft / restTotal)) : 0;
+
+  /** One tap and done: the value is saved the moment it is chosen. */
+  function commit(next: number) {
+    onSave(String(next));
+    onOpenChange(false);
+  }
 
   return (
     <Sheet
@@ -154,18 +177,53 @@ export function RpeSheet({
     >
       <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto pb-8">
         <SheetHeader>
-          <SheetTitle>{t("How hard was that set?")}</SheetTitle>
+          <SheetTitle className="flex items-center justify-between gap-3">
+            <span>{t("How hard was that set?")}</span>
+            {restLeft > 0 ? (
+              <span
+                className="flex shrink-0 items-center gap-1.5 rounded-full bg-info/15 px-2.5 py-1 font-mono text-sm font-semibold tabular-nums text-info"
+                role="timer"
+                aria-label={t("Rest")}
+              >
+                <span className="relative flex size-4 items-center justify-center">
+                  <svg width={16} height={16} className="-rotate-90">
+                    <circle
+                      cx={8}
+                      cy={8}
+                      r={6}
+                      fill="none"
+                      strokeWidth={2}
+                      className="stroke-info/25"
+                    />
+                    <circle
+                      cx={8}
+                      cy={8}
+                      r={6}
+                      fill="none"
+                      strokeWidth={2}
+                      strokeLinecap="round"
+                      strokeDasharray={2 * Math.PI * 6}
+                      strokeDashoffset={2 * Math.PI * 6 * (1 - restPct)}
+                      className="stroke-info transition-[stroke-dashoffset] duration-1000 ease-linear"
+                    />
+                  </svg>
+                  <Timer className="absolute size-2.5" />
+                </span>
+                {formatDuration(restLeft)}
+              </span>
+            ) : null}
+          </SheetTitle>
         </SheetHeader>
 
         <p className="mt-1 text-xs text-muted-foreground">
           {exerciseName} · {setLabel}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          {t("This is how the app picks your next weights and spots stalls.")}
+          {t("Tap a number and you are done — it sets your next weights.")}
         </p>
 
         <div className="mt-6">
-          <RpeScale value={draft} onChange={setDraft} />
+          <RpeScale value={draft} onChange={setDraft} onCommit={commit} />
         </div>
 
         <p className="mt-5 min-h-10 rounded-xl border border-border bg-card px-3 py-2 text-center text-sm font-medium text-foreground">
@@ -182,16 +240,6 @@ export function RpeSheet({
             }}
           >
             {t("Skip")}
-          </Button>
-          <Button
-            className="h-12 flex-1 text-sm font-semibold"
-            disabled={draft === null}
-            onClick={() => {
-              onSave(draft === null ? "" : String(draft));
-              onOpenChange(false);
-            }}
-          >
-            {t("Save effort")}
           </Button>
         </div>
         {value ? (

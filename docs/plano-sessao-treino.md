@@ -304,10 +304,9 @@ celular (375×667, uma mão). Verificação por fase: `bun run lint`,
 `bun run build` e roteiro manual de sessão completa (iniciar, 3 exercícios,
 troca, RPE, PR, finalizar).
 
-## Decisões que precisam de confirmação
+## Decisões tomadas (2026-09-13)
 
-1. Formato do vídeo padrão: loop WebP (proposta) ou MP4/YouTube.
-2. Fonte da mídia de preparo: curar de datasets livres ou gravar conteúdo
-   próprio para os 13 grupos.
-3. Se o RPE deve continuar sendo perguntado após o ✓ (comportamento atual,
-   configurável) ou só pelo botão RPE da linha.
+1. Vídeo/mídia (item 4) fica para depois; nenhuma alteração de conteúdo agora.
+2. O RPE continua sendo perguntado logo após o ✓, mas passa a salvar com um
+   único toque no valor.
+3. Itens 1, 2, 3 e 5 implementados na branch `claude/focused-edison-teenpo`.
