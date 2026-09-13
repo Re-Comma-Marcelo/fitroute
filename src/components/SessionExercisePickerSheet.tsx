@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Star } from "lucide-react";
+import { Sparkles, Star } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
@@ -8,6 +8,8 @@ import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 import { getExercises } from "@/lib/data/exercises";
 import { getFavorites } from "@/lib/favorites";
 import { getExerciseUsage } from "@/lib/exercise-usage";
+import { getProfile } from "@/lib/data/profile";
+import { rankSwapCandidates } from "@/lib/coach/swap";
 import { useT } from "@/lib/i18n";
 import type { Exercise } from "@/lib/types";
 
@@ -19,10 +21,15 @@ export function SessionExercisePickerSheet({
   open,
   onOpenChange,
   onPick,
+  replacing = null,
+  sessionExerciseIds = [],
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPick: (exercise: Exercise) => void;
+  /** When set, the sheet replaces this exercise: ranked alternatives come first. */
+  replacing?: { exerciseId: string; nome: string } | null;
+  sessionExerciseIds?: string[];
 }) {
   const t = useT();
   const [term, setTerm] = useState("");
@@ -37,7 +44,18 @@ export function SessionExercisePickerSheet({
   }, [open]);
 
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises, enabled: open });
+  const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile, enabled: open });
   const all = exercisesQ.data ?? [];
+
+  const suggested = useMemo(() => {
+    if (!replacing || term.trim()) return [];
+    return rankSwapCandidates(replacing.exerciseId, all, {
+      profile: profileQ.data ?? null,
+      excludeIds: sessionExerciseIds,
+      historyIds: Object.keys(usage),
+      limit: 4,
+    });
+  }, [replacing, term, all, profileQ.data, sessionExerciseIds, usage]);
 
   const list = useMemo(() => {
     const q = term.trim().toLowerCase();
@@ -60,7 +78,9 @@ export function SessionExercisePickerSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         <SheetHeader className="text-left">
-          <SheetTitle>{t("Add exercise")}</SheetTitle>
+          <SheetTitle>
+            {replacing ? t("Replace {name}", { name: replacing.nome }) : t("Add exercise")}
+          </SheetTitle>
         </SheetHeader>
 
         <Input
@@ -70,6 +90,40 @@ export function SessionExercisePickerSheet({
           className="mt-3 h-11"
           autoFocus
         />
+
+        {suggested.length ? (
+          <section className="mt-3">
+            <h3 className="label-caps mb-1.5 flex items-center gap-1.5 text-primary">
+              <Sparkles className="size-3.5" /> {t("Suggested · same muscle")}
+            </h3>
+            <ul className="space-y-2">
+              {suggested.map((e) => (
+                <li key={`sug-${e.id}`}>
+                  <button
+                    type="button"
+                    onClick={() => onPick(e)}
+                    className="flex w-full items-center gap-3 rounded-2xl border border-primary/40 bg-primary/5 p-3 text-left"
+                  >
+                    <ExerciseThumb
+                      grupo={e.grupoPrimario}
+                      nome={e.nome}
+                      src={exerciseThumbUrl(e)}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-display text-sm font-semibold leading-tight">
+                        {e.nome}
+                      </span>
+                      <span className="mt-0.5 block text-xs capitalize text-muted-foreground">
+                        {e.grupoPrimario} · {e.equipamento}
+                      </span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <h3 className="label-caps mb-1.5 mt-4">{t("All exercises")}</h3>
+          </section>
+        ) : null}
 
         <ul className="mt-3 space-y-2 pb-6">
           {list.map((e) => (

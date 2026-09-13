@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 export function TodayCoachCard({
   model,
   swapOptions,
+  routineExercises = [],
   swaps,
   onSwap,
   onStart,
@@ -17,8 +18,10 @@ export function TodayCoachCard({
   busy,
 }: {
   model: TodayCardModel;
-  /** exerciseId -> alternatives for the flagged exercises. */
+  /** exerciseId -> alternatives, for every exercise of today's routine. */
   swapOptions: Record<string, Exercise[]>;
+  /** Every exercise of today's routine, in order; flagged ones are listed first. */
+  routineExercises?: { exerciseId: string; nome: string }[];
   swaps: Record<string, string>;
   onSwap: (originalId: string, replacementId: string) => void;
   onStart: (opts: { deload?: boolean }) => void;
@@ -29,6 +32,11 @@ export function TodayCoachCard({
   const [open, setOpen] = useState(false);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const preview = previewText(model);
+  const flaggedIds = new Set(model.flagged.map((f) => f.exerciseId));
+  const swappable = [
+    ...model.flagged.map((f) => ({ exerciseId: f.exerciseId, nome: f.nome })),
+    ...routineExercises.filter((e) => !flaggedIds.has(e.exerciseId)),
+  ];
 
   return (
     <section className="mt-5 overflow-hidden rounded-2xl border border-primary/25 bg-primary/[0.06]">
@@ -116,8 +124,8 @@ export function TodayCoachCard({
               <Button
                 variant="outline"
                 className="h-11 font-semibold"
-                disabled={model.flagged.length === 0}
-                onClick={() => setSwapFor(model.flagged[0]?.exerciseId ?? null)}
+                disabled={swappable.length === 0}
+                onClick={() => setSwapFor(swappable[0]?.exerciseId ?? null)}
               >
                 <Repeat2 className="mr-1.5 size-4" /> {t("Swap exercise")}
               </Button>
@@ -127,7 +135,7 @@ export function TodayCoachCard({
           {swapFor ? (
             <div className="space-y-2 rounded-xl border border-border bg-background/40 p-3">
               <div className="flex flex-wrap gap-1.5">
-                {model.flagged.map((f) => (
+                {swappable.map((f) => (
                   <button
                     key={f.exerciseId}
                     type="button"
@@ -136,9 +144,12 @@ export function TodayCoachCard({
                       "rounded-full border px-2.5 py-1 text-[11px] font-semibold",
                       swapFor === f.exerciseId
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border text-muted-foreground",
+                        : flaggedIds.has(f.exerciseId)
+                          ? "border-warn/60 text-warn"
+                          : "border-border text-muted-foreground",
                     )}
                   >
+                    {swaps[f.exerciseId] ? "↻ " : ""}
                     {f.nome}
                   </button>
                 ))}

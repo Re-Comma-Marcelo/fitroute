@@ -24,7 +24,9 @@ import {
   Timer,
   Trash2,
   TrendingUp,
+  Trophy,
   Volume2,
+  Zap,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -52,7 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { hapticTick } from "@/lib/haptics";
+import { hapticSuccess, hapticTick } from "@/lib/haptics";
 import {
   markScrubHintShown,
   shouldShowScrubHint,
@@ -91,7 +93,12 @@ import { clampRest, getRestDefault, setRestDefault } from "@/lib/rest-defaults";
 import { toast } from "sonner";
 import { undoToast } from "@/lib/undo";
 import { restForExercise } from "@/lib/prescription";
-import { nextSetTarget } from "@/lib/next-set";
+import {
+  applyNextTarget,
+  completeSet,
+  repeatLastSet as repeatLast,
+  uncompleteSet,
+} from "@/lib/complete-set";
 import {
   clearActiveSession,
   currentExerciseIndex,
@@ -109,7 +116,6 @@ import {
   togglePause,
   takePendingExercise,
   takePendingReplaceSlot,
-  setPendingReplaceSlot,
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
@@ -199,6 +205,12 @@ function SessionPage() {
   // Asked right after a working set is ticked, so effort is never forgotten.
   const [rpePrompt, setRpePrompt] = useState<{ exIdx: number; setIdx: number } | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
+  /** "+240 kg" chip that flies into the header volume counter after a tick. */
+  const [volumeBurst, setVolumeBurst] = useState<{ key: number; kg: number } | null>(null);
+  /** Exercise index that just hit a personal record (confetti + badge). */
+  const [prBurst, setPrBurst] = useState<{ key: number; nome: string } | null>(null);
+  /** Superset tick: no rest, the chained exercise is next. Shown in the idle bar. */
+  const [supersetHint, setSupersetHint] = useState<{ until: number; nome: string } | null>(null);
   const [coachMark, setCoachMark] = useState<0 | 1 | 2>(0);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
   /** Coach comment per exercise index, shown above the sets. */
@@ -208,6 +220,8 @@ function SessionPage() {
   /** Focus mode: only the current exercise is rendered, full width. */
   const [focusMode, setFocusMode] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  /** Index of the exercise the picker replaces (null = picker adds). */
+  const [replaceIdx, setReplaceIdx] = useState<number | null>(null);
 
   const cardRefs = useRef<Record<number, HTMLElement | null>>({});
   const [drag, setDrag] = useState<{ idx: number; offset: number } | null>(null);
@@ -220,6 +234,9 @@ function SessionPage() {
   const chipBaseXRef = useRef(0);
   const chipScrolledRef = useRef<number | null>(null);
   const loadedRef = useRef(false);
+  /** Always the latest session, so handlers can compute without a deferred updater. */
+  const sessionRef = useRef<ActiveSession | null>(null);
+  sessionRef.current = session;
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
 
@@ -434,6 +451,18 @@ function SessionPage() {
     return () => clearTimeout(id);
   }, [justExercise]);
 
+  useEffect(() => {
+    if (!volumeBurst) return;
+    const id = setTimeout(() => setVolumeBurst(null), 900);
+    return () => clearTimeout(id);
+  }, [volumeBurst]);
+
+  useEffect(() => {
+    if (!prBurst) return;
+    const id = setTimeout(() => setPrBurst(null), 2200);
+    return () => clearTimeout(id);
+  }, [prBurst]);
+
   const [scrubHint] = useState(() => shouldShowScrubHint());
   useEffect(() => {
     if (scrubHint) markScrubHintShown();
@@ -586,72 +615,109 @@ function SessionPage() {
     }
   }
 
-  function toggleSet(exIdx: number, setIdx: number) {
-    unlockAudio();
-    let descanso = 0;
-    let proximo: number | null = null;
-    let completou = false;
-    let logged: { pesoKg: number; reps: number } | null = null;
-    let alvoLinha: string | null = null;
-    update((s) => {
-      const ex = s.exercicios[exIdx]!;
-      const set = ex.sets[setIdx]!;
-      if (set.concluida) {
-        set.concluida = false;
-        return s;
-      }
-      // Registro em 2 toques: valores sugeridos são aceitos sem digitar nada.
-      if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
-      if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
-      set.concluida = true;
-      if (isSerieValida(set)) {
-        logged = { pesoKg: Number(set.pesoKg) || 0, reps: Number(set.reps) || 0 };
-        // The app sets the goal for the next set from what just happened.
-        const target = nextSetTarget(ex, {
-          pesoKg: logged.pesoKg,
-          reps: logged.reps,
-          rpe: Number(set.rpe) || null,
-        });
-        const proximaValida = ex.sets.find(
-          (x, i) => i > setIdx && !x.concluida && isSerieValida(x),
-        );
-        if (target && proximaValida) {
-          proximaValida.sugPeso = target.pesoKg;
-          proximaValida.sugReps = target.reps;
-          // Targets stay grey hints, never typed-in values.
-          proximaValida.pesoKg = "";
-          proximaValida.reps = "";
-          alvoLinha = target.line;
-        }
-      }
-      // Inside a superset you move straight to the next exercise: no rest yet.
-      descanso = supersetChain(s, exIdx) ? 0 : restFor(ex);
-      const todasFeitas = ex.sets.every((x) => x.concluida);
-      completou = todasFeitas;
-      if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
-        s.atual = exIdx + 1;
-        proximo = s.atual;
-      }
-      return s;
-    });
+  const completeDeps = { restFor, supersetChain };
+
+  /** Run everything a ticked set triggers: rest, feedback, RPE, auto-advance. */
+  function runCompleteEffects(
+    next: ActiveSession,
+    exIdx: number,
+    setIdx: number,
+    effects: NonNullable<ReturnType<typeof completeSet>["effects"]>,
+  ) {
+    const ex = next.exercicios[exIdx];
     hapticTick();
     setJustSet(`${exIdx}:${setIdx}`);
     setTargetTips((prev) => {
-      const next = { ...prev };
-      if (alvoLinha) next[exIdx] = alvoLinha;
-      else delete next[exIdx];
-      return next;
+      const nextTips = { ...prev };
+      if (effects.targetLine) nextTips[exIdx] = effects.targetLine;
+      else delete nextTips[exIdx];
+      return nextTips;
     });
-    if (completou) setJustExercise(exIdx);
-    if (descanso > 0) startRest(descanso);
-    if (proximo !== null) setScrollTo(proximo);
-    const exercise = session?.exercicios[exIdx];
-    if (logged !== null && askRpeEnabled() && !exercise?.sets[setIdx]?.rpe) {
+    if (effects.volumeKg > 0) setVolumeBurst({ key: Date.now(), kg: effects.volumeKg });
+    if (effects.personalRecord && ex) {
+      hapticSuccess();
+      setPrBurst({ key: Date.now(), nome: ex.nome });
+    }
+    if (effects.exerciseDone) setJustExercise(exIdx);
+    // The rest starts before the RPE sheet opens, so the countdown is visible at once.
+    if (effects.restSeconds > 0) startRest(effects.restSeconds);
+    if (effects.superset) {
+      const chained = next.exercicios[exIdx + 1];
+      setSupersetHint({ until: Date.now() + 45000, nome: chained?.nome ?? "" });
+    }
+    if (effects.nextExerciseIdx !== null) setScrollTo(effects.nextExerciseIdx);
+    // Session milestones: half-way and the very last set. Toasts only, never modals.
+    if (effects.setsTotal > 1) {
+      const half = Math.ceil(effects.setsTotal / 2);
+      if (effects.setsDoneBefore < half && effects.setsDoneAfter >= half) {
+        toast(
+          t("Halfway there — {volume} kg moved so far.", {
+            volume: formatKg(Math.round(sessionVolume(next))),
+          }),
+          { duration: 2500 },
+        );
+      } else if (effects.setsDoneAfter >= effects.setsTotal) {
+        toast(t("Last set done. Finish when you are ready."), { duration: 2500 });
+      }
+    }
+    if (effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe) {
       setRpePrompt({ exIdx, setIdx });
     }
-    if (logged && exercise && session) {
-      void checkPerformanceDrop(exercise, exIdx, logged, session.id);
+    if (effects.logged && ex) {
+      void checkPerformanceDrop(ex, exIdx, effects.logged, next.id);
     }
+  }
+
+  function toggleSet(exIdx: number, setIdx: number) {
+    unlockAudio();
+    const current = sessionRef.current;
+    const set = current?.exercicios[exIdx]?.sets[setIdx];
+    if (!current || !set) return;
+    if (set.concluida) {
+      const next = uncompleteSet(current, exIdx, setIdx);
+      sessionRef.current = next;
+      setSession(next);
+      saveActiveSession(next);
+      return;
+    }
+    const { session: next, effects } = completeSet(current, exIdx, setIdx, completeDeps);
+    if (!effects) return;
+    sessionRef.current = next;
+    setSession(next);
+    saveActiveSession(next);
+    runCompleteEffects(next, exIdx, setIdx, effects);
+  }
+
+  /** RPE arrives after the tick: the next-set target is recomputed with it. */
+  function refreshTargetWithRpe(exIdx: number, setIdx: number, rpe: string) {
+    let line: string | null = null;
+    update((s) => {
+      const ex = s.exercicios[exIdx];
+      const set = ex?.sets[setIdx];
+      if (!ex || !set || !set.concluida || !isSerieValida(set)) return s;
+      line = applyNextTarget(ex, setIdx, {
+        pesoKg: Number(set.pesoKg) || 0,
+        reps: Number(set.reps) || 0,
+        rpe: Number(rpe) || null,
+      });
+      return s;
+    });
+    // Recompute synchronously as well so the tip never lags a render behind.
+    const cur = sessionRef.current?.exercicios[exIdx];
+    const curSet = cur?.sets[setIdx];
+    if (cur && curSet && curSet.concluida && isSerieValida(curSet)) {
+      const probe = structuredClone(cur);
+      line = applyNextTarget(probe, setIdx, {
+        pesoKg: Number(curSet.pesoKg) || 0,
+        reps: Number(curSet.reps) || 0,
+        rpe: Number(rpe) || null,
+      });
+    }
+    setTargetTips((prev) => {
+      const nextTips = { ...prev };
+      if (line) nextTips[exIdx] = line;
+      return nextTips;
+    });
   }
 
   function setField(
@@ -661,6 +727,7 @@ function SessionPage() {
     value: string,
   ) {
     patchSet(exIdx, setIdx, { [field]: value });
+    if (field === "rpe") refreshTargetWithRpe(exIdx, setIdx, value);
   }
 
   function setTipo(exIdx: number, setIdx: number, tipo: TipoSerie) {
@@ -749,28 +816,17 @@ function SessionPage() {
   /** One tap: copy weight/reps from the last completed set into the next pending one. */
   function repeatLastSet(exIdx: number) {
     unlockAudio();
-    let descanso = 0;
-    let proximo: number | null = null;
-    update((s) => {
-      const ex = s.exercicios[exIdx]!;
-      const feitas = ex.sets.filter((x) => x.concluida);
-      const ultima = feitas[feitas.length - 1];
-      const proxima = ex.sets.find((x) => !x.concluida);
-      if (!ultima || !proxima) return s;
-      proxima.pesoKg = ultima.pesoKg;
-      proxima.reps = ultima.reps;
-      proxima.concluida = true;
-      descanso = restFor(ex);
-      const todasFeitas = ex.sets.every((x) => x.concluida);
-      if (todasFeitas && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
-        s.atual = exIdx + 1;
-        proximo = s.atual;
-      }
-      return s;
-    });
-    hapticTick();
-    if (descanso > 0) startRest(descanso);
-    if (proximo !== null) setScrollTo(proximo);
+    const current = sessionRef.current;
+    if (!current) return;
+    const { session: next, effects } = repeatLast(current, exIdx, completeDeps);
+    if (!effects) return;
+    const setIdx = next.exercicios[exIdx]!.sets.findIndex(
+      (x, i) => x.concluida && !current.exercicios[exIdx]!.sets[i]!.concluida,
+    );
+    sessionRef.current = next;
+    setSession(next);
+    saveActiveSession(next);
+    runCompleteEffects(next, exIdx, Math.max(0, setIdx), effects);
   }
 
   function removeSet(exIdx: number, setIdx: number) {
@@ -976,13 +1032,10 @@ function SessionPage() {
     window.addEventListener("pointercancel", cleanup);
   }
 
-  /** Send the user to the library and swap the picked exercise into this slot. */
+  /** Open the in-session picker in replace mode: suggestions first, then the search. */
   function replaceExercise(exIdx: number) {
-    setPendingReplaceSlot(exIdx);
-    navigate({
-      to: "/biblioteca",
-      search: { para: "sessao", rotinaId: undefined, exercicioId: undefined },
-    });
+    setReplaceIdx(exIdx);
+    setPickerOpen(true);
   }
 
   /** Add an exercise mid-session from the in-workout picker (no navigation). */
@@ -1258,7 +1311,18 @@ function SessionPage() {
               {paused ? <Play className="size-5" /> : <Pause className="size-5" />}
             </Button>
           </div>
-          <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
+          <div className="relative">
+            <HeaderStat label={t("Volume")} value={formatKg(Math.round(volumeAtual))} />
+            {volumeBurst ? (
+              <span
+                key={volumeBurst.key}
+                aria-hidden="true"
+                className="volume-burst pointer-events-none absolute left-1/2 top-1 -translate-x-1/2 rounded-full bg-train px-2 py-0.5 text-xs font-bold tabular-nums text-background"
+              >
+                +{formatKg(Math.round(volumeBurst.kg))}
+              </span>
+            ) : null}
+          </div>
           <HeaderStat label={t("Sets")} value={String(setsDone)} />
         </dl>
         {paused ? (
@@ -1510,6 +1574,7 @@ function SessionPage() {
                         sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
                         workoutId={session.id}
                         onSwap={(picked) => void swapExerciseTo(exIdx, picked.id)}
+                        onMoreOptions={() => replaceExercise(exIdx)}
                       />
                     </div>
                   ) : null}
@@ -1669,11 +1734,23 @@ function SessionPage() {
                         setScrollTo(next);
                         hapticTick();
                       }}
-                      className="mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2.5 text-left"
+                      className={cn(
+                        "mt-3 flex w-full items-center justify-between gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2.5 text-left",
+                        justExercise === exIdx && "exercise-done-pulse",
+                      )}
                     >
                       <span className="min-w-0">
                         <span className="block text-[11px] font-semibold uppercase tracking-wide text-success">
-                          {t("Exercise done")}
+                          {t("Exercise done · {done} of {total}", {
+                            done: session.exercicios.filter((e) => {
+                              const v = e.sets.filter(isSerieValida).length;
+                              return (
+                                v > 0 &&
+                                e.sets.filter((x) => x.concluida && isSerieValida(x)).length >= v
+                              );
+                            }).length,
+                            total: session.exercicios.filter((e) => !e.pulado).length,
+                          })}
                         </span>
                         <span className="block truncate text-sm font-semibold text-foreground">
                           {t("Next: {name}", {
@@ -1709,8 +1786,23 @@ function SessionPage() {
 
       <SessionExercisePickerSheet
         open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        onPick={(exercise) => void addExerciseFromPicker(exercise.id)}
+        onOpenChange={(open) => {
+          setPickerOpen(open);
+          if (!open) setReplaceIdx(null);
+        }}
+        replacing={replaceIdx !== null ? (session.exercicios[replaceIdx] ?? null) : null}
+        sessionExerciseIds={session.exercicios.map((e) => e.exerciseId)}
+        onPick={(exercise) => {
+          if (replaceIdx !== null) {
+            const idx = replaceIdx;
+            setPickerOpen(false);
+            setReplaceIdx(null);
+            bumpExerciseUsage(exercise.id);
+            void swapExerciseTo(idx, exercise.id);
+            return;
+          }
+          void addExerciseFromPicker(exercise.id);
+        }}
       />
 
       {rpePrompt ? (
@@ -1722,6 +1814,8 @@ function SessionPage() {
           exerciseName={session.exercicios[rpePrompt.exIdx]?.nome ?? ""}
           setLabel={serieLabel(session.exercicios[rpePrompt.exIdx]?.sets ?? [], rpePrompt.setIdx)}
           value={session.exercicios[rpePrompt.exIdx]?.sets[rpePrompt.setIdx]?.rpe ?? ""}
+          restLeft={restLeft}
+          restTotal={rest?.total ?? 0}
           onSave={(value) => {
             setField(rpePrompt.exIdx, rpePrompt.setIdx, "rpe", value);
             setRpePrompt(null);
@@ -1763,10 +1857,19 @@ function SessionPage() {
         ) : (
           /* Idle state: the rest length is always visible, one tap from starting. */
           <div className="mx-auto flex max-w-md items-center justify-between gap-2 px-3 pt-2">
-            <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-              <Timer className="size-4 text-info" />
-              {t("Rest")} {formatRest(currentRest)}
-            </span>
+            {supersetHint && supersetHint.until > Date.now() ? (
+              <span className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-train">
+                <Zap className="size-4 shrink-0" />
+                <span className="truncate">
+                  {t("Superset · no rest, go to {name}", { name: supersetHint.nome })}
+                </span>
+              </span>
+            ) : (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <Timer className="size-4 text-info" />
+                {t("Rest")} {formatRest(currentRest)}
+              </span>
+            )}
             <Button
               variant="ghost"
               className="h-9 px-3 text-xs font-semibold text-info"
@@ -1854,6 +1957,8 @@ function SessionPage() {
       </AlertDialog>
 
       <ExerciseHistorySheet exercise={historyFor} onClose={() => setHistoryFor(null)} />
+
+      {prBurst ? <PrCelebration key={prBurst.key} nome={prBurst.nome} /> : null}
 
       {restFinished ? <RestFinishedOverlay onResume={() => setRestFinished(false)} /> : null}
     </div>
@@ -2170,10 +2275,20 @@ function SetRow({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <span className="min-w-0 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
-          {set.antPeso !== null && set.antReps !== null
-            ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
-            : "—"}
+        <span className="flex min-w-0 items-center gap-1 truncate text-[11px] font-semibold tabular-nums text-muted-foreground">
+          {set.pr ? (
+            <span
+              className="inline-flex shrink-0 items-center gap-0.5 rounded-full bg-success/15 px-1.5 py-0.5 text-[10px] font-bold text-success"
+              aria-label={t("Personal record")}
+            >
+              <Trophy className="size-3" /> PR
+            </span>
+          ) : null}
+          <span className="truncate">
+            {set.antPeso !== null && set.antReps !== null
+              ? `${formatKg(set.antPeso)}×${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
+              : "—"}
+          </span>
         </span>
 
         <NumberField
@@ -2230,7 +2345,7 @@ function SetRow({
           className={cn(
             "tap-target flex size-11 items-center justify-center rounded-lg border transition-colors",
             set.concluida
-              ? "border-primary bg-primary text-primary-foreground"
+              ? "border-primary bg-primary text-primary-foreground shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_25%,transparent)]"
               : "border-border bg-muted text-muted-foreground",
             justDone ? "set-pop" : "",
           )}
@@ -2347,6 +2462,39 @@ function RestFinishedOverlay({ onResume }: { onResume: () => void }) {
       >
         {t("Resume workout")}
       </Button>
+    </div>
+  );
+}
+
+/** Personal record: confetti burst + banner, gone in two seconds, never blocks a tap. */
+function PrCelebration({ nome }: { nome: string }) {
+  const t = useT();
+  const pieces = Array.from({ length: 18 }, (_, i) => i);
+  return (
+    <div
+      className="pointer-events-none fixed inset-x-0 top-24 z-40 flex justify-center"
+      role="status"
+      aria-live="polite"
+    >
+      <div className="pr-banner relative flex items-center gap-2 rounded-full border border-success/50 bg-success px-4 py-2 text-sm font-bold text-background shadow-xl">
+        <Trophy className="size-4" />
+        {t("New record · {name}", { name: nome })}
+        {pieces.map((i) => (
+          <span
+            key={i}
+            aria-hidden="true"
+            className="confetti absolute left-1/2 top-1/2 size-1.5 rounded-sm"
+            style={{
+              // Twelve directions, three rings, mixed in a fixed pseudo-random spread.
+              ["--dx" as string]: `${Math.round(Math.cos((i / pieces.length) * Math.PI * 2) * (60 + (i % 3) * 30))}px`,
+              ["--dy" as string]: `${Math.round(Math.sin((i / pieces.length) * Math.PI * 2) * (40 + (i % 3) * 25))}px`,
+              backgroundColor:
+                i % 3 === 0 ? "var(--train)" : i % 3 === 1 ? "var(--background)" : "var(--warn)",
+              animationDelay: `${(i % 4) * 30}ms`,
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 }

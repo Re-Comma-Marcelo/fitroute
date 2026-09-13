@@ -24,6 +24,8 @@ export interface ActiveSet {
   concluida: boolean;
   /** Optional context for the coach ("lower back felt tight"). */
   coachNote?: string;
+  /** Set live when this set beat the best weight ever logged for the exercise. */
+  pr?: boolean;
 }
 
 export interface ActiveExercise {
@@ -39,6 +41,8 @@ export interface ActiveExercise {
   sugestao: ProgressionSuggestion | null;
   /** What the app decided you should lift today (weight, reps, warm-up). */
   prescricao?: SetPrescription;
+  /** Heaviest weight ever logged for this exercise, for live PR detection (0 = none). */
+  prKg?: number;
   sets: ActiveSet[];
 }
 

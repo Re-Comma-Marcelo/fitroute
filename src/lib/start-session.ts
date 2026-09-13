@@ -1,6 +1,6 @@
 import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
-import { getLastSetsForExercise } from "./data/workouts";
+import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
 import { suggestProgression, type PrevSet } from "./progression";
 import { prescribeExercise, restForExercise } from "./prescription";
 import {
@@ -25,6 +25,8 @@ export async function buildActiveExercise(
   const exercise = await getExercise(exerciseId);
   if (!exercise) return null;
   const last = await getLastSetsForExercise(exerciseId);
+  // Best weight so far: lets the session celebrate a record the moment it happens.
+  const prKg = await getPersonalRecord(exerciseId).catch(() => 0);
   const anteriores: PrevSet[] = last.map((s) => ({
     pesoKg: s.pesoKg,
     reps: s.reps,
@@ -69,6 +71,7 @@ export async function buildActiveExercise(
     pulado: false,
     sugestao: opts.deload ? null : sugestao,
     ...(prescricao ? { prescricao } : {}),
+    prKg,
     sets: makeSets(seriesAlvo, anteriores, {
       pesoSugerido: prescricao ? prescricao.pesoKg : pesoSugerido,
       repsAlvo: prescricao ? prescricao.reps : null,

@@ -122,11 +122,24 @@ function TrainPage() {
     const routine = routines.find((r) => r.id === coach.routineId);
     if (!routine) return {};
     const map: Record<string, Exercise[]> = {};
-    for (const f of coach.flagged) {
-      map[f.exerciseId] = swapCandidates(f.exerciseId, routine, exercises, profile);
+    for (const re of routine.exercicios) {
+      map[re.exerciseId] = swapCandidates(re.exerciseId, routine, exercises, profile);
     }
     return map;
   }, [coach, routines, exercises, profile]);
+
+  /** Every exercise of today's routine, so any of them can be swapped for the day. */
+  const routineExercises = useMemo(() => {
+    if (!coach?.routineId) return [];
+    const routine = routines.find((r) => r.id === coach.routineId);
+    if (!routine) return [];
+    return [...routine.exercicios]
+      .sort((a, b) => a.ordem - b.ordem)
+      .map((re) => ({
+        exerciseId: re.exerciseId,
+        nome: exercises.find((e) => e.id === re.exerciseId)?.nome ?? re.exerciseId,
+      }));
+  }, [coach, routines, exercises]);
 
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
@@ -382,6 +395,7 @@ function TrainPage() {
         <TodayCoachCard
           model={coach}
           swapOptions={swapOptions}
+          routineExercises={routineExercises}
           swaps={swaps}
           onSwap={(original, replacement) =>
             setSwaps((prev) => ({ ...prev, [original]: replacement }))
