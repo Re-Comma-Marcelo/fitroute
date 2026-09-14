@@ -103,7 +103,7 @@ function SummaryPage() {
         sets: t("Sets"),
         exercises: t("Exercises"),
         prs: t("Personal records"),
-        footer: t("Logged with Iron Logger"),
+        footer: t("Logged with Route"),
       },
     );
     setSharing(false);

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Route">
+  <defs>
+  <linearGradient id="routeGrad" x1="18" y1="16" x2="106" y2="112" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#6E3BF7" />
+    <stop offset="1" stop-color="#8F6BFF" />
+  </linearGradient></defs>
+  
+  <g transform="translate(1.84 14.5) scale(0.885)" opacity="0.09">
+    <path d="M22 22H82a24 24 0 0 1 0 48H62" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M62 70 96 108" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="butt" /></g>
+  
+    <path d="M22 22H82a24 24 0 0 1 0 48H62" fill="none" stroke="url(#routeGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+    <path d="M62 70 96 108" fill="none" stroke="url(#routeGrad)" stroke-width="12" stroke-linecap="butt" />
+</svg>

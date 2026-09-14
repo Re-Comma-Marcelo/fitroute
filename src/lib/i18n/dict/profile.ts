@@ -105,8 +105,8 @@ export const dict: DictFragment = {
     "Supabase could not load this authorization request: {message}":
       "O Supabase n\u00e3o conseguiu carregar esta solicita\u00e7\u00e3o de autoriza\u00e7\u00e3o: {message}",
     "{client} wants to access your account": "{client} quer acessar sua conta",
-    "{client} is requesting access to your Iron Logger data. Review the permissions below before allowing it.":
-      "{client} est\u00e1 solicitando acesso aos seus dados do Iron Logger. Revise as permiss\u00f5es abaixo antes de permitir.",
+    "{client} is requesting access to your Route data. Review the permissions below before allowing it.":
+      "{client} est\u00e1 solicitando acesso aos seus dados do Route. Revise as permiss\u00f5es abaixo antes de permitir.",
     "Requested permissions": "Permiss\u00f5es solicitadas",
     "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.":
       "O Supabase aceitou a requisi\u00e7\u00e3o, mas n\u00e3o retornou uma URL de redirecionamento. Verifique se o servidor OAuth est\u00e1 habilitado neste projeto.",
@@ -216,8 +216,8 @@ export const dict: DictFragment = {
     "Supabase could not load this authorization request: {message}":
       "Supabase kon dit autorisatieverzoek niet laden: {message}",
     "{client} wants to access your account": "{client} wil toegang tot je account",
-    "{client} is requesting access to your Iron Logger data. Review the permissions below before allowing it.":
-      "{client} vraagt toegang tot je Iron Logger-gegevens. Bekijk de rechten hieronder voordat je toestemming geeft.",
+    "{client} is requesting access to your Route data. Review the permissions below before allowing it.":
+      "{client} vraagt toegang tot je Route-gegevens. Bekijk de rechten hieronder voordat je toestemming geeft.",
     "Requested permissions": "Gevraagde rechten",
     "Supabase accepted the request but returned no redirect URL. Check that the OAuth server is enabled for this project.":
       "Supabase accepteerde het verzoek maar gaf geen redirect-URL terug. Controleer of de OAuth-server is ingeschakeld voor dit project.",

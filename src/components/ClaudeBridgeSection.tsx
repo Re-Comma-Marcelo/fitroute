@@ -26,7 +26,7 @@ const TIME_LABEL: Record<Profile["preferredTime"], string> = {
 
 const DONE_KEY = "forja.claude.steps";
 const EXAMPLE_PROMPT =
-  "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
+  "Use the Route tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.";
 
 function useStepsDone() {
   const [done, setDone] = useState<Record<string, boolean>>({});
@@ -144,7 +144,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
       : [];
 
     return [
-      "Here is my Forja training context. Use the Forja MCP tools to plan for me.",
+      "Here is my Route training context. Use the Route MCP tools to plan for me.",
       "",
       "## Me",
       `- Name: ${profile.nome}`,
@@ -184,10 +184,10 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
     const result = decodeBridgeCode(raw);
     if (!result.ok) {
       setError(
-        raw.trim().includes("FORJA1.")
+        raw.trim().includes("ROUTE1.")
           ? t(result.error)
           : t(
-              "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.",
+              "That does not look like a Route code — copy the whole block Claude returned, including the part that starts with ROUTE1.",
             ),
       );
       setPending(null);
@@ -230,7 +230,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           <h2 className="text-sm font-semibold text-foreground">{t("Claude / AI assistant")}</h2>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
             {t(
-              "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
+              "Connect Route to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.",
             )}
           </p>
         </div>
@@ -332,7 +332,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
           <ClipboardCopy className="mr-2 size-4" /> {t("Copy the example")}
         </Button>
         <p className="text-xs text-muted-foreground">
-          {t("If the answer contains a code starting with FORJA1., it worked.")}
+          {t("If the answer contains a code starting with ROUTE1., it worked.")}
         </p>
       </Step>
 
@@ -354,7 +354,7 @@ export function ClaudeBridgeSection({ profile }: { profile: Profile }) {
             setError(null);
           }}
           rows={3}
-          placeholder={t("Paste the FORJA1. code Claude returned…")}
+          placeholder={t("Paste the ROUTE1. code Claude returned…")}
           aria-invalid={!!error}
           className="text-xs"
         />

@@ -17,7 +17,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   head: () => ({
     meta: pageMeta({
       title: "Connect an AI assistant",
-      description: "Approve access so your AI assistant can read and update your Iron Logger data.",
+      description: "Approve access so your AI assistant can read and update your Route data.",
     }),
   }),
   component: ConsentPage,
@@ -193,7 +193,7 @@ function ConsentPage() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {client?.name
             ? t(
-                "{client} is requesting access to your Iron Logger data. Review the permissions below before allowing it.",
+                "{client} is requesting access to your Route data. Review the permissions below before allowing it.",
                 { client: client.name },
               )
             : t(

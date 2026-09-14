@@ -4,8 +4,8 @@ import type { DictFragment } from "../types";
 export const dict: DictFragment = {
   pt: {
     "Sign in": "Entrar",
-    "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.":
-      "Entre no Iron Logger para registrar séries em dois toques, seguir rotinas adaptativas e acompanhar sua força de verdade.",
+    "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.":
+      "Entre no Route para registrar séries em dois toques, seguir rotinas adaptativas e acompanhar sua força de verdade.",
     "Your AI trainer that adapts to your actual life. Sign in with Google or email.":
       "Seu treinador de IA que se adapta à sua vida real. Entre com Google ou e-mail.",
 
@@ -79,8 +79,8 @@ export const dict: DictFragment = {
   },
   nl: {
     "Sign in": "Inloggen",
-    "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.":
-      "Log in op Iron Logger om sets in twee taps te registreren, adaptieve routines te volgen en echte krachtprogressie te zien.",
+    "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.":
+      "Log in op Route om sets in twee taps te registreren, adaptieve routines te volgen en echte krachtprogressie te zien.",
     "Your AI trainer that adapts to your actual life. Sign in with Google or email.":
       "Je AI-trainer die zich aanpast aan je echte leven. Log in met Google of e-mail.",
 

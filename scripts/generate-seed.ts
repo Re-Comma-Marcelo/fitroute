@@ -17,7 +17,7 @@ const arr = (v: string[]): string =>
   v.length ? `array[${v.map(q).join(", ")}]::text[]` : `'{}'::text[]`;
 
 const lines: string[] = [
-  "-- Forja — starter data. Run AFTER scripts/supabase-schema.sql.",
+  "-- Route — starter data. Run AFTER scripts/supabase-schema.sql.",
   "-- Safe to re-run: every insert upserts on the primary key.",
   "",
 ];

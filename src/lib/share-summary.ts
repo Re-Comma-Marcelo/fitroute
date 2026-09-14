@@ -49,7 +49,7 @@ export async function renderSummaryCard(
 
   ctx.fillStyle = "#a78bfa";
   ctx.font = "600 34px Inter, system-ui, sans-serif";
-  ctx.fillText("IRON LOGGER", 88, 140);
+  ctx.fillText("ROUTE", 88, 140);
 
   ctx.fillStyle = "#f5f3ff";
   ctx.font = "700 68px Inter, system-ui, sans-serif";
@@ -105,7 +105,7 @@ export async function shareSummary(
     canShare?: (data: { files?: File[] }) => boolean;
   };
   if (blob) {
-    const file = new File([blob], "iron-logger.png", { type: "image/png" });
+    const file = new File([blob], "route.png", { type: "image/png" });
     if (nav.share && nav.canShare?.({ files: [file] })) {
       try {
         await nav.share({ files: [file], text });
@@ -127,7 +127,7 @@ export async function shareSummary(
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = "iron-logger.png";
+    link.download = "route.png";
     link.click();
     URL.revokeObjectURL(url);
     return "downloaded";
