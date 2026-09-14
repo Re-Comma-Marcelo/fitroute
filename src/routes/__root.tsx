@@ -11,11 +11,13 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
+import { RouteLogo } from "../components/RouteLogo";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { configureSupabase, supabase } from "../integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 import { LanguageProvider, currentLangFromStorage, translate } from "../lib/i18n";
 import { registerAppServiceWorker } from "../lib/pwa";
+import { OG_IMAGE } from "../lib/route-meta";
 import { toast } from "sonner";
 
 function NotFoundComponent() {
@@ -23,7 +25,8 @@ function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
-        <h1 className="text-7xl font-semibold text-foreground">404</h1>
+        <RouteLogo className="mx-auto size-12" />
+        <h1 className="mt-6 text-7xl font-semibold text-foreground">404</h1>
         <h2 className="mt-4 text-xl font-semibold text-foreground">{t("Page not found")}</h2>
         <p className="mt-2 text-sm text-muted-foreground">
           {t("The page you're looking for doesn't exist or has been moved.")}
@@ -52,6 +55,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
+        <RouteLogo className="mx-auto mb-6 size-12" />
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           {t("This page didn't load")}
         </h1>
@@ -112,7 +116,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Mobile-first strength training app with fast session logging, routines, and adaptive coaching.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: OG_IMAGE },
       { name: "twitter:site", content: "@Lovable" },
       { name: "theme-color", content: "#0A0B0D" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
@@ -135,7 +141,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      // SVG first for crisp tabs at any density; the PNG covers browsers without SVG icons.
+      { rel: "icon", type: "image/svg+xml", href: "/logo-route.svg" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
     ],
   }),
   shellComponent: RootShell,

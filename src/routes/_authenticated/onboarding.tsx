@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { CountUp } from "@/components/CountUp";
 import { HevyImportPanel } from "@/components/import/HevyImportPanel";
+import { RouteLogo } from "@/components/RouteLogo";
 import { getExercises } from "@/lib/data/exercises";
 import { newRoutineExercise, saveRoutine } from "@/lib/data/routines";
 import { formatNumber } from "@/lib/format";
@@ -108,7 +109,8 @@ function OnboardingPage() {
       <div key={step} className="fade-in flex-1">
         {step === "value" ? (
           <section>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <RouteLogo className="size-10" />
+            <h1 className="mt-5 text-2xl font-semibold tracking-tight">
               {t("Your training, turned into visible progress")}
             </h1>
             <p className="mt-2 text-sm text-muted-foreground">

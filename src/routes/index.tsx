@@ -7,6 +7,7 @@ import heroLogin from "@/assets/hero-login.jpg";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RouteLogoTile } from "@/components/RouteLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
@@ -169,14 +170,7 @@ function AuthPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-24">
         <div className="flex items-center gap-3">
-          <img
-            src="/icon-192.png"
-            alt=""
-            aria-hidden
-            width={192}
-            height={192}
-            className="size-11 rounded-2xl border border-border/60"
-          />
+          <RouteLogoTile />
           <div>
             <p className="font-display text-lg font-semibold leading-none text-foreground">
               {APP_NAME}

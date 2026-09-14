@@ -2,6 +2,9 @@ import { currentLangFromStorage, translate } from "@/lib/i18n";
 
 export const APP_NAME = "Iron Logger";
 
+/** The Route mark on the app's dark ground, for link previews. */
+export const OG_IMAGE = "/og-image.png";
+
 export interface PageMetaInput {
   /** English source title, without the app name. */
   title: string;
@@ -28,6 +31,8 @@ export function pageMeta(input: PageMetaInput): MetaTag[] {
     { property: "og:title", content: title },
     { property: "og:description", content: tr(input.ogDescription ?? input.description) },
     { property: "og:type", content: input.ogType ?? "website" },
+    { property: "og:image", content: OG_IMAGE },
     { name: "twitter:card", content: input.twitterCard ?? "summary_large_image" },
+    { name: "twitter:image", content: OG_IMAGE },
   ];
 }

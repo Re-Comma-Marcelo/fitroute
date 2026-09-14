@@ -36,6 +36,7 @@ import {
   weeklyVolume,
   type PRInfo,
 } from "@/lib/home-metrics";
+import { RouteLogo } from "@/components/RouteLogo";
 import { RoutePreviewCard } from "@/components/RoutePreviewCard";
 import { getCheckpoints } from "@/lib/data/route";
 import { currentCheckpoint } from "@/lib/route/status";
@@ -128,7 +129,8 @@ export default function Inicio() {
       <div className="route-enter space-y-6 pb-28">
         <header className="flex items-start justify-between gap-3 pt-2">
           <div className="min-w-0">
-            <h1 className="font-display text-2xl font-semibold tracking-tight">
+            <RouteLogo className="size-8" />
+            <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
               {greeting},{" "}
               {isLoading ? (
                 <Skeleton className="inline-block h-6 w-24 align-middle" />
