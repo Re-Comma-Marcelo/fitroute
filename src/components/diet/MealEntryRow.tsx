@@ -1,9 +1,18 @@
 import { Check, Clock, Trash2 } from "lucide-react";
 import { mealImage } from "@/lib/meal-image";
 import { SLOT_LABEL, formatSlotTime } from "@/lib/data/nutrition";
+import { portionOf, scaleMeal } from "@/lib/data/diet-entries";
 import { useT } from "@/lib/i18n";
 import type { DietEntry } from "@/lib/data/diet-entries";
 import type { Meal } from "@/lib/nutrition-types";
+
+/** "½", "1½", "2" — a portion reads as a fraction, not as 0.5. */
+export function portionLabel(portion: number): string {
+  const whole = Math.floor(portion);
+  const half = portion - whole >= 0.5;
+  if (!half) return String(whole);
+  return `${whole > 0 ? whole : ""}½`;
+}
 
 /**
  * Compact row for one meal in the day. Eaten rows keep their place but lose
@@ -23,6 +32,8 @@ export function MealEntryRow({
   onRemove: () => void;
 }) {
   const t = useT();
+  const portion = portionOf(entry);
+  const macros = scaleMeal(meal, portion);
   return (
     <div
       className={`flex items-center gap-3 rounded-2xl border bg-card p-2.5 transition-colors ${
@@ -45,6 +56,11 @@ export function MealEntryRow({
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
             <span className="truncate text-sm font-semibold">{meal.name}</span>
+            {portion !== 1 ? (
+              <span className="shrink-0 rounded-full border border-border px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-muted-foreground">
+                {portionLabel(portion)}×
+              </span>
+            ) : null}
             {entry.eaten ? (
               <span className="flex shrink-0 items-center gap-0.5 rounded-full bg-diet/15 px-1.5 py-0.5 text-[10px] font-semibold text-diet">
                 <Check className="size-2.5" /> {t("Eaten")}
@@ -52,9 +68,9 @@ export function MealEntryRow({
             ) : null}
           </span>
           <span className="mt-0.5 flex items-center gap-1.5 text-[11px] tabular-nums text-muted-foreground">
-            <span>{meal.kcal} kcal</span>
+            <span>{macros.kcal} kcal</span>
             <span>
-              {t("P")} {meal.proteinG} · {t("C")} {meal.carbsG} · {t("F")} {meal.fatG}
+              {t("P")} {macros.proteinG} · {t("C")} {macros.carbsG} · {t("F")} {macros.fatG}
             </span>
           </span>
           <span className="mt-0.5 flex items-center gap-1 text-[11px] text-muted-foreground">

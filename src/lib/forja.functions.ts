@@ -860,6 +860,7 @@ export const fetchMealEntries = createServerFn({ method: "POST" })
       slot: String(r["slot"]),
       mealId: String(r["meal_id"]),
       time: r["entry_time"] ? String(r["entry_time"]) : undefined,
+      portion: r["portion"] == null ? 1 : Number(r["portion"]),
       planned: Boolean(r["planned"]),
       eaten: Boolean(r["eaten"]),
       createdAt: String(r["created_at"] ?? new Date().toISOString()),
@@ -887,6 +888,7 @@ export const fetchMealEntriesRange = createServerFn({ method: "POST" })
       slot: String(r["slot"]),
       mealId: String(r["meal_id"]),
       time: r["entry_time"] ? String(r["entry_time"]) : undefined,
+      portion: r["portion"] == null ? 1 : Number(r["portion"]),
       planned: Boolean(r["planned"]),
       eaten: Boolean(r["eaten"]),
       createdAt: String(r["created_at"] ?? new Date().toISOString()),
@@ -901,6 +903,7 @@ export const persistMealEntry = createServerFn({ method: "POST" })
       slot: string;
       mealId: string;
       time?: string | undefined;
+      portion?: number | undefined;
       planned: boolean;
       eaten: boolean;
       createdAt: string;
@@ -919,6 +922,7 @@ export const persistMealEntry = createServerFn({ method: "POST" })
           slot: data.slot,
           meal_id: data.mealId,
           entry_time: data.time ?? null,
+          portion: data.portion && data.portion > 0 ? data.portion : 1,
           planned: data.planned,
           eaten: data.eaten,
           created_at: data.createdAt,

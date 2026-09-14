@@ -1,5 +1,4 @@
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { MealEntryRow } from "@/components/diet/MealEntryRow";
 import { MEAL_SLOTS, SLOT_LABEL } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
@@ -7,20 +6,21 @@ import type { DietEntry } from "@/lib/data/diet-entries";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
 
 /**
- * What the user planned for the day, grouped by eating moment.
- * Several meals per moment are allowed — the moment is a label, not a slot.
+ * Everything on the day, grouped by eating moment: what was eaten and what is
+ * still planned, in one list. Splitting the two made the page ask which model
+ * a meal belonged to — a question the user never has.
  */
-export function PlannedMealsSection({
+export function DayMealsSection({
   entries,
   mealById,
-  onPlan,
+  onLog,
   onOpen,
   onToggleEaten,
   onRemove,
 }: {
   entries: DietEntry[];
   mealById: (id: string) => Meal | undefined;
-  onPlan: (slot: MealSlot) => void;
+  onLog: (slot: MealSlot) => void;
   onOpen: (entry: DietEntry) => void;
   onToggleEaten: (entry: DietEntry) => void;
   onRemove: (entry: DietEntry) => void;
@@ -35,9 +35,7 @@ export function PlannedMealsSection({
 
   return (
     <section className="mt-5">
-      <h2 className="font-display text-base font-semibold tracking-tight">
-        {t("Planned for this day")}
-      </h2>
+      <h2 className="font-display text-base font-semibold tracking-tight">{t("Your day")}</h2>
 
       {groups.length ? (
         <div className="mt-2 space-y-4">
@@ -49,7 +47,7 @@ export function PlannedMealsSection({
                 </h3>
                 <button
                   type="button"
-                  onClick={() => onPlan(group.slot)}
+                  onClick={() => onLog(group.slot)}
                   className="flex items-center gap-1 text-[11px] font-semibold text-diet"
                 >
                   <Plus className="size-3" /> {t("Add")}
@@ -77,16 +75,12 @@ export function PlannedMealsSection({
         </div>
       ) : (
         <div className="mt-2 rounded-2xl border border-dashed border-border p-5 text-center">
-          <p className="font-display text-sm font-semibold">{t("Nothing planned for this day")}</p>
+          <p className="font-display text-sm font-semibold">{t("Nothing on this day yet")}</p>
           <p className="mt-1 text-xs leading-snug text-muted-foreground">
-            {t("Pick your meals per moment and the rings show how the day adds up.")}
+            {t("Log what you ate and the rings fill up as the day goes.")}
           </p>
         </div>
       )}
-
-      <Button className="tap-target mt-3 w-full" onClick={() => onPlan("lunch")}>
-        <Plus className="mr-1.5 size-4" /> {t("Plan a meal")}
-      </Button>
     </section>
   );
 }

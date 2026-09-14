@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Clock, Repeat } from "lucide-react";
+import { CalendarPlus, Clock, Plus, Repeat } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
 import { MealScheduleSheet } from "@/components/MealScheduleSheet";
@@ -13,14 +13,13 @@ import { MacroBreakdownSheet } from "@/components/MacroBreakdownSheet";
 import { DaySelector } from "@/components/diet/DaySelector";
 import { CalorieBudgetCard } from "@/components/diet/CalorieBudgetCard";
 import { MacroSummary } from "@/components/diet/MacroSummary";
-import { PlannedMealsSection } from "@/components/diet/PlannedMealsSection";
+import { DayMealsSection } from "@/components/diet/DayMealsSection";
 import {
   CoachSuggestionsSection,
   type CoachMealSuggestion,
 } from "@/components/diet/CoachSuggestionsSection";
-import { UnplannedEatenList } from "@/components/diet/UnplannedEatenList";
 import { CoachUpdateCard } from "@/components/diet/CoachUpdateCard";
-import { PlanMealSheet } from "@/components/diet/PlanMealSheet";
+import { MealEntrySheet } from "@/components/diet/MealEntrySheet";
 import { rankMeals } from "@/lib/nutrition-swap";
 import { getWeekMenu } from "@/lib/data/week-menu";
 import { getDietCoachUpdate } from "@/lib/coach/diet-update";
@@ -32,6 +31,7 @@ import { useT } from "@/lib/i18n";
 import {
   MEAL_SLOTS,
   activeSlots,
+  addDays,
   getMealSchedule,
   getMeals,
   getTargets,
@@ -45,11 +45,14 @@ import {
   addEntry,
   getDayEntries,
   getEntriesForDates,
+  portionOf,
   removeEntry,
   setEntryEaten,
+  setEntryPortion,
   totalsForEntries,
   type DietEntry,
 } from "@/lib/data/diet-entries";
+import { undoToast } from "@/lib/undo";
 import type { DayTotals, Meal, MealSlot } from "@/lib/nutrition-types";
 
 export const Route = createFileRoute("/_authenticated/dieta/")({
@@ -83,7 +86,10 @@ function TodayPage() {
   const t = useT();
   const qc = useQueryClient();
   const [date, setDate] = useState(() => isoDate(new Date()));
-  const [planOpen, setPlanOpen] = useState(false);
+  const [entrySheet, setEntrySheet] = useState<{ open: boolean; mode: "log" | "plan" }>({
+    open: false,
+    mode: "log",
+  });
   const [planSlot, setPlanSlot] = useState<MealSlot>("lunch");
   const [timingOpen, setTimingOpen] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -119,9 +125,6 @@ function TodayPage() {
   const entries = entriesQ.data ?? [];
   const allMeals = mealsQ.data ?? [];
   const mealById = (id: string) => allMeals.find((m) => m.id === id);
-
-  const plannedEntries = useMemo(() => entries.filter((e) => e.planned), [entries]);
-  const unplannedEaten = useMemo(() => entries.filter((e) => !e.planned && e.eaten), [entries]);
 
   const eatenTotals = useMemo(
     () =>
@@ -199,14 +202,69 @@ function TodayPage() {
     void qc.invalidateQueries({ queryKey: ["dayNutrition"] });
   };
 
-  async function planMeal(input: { slot: MealSlot; mealId: string; time?: string }) {
-    setPlanOpen(false);
+  async function addMeal(input: {
+    slot: MealSlot;
+    mealId: string;
+    time?: string;
+    portion?: number;
+    eaten?: boolean;
+  }) {
+    setEntrySheet((s) => ({ ...s, open: false }));
     try {
-      await addEntry({ date, ...input });
+      // A meal you log was eaten, not planned ahead — keep the flag honest.
+      await addEntry({ date, ...input, planned: !input.eaten });
       void refreshEntries();
     } catch {
       toast.error(t("Could not save this meal. Try again."));
     }
+  }
+
+  /** Opens the sheet on the moment the clock is closest to. */
+  function openSheet(mode: "log" | "plan", slot?: MealSlot) {
+    setPlanSlot(slot ?? (schedule ? slotForTime(new Date(), schedule) : "lunch"));
+    setEntrySheet({ open: true, mode });
+  }
+
+  /**
+   * Yesterday's meals as a plan for this day. Meals already on the day are
+   * skipped, so tapping twice cannot double the day, and everything it did
+   * add can be undone in one tap.
+   */
+  async function repeatYesterday() {
+    const yesterday = isoDate(addDays(new Date(date), -1));
+    const source = await getDayEntries(yesterday);
+    if (!source.length) {
+      toast.info(t("Nothing to copy from yesterday."));
+      return;
+    }
+    const taken = new Set(entries.map((e) => `${e.slot}|${e.mealId}`));
+    const added: DietEntry[] = [];
+    for (const e of source) {
+      if (taken.has(`${e.slot}|${e.mealId}`)) continue;
+      taken.add(`${e.slot}|${e.mealId}`);
+      added.push(
+        await addEntry({
+          date,
+          slot: e.slot,
+          mealId: e.mealId,
+          ...(e.time ? { time: e.time } : {}),
+          portion: portionOf(e),
+        }),
+      );
+    }
+    void refreshEntries();
+    if (!added.length) {
+      toast.info(t("Yesterday's meals are already on this day."));
+      return;
+    }
+    undoToast({
+      message: t("Copied {n} meal(s) from yesterday.", { n: added.length }),
+      undoLabel: t("Undo"),
+      onUndo: async () => {
+        for (const e of added) await removeEntry(e);
+        void refreshEntries();
+      },
+    });
   }
 
   async function toggleEaten(entry: DietEntry) {
@@ -276,24 +334,7 @@ function TodayPage() {
           <button
             type="button"
             aria-label={t("Repeat yesterday")}
-            onClick={async () => {
-              const yesterday = isoDate(new Date(new Date(date).getTime() - 86400000));
-              const source = await getDayEntries(yesterday);
-              if (!source.length) {
-                toast.info(t("No recent meals to copy — plan a day first."));
-                return;
-              }
-              for (const e of source) {
-                await addEntry({
-                  date,
-                  slot: e.slot,
-                  mealId: e.mealId,
-                  ...(e.time ? { time: e.time } : {}),
-                });
-              }
-              void refreshEntries();
-              toast.success(t("Copied yesterday's meals into today."));
-            }}
+            onClick={() => void repeatYesterday()}
             className="tap-target flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground"
           >
             <Repeat className="size-4" />
@@ -318,13 +359,27 @@ function TodayPage() {
         />
       </div>
 
-      <PlannedMealsSection
-        entries={plannedEntries}
+      <div className="mt-4 flex gap-2">
+        <Button
+          className="tap-target flex-1 text-base font-semibold"
+          onClick={() => openSheet("log")}
+        >
+          <Plus className="mr-1.5 size-5" /> {t("Log a meal")}
+        </Button>
+        <Button
+          variant="outline"
+          className="tap-target"
+          onClick={() => openSheet("plan")}
+          aria-label={t("Plan a meal")}
+        >
+          <CalendarPlus className="size-5" />
+        </Button>
+      </div>
+
+      <DayMealsSection
+        entries={entries}
         mealById={mealById}
-        onPlan={(slot) => {
-          setPlanSlot(schedule ? slot : "lunch");
-          setPlanOpen(true);
-        }}
+        onLog={(slot) => openSheet("log", slot)}
         onOpen={(entry) => {
           const meal = mealById(entry.mealId);
           if (meal) setDetail({ meal, slot: entry.slot, entry });
@@ -338,25 +393,16 @@ function TodayPage() {
         emptyReason={
           openKcal < 200
             ? t("Your day is basically covered — nothing worth adding right now.")
-            : t("Plan a meal first, then the coach can suggest what fits the rest of the day.")
+            : t("Log a meal first, then the coach can suggest what fits the rest of the day.")
         }
         onAdd={(s) =>
-          void planMeal({
+          void addMeal({
             slot: s.slot,
             mealId: s.meal.id,
             ...(schedule ? { time: schedule[s.slot].time } : {}),
           })
         }
         onOpen={(meal) => setDetail({ meal, slot: suggestions[0]?.slot ?? "lunch" })}
-      />
-
-      <UnplannedEatenList
-        entries={unplannedEaten}
-        mealById={mealById}
-        onOpen={(entry) => {
-          const meal = mealById(entry.mealId);
-          if (meal) setDetail({ meal, slot: entry.slot, entry });
-        }}
       />
 
       <div className="mt-6">
@@ -373,16 +419,28 @@ function TodayPage() {
         weekTotals={weekTotals}
         planned={!!detail?.entry}
         trainingTag={tag}
+        {...(detail?.entry
+          ? {
+              portion: portionOf(detail.entry),
+              onPortionChange: async (next: number) => {
+                if (!detail?.entry) return;
+                const saved = await setEntryPortion(detail.entry, next);
+                setDetail((d) => (d ? { ...d, entry: saved } : d));
+                void refreshEntries();
+              },
+            }
+          : {})}
         onToggle={async () => {
           if (!detail) return;
           if (detail.entry) await drop(detail.entry);
-          else await planMeal({ slot: detail.slot, mealId: detail.meal.id });
+          else await addMeal({ slot: detail.slot, mealId: detail.meal.id });
           setDetail(null);
         }}
       />
 
-      <PlanMealSheet
-        open={planOpen}
+      <MealEntrySheet
+        open={entrySheet.open}
+        mode={entrySheet.mode}
         defaultSlot={
           planSlot && MEAL_SLOTS.includes(planSlot)
             ? planSlot
@@ -390,10 +448,10 @@ function TodayPage() {
               ? slotForTime(new Date(), schedule)
               : "lunch"
         }
-        onOpenChange={setPlanOpen}
-        onPick={(input) => void planMeal(input)}
+        onOpenChange={(open) => setEntrySheet((prev) => ({ ...prev, open }))}
+        onPick={(input) => void addMeal(input)}
         onCreateMeal={() => {
-          setPlanOpen(false);
+          setEntrySheet((prev) => ({ ...prev, open: false }));
           setAddOpen(true);
         }}
       />
@@ -403,7 +461,13 @@ function TodayPage() {
         onOpenChange={setAddOpen}
         defaultSlot={planSlot}
         onCreated={async (meal) => {
-          await addEntry({ date, slot: planSlot, mealId: meal.id });
+          // A meal created from a photo or a description was just eaten.
+          await addEntry({
+            date,
+            slot: planSlot,
+            mealId: meal.id,
+            eaten: entrySheet.mode === "log",
+          });
           void qc.invalidateQueries({ queryKey: ["meals"] });
           void refreshEntries();
         }}
@@ -416,8 +480,8 @@ function TodayPage() {
       <MacroBreakdownSheet
         open={breakdownOpen}
         onOpenChange={setBreakdownOpen}
-        planned={Object.fromEntries(plannedEntries.map((e) => [e.slot, e.mealId]))}
-        eaten={Object.fromEntries(entries.filter((e) => e.eaten).map((e) => [e.slot, e.mealId]))}
+        entries={entries}
+        mealById={mealById}
         plannedTotals={dayTotals}
         eatenTotals={eatenTotals}
         targets={targets}

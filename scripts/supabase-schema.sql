@@ -137,6 +137,8 @@ create table if not exists public.meal_entries (
   slot text not null,
   meal_id text not null,
   entry_time text,
+  -- 1 = one serving, 0.5 = half of it.
+  portion numeric not null default 1,
   planned boolean not null default true,
   eaten boolean not null default false,
   created_at timestamptz not null default now()

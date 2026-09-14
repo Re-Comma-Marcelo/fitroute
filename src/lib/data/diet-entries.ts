@@ -24,7 +24,7 @@ import {
   type DietEntry,
 } from "../diet-day";
 import { allMeals, eatenFor, getMealSchedule, getWeekPlan, hourOf, MEAL_SLOTS } from "./nutrition";
-import type { DayTotals, MealSchedule, MealSlot, WeekPlan } from "../nutrition-types";
+import type { DayTotals, Meal, MealSchedule, MealSlot, WeekPlan } from "../nutrition-types";
 
 export type { DietEntry };
 
@@ -111,22 +111,48 @@ export async function getEntriesForDates(dates: string[]): Promise<DietEntry[]> 
 
 const EMPTY_TOTALS: DayTotals = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
 
-/** Macros of a set of entries. Unknown meal ids contribute nothing. */
+/** One serving unless the entry says otherwise. */
+export function portionOf(entry: Pick<DietEntry, "portion">): number {
+  return entry.portion && entry.portion > 0 ? entry.portion : 1;
+}
+
+/** A meal's macros at the portion actually eaten, rounded for display. */
+export function scaleMeal(meal: Meal, portion: number): DayTotals {
+  return {
+    kcal: Math.round(meal.kcal * portion),
+    proteinG: Math.round(meal.proteinG * portion),
+    carbsG: Math.round(meal.carbsG * portion),
+    fatG: Math.round(meal.fatG * portion),
+  };
+}
+
+/**
+ * Macros of a set of entries, each scaled by its portion. Unknown meal ids
+ * contribute nothing. Rounding happens once, at the end, so a day of half
+ * portions does not drift.
+ */
 export function totalsForEntries(entries: DietEntry[]): DayTotals {
   const meals = allMeals();
-  return entries.reduce<DayTotals>(
+  const sum = entries.reduce<DayTotals>(
     (acc, e) => {
       const meal = meals.find((m) => m.id === e.mealId);
       if (!meal) return acc;
+      const p = portionOf(e);
       return {
-        kcal: acc.kcal + meal.kcal,
-        proteinG: acc.proteinG + meal.proteinG,
-        carbsG: acc.carbsG + meal.carbsG,
-        fatG: acc.fatG + meal.fatG,
+        kcal: acc.kcal + meal.kcal * p,
+        proteinG: acc.proteinG + meal.proteinG * p,
+        carbsG: acc.carbsG + meal.carbsG * p,
+        fatG: acc.fatG + meal.fatG * p,
       };
     },
     { ...EMPTY_TOTALS },
   );
+  return {
+    kcal: Math.round(sum.kcal),
+    proteinG: Math.round(sum.proteinG),
+    carbsG: Math.round(sum.carbsG),
+    fatG: Math.round(sum.fatG),
+  };
 }
 
 export interface DayNutrition {
@@ -157,6 +183,7 @@ export async function addEntry(input: {
   slot: MealSlot;
   mealId: string;
   time?: string | undefined;
+  portion?: number | undefined;
   planned?: boolean;
   eaten?: boolean;
 }): Promise<DietEntry> {
@@ -166,6 +193,7 @@ export async function addEntry(input: {
     slot: input.slot,
     mealId: input.mealId,
     ...(input.time ? { time: input.time } : {}),
+    portion: input.portion && input.portion > 0 ? input.portion : 1,
     planned: input.planned ?? true,
     eaten: input.eaten ?? false,
     createdAt: new Date().toISOString(),
@@ -177,6 +205,13 @@ export async function addEntry(input: {
 
 export async function setEntryEaten(entry: DietEntry, eaten: boolean): Promise<DietEntry> {
   const next: DietEntry = { ...entry, eaten };
+  upsertLocalEntry(next);
+  sync(next);
+  return next;
+}
+
+export async function setEntryPortion(entry: DietEntry, portion: number): Promise<DietEntry> {
+  const next: DietEntry = { ...entry, portion: portion > 0 ? portion : 1 };
   upsertLocalEntry(next);
   sync(next);
   return next;

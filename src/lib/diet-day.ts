@@ -19,6 +19,11 @@ export interface DietEntry {
   mealId: string;
   /** Optional "HH:MM" so several entries of the same type sort logically. */
   time?: string;
+  /**
+   * How much of the meal this entry is: 1 = one serving, 0.5 = half of it.
+   * Absent means one serving (entries written before portions existed).
+   */
+  portion?: number;
   /** True when the user planned it ahead; false when it was logged as eaten only. */
   planned: boolean;
   eaten: boolean;

@@ -1,33 +1,33 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useT } from "@/lib/i18n";
-import { MEAL_SLOTS, SLOT_LABEL, allMeals } from "@/lib/data/nutrition";
-import type { DayTotals, MealSlot, NutritionTargets } from "@/lib/nutrition-types";
+import { MEAL_SLOTS, SLOT_LABEL } from "@/lib/data/nutrition";
+import { portionOf, scaleMeal, type DietEntry } from "@/lib/data/diet-entries";
+import { portionLabel } from "@/components/diet/MealEntryRow";
+import type { DayTotals, Meal, NutritionTargets } from "@/lib/nutrition-types";
 import { Check, Utensils } from "lucide-react";
 
 /**
- * Where today's numbers come from: every slot with what is planned, what was
- * actually eaten, and the macros each meal contributes.
+ * Where today's numbers come from: every eating moment with what it holds, at
+ * the portion actually recorded, and the macros each meal contributes.
  */
 export function MacroBreakdownSheet({
   open,
   onOpenChange,
-  planned,
-  eaten,
+  entries,
+  mealById,
   plannedTotals,
   eatenTotals,
   targets,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  planned: Partial<Record<MealSlot, string>> | undefined;
-  eaten: Partial<Record<MealSlot, string>>;
+  entries: DietEntry[];
+  mealById: (id: string) => Meal | undefined;
   plannedTotals: DayTotals;
   eatenTotals: DayTotals;
   targets: NutritionTargets;
 }) {
   const t = useT();
-  const meals = allMeals();
-  const mealName = (id?: string) => meals.find((m) => m.id === id);
   const left = Math.max(0, targets.kcal - eatenTotals.kcal);
 
   return (
@@ -66,18 +66,17 @@ export function MacroBreakdownSheet({
 
         <ul className="mt-4 space-y-2">
           {MEAL_SLOTS.map((slot) => {
-            const plannedMeal = mealName(planned?.[slot]);
-            const eatenMeal = mealName(eaten[slot]);
-            const shown = eatenMeal ?? plannedMeal;
+            const rows = entries.filter((e) => e.slot === slot && mealById(e.mealId));
+            const anyEaten = rows.some((e) => e.eaten);
             return (
               <li key={slot} className="rounded-xl border border-border bg-card p-3">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-sm font-semibold">{t(SLOT_LABEL[slot])}</span>
-                  {eatenMeal ? (
+                  {anyEaten ? (
                     <span className="flex items-center gap-1 text-[10px] font-semibold text-diet">
                       <Check className="size-3" /> {t("Eaten")}
                     </span>
-                  ) : plannedMeal ? (
+                  ) : rows.length ? (
                     <span className="flex items-center gap-1 text-[10px] font-semibold text-primary">
                       <Utensils className="size-3" /> {t("Planned")}
                     </span>
@@ -87,17 +86,29 @@ export function MacroBreakdownSheet({
                     </span>
                   )}
                 </div>
-                {shown ? (
-                  <>
-                    <p className="mt-1 text-xs text-muted-foreground">{shown.name}</p>
-                    <p className="mt-1 text-xs tabular-nums text-muted-foreground">
-                      {shown.kcal} kcal · {t("P")} {shown.proteinG}g · {t("C")} {shown.carbsG}g ·{" "}
-                      {t("F")} {shown.fatG}g
-                    </p>
-                  </>
+                {rows.length ? (
+                  <ul className="mt-1 space-y-1.5">
+                    {rows.map((entry) => {
+                      const meal = mealById(entry.mealId)!;
+                      const portion = portionOf(entry);
+                      const macros = scaleMeal(meal, portion);
+                      return (
+                        <li key={entry.id}>
+                          <p className="text-xs text-muted-foreground">
+                            {meal.name}
+                            {portion !== 1 ? ` · ${portionLabel(portion)}×` : ""}
+                          </p>
+                          <p className="text-xs tabular-nums text-muted-foreground">
+                            {macros.kcal} kcal · {t("P")} {macros.proteinG}g · {t("C")}{" "}
+                            {macros.carbsG}g · {t("F")} {macros.fatG}g
+                          </p>
+                        </li>
+                      );
+                    })}
+                  </ul>
                 ) : (
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {t("No meal planned for this slot yet")}
+                    {t("Nothing on this moment yet")}
                   </p>
                 )}
               </li>

@@ -3,6 +3,21 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Log a meal": "Registrar refeição",
+    Portion: "Porção",
+    "Search meals": "Buscar refeições",
+    "No meal matches that. Create it and the AI estimates the macros.":
+      "Nenhuma refeição encontrada. Crie a sua e a IA estima os macros.",
+    "Your day": "Seu dia",
+    "Nothing on this day yet": "Nada neste dia ainda",
+    "Log what you ate and the rings fill up as the day goes.":
+      "Registre o que você comeu e os anéis vão se completando ao longo do dia.",
+    "Nothing on this moment yet": "Nada neste momento ainda",
+    "Nothing to copy from yesterday.": "Não há nada de ontem para copiar.",
+    "Yesterday's meals are already on this day.": "As refeições de ontem já estão neste dia.",
+    "Copied {n} meal(s) from yesterday.": "{n} refeição(ões) de ontem copiada(s).",
+    "Log a meal first, then the coach can suggest what fits the rest of the day.":
+      "Registre uma refeição primeiro; aí o coach sugere o que cabe no resto do dia.",
     "Eaten today": "Comido hoje",
     "Still to buy": "Falta comprar",
     "Fruit & veg": "Hortifrúti",
@@ -174,6 +189,22 @@ export const dict: DictFragment = {
     "Shopping list copied to clipboard.": "Lista de compras copiada para a área de transferência.",
   },
   nl: {
+    "Log a meal": "Maaltijd loggen",
+    Portion: "Portie",
+    "Search meals": "Maaltijden zoeken",
+    "No meal matches that. Create it and the AI estimates the macros.":
+      "Geen maaltijd gevonden. Maak hem aan en de AI schat de macro's.",
+    "Your day": "Je dag",
+    "Nothing on this day yet": "Nog niets op deze dag",
+    "Log what you ate and the rings fill up as the day goes.":
+      "Log wat je at en de ringen vullen zich gedurende de dag.",
+    "Nothing on this moment yet": "Nog niets op dit moment",
+    "Nothing to copy from yesterday.": "Er is niets van gisteren om te kopiëren.",
+    "Yesterday's meals are already on this day.":
+      "De maaltijden van gisteren staan al op deze dag.",
+    "Copied {n} meal(s) from yesterday.": "{n} maaltijd(en) van gisteren gekopieerd.",
+    "Log a meal first, then the coach can suggest what fits the rest of the day.":
+      "Log eerst een maaltijd, dan stelt de coach voor wat bij de rest van de dag past.",
     "Eaten today": "Vandaag gegeten",
     "Still to buy": "Nog te kopen",
     "Fruit & veg": "Groente & fruit",

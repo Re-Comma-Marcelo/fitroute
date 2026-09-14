@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { mealImage } from "@/lib/meal-image";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
+import { scaleMeal } from "@/lib/data/diet-entries";
+import { portionLabel } from "@/components/diet/MealEntryRow";
 import { useT } from "@/lib/i18n";
 import type {
   DayTotals,
@@ -79,6 +81,8 @@ export function MealDetailSheet({
   weekTotals,
   planned,
   trainingTag,
+  portion,
+  onPortionChange,
   onToggle,
 }: {
   meal: Meal | null;
@@ -90,30 +94,39 @@ export function MealDetailSheet({
   weekTotals: DayTotals;
   planned: boolean;
   trainingTag?: TrainingTag | undefined;
+  /** Portion of this entry, when the sheet was opened from a logged meal. */
+  portion?: number | undefined;
+  /** Given, the sheet lets the user change how much of the meal this was. */
+  onPortionChange?: ((portion: number) => void) | undefined;
   onToggle: () => void;
 }) {
   const t = useT();
   if (!meal) return null;
 
+  // Every number in this sheet is the portion actually recorded, not the
+  // catalogue serving.
+  const p = portion && portion > 0 ? portion : 1;
+  const shown = scaleMeal(meal, p);
+
   const macros = [
     {
       label: t("Protein"),
-      grams: meal.proteinG,
-      kcal: meal.proteinG * MACRO_KCAL.proteinG,
+      grams: shown.proteinG,
+      kcal: shown.proteinG * MACRO_KCAL.proteinG,
       target: targets.proteinG,
       color: "var(--chart-1)",
     },
     {
       label: t("Carbs"),
-      grams: meal.carbsG,
-      kcal: meal.carbsG * MACRO_KCAL.carbsG,
+      grams: shown.carbsG,
+      kcal: shown.carbsG * MACRO_KCAL.carbsG,
       target: targets.carbsG,
       color: "var(--chart-2)",
     },
     {
       label: t("Fat"),
-      grams: meal.fatG,
-      kcal: meal.fatG * MACRO_KCAL.fatG,
+      grams: shown.fatG,
+      kcal: shown.fatG * MACRO_KCAL.fatG,
       target: targets.fatG,
       color: "var(--chart-3)",
     },
@@ -124,10 +137,10 @@ export function MealDetailSheet({
   const dayAfter = planned
     ? dayTotals
     : {
-        kcal: dayTotals.kcal + meal.kcal,
-        proteinG: dayTotals.proteinG + meal.proteinG,
-        carbsG: dayTotals.carbsG + meal.carbsG,
-        fatG: dayTotals.fatG + meal.fatG,
+        kcal: dayTotals.kcal + shown.kcal,
+        proteinG: dayTotals.proteinG + shown.proteinG,
+        carbsG: dayTotals.carbsG + shown.carbsG,
+        fatG: dayTotals.fatG + shown.fatG,
       };
 
   const weeklyTargets = {
@@ -136,7 +149,7 @@ export function MealDetailSheet({
     carbsG: targets.carbsG * 7,
     fatG: targets.fatG * 7,
   };
-  const weekAfter = planned ? weekTotals : { ...weekTotals, kcal: weekTotals.kcal + meal.kcal };
+  const weekAfter = planned ? weekTotals : { ...weekTotals, kcal: weekTotals.kcal + shown.kcal };
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -158,7 +171,7 @@ export function MealDetailSheet({
           <SheetTitle className="sr-only">{meal.name}</SheetTitle>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
-              <Flame className="size-3" /> {meal.kcal} kcal
+              <Flame className="size-3" /> {shown.kcal} kcal
             </span>
             <span className="flex items-center gap-1 rounded-full border border-border px-2 py-0.5">
               {meal.orderOut ? <Truck className="size-3" /> : <Clock className="size-3" />}
@@ -220,7 +233,7 @@ export function MealDetailSheet({
           <section className="rounded-2xl border border-primary/20 bg-primary/5 p-3.5">
             <h3 className="text-sm font-semibold">{t("Why this meal")}</h3>
             <p className="mt-1 text-sm leading-snug text-muted-foreground">
-              {explanation(meal, targets, trainingTag, t)}
+              {explanation({ ...meal, ...shown }, targets, trainingTag, t)}
             </p>
           </section>
 
@@ -309,6 +322,29 @@ export function MealDetailSheet({
               </ul>
             </section>
           )}
+
+          {onPortionChange ? (
+            <section>
+              <h3 className="label-caps text-xs text-muted-foreground">{t("Portion")}</h3>
+              <div className="mt-2 flex gap-1.5">
+                {[0.5, 1, 1.5, 2].map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onPortionChange(value)}
+                    aria-pressed={p === value}
+                    className={`tap-target min-w-12 rounded-full border px-3 text-sm font-semibold tabular-nums transition-colors ${
+                      p === value
+                        ? "border-diet bg-diet/10 text-diet"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {portionLabel(value)}×
+                  </button>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <Button
             onClick={onToggle}

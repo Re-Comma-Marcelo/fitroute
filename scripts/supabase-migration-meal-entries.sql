@@ -14,6 +14,8 @@ create table if not exists public.meal_entries (
   slot text not null,
   meal_id text not null,
   entry_time text,
+  -- 1 = one serving, 0.5 = half of it.
+  portion numeric not null default 1,
   planned boolean not null default true,
   eaten boolean not null default false,
   created_at timestamptz not null default now()
@@ -25,3 +27,7 @@ create index if not exists meal_entries_user_date_idx
 grant all on public.meal_entries to service_role;
 revoke all on public.meal_entries from anon, authenticated;
 alter table public.meal_entries enable row level security;
+
+-- For databases created before portions existed.
+alter table public.meal_entries
+  add column if not exists portion numeric not null default 1;
