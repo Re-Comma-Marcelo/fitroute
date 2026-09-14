@@ -31,7 +31,6 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as AuthenticatedDietaIndexRouteImport } from './routes/_authenticated/dieta.index'
 import { Route as AuthenticatedDietaInterviewRouteImport } from './routes/_authenticated/dieta.interview'
 import { Route as AuthenticatedDietaMarketRouteImport } from './routes/_authenticated/dieta.market'
-import { Route as AuthenticatedDietaWeekRouteImport } from './routes/_authenticated/dieta.week'
 import { Route as AuthenticatedProgressoIndexRouteImport } from './routes/_authenticated/progresso.index'
 import { Route as AuthenticatedProgressoIdRouteImport } from './routes/_authenticated/progresso.$id'
 import { Route as AuthenticatedResumoIdRouteImport } from './routes/_authenticated/resumo.$id'
@@ -153,11 +152,6 @@ const AuthenticatedDietaMarketRoute =
     path: '/market',
     getParentRoute: () => AuthenticatedDietaRoute,
   } as any)
-const AuthenticatedDietaWeekRoute = AuthenticatedDietaWeekRouteImport.update({
-  id: '/week',
-  path: '/week',
-  getParentRoute: () => AuthenticatedDietaRoute,
-} as any)
 const AuthenticatedProgressoIndexRoute =
   AuthenticatedProgressoIndexRouteImport.update({
     id: '/',
@@ -213,7 +207,6 @@ export interface FileRoutesByFullPath {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
-  '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/resumo/$id': typeof AuthenticatedResumoIdRoute
   '/rota/progresso': typeof AuthenticatedRotaProgressoRoute
@@ -240,7 +233,6 @@ export interface FileRoutesByTo {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/dieta/market': typeof AuthenticatedDietaMarketRoute
-  '/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/resumo/$id': typeof AuthenticatedResumoIdRoute
   '/rota/progresso': typeof AuthenticatedRotaProgressoRoute
@@ -272,7 +264,6 @@ export interface FileRoutesById {
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/dieta/interview': typeof AuthenticatedDietaInterviewRoute
   '/_authenticated/dieta/market': typeof AuthenticatedDietaMarketRoute
-  '/_authenticated/dieta/week': typeof AuthenticatedDietaWeekRoute
   '/_authenticated/progresso/$id': typeof AuthenticatedProgressoIdRoute
   '/_authenticated/resumo/$id': typeof AuthenticatedResumoIdRoute
   '/_authenticated/rota/progresso': typeof AuthenticatedRotaProgressoRoute
@@ -304,7 +295,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/dieta/interview'
     | '/dieta/market'
-    | '/dieta/week'
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rota/progresso'
@@ -331,7 +321,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/dieta/interview'
     | '/dieta/market'
-    | '/dieta/week'
     | '/progresso/$id'
     | '/resumo/$id'
     | '/rota/progresso'
@@ -362,7 +351,6 @@ export interface FileRouteTypes {
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/dieta/interview'
     | '/_authenticated/dieta/market'
-    | '/_authenticated/dieta/week'
     | '/_authenticated/progresso/$id'
     | '/_authenticated/resumo/$id'
     | '/_authenticated/rota/progresso'
@@ -538,13 +526,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDietaMarketRouteImport
       parentRoute: typeof AuthenticatedDietaRoute
     }
-    '/_authenticated/dieta/week': {
-      id: '/_authenticated/dieta/week'
-      path: '/week'
-      fullPath: '/dieta/week'
-      preLoaderRoute: typeof AuthenticatedDietaWeekRouteImport
-      parentRoute: typeof AuthenticatedDietaRoute
-    }
     '/_authenticated/progresso/': {
       id: '/_authenticated/progresso/'
       path: '/'
@@ -593,14 +574,12 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedDietaRouteChildren {
   AuthenticatedDietaInterviewRoute: typeof AuthenticatedDietaInterviewRoute
   AuthenticatedDietaMarketRoute: typeof AuthenticatedDietaMarketRoute
-  AuthenticatedDietaWeekRoute: typeof AuthenticatedDietaWeekRoute
   AuthenticatedDietaIndexRoute: typeof AuthenticatedDietaIndexRoute
 }
 
 const AuthenticatedDietaRouteChildren: AuthenticatedDietaRouteChildren = {
   AuthenticatedDietaInterviewRoute: AuthenticatedDietaInterviewRoute,
   AuthenticatedDietaMarketRoute: AuthenticatedDietaMarketRoute,
-  AuthenticatedDietaWeekRoute: AuthenticatedDietaWeekRoute,
   AuthenticatedDietaIndexRoute: AuthenticatedDietaIndexRoute,
 }
 

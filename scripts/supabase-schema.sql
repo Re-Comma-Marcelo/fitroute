@@ -32,6 +32,9 @@ create table if not exists public.profiles (
   peso_meta_kg numeric,
   meta_iniciada_em text,
   meta_prazo text,
+  idade integer,
+  meta_kcal integer,
+  meta_proteina_g integer,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -115,6 +118,8 @@ create table if not exists public.coach_notes (
 
 -- Nutrition ------------------------------------------------------------------
 
+-- Retired: one meal per slot. Kept so existing rows can still be imported
+-- into meal_entries; nothing writes to it any more.
 create table if not exists public.meal_plan (
   user_id text not null default 'demo',
   plan_date text not null,
@@ -123,6 +128,22 @@ create table if not exists public.meal_plan (
   updated_at timestamptz not null default now(),
   primary key (user_id, plan_date, slot)
 );
+
+-- The meal diary: several meals per eating moment, planned and/or eaten.
+create table if not exists public.meal_entries (
+  id text primary key,
+  user_id text not null,
+  entry_date date not null,
+  slot text not null,
+  meal_id text not null,
+  entry_time text,
+  planned boolean not null default true,
+  eaten boolean not null default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists meal_entries_user_date_idx
+  on public.meal_entries (user_id, entry_date);
 
 create table if not exists public.meal_schedule (
   user_id text not null default 'demo',
@@ -185,7 +206,7 @@ begin
   foreach t in array array[
     'profiles','exercises','routines','routine_exercises','workouts',
     'workout_sets','coach_notes','meal_plan','meal_schedule',
-    'shopping_checked','tracked_lifts','custom_meals'
+    'shopping_checked','tracked_lifts','custom_meals','meal_entries'
   ]
   loop
     execute format('grant all on public.%I to service_role', t);

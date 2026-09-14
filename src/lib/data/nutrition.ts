@@ -1,11 +1,9 @@
 import { formatTimeOfDay } from "../format";
 import {
-  clearEatenDay as clearEatenLocal,
   getEaten as getEatenLocal,
   getLocalCustomMeals,
   removeLocalCustomMeal,
   saveLocalCustomMeal,
-  setEaten as setEatenLocal,
 } from "../nutrition-local";
 import {
   deleteCustomMeal,
@@ -14,12 +12,12 @@ import {
   persistCheckedItem,
   persistCustomMeal,
   persistMealSchedule,
-  persistPlannedMeals,
 } from "../forja.functions";
 import { meals } from "./meals.mock";
 import { getProfile } from "./profile";
 import { getWorkouts } from "./workouts";
 import type {
+  Aisle,
   DayTotals,
   Meal,
   MealSchedule,
@@ -37,6 +35,19 @@ export const SLOT_LABEL: Record<MealSlot, string> = {
   lunch: "Lunch",
   snack: "Snack",
   dinner: "Dinner",
+};
+
+/**
+ * Supermarket sections. The union values stay in English (they are a data
+ * contract, also used by the AI meal estimator); only the label is translated.
+ */
+export const AISLE_LABEL: Record<Aisle, string> = {
+  Produce: "Fruit & veg",
+  Protein: "Meat & eggs",
+  Pantry: "Pantry",
+  Dairy: "Dairy",
+  Frozen: "Frozen",
+  Bakery: "Bakery",
 };
 
 export const DEFAULT_SCHEDULE: MealSchedule = {
@@ -200,84 +211,30 @@ export async function removeCustomMeal(id: string): Promise<void> {
   customCache = customCache.filter((m) => m.id !== id);
 }
 
+/**
+ * The retired per-slot plan. Read-only: nothing writes to it any more, it only
+ * feeds the one-time import of days planned before the diary existed
+ * (src/lib/data/diet-entries.ts).
+ */
 export async function getWeekPlan(): Promise<WeekPlan> {
   await hydrate();
   return structuredClone(planCache);
 }
 
-export async function setPlannedMeal(
-  date: string,
-  slot: MealSlot,
-  mealId: string | null,
-): Promise<WeekPlan> {
-  await hydrate();
-  const day = { ...(planCache[date] ?? {}) };
-  if (mealId) day[slot] = mealId;
-  else delete day[slot];
-  planCache = { ...planCache, [date]: day };
-  await persistPlannedMeals({
-    data: {
-      set: mealId ? [{ date, slot, mealId }] : [],
-      clear: mealId ? [] : [{ date, slot }],
-    },
-  });
-  return structuredClone(planCache);
-}
+/** Default age when the profile has none — Mifflin-St Jeor needs a number. */
+export const DEFAULT_AGE = 30;
 
-/** Auto-fills every empty slot of the week with a target-aware suggestion. */
-export async function autoFillWeek(ref = new Date()): Promise<WeekPlan> {
-  await hydrate();
-  const dates = weekDates(ref);
-  const tags = await getTrainingTags(dates);
-  const set: { date: string; slot: string; mealId: string }[] = [];
-  const next: WeekPlan = { ...planCache };
-  dates.forEach((date, di) => {
-    const day = { ...(next[date] ?? {}) };
-    activeSlots().forEach((slot, si) => {
-      if (day[slot]) return;
-      const options = pickForTag(
-        allMeals().filter((m) => m.slots.includes(slot) && !m.orderOut),
-        tags[date],
-      );
-      const chosen = options[(di * 3 + si) % Math.max(1, options.length)];
-      if (chosen) {
-        day[slot] = chosen.id;
-        set.push({ date, slot, mealId: chosen.id });
-      }
-    });
-    next[date] = day;
-  });
-  planCache = next;
-  if (set.length) await persistPlannedMeals({ data: { set, clear: [] } });
-  return structuredClone(planCache);
-}
-
-export async function clearWeek(ref = new Date()): Promise<WeekPlan> {
-  await hydrate();
-  const dates = weekDates(ref);
-  const next = { ...planCache };
-  for (const d of dates) delete next[d];
-  planCache = next;
-  await persistPlannedMeals({ data: { set: [], clear: dates.map((date) => ({ date })) } });
-  return structuredClone(planCache);
-}
-
-function pickForTag(list: Meal[], tag: TrainingTag | undefined): Meal[] {
-  if (tag === "Cardio") {
-    const hc = list.filter((m) => m.tags.includes("high-carb"));
-    return hc.length ? hc : list;
-  }
-  if (tag === "Strength") {
-    const hp = list.filter((m) => m.tags.includes("high-protein"));
-    return hp.length ? hp : list;
-  }
-  const light = list.filter((m) => m.tags.includes("light"));
-  return light.length ? light : list;
-}
-
-export async function getTargets(): Promise<NutritionTargets> {
-  const p = await getProfile();
-  const bmr = 10 * p.pesoKg + 6.25 * p.alturaCm - 5 * 30 + (p.sexo === "feminino" ? -161 : 5);
+/** Calories and macros the app calculates from the profile. */
+export function calculateTargets(p: {
+  pesoKg: number;
+  alturaCm: number;
+  sexo: string;
+  idade?: number | undefined;
+  nivelAtividade: string;
+  objetivo: string;
+}): NutritionTargets {
+  const age = p.idade && p.idade > 0 ? p.idade : DEFAULT_AGE;
+  const bmr = 10 * p.pesoKg + 6.25 * p.alturaCm - 5 * age + (p.sexo === "feminino" ? -161 : 5);
   const mult: Record<string, number> = {
     sedentario: 1.25,
     leve: 1.4,
@@ -295,98 +252,25 @@ export async function getTargets(): Promise<NutritionTargets> {
   return { kcal, proteinG, carbsG, fatG };
 }
 
-export function totalsFor(day: Partial<Record<MealSlot, string>> | undefined): DayTotals {
-  const t: DayTotals = { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 };
-  if (!day) return t;
-  for (const slot of MEAL_SLOTS) {
-    const meal = allMeals().find((m) => m.id === day[slot]);
-    if (!meal) continue;
-    t.kcal += meal.kcal;
-    t.proteinG += meal.proteinG;
-    t.carbsG += meal.carbsG;
-    t.fatG += meal.fatG;
-  }
-  return t;
+/**
+ * The targets the app actually uses. Whatever the user typed in their profile
+ * wins over the calculation — someone with a dietitian's numbers should be
+ * able to use them. Carbs absorb the difference so the macros still add up.
+ */
+export async function getTargets(): Promise<NutritionTargets> {
+  const p = await getProfile();
+  const base = calculateTargets(p);
+  const kcal = p.metaKcal && p.metaKcal > 0 ? Math.round(p.metaKcal) : base.kcal;
+  const proteinG =
+    p.metaProteinaG && p.metaProteinaG > 0 ? Math.round(p.metaProteinaG) : base.proteinG;
+  const fatG = Math.round((kcal * 0.25) / 9);
+  const carbsG = Math.max(0, Math.round((kcal - proteinG * 4 - fatG * 9) / 4));
+  return { kcal, proteinG, carbsG, fatG };
 }
-
-// ---- Eaten (local-only diary) ---------------------------------------------
 
 /** Eaten meal ids per slot for a date (synchronous localStorage read). */
 export function eatenFor(date: string): Partial<Record<MealSlot, string>> {
   return (getEatenLocal()[date] ?? {}) as Partial<Record<MealSlot, string>>;
-}
-
-/** Macros actually consumed for a date (synchronous, reads the meal cache). */
-export function eatenTotalsFor(date: string): DayTotals {
-  return totalsFor(eatenFor(date));
-}
-
-/** Whether a slot is marked eaten for a date (synchronous). */
-export function isEatenSlot(date: string, slot: MealSlot): boolean {
-  return Boolean(getEatenLocal()[date]?.[slot]);
-}
-
-/**
- * Marks/unmarks a planned meal as eaten for a date+slot. Local-only — no
- * Supabase write. Returns the new eaten map so callers can update state.
- */
-export function toggleEatenMeal(date: string, slot: MealSlot, mealId: string): boolean {
-  const eaten = getEatenLocal();
-  const already = eaten[date]?.[slot] === mealId;
-  setEatenLocal(date, slot, already ? null : mealId);
-  return !already;
-}
-
-/** Clears all eaten marks for a date (used by repeat/clear actions). */
-export function clearEatenDay(date: string): void {
-  clearEatenLocal(date);
-}
-
-/**
- * Copies yesterday's planned meals into today (any today slot already set is
- * kept). If yesterday had no planned meals, falls back to the most recent
- * earlier day that had at least one slot planned — so the button stays useful
- * on your first day back. Returns the resulting plan and which source was used.
- */
-export async function repeatYesterdayToToday(): Promise<{
-  plan: WeekPlan;
-  source: "yesterday" | "lastPlanned" | "none";
-}> {
-  await hydrate();
-  const today = isoDate(new Date());
-  const yesterday = isoDate(addDays(new Date(), -1));
-  let src = planCache[yesterday] ?? {};
-  let source: "yesterday" | "lastPlanned" | "none" = "yesterday";
-
-  // Fall back to the most recent earlier day with at least one planned slot.
-  if (!Object.values(src).some(Boolean)) {
-    source = "lastPlanned";
-    for (let back = 2; back <= 30; back++) {
-      const past = isoDate(addDays(new Date(), -back));
-      const day = planCache[past] ?? {};
-      if (Object.values(day).some(Boolean)) {
-        src = day;
-        break;
-      }
-    }
-    if (!Object.values(src).some(Boolean)) {
-      source = "none";
-    }
-  }
-
-  const day = { ...(planCache[today] ?? {}) };
-  for (const slot of MEAL_SLOTS) {
-    if (!day[slot] && src[slot]) day[slot] = src[slot];
-  }
-  planCache = { ...planCache, [today]: day };
-  // Write every copied slot explicitly so persistence tracks it.
-  const writes = MEAL_SLOTS.filter((s) => src[s]).map((s) => ({
-    date: today,
-    slot: s,
-    mealId: src[s] as string,
-  }));
-  if (writes.length) await persistPlannedMeals({ data: { set: writes, clear: [] } });
-  return { plan: structuredClone(planCache), source };
 }
 
 /** Training tag per date, derived from logged workouts (Strength / Rest). */
@@ -423,26 +307,6 @@ export function shoppingListFromMeals(list: Meal[]): { items: ShoppingItem[]; or
   return { items: mergeIngredients(cook), orderOut: list.filter((m) => m.orderOut) };
 }
 
-export async function getShoppingList(dates: string[]): Promise<{
-  items: ShoppingItem[];
-  orderOut: { date: string; slot: MealSlot; meal: Meal }[];
-}> {
-  await hydrate();
-  const cook: Meal[] = [];
-  const orderOut: { date: string; slot: MealSlot; meal: Meal }[] = [];
-  for (const date of dates) {
-    const day = planCache[date];
-    if (!day) continue;
-    for (const slot of MEAL_SLOTS) {
-      const meal = allMeals().find((m) => m.id === day[slot]);
-      if (!meal) continue;
-      if (meal.orderOut) orderOut.push({ date, slot, meal });
-      else cook.push(meal);
-    }
-  }
-  return { items: mergeIngredients(cook), orderOut };
-}
-
 export function getCheckedItems(): string[] {
   return [...checkedCache];
 }
@@ -463,20 +327,4 @@ export function toggleCheckedItem(key: string, onError?: (revert: string[]) => v
     onError?.([...previous]);
   });
   return [...checkedCache];
-}
-
-/** Summed totals across the given dates of the current plan. */
-export function weekTotalsFor(p: WeekPlan, dates: string[]): DayTotals {
-  return dates.reduce<DayTotals>(
-    (acc, d) => {
-      const t = totalsFor(p[d]);
-      return {
-        kcal: acc.kcal + t.kcal,
-        proteinG: acc.proteinG + t.proteinG,
-        carbsG: acc.carbsG + t.carbsG,
-        fatG: acc.fatG + t.fatG,
-      };
-    },
-    { kcal: 0, proteinG: 0, carbsG: 0, fatG: 0 },
-  );
 }

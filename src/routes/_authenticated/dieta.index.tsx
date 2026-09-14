@@ -36,18 +36,18 @@ import {
   getMeals,
   getTargets,
   getTrainingTags,
-  getWeekPlan,
   hourOf,
   isoDate,
   slotForTime,
   weekDates,
-  weekTotalsFor,
 } from "@/lib/data/nutrition";
 import {
   addEntry,
   getDayEntries,
+  getEntriesForDates,
   removeEntry,
   setEntryEaten,
+  totalsForEntries,
   type DietEntry,
 } from "@/lib/data/diet-entries";
 import type { DayTotals, Meal, MealSlot } from "@/lib/nutrition-types";
@@ -94,7 +94,11 @@ function TodayPage() {
 
   const scheduleQ = useQuery({ queryKey: ["mealSchedule"], queryFn: getMealSchedule });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
-  const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
+  const dates = useMemo(() => weekDates(), []);
+  const weekEntriesQ = useQuery({
+    queryKey: ["weekEntries", dates.join()],
+    queryFn: () => getEntriesForDates(dates),
+  });
   const mealsQ = useQuery({ queryKey: ["meals", "all"], queryFn: () => getMeals() });
   const entriesQ = useQuery({
     queryKey: ["dietEntries", date],
@@ -139,7 +143,7 @@ function TodayPage() {
   }, [workoutsQ.data, profileQ.data, date]);
 
   const tag = tagsQ.data?.[date];
-  const weekTotals = useMemo(() => weekTotalsFor(planQ.data ?? {}, weekDates()), [planQ.data]);
+  const weekTotals = useMemo(() => totalsForEntries(weekEntriesQ.data ?? []), [weekEntriesQ.data]);
 
   const openKcal = targets.kcal - dayTotals.kcal;
 
@@ -189,7 +193,11 @@ function TodayPage() {
     [date, targets, eatenTotals, dayTotals, entries, suggestions],
   );
 
-  const refreshEntries = () => qc.invalidateQueries({ queryKey: ["dietEntries", date] });
+  const refreshEntries = () => {
+    void qc.invalidateQueries({ queryKey: ["dietEntries", date] });
+    void qc.invalidateQueries({ queryKey: ["weekEntries"] });
+    void qc.invalidateQueries({ queryKey: ["dayNutrition"] });
+  };
 
   async function planMeal(input: { slot: MealSlot; mealId: string; time?: string }) {
     setPlanOpen(false);

@@ -10,13 +10,12 @@ function DietLayout() {
   const t = useT();
   const modes = [
     { to: "/dieta", label: t("Today") },
-    { to: "/dieta/week", label: t("Week") },
     { to: "/dieta/market", label: t("Market") },
   ] as const;
 
   return (
     <AppShell title={t("Nutrition")}>
-      <nav className="grid grid-cols-3 gap-1 rounded-xl border border-border bg-card p-1">
+      <nav className="grid grid-cols-2 gap-1 rounded-xl border border-border bg-card p-1">
         {modes.map((m) => (
           <Link
             key={m.to}

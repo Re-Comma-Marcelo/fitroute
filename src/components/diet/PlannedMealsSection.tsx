@@ -26,9 +26,11 @@ export function PlannedMealsSection({
   onRemove: (entry: DietEntry) => void;
 }) {
   const t = useT();
+  // An entry whose meal is no longer in the catalogue renders as nothing, so
+  // it must not leave an empty eating-moment heading behind either.
   const groups = MEAL_SLOTS.map((slot) => ({
     slot,
-    items: entries.filter((e) => e.slot === slot),
+    items: entries.filter((e) => e.slot === slot && mealById(e.mealId)),
   })).filter((g) => g.items.length);
 
   return (

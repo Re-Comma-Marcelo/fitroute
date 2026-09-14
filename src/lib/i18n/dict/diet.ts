@@ -3,6 +3,14 @@ import type { DictFragment } from "../types";
 /** Translations for the diet area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Eaten today": "Comido hoje",
+    "Still to buy": "Falta comprar",
+    "Fruit & veg": "Hortifrúti",
+    "Meat & eggs": "Carnes e ovos",
+    Pantry: "Mercearia",
+    Dairy: "Laticínios",
+    Frozen: "Congelados",
+    Bakery: "Padaria",
     "Could not load today's meals.": "Não foi possível carregar as refeições de hoje.",
     "Try again": "Tentar de novo",
     "Calories against the daily target": "Calorias em relação à meta diária",
@@ -166,6 +174,14 @@ export const dict: DictFragment = {
     "Shopping list copied to clipboard.": "Lista de compras copiada para a área de transferência.",
   },
   nl: {
+    "Eaten today": "Vandaag gegeten",
+    "Still to buy": "Nog te kopen",
+    "Fruit & veg": "Groente & fruit",
+    "Meat & eggs": "Vlees & eieren",
+    Pantry: "Voorraadkast",
+    Dairy: "Zuivel",
+    Frozen: "Diepvries",
+    Bakery: "Bakkerij",
     "Could not load today's meals.": "Kon de maaltijden van vandaag niet laden.",
     "Try again": "Probeer opnieuw",
     "Calories against the daily target": "Calorieën ten opzichte van het dagdoel",

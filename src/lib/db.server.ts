@@ -99,6 +99,9 @@ export const toProfile = (r: Row) => ({
   pesoMetaKg: r["peso_meta_kg"] == null ? undefined : Number(r["peso_meta_kg"]),
   metaIniciadaEm: (r["meta_iniciada_em"] ?? undefined) as string | undefined,
   metaPrazo: (r["meta_prazo"] ?? undefined) as string | undefined,
+  idade: r["idade"] == null ? undefined : Number(r["idade"]),
+  metaKcal: r["meta_kcal"] == null ? undefined : Number(r["meta_kcal"]),
+  metaProteinaG: r["meta_proteina_g"] == null ? undefined : Number(r["meta_proteina_g"]),
 });
 
 export const fromProfile = (p: Row, userId: string) => ({
@@ -122,6 +125,9 @@ export const fromProfile = (p: Row, userId: string) => ({
   peso_meta_kg: p["pesoMetaKg"] ?? null,
   meta_iniciada_em: p["metaIniciadaEm"] ?? null,
   meta_prazo: p["metaPrazo"] ?? null,
+  idade: p["idade"] ?? null,
+  meta_kcal: p["metaKcal"] ?? null,
+  meta_proteina_g: p["metaProteinaG"] ?? null,
 });
 
 export const toExercise = (r: Row) => ({

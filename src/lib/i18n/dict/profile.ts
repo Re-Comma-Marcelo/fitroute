@@ -3,6 +3,12 @@ import type { DictFragment } from "../types";
 /** Translations for the profile area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    Age: "Idade",
+    "Daily nutrition targets": "Metas diárias de nutrição",
+    "Leave both empty and the app calculates them: {kcal} kcal and {protein}g protein. Type your own to use a dietitian's numbers instead.":
+      "Deixe os dois em branco e o app calcula: {kcal} kcal e {protein}g de proteína. Preencha para usar os números da sua nutricionista.",
+    "Calories (kcal)": "Calorias (kcal)",
+    "Protein (g)": "Proteína (g)",
     "Weight (lb)": "Peso (lb)",
     "Could not save your profile. Try again.":
       "Não foi possível salvar seu perfil. Tente novamente.",
@@ -115,6 +121,12 @@ export const dict: DictFragment = {
   },
 
   nl: {
+    Age: "Leeftijd",
+    "Daily nutrition targets": "Dagelijkse voedingsdoelen",
+    "Leave both empty and the app calculates them: {kcal} kcal and {protein}g protein. Type your own to use a dietitian's numbers instead.":
+      "Laat beide leeg en de app rekent ze uit: {kcal} kcal en {protein}g eiwit. Vul ze in om de cijfers van je diëtist te gebruiken.",
+    "Calories (kcal)": "Calorieën (kcal)",
+    "Protein (g)": "Eiwit (g)",
     "Weight (lb)": "Gewicht (lb)",
     "Could not save your profile. Try again.": "Kon je profiel niet opslaan. Probeer opnieuw.",
     "Your name": "Je naam",

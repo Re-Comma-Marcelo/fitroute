@@ -4,7 +4,8 @@ import type { Routine } from "../types";
 import { exercises } from "./mocks";
 import { meals } from "./meals.mock";
 import { saveRoutine, newRoutineExercise } from "./routines";
-import { setPlannedMeal, SLOT_LABEL } from "./nutrition";
+import { SLOT_LABEL } from "./nutrition";
+import { addEntry, getEntriesForDates } from "./diet-entries";
 import { saveCoachNote } from "./coach-notes";
 
 export interface ImportPreview {
@@ -85,10 +86,14 @@ export async function applyImport(payload: BridgePayload): Promise<string> {
 
   if (payload.kind === "diet") {
     let count = 0;
+    const existing = await getEntriesForDates(Object.keys(payload.days));
+    const taken = new Set(existing.map((e) => `${e.date}|${e.slot}|${e.mealId}`));
     for (const [date, slots] of Object.entries(payload.days)) {
       for (const [slot, mealId] of Object.entries(slots)) {
         if (!meals.some((m) => m.id === mealId)) continue;
-        await setPlannedMeal(date, slot as never, mealId);
+        if (taken.has(`${date}|${slot}|${mealId}`)) continue;
+        await addEntry({ date, slot: slot as never, mealId });
+        taken.add(`${date}|${slot}|${mealId}`);
         count++;
       }
     }

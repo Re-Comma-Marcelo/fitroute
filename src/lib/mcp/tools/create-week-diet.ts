@@ -77,20 +77,21 @@ export default defineTool({
 
     const { db, unwrap } = await dbModule();
     const client = db();
+    // Writes into the meal diary (meal_entries), the one model the app reads.
+    // The id is derived from date + slot + meal so re-running the same plan
+    // updates those rows instead of planning every meal twice.
     const rows = Object.entries(days).flatMap(([date, slots]) =>
       SLOTS.filter((s) => slots[s]).map((s) => ({
+        id: `de_mcp_${date}_${s}_${slots[s] as string}`,
         user_id: userId,
-        plan_date: date,
+        entry_date: date,
         slot: s,
         meal_id: slots[s] as string,
+        planned: true,
+        eaten: false,
       })),
     );
-    unwrap(
-      await client
-        .from("meal_plan")
-        .upsert(rows, { onConflict: "user_id,plan_date,slot" })
-        .select("meal_id"),
-    );
+    unwrap(await client.from("meal_entries").upsert(rows, { onConflict: "id" }).select("meal_id"));
 
     const lines = Object.entries(days).map(([date, slots]) => {
       const parts = SLOTS.filter((s) => slots[s]).map((s) => {
