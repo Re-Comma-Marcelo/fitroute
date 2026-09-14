@@ -470,3 +470,25 @@
     border-radius: var(--radius-sm, 0.5rem);
   }
 }
+
+/* Rest just ran out while the session was open: the island pulses three times
+ * instead of a full-screen overlay. */
+@keyframes rest-done-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--train) 0%, transparent);
+  }
+  30% {
+    box-shadow: 0 0 0 10px color-mix(in oklab, var(--train) 35%, transparent);
+  }
+}
+
+@utility rest-done-pulse {
+  animation: rest-done-pulse 1.2s ease-out 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rest-done-pulse {
+    animation: none;
+  }
+}
