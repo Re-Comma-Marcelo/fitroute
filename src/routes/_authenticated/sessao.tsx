@@ -86,7 +86,8 @@ import {
 } from "@/lib/data/coaching";
 import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
-import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { getTargets, isoDate } from "@/lib/data/nutrition";
+import { getDayNutrition } from "@/lib/data/diet-entries";
 import { SessionCoachSheet } from "@/components/SessionCoachSheet";
 import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 
@@ -977,10 +978,10 @@ function SessionPage() {
       // Post-workout coach message: recovery + food that fits the open macros.
       let coachMessage = "";
       try {
-        const [log, targets, plan] = await Promise.all([
+        const [log, targets, dayFood] = await Promise.all([
           getWorkoutLog(),
           getTargets(),
-          getWeekPlan(),
+          getDayNutrition(isoDate(new Date())),
         ]);
         const recent = log.workouts.filter((w) => w.finalizadoEm && w.id !== target.id).slice(-8);
         const avgVolume = recent.length
@@ -995,7 +996,7 @@ function SessionPage() {
           avgVolumeKg: avgVolume,
           avgDurationSeg: avgDuration,
           targets,
-          consumed: totalsFor(plan[isoDate(new Date())]),
+          consumed: dayFood.eaten,
         });
         coachMessage = built.message;
         await logCoachingEvent({

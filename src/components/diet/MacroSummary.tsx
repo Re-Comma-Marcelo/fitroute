@@ -1,6 +1,7 @@
 import { Minus, Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Ring } from "@/components/nutrition-ui";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 import {
   DEFAULT_WATER_GOAL,
@@ -23,6 +24,7 @@ export function MacroSummary({
   onOpenBreakdown?: () => void;
 }) {
   const t = useT();
+  const water = useFeature("water");
   const macros = [
     { label: t("Carbs"), current: totals.carbsG, target: targets.carbsG, color: "var(--chart-2)" },
     {
@@ -64,7 +66,7 @@ export function MacroSummary({
           );
         })}
       </div>
-      <WaterRow date={date} />
+      {water ? <WaterRow date={date} /> : null}
     </>
   );
 }

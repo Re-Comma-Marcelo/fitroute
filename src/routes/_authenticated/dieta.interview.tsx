@@ -1,5 +1,5 @@
 import { pageMeta } from "@/lib/route-meta";
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Navigate, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Sparkles } from "lucide-react";
@@ -11,6 +11,7 @@ import { QueryError } from "@/components/QueryError";
 import { WeekMenuGrid, type WeekMenuOption } from "@/components/diet/WeekMenuGrid";
 
 import { rankMeals } from "@/lib/nutrition-swap";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 import {
   MEAL_SLOTS,
@@ -45,6 +46,7 @@ const FIRST_PAGE = 4;
 const PAGE_STEP = 4;
 
 function InterviewPage() {
+  const weeklyMenu = useFeature("weeklyMenu");
   const t = useT();
   const qc = useQueryClient();
   const navigate = useNavigate();
@@ -111,6 +113,9 @@ function InterviewPage() {
       setSaving(false);
     }
   }
+
+  // Reachable only by typing the URL while the feature is off.
+  if (!weeklyMenu) return <Navigate to="/dieta" replace />;
 
   if (loadError) {
     return (

@@ -1,14 +1,16 @@
 import { pageMeta } from "@/lib/route-meta";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, Navigate, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Eraser, Plus, Share2, ShoppingBasket, Truck, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { undoToast } from "@/lib/undo";
-import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatNumber } from "@/lib/format";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 import {
+  AISLE_LABEL,
   getCheckedItems,
   getMeals,
   isoDate,
@@ -18,10 +20,9 @@ import {
 } from "@/lib/data/nutrition";
 import { getArchivedWeeks, getWeekMenu, removeListItem } from "@/lib/data/week-menu";
 import { addEntry, getDayEntries } from "@/lib/data/diet-entries";
-import { estimateItemPrice, estimateTotalPrice } from "@/lib/data/prices";
 import { WeekMenuSection } from "@/components/diet/WeekMenuSection";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
-import type { Meal, MealSlot, ShoppingItem } from "@/lib/nutrition-types";
+import type { Aisle, Meal, MealSlot, ShoppingItem } from "@/lib/nutrition-types";
 import { QueryError } from "@/components/QueryError";
 
 export const Route = createFileRoute("/_authenticated/dieta/market")({
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
 });
 
 function MarketPage() {
+  const weeklyMenu = useFeature("weeklyMenu");
   const t = useT();
   const qc = useQueryClient();
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
@@ -87,8 +89,6 @@ function MarketPage() {
 
   const total = items.length;
   const done = items.filter((i) => checked.includes(i.key)).length;
-  const estTotal = estimateTotalPrice(items);
-  const estLeft = estimateTotalPrice(items.filter((i) => !checked.includes(i.key)));
 
   const plannedOn = useMemo(() => {
     const out: Record<string, string[]> = {};
@@ -101,7 +101,7 @@ function MarketPage() {
   const shareText = useMemo(() => {
     const lines: string[] = [t("Shopping list")];
     for (const [aisle, aisleItems] of groups) {
-      lines.push(`\n${aisle}`);
+      lines.push(`\n${t(AISLE_LABEL[aisle as Aisle] ?? aisle)}`);
       for (const it of aisleItems) {
         const mark = checked.includes(it.key) ? "✓ " : "";
         lines.push(
@@ -156,6 +156,9 @@ function MarketPage() {
     toast.success(t("Added to your day."));
   }
 
+  // Reachable only by typing the URL while the feature is off.
+  if (!weeklyMenu) return <Navigate to="/dieta" replace />;
+
   const archive = getArchivedWeeks();
   const notStarted = !!menu && !menu.completedAt && !menu.mealIds.length;
 
@@ -202,16 +205,16 @@ function MarketPage() {
           <section className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-primary/5 p-3.5">
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                {t("Estimated cost")}
+                {t("Still to buy")}
               </p>
-              <p className="text-xl font-semibold tabular-nums">{formatCurrency(estTotal)}</p>
+              <p className="text-xl font-semibold tabular-nums">{total - done}</p>
               <p className="mt-0.5 text-xs text-muted-foreground">
-                {t("~{amount} still to buy · rough estimate", { amount: formatCurrency(estLeft) })}
+                {t("{done} of {total} items checked", { done, total })}
               </p>
             </div>
             <div className="text-right text-xs text-muted-foreground">
               <p>{t("This week")}</p>
-              <p className="mt-0.5">{t("{done} of {total} items checked", { done, total })}</p>
+              <p className="mt-0.5">{t("{n} meals", { n: selectedMeals.length })}</p>
             </div>
           </section>
 
@@ -237,7 +240,7 @@ function MarketPage() {
             {groups.map(([aisle, aisleItems]) => (
               <section key={aisle} className="rounded-2xl border border-border bg-card p-3.5">
                 <h2 className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  {aisle}
+                  {t(AISLE_LABEL[aisle as Aisle] ?? aisle)}
                 </h2>
                 <ul className="mt-2 divide-y divide-border/60">
                   {aisleItems.map((item) => {
@@ -272,9 +275,6 @@ function MarketPage() {
                           </span>
                           <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
                             {formatNumber(Math.round(item.qty * 10) / 10)} {item.unit}
-                            <span className="block text-[11px] text-muted-foreground/70">
-                              ~{formatCurrency(estimateItemPrice(item))}
-                            </span>
                           </span>
                         </button>
                         <button

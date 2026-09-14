@@ -40,11 +40,6 @@ export interface RankedMeal {
   reason: string;
 }
 
-export interface SwapSuggestion extends RankedMeal {
-  current: Meal;
-  deltas: { kcal: number; proteinG: number; carbsG: number; fatG: number };
-}
-
 function remaining(ctx: SwapContext): NutritionTargets {
   const cur = ctx.currentMeal;
   return {
@@ -121,31 +116,4 @@ export function rankMeals(meals: Meal[], ctx: SwapContext): RankedMeal[] {
       reason: reasonFor(meal, ctx, rem, ctx.currentMeal),
     }))
     .sort((a, b) => a.score - b.score);
-}
-
-/**
- * Suggests a swap only when an alternative fits today's training clearly
- * better than the planned meal.
- */
-export function swapSuggestion(meals: Meal[], ctx: SwapContext): SwapSuggestion | null {
-  const current = ctx.currentMeal;
-  if (!current) return null;
-  const rem = remaining(ctx);
-  const currentScore = scoreMeal(current, ctx, rem);
-  const ranked = rankMeals(
-    meals.filter((m) => m.id !== current.id),
-    ctx,
-  );
-  const best = ranked[0];
-  if (!best || currentScore - best.score < 0.5) return null;
-  return {
-    ...best,
-    current,
-    deltas: {
-      kcal: best.meal.kcal - current.kcal,
-      proteinG: best.meal.proteinG - current.proteinG,
-      carbsG: best.meal.carbsG - current.carbsG,
-      fatG: best.meal.fatG - current.fatG,
-    },
-  };
 }

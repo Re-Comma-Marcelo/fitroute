@@ -42,6 +42,12 @@ export interface Profile {
   metaIniciadaEm?: string;
   /** ISO date of the goal deadline. */
   metaPrazo?: string;
+  /** Age in years — used by the calorie calculation. Empty means "calculate". */
+  idade?: number | undefined;
+  /** Manual daily calorie target. Overrides the calculation when set. */
+  metaKcal?: number | undefined;
+  /** Manual daily protein target in grams. Overrides the calculation when set. */
+  metaProteinaG?: number | undefined;
 }
 
 export interface Exercise {

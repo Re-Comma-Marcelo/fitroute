@@ -295,45 +295,6 @@ export const fetchNutritionState = createServerFn({ method: "GET" }).handler(asy
   };
 });
 
-export const persistPlannedMeals = createServerFn({ method: "POST" })
-  .inputValidator(
-    (data: {
-      set: { date: string; slot: string; mealId: string }[];
-      clear: { date: string; slot?: string }[];
-    }) => data,
-  )
-  .handler(async ({ data }) => {
-    const { db, requireUserId, unwrap } = await import("./db.server");
-    const DEMO_USER_ID = await requireUserId();
-    const client = db();
-    for (const c of data.clear) {
-      let query = client
-        .from("meal_plan")
-        .delete()
-        .eq("user_id", DEMO_USER_ID)
-        .eq("plan_date", c.date);
-      if (c.slot) query = query.eq("slot", c.slot);
-      unwrap(await query.select("meal_id"));
-    }
-    if (data.set.length) {
-      unwrap(
-        await client
-          .from("meal_plan")
-          .upsert(
-            data.set.map((s) => ({
-              user_id: DEMO_USER_ID,
-              plan_date: s.date,
-              slot: s.slot,
-              meal_id: s.mealId,
-            })),
-            { onConflict: "user_id,plan_date,slot" },
-          )
-          .select("meal_id"),
-      );
-    }
-    return { ok: true };
-  });
-
 export const persistMealSchedule = createServerFn({ method: "POST" })
   .inputValidator((data: { schedule: MealSchedule }) => data)
   .handler(async ({ data }) => {
@@ -899,6 +860,35 @@ export const fetchMealEntries = createServerFn({ method: "POST" })
       slot: String(r["slot"]),
       mealId: String(r["meal_id"]),
       time: r["entry_time"] ? String(r["entry_time"]) : undefined,
+      portion: r["portion"] == null ? 1 : Number(r["portion"]),
+      planned: Boolean(r["planned"]),
+      eaten: Boolean(r["eaten"]),
+      createdAt: String(r["created_at"] ?? new Date().toISOString()),
+    }));
+  });
+
+/** Entries across a date range — one round trip for week views and totals. */
+export const fetchMealEntriesRange = createServerFn({ method: "POST" })
+  .inputValidator((data: { from: string; to: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, unwrapSoft } = await import("./db.server");
+    const userId = await requireUserId();
+    const rows = unwrapSoft(
+      await db()
+        .from("meal_entries")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("entry_date", data.from)
+        .lte("entry_date", data.to),
+      [] as Record<string, unknown>[],
+    );
+    return (rows as Record<string, unknown>[]).map((r) => ({
+      id: String(r["id"]),
+      date: String(r["entry_date"]),
+      slot: String(r["slot"]),
+      mealId: String(r["meal_id"]),
+      time: r["entry_time"] ? String(r["entry_time"]) : undefined,
+      portion: r["portion"] == null ? 1 : Number(r["portion"]),
       planned: Boolean(r["planned"]),
       eaten: Boolean(r["eaten"]),
       createdAt: String(r["created_at"] ?? new Date().toISOString()),
@@ -913,6 +903,7 @@ export const persistMealEntry = createServerFn({ method: "POST" })
       slot: string;
       mealId: string;
       time?: string | undefined;
+      portion?: number | undefined;
       planned: boolean;
       eaten: boolean;
       createdAt: string;
@@ -931,6 +922,7 @@ export const persistMealEntry = createServerFn({ method: "POST" })
           slot: data.slot,
           meal_id: data.mealId,
           entry_time: data.time ?? null,
+          portion: data.portion && data.portion > 0 ? data.portion : 1,
           planned: data.planned,
           eaten: data.eaten,
           created_at: data.createdAt,

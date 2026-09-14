@@ -21,7 +21,8 @@ import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkoutLog } from "@/lib/data/workouts";
-import { getTargets, getWeekPlan, isoDate, totalsFor } from "@/lib/data/nutrition";
+import { getTargets, isoDate } from "@/lib/data/nutrition";
+import { getDayNutrition } from "@/lib/data/diet-entries";
 import { onboardingDone } from "@/lib/onboarding";
 import { loadActiveSession, sessionLabel } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
@@ -76,7 +77,11 @@ export default function Inicio() {
   const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
-  const planQ = useQuery({ queryKey: ["weekPlan"], queryFn: getWeekPlan });
+  const today = isoDate(new Date());
+  const dayFoodQ = useQuery({
+    queryKey: ["dayNutrition", today],
+    queryFn: () => getDayNutrition(today),
+  });
   const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
 
   const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
@@ -104,10 +109,8 @@ export default function Inicio() {
     navigate({ to: "/onboarding", replace: true });
   }, [logQ.isSuccess, hasData, navigate]);
 
-  const today = isoDate(new Date());
-  const todayTotals = useMemo(() => totalsFor(planQ.data?.[today]), [planQ.data, today]);
-  const kcalToday = todayTotals.kcal;
-  const proteinToday = todayTotals.proteinG;
+  const kcalToday = dayFoodQ.data?.eaten.kcal ?? 0;
+  const proteinToday = dayFoodQ.data?.eaten.proteinG ?? 0;
   const kcalTarget = targetsQ.data?.kcal ?? 0;
   const proteinTarget = targetsQ.data?.proteinG ?? 0;
 
@@ -464,7 +467,7 @@ function DietCard({
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
       <div className="flex items-baseline justify-between gap-3">
-        <p className="label-caps">{t("Today's plan")}</p>
+        <p className="label-caps">{t("Eaten today")}</p>
         <Link to="/dieta" className="text-xs font-semibold text-primary underline-offset-2">
           {t("See diet")}
         </Link>

@@ -1,6 +1,6 @@
 import { getWorkouts } from "@/lib/data/workouts";
-import { getTargets, getWeekPlan, isoDate, totalsFor, getMeal } from "@/lib/data/nutrition";
-import { getEaten } from "@/lib/nutrition-local";
+import { getTargets, isoDate, addDays, getMeal } from "@/lib/data/nutrition";
+import { getDayNutrition, getEntriesForDates, totalsForEntries } from "@/lib/data/diet-entries";
 import { tx } from "@/lib/format";
 import type { CoachInsight } from "./types";
 
@@ -15,23 +15,22 @@ function hourMin(iso: string): number {
  * schedule to say something useful about the day.
  */
 export async function getNutritionInsight(): Promise<CoachInsight | null> {
-  const [targets, plan, workouts, eaten] = await Promise.all([
+  const today = isoDate(new Date());
+  const previousDays = [1, 2, 3].map((back) => isoDate(addDays(new Date(), -back)));
+
+  const [targets, workouts, todayFood, recentEntries] = await Promise.all([
     getTargets(),
-    getWeekPlan(),
     getWorkouts(),
-    getEaten(),
+    getDayNutrition(today),
+    getEntriesForDates(previousDays),
   ]);
 
-  const today = isoDate(new Date());
   const now = new Date();
   const nowH = now.getHours() + now.getMinutes() / 60;
 
-  // Eaten totals for today (meals actually consumed), planned totals otherwise.
-  const eatenDay = eaten[today] ?? {};
-  const plannedDay = plan[today] ?? {};
-  const useEaten = Object.keys(eatenDay).length > 0;
-  const day = useEaten ? { ...plannedDay, ...eatenDay } : plannedDay;
-  const totals = totalsFor(day);
+  // Eaten totals for today once anything is logged; planned totals before that.
+  const useEaten = todayFood.entries.some((e) => e.eaten);
+  const totals = useEaten ? todayFood.eaten : todayFood.planned;
   const kcal = totals.kcal;
   const proteinG = totals.proteinG;
   const carbsG = totals.carbsG;
@@ -91,13 +90,10 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
     };
   }
 
-  // 3) Protein deficit streak across recent planned days.
+  // 3) Protein deficit streak across the last three logged days.
   let lowDays = 0;
-  for (let i = 1; i <= 3; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const dayPlan = plan[isoDate(d)] ?? {};
-    const t = totalsFor(dayPlan);
+  for (const date of previousDays) {
+    const t = totalsForEntries(recentEntries.filter((e) => e.date === date && e.eaten));
     if (t.proteinG > 0 && t.proteinG < targets.proteinG * 0.8) lowDays++;
   }
   if (lowDays >= 3) {
@@ -113,7 +109,7 @@ export async function getNutritionInsight(): Promise<CoachInsight | null> {
   }
 
   // 4) Nothing planned today and no workout — keep it simple.
-  if (!Object.keys(plannedDay).length && !todaysWorkout) {
+  if (!todayFood.entries.length && !todaysWorkout) {
     return {
       id: "nutrition-plan-today",
       scope: "nutrition",

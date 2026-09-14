@@ -1,4 +1,5 @@
-import { isoDate, setPlannedMeal, weekDates } from "../data/nutrition";
+import { isoDate, weekDates } from "../data/nutrition";
+import { addEntry, getEntriesForDates } from "../data/diet-entries";
 import { saveRoutine } from "../data/routines";
 import type { Routine, RoutineExercise } from "../types";
 import { DAY_KEYS, type GeneratedPlan, type PlanDay } from "./types";
@@ -34,13 +35,17 @@ export async function applyPlan(plan: GeneratedPlan): Promise<{ routines: number
     routines += 1;
   }
 
-  const dates = weekDates();
   const today = isoDate(new Date());
+  const dates = weekDates().filter((date) => date >= today);
+  // Applying the same plan twice must not plan every meal twice.
+  const existing = await getEntriesForDates(dates);
+  const taken = new Set(existing.map((e) => `${e.date}|${e.slot}|${e.mealId}`));
   let meals = 0;
   for (const meal of plan.diet.meals) {
     for (const date of dates) {
-      if (date < today) continue;
-      await setPlannedMeal(date, meal.slot, meal.mealId);
+      if (taken.has(`${date}|${meal.slot}|${meal.mealId}`)) continue;
+      await addEntry({ date, slot: meal.slot, mealId: meal.mealId });
+      taken.add(`${date}|${meal.slot}|${meal.mealId}`);
       meals += 1;
     }
   }

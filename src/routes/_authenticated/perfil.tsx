@@ -26,6 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getProfile, invalidateProfileCache, saveProfile } from "@/lib/data/profile";
+import { DEFAULT_AGE, calculateTargets } from "@/lib/data/nutrition";
+import { FEATURES, setFeature, useFeature, type FeatureFlag } from "@/lib/features";
 import { fileToAvatarDataUrl } from "@/lib/avatar";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
@@ -200,6 +202,8 @@ function ProfilePage() {
       const saved = await saveProfile(form!);
       invalidateProfileCache();
       await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      // Calories and macros are derived from the profile — refresh them too.
+      await queryClient.invalidateQueries({ queryKey: ["nutritionTargets"] });
       // Align the form with what the database actually returned, otherwise the
       // sticky "unsaved changes" bar keeps showing after a successful save.
       setForm(saved);
@@ -275,6 +279,8 @@ function ProfilePage() {
   }
 
   const goalLabel = goals.find((g) => g.value === form.objetivo)?.label ?? "";
+  /** What the app would calculate — shown as the placeholder for both fields. */
+  const calculated = calculateTargets(form);
   const timeLabel = times.find((x) => x.value === form.preferredTime)?.label ?? "";
 
   return (
@@ -389,7 +395,7 @@ function ProfilePage() {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
               <Label htmlFor="weight">
                 {weightUnit === "lb" ? t("Weight (lb)") : t("Weight (kg)")}
@@ -419,6 +425,20 @@ function ProfilePage() {
                 onChange={(e) =>
                   patch({ alturaCm: Number(e.target.value.replace(/\D/g, "")) || 0 })
                 }
+                className="numeric-field tap-target h-12 text-base"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="age">{t("Age")}</Label>
+              <Input
+                id="age"
+                inputMode="numeric"
+                placeholder={String(DEFAULT_AGE)}
+                value={form.idade ? String(form.idade) : ""}
+                onChange={(e) => {
+                  const n = Number(e.target.value.replace(/\D/g, ""));
+                  patch(n > 0 ? { idade: n } : { idade: undefined });
+                }}
                 className="numeric-field tap-target h-12 text-base"
               />
             </div>
@@ -467,6 +487,46 @@ function ProfilePage() {
             value={form.objetivo}
             onChange={(v) => patch({ objetivo: v as Objetivo })}
           />
+
+          <div className="rounded-xl border border-border/60 bg-card/40 p-3">
+            <p className="font-display text-sm font-semibold">{t("Daily nutrition targets")}</p>
+            <p className="mb-3 mt-0.5 text-xs leading-snug text-muted-foreground">
+              {t(
+                "Leave both empty and the app calculates them: {kcal} kcal and {protein}g protein. Type your own to use a dietitian's numbers instead.",
+                { kcal: calculated.kcal, protein: calculated.proteinG },
+              )}
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="kcal-target">{t("Calories (kcal)")}</Label>
+                <Input
+                  id="kcal-target"
+                  inputMode="numeric"
+                  placeholder={String(calculated.kcal)}
+                  value={form.metaKcal ? String(form.metaKcal) : ""}
+                  onChange={(e) => {
+                    const n = Number(e.target.value.replace(/\D/g, ""));
+                    patch(n > 0 ? { metaKcal: n } : { metaKcal: undefined });
+                  }}
+                  className="numeric-field tap-target h-12 text-base"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="protein-target">{t("Protein (g)")}</Label>
+                <Input
+                  id="protein-target"
+                  inputMode="numeric"
+                  placeholder={String(calculated.proteinG)}
+                  value={form.metaProteinaG ? String(form.metaProteinaG) : ""}
+                  onChange={(e) => {
+                    const n = Number(e.target.value.replace(/\D/g, ""));
+                    patch(n > 0 ? { metaProteinaG: n } : { metaProteinaG: undefined });
+                  }}
+                  className="numeric-field tap-target h-12 text-base"
+                />
+              </div>
+            </div>
+          </div>
 
           <div className="rounded-xl border border-border/60 bg-card/40 p-3">
             <p className="font-display text-sm font-semibold">{t("By when?")}</p>
@@ -666,6 +726,8 @@ function ProfilePage() {
           <AskRpeToggle />
 
           <RestNotifyToggle />
+
+          <FeatureFlagsPanel />
 
           <WorkoutReminderSection />
           <DataBackupSection />
@@ -879,6 +941,50 @@ function AskRpeToggle() {
           setOn(next);
           setAskRpeEnabled(next);
         }}
+      />
+    </div>
+  );
+}
+
+/**
+ * Parts of the app that exist but are not part of the MVP. Off by default and
+ * per device, so trying one out never changes what the rest of the team sees.
+ */
+function FeatureFlagsPanel() {
+  const t = useT();
+  const flags = Object.keys(FEATURES) as FeatureFlag[];
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="font-display text-sm font-semibold">{t("Features in testing")}</p>
+      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+        {t("Off by default and only on this device. Nothing you saved is deleted when one is off.")}
+      </p>
+      <ul className="mt-3 space-y-2">
+        {flags.map((flag) => (
+          <li key={flag}>
+            <FeatureToggle flag={flag} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FeatureToggle({ flag }: { flag: FeatureFlag }) {
+  const t = useT();
+  const on = useFeature(flag);
+  const meta = FEATURES[flag];
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-3 py-2.5">
+      <div className="min-w-0">
+        <Label htmlFor={`feature-${flag}`}>{t(meta.label)}</Label>
+        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{t(meta.description)}</p>
+      </div>
+      <Switch
+        id={`feature-${flag}`}
+        checked={on}
+        aria-label={t(meta.label)}
+        onCheckedChange={(next) => setFeature(flag, next)}
       />
     </div>
   );
