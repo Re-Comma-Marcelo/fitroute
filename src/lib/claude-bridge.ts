@@ -7,7 +7,9 @@ import { tx } from "./format";
  * Profile importer (what the app applies). Pure module — safe on both runtimes.
  */
 
-export const CODE_PREFIX = "FORJA1.";
+export const CODE_PREFIX = "ROUTE1.";
+/** Codes Claude minted before the rename; still accepted on import. */
+const LEGACY_CODE_PREFIX = "FORJA1.";
 
 export const routineExerciseSchema = z.object({
   exerciseId: z.string().min(1),
@@ -74,14 +76,17 @@ export function encodeBridgeCode(payload: BridgePayload): string {
 export function decodeBridgeCode(
   raw: string,
 ): { ok: true; payload: BridgePayload } | { ok: false; error: string } {
-  const match = raw.match(new RegExp(`${CODE_PREFIX.replace(".", "\\.")}[A-Za-z0-9+/=\\s]+`));
+  const prefixes = [CODE_PREFIX, LEGACY_CODE_PREFIX];
+  const alternation = prefixes.map((p) => p.replace(".", "\\.")).join("|");
+  const match = raw.match(new RegExp(`(?:${alternation})[A-Za-z0-9+/=\\s]+`));
   if (!match) {
     return {
       ok: false,
-      error: tx("No Forja code found. It should start with {prefix}", { prefix: CODE_PREFIX }),
+      error: tx("No Route code found. It should start with {prefix}", { prefix: CODE_PREFIX }),
     };
   }
-  const body = match[0].slice(CODE_PREFIX.length).replace(/\s+/g, "");
+  const used = prefixes.find((p) => match[0].startsWith(p)) ?? CODE_PREFIX;
+  const body = match[0].slice(used.length).replace(/\s+/g, "");
   let json: unknown;
   try {
     json = JSON.parse(fromBase64(body));

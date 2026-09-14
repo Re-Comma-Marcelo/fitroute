@@ -81,7 +81,7 @@
 }
 
 :root {
-  /* Iron Logger — dark-mode-first. Profundidade por luminância, nunca por sombra.
+  /* Route — dark-mode-first. Profundidade por luminância, nunca por sombra.
    * Papéis exclusivos: roxo = marca/ação, laranja = dados de treino,
    * teal = dados de nutrição, verde = sucesso/PR, vermelho = erro/alerta. */
   --radius: 1rem;

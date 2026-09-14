@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: pageMeta({
       title: "Welcome",
-      description: "Set up Iron Logger in under a minute or import your Hevy history.",
+      description: "Set up Route in under a minute or import your Hevy history.",
       twitterCard: "summary",
     }),
   }),

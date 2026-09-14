@@ -1,6 +1,6 @@
 import { currentLangFromStorage, translate } from "@/lib/i18n";
 
-export const APP_NAME = "Iron Logger";
+export const APP_NAME = "Route";
 
 /** The Route mark on the app's dark ground, for link previews. */
 export const OG_IMAGE = "/og-image.png";

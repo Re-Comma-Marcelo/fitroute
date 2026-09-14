@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
     meta: pageMeta({
       title: "Sign in",
       description:
-        "Sign in to Iron Logger to log sets in two taps, follow adaptive routines and track real strength progress.",
+        "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.",
       ogDescription:
         "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
     }),

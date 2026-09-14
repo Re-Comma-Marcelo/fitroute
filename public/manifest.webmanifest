@@ -1,6 +1,6 @@
 {
-  "name": "Iron Logger",
-  "short_name": "Iron",
+  "name": "Route",
+  "short_name": "Route",
   "description": "AI strength training tracker: log sets in two taps, follow adaptive routines and track real progress.",
   "id": "/",
   "start_url": "/inicio",

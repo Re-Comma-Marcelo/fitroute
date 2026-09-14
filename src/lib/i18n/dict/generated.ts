@@ -32,7 +32,7 @@ export const dict: DictFragment = {
       "Nota salva — seu coach vai usá-la na tela de Treino.",
 
     // ── claude-bridge.ts
-    "No Forja code found. It should start with {prefix}":
+    "No Route code found. It should start with {prefix}":
       "Nenhum código encontrado. Ele deve começar com {prefix}",
     "That code is damaged — copy the whole code from Claude again.":
       "Esse código está corrompido — copie o código inteiro do Claude novamente.",
@@ -84,7 +84,7 @@ export const dict: DictFragment = {
 
     // ── Claude section (Profile)
     "Claude / AI assistant": "Claude / assistente de IA",
-    "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
+    "Connect Route to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
       "Conecte o app ao seu próprio chat do Claude, peça uma rotina ou uma semana de refeições e importe o código que ele devolver.",
     "What Claude gets": "O que o Claude ganha",
     "read the app's exercise and meal libraries":
@@ -109,24 +109,24 @@ export const dict: DictFragment = {
     'In every new conversation you have to switch the connector on: the "+" button in the message box → Connectors → enable it. This is the step people forget.':
       'Em cada conversa nova é preciso ligar o conector: botão "+" da caixa de mensagem → Connectors → ative-o. Este é o passo que todo mundo esquece.',
     "4 · Test it": "4 · Testar",
-    "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
-      "Use as ferramentas do Iron Logger: leia meu contexto de treino e monte uma rotina de superiores de 45 minutos com halteres e barra.",
+    "Use the Route tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
+      "Use as ferramentas do Route: leia meu contexto de treino e monte uma rotina de superiores de 45 minutos com halteres e barra.",
     "Copy the example": "Copiar o exemplo",
     "Example question": "Pergunta de exemplo",
-    "If the answer contains a code starting with FORJA1., it worked.":
-      "Se a resposta trouxer um código começando em FORJA1., funcionou.",
+    "If the answer contains a code starting with ROUTE1., it worked.":
+      "Se a resposta trouxer um código começando em ROUTE1., funcionou.",
     "5 · Import it back": "5 · Importar de volta",
     "Nothing enters the app until you confirm — the tools only read and hand back a code.":
       "Nada entra no app sem você confirmar — as ferramentas só leem e devolvem um código.",
-    "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.":
-      "Isso não parece um código do Forja — copie o bloco inteiro que o Claude devolveu, incluindo a parte que começa com FORJA1.",
+    "That does not look like a Route code — copy the whole block Claude returned, including the part that starts with ROUTE1.":
+      "Isso não parece um código do Route — copie o bloco inteiro que o Claude devolveu, incluindo a parte que começa com ROUTE1.",
     "Optional · your training context": "Opcional · seu contexto de treino",
     "Optional — while the tools cannot read your data straight from the app, paste this into the chat so Claude plans with your equipment, your limits and your latest sessions.":
       "Opcional — enquanto as ferramentas não leem seus dados direto do app, cole isto na conversa para o Claude planejar com o seu equipamento, seus limites e suas últimas sessões.",
     "Copy my training context": "Copiar meu contexto de treino",
     "Training context": "Contexto de treino",
     Cancel: "Cancelar",
-    "Paste the FORJA1. code Claude returned…": "Cole o código FORJA1. que o Claude devolveu…",
+    "Paste the ROUTE1. code Claude returned…": "Cole o código ROUTE1. que o Claude devolveu…",
     "Preview import": "Pré-visualizar importação",
 
     Apply: "Aplicar",
@@ -166,7 +166,7 @@ export const dict: DictFragment = {
       "Notitie opgeslagen — je coach gebruikt die op het Trainen-scherm.",
 
     // ── claude-bridge.ts
-    "No Forja code found. It should start with {prefix}":
+    "No Route code found. It should start with {prefix}":
       "Geen code gevonden. Die moet beginnen met {prefix}",
     "That code is damaged — copy the whole code from Claude again.":
       "Die code is beschadigd — kopieer de volledige code opnieuw uit Claude.",
@@ -218,7 +218,7 @@ export const dict: DictFragment = {
 
     // ── Claude section (Profile)
     "Claude / AI assistant": "Claude / AI-assistent",
-    "Connect Forja to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
+    "Connect Route to your own Claude chat, ask it for a routine or a week of meals, then import the code it gives you back.":
       "Verbind de app met je eigen Claude-chat, vraag om een routine of een week maaltijden en importeer de code die je terugkrijgt.",
     "What Claude gets": "Wat Claude krijgt",
     "read the app's exercise and meal libraries":
@@ -243,24 +243,24 @@ export const dict: DictFragment = {
     'In every new conversation you have to switch the connector on: the "+" button in the message box → Connectors → enable it. This is the step people forget.':
       'In elk nieuw gesprek moet je de connector aanzetten: de "+" in het berichtvak → Connectors → zet hem aan. Dit is de stap die mensen vergeten.',
     "4 · Test it": "4 · Testen",
-    "Use the Iron Logger tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
-      "Gebruik de tools van Iron Logger: lees mijn trainingscontext en maak een upper-body routine van 45 minuten met dumbbells en een barbell.",
+    "Use the Route tools: read my training context and build a 45-minute upper-body routine using dumbbells and a barbell.":
+      "Gebruik de tools van Route: lees mijn trainingscontext en maak een upper-body routine van 45 minuten met dumbbells en een barbell.",
     "Copy the example": "Voorbeeld kopiëren",
     "Example question": "Voorbeeldvraag",
-    "If the answer contains a code starting with FORJA1., it worked.":
-      "Staat er in het antwoord een code die met FORJA1. begint, dan is het gelukt.",
+    "If the answer contains a code starting with ROUTE1., it worked.":
+      "Staat er in het antwoord een code die met ROUTE1. begint, dan is het gelukt.",
     "5 · Import it back": "5 · Terug importeren",
     "Nothing enters the app until you confirm — the tools only read and hand back a code.":
       "Niets komt in de app zonder jouw bevestiging — de tools lezen alleen en geven een code terug.",
-    "That does not look like a Forja code — copy the whole block Claude returned, including the part that starts with FORJA1.":
-      "Dit lijkt geen Forja-code — kopieer het hele blok dat Claude gaf, inclusief het deel dat met FORJA1. begint.",
+    "That does not look like a Route code — copy the whole block Claude returned, including the part that starts with ROUTE1.":
+      "Dit lijkt geen Route-code — kopieer het hele blok dat Claude gaf, inclusief het deel dat met ROUTE1. begint.",
     "Optional · your training context": "Optioneel · jouw trainingscontext",
     "Optional — while the tools cannot read your data straight from the app, paste this into the chat so Claude plans with your equipment, your limits and your latest sessions.":
       "Optioneel — zolang de tools jouw gegevens niet direct uit de app kunnen lezen, plak je dit in het gesprek zodat Claude plant met jouw materiaal, jouw grenzen en je laatste sessies.",
     "Copy my training context": "Mijn trainingscontext kopiëren",
     "Training context": "Trainingscontext",
     Cancel: "Annuleren",
-    "Paste the FORJA1. code Claude returned…": "Plak de FORJA1.-code die Claude gaf…",
+    "Paste the ROUTE1. code Claude returned…": "Plak de ROUTE1.-code die Claude gaf…",
     "Preview import": "Import bekijken",
 
     Apply: "Toepassen",

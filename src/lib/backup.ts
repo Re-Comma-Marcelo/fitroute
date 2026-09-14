@@ -11,8 +11,12 @@ import type { Profile, Routine, Workout, WorkoutSet } from "./types";
 
 export const BACKUP_VERSION = 1;
 
+/** Backups written before the rename carry the old app marker. */
+export const BACKUP_APP = "route";
+const LEGACY_BACKUP_APP = "iron-logger";
+
 export interface BackupFile {
-  app: "iron-logger";
+  app: typeof BACKUP_APP | typeof LEGACY_BACKUP_APP;
   version: number;
   exportedAt: string;
   profile: Profile;
@@ -28,7 +32,7 @@ export async function buildBackup(): Promise<BackupFile> {
     getWorkoutLog(),
   ]);
   return {
-    app: "iron-logger",
+    app: BACKUP_APP,
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     profile,
@@ -83,7 +87,7 @@ export function downloadFile(name: string, contents: string, mime: string) {
 
 export function backupFileName(ext: "json" | "csv"): string {
   const stamp = formatDateNumeric(new Date()).replace(/\D+/g, "-");
-  return `iron-logger-${stamp}.${ext}`;
+  return `route-${stamp}.${ext}`;
 }
 
 export interface ImportResult {
@@ -96,7 +100,8 @@ export interface ImportResult {
 function isBackup(value: unknown): value is BackupFile {
   if (!value || typeof value !== "object") return false;
   const b = value as Partial<BackupFile>;
-  return b.app === "iron-logger" && Array.isArray(b.routines) && Array.isArray(b.workouts);
+  const app = b.app === BACKUP_APP || b.app === LEGACY_BACKUP_APP;
+  return app && Array.isArray(b.routines) && Array.isArray(b.workouts);
 }
 
 export interface BackupPreview {

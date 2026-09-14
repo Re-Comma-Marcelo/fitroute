@@ -1,4 +1,4 @@
--- Forja — starter data. Run AFTER scripts/supabase-schema.sql.
+-- Route — starter data. Run AFTER scripts/supabase-schema.sql.
 -- Safe to re-run: every insert upserts on the primary key.
 
 insert into public.profiles (id, user_id, nome, peso_kg, altura_cm, sexo, nivel_atividade, objetivo, meta_treinos_semana, equipment, avoid_exercises, session_length_min, preferred_time, check_in_mode, peso_inicial_kg, peso_meta_kg, meta_iniciada_em, meta_prazo) values ('p1', 'demo', 'Marcelo Alves', 82.5, 178, 'masculino', 'moderado', 'manutencao', 4, array['Barbell', 'Dumbbells', 'Machine', 'Cable']::text[], '[]'::jsonb, 60, 'evening', 'card', 79.5, 88, '2026-05-07', '2026-11-30') on conflict (id) do nothing;

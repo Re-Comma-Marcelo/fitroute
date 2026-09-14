@@ -103,13 +103,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Forja — AI strength training tracker" },
+      { title: "Route — AI strength training tracker" },
       {
         name: "description",
         content:
           "Log sets, weight and rest between sets with two taps. Routines, history, and an AI coach that adapts to your recovery.",
       },
-      { property: "og:title", content: "Forja — AI strength training tracker" },
+      { property: "og:title", content: "Route — AI strength training tracker" },
       {
         property: "og:description",
         content:
@@ -124,7 +124,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Iron" },
+      { name: "apple-mobile-web-app-title", content: "Route" },
     ],
 
     links: [

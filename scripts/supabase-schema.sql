@@ -1,4 +1,4 @@
--- Forja — schema for an external (self-owned) Supabase project.
+-- Route — schema for an external (self-owned) Supabase project.
 -- Run this ONCE in the Supabase SQL editor, then run scripts/supabase-seed.sql.
 --
 -- Notes:
