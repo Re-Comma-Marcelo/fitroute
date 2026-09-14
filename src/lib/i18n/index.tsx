@@ -47,6 +47,7 @@ import { dict as round31Dict } from "./dict/round31";
 import { dict as round32Dict } from "./dict/round32";
 
 import { dict as sessionDict } from "./dict/session";
+import { dict as sessionFocusDict } from "./dict/session-focus";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
 import { dict as trainDict } from "./dict/train";
@@ -70,6 +71,7 @@ const FRAGMENTS: DictFragment[] = [
   trainDict,
   upgradesDict,
   sessionDict,
+  sessionFocusDict,
   libraryDict,
   dietDict,
   progressDict,
