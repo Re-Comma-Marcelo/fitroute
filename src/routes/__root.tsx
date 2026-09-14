@@ -141,8 +141,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", href: "/apple-touch-icon.png", sizes: "180x180" },
-      // SVG first for crisp tabs at any density; the PNG covers browsers without SVG icons.
-      { rel: "icon", type: "image/svg+xml", href: "/logo-route.svg" },
       { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png" },
     ],
   }),
