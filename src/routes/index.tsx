@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RouteLogoTile } from "@/components/RouteLogo";
 import { supabase } from "@/integrations/supabase/client";
+import { authErrorMessage } from "@/lib/auth-errors";
+import { fetchAuthSettings, type AuthSettings } from "@/lib/auth-settings";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -40,15 +42,39 @@ function resumeTarget(): string | null {
   return candidate;
 }
 
+/** Where Supabase sends people back to after OAuth or a confirmation link. */
+function redirectUrl(target: string | null): string {
+  return target
+    ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
+    : window.location.origin;
+}
+
+/** `/?mode=signup` opens the form ready to create an account — shareable link. */
+function initialMode(): Mode {
+  if (typeof window === "undefined") return "signin";
+  return new URLSearchParams(window.location.search).get("mode") === "signup"
+    ? "signup"
+    : "signin";
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const t = useT();
-  const [mode, setMode] = useState<Mode>("signin");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [formError, setFormError] = useState("");
+  const [settings, setSettings] = useState<AuthSettings | null>(null);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
+
+  // A provider button that cannot work is a closed door on the way in, so it
+  // only renders once the project confirms the provider is enabled. When the
+  // settings endpoint is unreachable we keep showing it and fall back to the
+  // error toast.
+  const showGoogle = settingsLoaded && (settings ? settings.providers["google"] === true : true);
+  const signupDisabled = settings?.signupDisabled === true;
 
   function goAfterAuth() {
     const target = resumeTarget();
@@ -59,6 +85,18 @@ function AuthPage() {
     }
     navigate({ to: "/inicio", replace: true });
   }
+
+  useEffect(() => {
+    let alive = true;
+    fetchAuthSettings().then((loaded) => {
+      if (!alive) return;
+      setSettings(loaded);
+      setSettingsLoaded(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -84,12 +122,9 @@ function AuthPage() {
     try {
       const target = resumeTarget();
       if (target) window.sessionStorage.setItem(RESUME_KEY, target);
-      const redirectTo = target
-        ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
-        : window.location.origin;
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo },
+        options: { redirectTo: redirectUrl(target) },
       });
       if (error) throw error;
     } catch (error) {
@@ -98,11 +133,15 @@ function AuthPage() {
       const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(
         raw,
       );
+      if (notEnabled) {
+        // The project disabled it since the page loaded — drop the button too.
+        setSettings((current) =>
+          current ? { ...current, providers: { ...current.providers, google: false } } : current,
+        );
+      }
       toast.error(
         notEnabled
-          ? t(
-              "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.",
-            )
+          ? t("Google sign-in isn't available right now. Use email and password instead.")
           : raw || t("Google sign-in failed"),
       );
     }
@@ -119,13 +158,17 @@ function AuthPage() {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
-          options: {
-            emailRedirectTo: target
-              ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
-              : window.location.origin,
-          },
+          options: { emailRedirectTo: redirectUrl(target) },
         });
         if (error) throw error;
+        // Supabase hides "this email exists" behind a user with no identities.
+        if (data.user && (data.user.identities?.length ?? 0) === 0) {
+          setMode("signin");
+          setFormError(
+            t("This email already has an account. Switch to Sign in and use your password."),
+          );
+          return;
+        }
         if (!data.session) {
           setCheckEmail(true);
           return;
@@ -136,26 +179,38 @@ function AuthPage() {
       }
       goAfterAuth();
     } catch (error) {
-      const raw = error instanceof Error ? error.message : "";
-      const code =
-        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
-      const emailLimitExceeded =
-        /email rate limit exceeded|over_email_send_rate_limit/i.test(raw) ||
-        code === "over_email_send_rate_limit";
-
-      if (emailLimitExceeded) {
-        setFormError(
-          t(
-            "Too many confirmation emails were requested. Please wait a few minutes before trying again.",
-          ),
-        );
-      } else {
-        toast.error(raw || t("Could not sign in"));
-      }
+      setFormError(authErrorMessage(error, mode, t));
     } finally {
       setBusy(false);
     }
   }
+
+  async function handleResend() {
+    setFormError("");
+    setBusy(true);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: { emailRedirectTo: redirectUrl(resumeTarget()) },
+      });
+      if (error) throw error;
+      toast.success(t("Confirmation email sent again."));
+    } catch (error) {
+      setFormError(authErrorMessage(error, "signup", t));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const errorBox = formError ? (
+    <div
+      role="alert"
+      className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+    >
+      {formError}
+    </div>
+  ) : null;
 
   return (
     <main className="relative flex min-h-screen flex-col justify-end overflow-hidden bg-background">
@@ -199,11 +254,21 @@ function AuthPage() {
                   email,
                 })}
               </p>
+              {errorBox}
               <Button
                 variant="outline"
+                disabled={busy}
+                className="tap-target w-full"
+                onClick={handleResend}
+              >
+                {busy ? t("Please wait…") : t("Send the email again")}
+              </Button>
+              <Button
+                variant="ghost"
                 className="tap-target w-full"
                 onClick={() => {
                   setCheckEmail(false);
+                  setFormError("");
                   setMode("signin");
                 }}
               >
@@ -212,23 +277,27 @@ function AuthPage() {
             </div>
           ) : (
             <>
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={handleGoogle}
-                className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
-              >
-                <GoogleMark />
-                {t("Continue with Google")}
-              </Button>
+              {showGoogle ? (
+                <>
+                  <Button
+                    type="button"
+                    disabled={busy}
+                    onClick={handleGoogle}
+                    className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
+                  >
+                    <GoogleMark />
+                    {t("Continue with Google")}
+                  </Button>
 
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {t("or")}
-                </span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
+                  <div className="my-5 flex items-center gap-3">
+                    <span className="h-px flex-1 bg-border" />
+                    <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
+                      {t("or")}
+                    </span>
+                    <span className="h-px flex-1 bg-border" />
+                  </div>
+                </>
+              ) : null}
 
               <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
                 {(["signin", "signup"] as Mode[]).map((value) => (
@@ -250,24 +319,15 @@ function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-3">
-                {formError ? (
+                {mode === "signup" && signupDisabled ? (
                   <div
                     role="alert"
-                    className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-foreground"
+                    className="rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm leading-relaxed text-muted-foreground"
                   >
-                    <p>{formError}</p>
-                    <button
-                      type="button"
-                      className="mt-2 min-h-11 font-semibold text-primary"
-                      onClick={() => {
-                        setMode("signin");
-                        setFormError("");
-                      }}
-                    >
-                      {t("Back to sign in")}
-                    </button>
+                    {t("New accounts are turned off for this app right now. Ask for an invite.")}
                   </div>
                 ) : null}
+                {errorBox}
                 <div className="space-y-1.5">
                   <Label htmlFor="email">{t("Email")}</Label>
                   <Input
@@ -293,7 +353,11 @@ function AuthPage() {
                     placeholder={t("At least 6 characters")}
                   />
                 </div>
-                <Button type="submit" disabled={busy} className="tap-target w-full font-semibold">
+                <Button
+                  type="submit"
+                  disabled={busy || (mode === "signup" && signupDisabled)}
+                  className="tap-target w-full font-semibold"
+                >
                   {busy
                     ? t("Please wait…")
                     : mode === "signup"
