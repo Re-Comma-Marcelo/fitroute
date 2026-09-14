@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronDown, Plus, Sparkles } from "lucide-react";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
@@ -54,14 +54,7 @@ export function CoachSuggestionsSection({
                       onClick={() => onOpen(s.meal)}
                       className="flex min-w-0 flex-1 items-center gap-3 text-left"
                     >
-                      <img
-                        src={mealImage(s.slot)}
-                        alt=""
-                        loading="lazy"
-                        width={96}
-                        height={96}
-                        className="size-12 shrink-0 rounded-xl object-cover"
-                      />
+                      <MealThumb slot={s.slot} />
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5">
                           <span className="truncate text-sm font-semibold">{s.meal.name}</span>

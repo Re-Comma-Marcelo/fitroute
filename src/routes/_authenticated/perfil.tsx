@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { getProfile, invalidateProfileCache, saveProfile } from "@/lib/data/profile";
 import { DEFAULT_AGE, calculateTargets } from "@/lib/data/nutrition";
+import { FEATURES, setFeature, useFeature, type FeatureFlag } from "@/lib/features";
 import { fileToAvatarDataUrl } from "@/lib/avatar";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
@@ -726,6 +727,8 @@ function ProfilePage() {
 
           <RestNotifyToggle />
 
+          <FeatureFlagsPanel />
+
           <WorkoutReminderSection />
           <DataBackupSection />
 
@@ -938,6 +941,50 @@ function AskRpeToggle() {
           setOn(next);
           setAskRpeEnabled(next);
         }}
+      />
+    </div>
+  );
+}
+
+/**
+ * Parts of the app that exist but are not part of the MVP. Off by default and
+ * per device, so trying one out never changes what the rest of the team sees.
+ */
+function FeatureFlagsPanel() {
+  const t = useT();
+  const flags = Object.keys(FEATURES) as FeatureFlag[];
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <p className="font-display text-sm font-semibold">{t("Features in testing")}</p>
+      <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+        {t("Off by default and only on this device. Nothing you saved is deleted when one is off.")}
+      </p>
+      <ul className="mt-3 space-y-2">
+        {flags.map((flag) => (
+          <li key={flag}>
+            <FeatureToggle flag={flag} />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function FeatureToggle({ flag }: { flag: FeatureFlag }) {
+  const t = useT();
+  const on = useFeature(flag);
+  const meta = FEATURES[flag];
+  return (
+    <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-3 py-2.5">
+      <div className="min-w-0">
+        <Label htmlFor={`feature-${flag}`}>{t(meta.label)}</Label>
+        <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{t(meta.description)}</p>
+      </div>
+      <Switch
+        id={`feature-${flag}`}
+        checked={on}
+        aria-label={t(meta.label)}
+        onCheckedChange={(next) => setFeature(flag, next)}
       />
     </div>
   );

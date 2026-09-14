@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { MEAL_SLOTS, SLOT_LABEL, getMeals, mealSchedule } from "@/lib/data/nutrition";
 import { scaleMeal } from "@/lib/data/diet-entries";
 import { getMealFavorites } from "@/lib/nutrition-local";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 import { useT } from "@/lib/i18n";
 import type { MealSlot } from "@/lib/nutrition-types";
 
@@ -182,14 +182,7 @@ export function MealEntrySheet({
                   }
                   className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card p-2.5 text-left transition-colors active:bg-surface-2"
                 >
-                  <img
-                    src={mealImage(slot)}
-                    alt=""
-                    loading="lazy"
-                    width={96}
-                    height={96}
-                    className="size-12 shrink-0 rounded-xl object-cover"
-                  />
+                  <MealThumb slot={slot} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
                       <span className="truncate text-sm font-semibold">{meal.name}</span>

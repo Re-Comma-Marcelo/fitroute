@@ -1,5 +1,5 @@
 import { pageMeta } from "@/lib/route-meta";
-import { Link, createFileRoute } from "@tanstack/react-router";
+import { Link, Navigate, createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronDown, Eraser, Plus, Share2, ShoppingBasket, Truck, X } from "lucide-react";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { undoToast } from "@/lib/undo";
 import { formatNumber } from "@/lib/format";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 import {
   AISLE_LABEL,
@@ -38,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/dieta/market")({
 });
 
 function MarketPage() {
+  const weeklyMenu = useFeature("weeklyMenu");
   const t = useT();
   const qc = useQueryClient();
   const [checked, setChecked] = useState<string[]>(() => getCheckedItems());
@@ -153,6 +155,9 @@ function MarketPage() {
     void qc.invalidateQueries({ queryKey: ["dietEntries", date] });
     toast.success(t("Added to your day."));
   }
+
+  // Reachable only by typing the URL while the feature is off.
+  if (!weeklyMenu) return <Navigate to="/dieta" replace />;
 
   const archive = getArchivedWeeks();
   const notStarted = !!menu && !menu.completedAt && !menu.mealIds.length;

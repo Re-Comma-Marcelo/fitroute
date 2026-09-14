@@ -1,5 +1,5 @@
 import { Check, Clock, Trash2 } from "lucide-react";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 import { SLOT_LABEL, formatSlotTime } from "@/lib/data/nutrition";
 import { portionOf, scaleMeal } from "@/lib/data/diet-entries";
 import { useT } from "@/lib/i18n";
@@ -45,14 +45,7 @@ export function MealEntryRow({
         onClick={onOpen}
         className="flex min-w-0 flex-1 items-center gap-3 text-left"
       >
-        <img
-          src={mealImage(entry.slot)}
-          alt=""
-          loading="lazy"
-          width={96}
-          height={96}
-          className="size-12 shrink-0 rounded-xl object-cover"
-        />
+        <MealThumb slot={entry.slot} />
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5">
             <span className="truncate text-sm font-semibold">{meal.name}</span>

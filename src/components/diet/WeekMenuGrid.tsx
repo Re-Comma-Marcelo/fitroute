@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 
 import { useT } from "@/lib/i18n";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
@@ -35,15 +35,8 @@ export function WeekMenuGrid({
                 on ? "border-primary bg-primary/10" : "border-border bg-card"
               }`}
             >
-              <span className="relative block">
-                <img
-                  src={mealImage(o.slot)}
-                  alt=""
-                  loading="lazy"
-                  width={320}
-                  height={180}
-                  className="h-20 w-full object-cover"
-                />
+              <span className="relative flex h-20 w-full items-center justify-center bg-surface-2">
+                <MealThumb slot={o.slot} size="lg" className="border-0 bg-transparent" />
                 {on ? (
                   <span className="absolute right-1.5 top-1.5 flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <Check className="size-3.5" />

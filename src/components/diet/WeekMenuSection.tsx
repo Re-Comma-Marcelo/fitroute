@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { CalendarPlus } from "lucide-react";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
 import { formatWeekdayShort } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -46,14 +46,7 @@ export function WeekMenuSection({
                   onClick={() => onOpen(meal)}
                   className="flex min-w-0 flex-1 items-center gap-3 text-left"
                 >
-                  <img
-                    src={mealImage(slot)}
-                    alt=""
-                    loading="lazy"
-                    width={96}
-                    height={96}
-                    className="size-12 shrink-0 rounded-xl object-cover"
-                  />
+                  <MealThumb slot={slot} />
                   <span className="min-w-0 flex-1">
                     <span className="flex items-center gap-1.5">
                       <span className="truncate text-sm font-semibold">{meal.name}</span>

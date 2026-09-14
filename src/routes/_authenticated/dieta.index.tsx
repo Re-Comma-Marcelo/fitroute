@@ -27,6 +27,7 @@ import { estimateBurn } from "@/lib/nutrition-burn";
 import { getProfile } from "@/lib/data/profile";
 import { getWorkouts } from "@/lib/data/workouts";
 import { toast } from "sonner";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 import {
   MEAL_SLOTS,
@@ -117,8 +118,15 @@ function TodayPage() {
     queryFn: () => getTrainingTags([date]),
   });
 
-  const weekMenuQ = useQuery({ queryKey: ["weekMenu"], queryFn: getWeekMenu });
-  const weekMenuIds = weekMenuQ.data?.mealIds ?? [];
+  // Only the weekly menu feature fills this; without it the coach ranks the
+  // whole catalogue instead of what was bought for the week.
+  const weeklyMenu = useFeature("weeklyMenu");
+  const weekMenuQ = useQuery({
+    queryKey: ["weekMenu"],
+    queryFn: getWeekMenu,
+    enabled: weeklyMenu,
+  });
+  const weekMenuIds = weeklyMenu ? (weekMenuQ.data?.mealIds ?? []) : [];
 
   const schedule = scheduleQ.data;
   const targets = targetsQ.data ?? { kcal: 2700, proteinG: 165, carbsG: 300, fatG: 75 };

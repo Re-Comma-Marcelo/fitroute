@@ -3,6 +3,15 @@ import type { DictFragment } from "../types";
 /** Translations for the profile area. Keys are the English source strings. */
 export const dict: DictFragment = {
   pt: {
+    "Features in testing": "Recursos em teste",
+    "Off by default and only on this device. Nothing you saved is deleted when one is off.":
+      "Desligados por padrão e só neste aparelho. Nada do que você salvou é apagado quando um está desligado.",
+    "Weekly menu and shopping list": "Cardápio da semana e lista de compras",
+    "Pick the meals you feel like eating this week and get one shopping list merged from them.":
+      "Escolha as refeições da semana e receba uma lista de compras única, juntando os ingredientes.",
+    "Water tracking": "Controle de água",
+    "A glasses-of-water counter under the macro rings.":
+      "Um contador de copos de água abaixo dos anéis de macros.",
     Age: "Idade",
     "Daily nutrition targets": "Metas diárias de nutrição",
     "Leave both empty and the app calculates them: {kcal} kcal and {protein}g protein. Type your own to use a dietitian's numbers instead.":
@@ -121,6 +130,15 @@ export const dict: DictFragment = {
   },
 
   nl: {
+    "Features in testing": "Functies in test",
+    "Off by default and only on this device. Nothing you saved is deleted when one is off.":
+      "Standaard uit en alleen op dit apparaat. Wat je hebt opgeslagen wordt niet verwijderd als een functie uit staat.",
+    "Weekly menu and shopping list": "Weekmenu en boodschappenlijst",
+    "Pick the meals you feel like eating this week and get one shopping list merged from them.":
+      "Kies de maaltijden voor deze week en krijg één samengevoegde boodschappenlijst.",
+    "Water tracking": "Water bijhouden",
+    "A glasses-of-water counter under the macro rings.":
+      "Een teller voor glazen water onder de macroringen.",
     Age: "Leeftijd",
     "Daily nutrition targets": "Dagelijkse voedingsdoelen",
     "Leave both empty and the app calculates them: {kcal} kcal and {protein}g protein. Type your own to use a dietitian's numbers instead.":

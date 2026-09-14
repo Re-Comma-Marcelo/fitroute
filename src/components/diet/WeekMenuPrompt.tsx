@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ChevronRight, ShoppingBasket } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getWeekMenu } from "@/lib/data/week-menu";
+import { useFeature } from "@/lib/features";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -10,9 +11,14 @@ import { useT } from "@/lib/i18n";
  */
 export function WeekMenuPrompt() {
   const t = useT();
-  const menuQ = useQuery({ queryKey: ["weekMenu"], queryFn: getWeekMenu });
+  const weeklyMenu = useFeature("weeklyMenu");
+  const menuQ = useQuery({
+    queryKey: ["weekMenu"],
+    queryFn: getWeekMenu,
+    enabled: weeklyMenu,
+  });
   const menu = menuQ.data;
-  if (!menu || menu.completedAt || menu.mealIds.length) return null;
+  if (!weeklyMenu || !menu || menu.completedAt || menu.mealIds.length) return null;
 
   return (
     <Link

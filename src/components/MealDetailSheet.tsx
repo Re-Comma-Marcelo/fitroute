@@ -1,7 +1,7 @@
 import { Check, Clock, Flame, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { mealImage } from "@/lib/meal-image";
+import { MealThumb } from "@/components/diet/MealThumb";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
 import { scaleMeal } from "@/lib/data/diet-entries";
 import { portionLabel } from "@/components/diet/MealEntryRow";
@@ -154,14 +154,9 @@ export function MealDetailSheet({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto p-0">
-        <div className="relative h-40 w-full overflow-hidden">
-          <img
-            src={mealImage(slot)}
-            alt={meal.name}
-            className="h-full w-full object-cover brightness-110"
-          />
-          <div className="absolute inset-0" style={{ background: "var(--gradient-veil)" }} />
-          <div className="absolute bottom-3 left-4 right-4">
+        <div className="flex items-center gap-3 border-b border-border bg-surface-2 px-4 py-4">
+          <MealThumb slot={slot} size="lg" />
+          <div className="min-w-0">
             <p className="label-caps text-xs text-muted-foreground">{t(SLOT_LABEL[slot])}</p>
             <h2 className="font-display text-xl font-semibold leading-tight">{meal.name}</h2>
           </div>
