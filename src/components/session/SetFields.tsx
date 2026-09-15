@@ -4,7 +4,8 @@ import { NumberField } from "@/components/session/NumberField";
 import { formatSignedStep } from "@/lib/set-input";
 import { formatKg, weightUnitLabel } from "@/lib/format";
 import { useT } from "@/lib/i18n";
-import { incrementoPara, isSerieTempo } from "@/lib/progression";
+import { plateResolution } from "@/lib/load-step";
+import { isSerieTempo } from "@/lib/progression";
 import type { ActiveExercise, ActiveSet } from "@/lib/session-state";
 import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
@@ -30,7 +31,9 @@ export function SetFields({
 }) {
   const t = useT();
   const tempo = isSerieTempo(set);
-  const passoKg = incrementoPara(exercise.equipamento);
+  // The −/+ buttons move by what the equipment can add (one dumbbell up the
+  // rack, a small plate), not by the progression jump.
+  const passoKg = plateResolution(exercise);
   const { unit } = useWeightUnit();
   const [draft, setDraft] = useState<string | null>(null);
 

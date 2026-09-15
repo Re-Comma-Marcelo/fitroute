@@ -44,6 +44,8 @@ export async function buildActiveExercise(
     repsMin,
     repsMax,
     equipamento: exercise.equipamento,
+    nome: exercise.nome,
+    grupoPrimario: exercise.grupoPrimario,
   });
   const lastWeight = anteriores.find((a) => a.tipoSerie !== "aquecimento")?.pesoKg ?? null;
   const pesoSugerido = opts.deload

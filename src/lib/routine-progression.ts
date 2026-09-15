@@ -25,6 +25,8 @@ export async function getRoutineSuggestions(
         repsMin: re.repsMin,
         repsMax: re.repsMax,
         equipamento: exercise.equipamento,
+        nome: exercise.nome,
+        grupoPrimario: exercise.grupoPrimario,
       });
       return sugestao?.aumentou ? ([re.exerciseId, sugestao] as const) : null;
     }),

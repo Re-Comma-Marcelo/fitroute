@@ -1,6 +1,7 @@
 import { formatNumber, tx } from "./format";
 import { e1rm } from "./e1rm";
-import { incrementoPara, isSerieDeCarga, type PrevSet } from "./progression";
+import { loadIncrement, plateResolution } from "./load-step";
+import { isSerieDeCarga, type PrevSet } from "./progression";
 
 /**
  * The app decides the work for you: rest length, working weight and reps.
@@ -22,6 +23,7 @@ const COMPOUND_GROUPS = new Set([
 ]);
 
 export interface ExerciseShape {
+  nome?: string;
   grupoPrimario?: string;
   equipamento?: string;
   repsMin: number;
@@ -118,7 +120,10 @@ export function prescribeExercise(
   const rpeMedio = rpes.length ? rpes.reduce((a, b) => a + b, 0) / rpes.length : null;
   const topReps = Math.max(...work.map((s) => s.reps));
   const heaviest = work.reduce((max, s) => Math.max(max, s.pesoKg), 0);
-  const step = incrementoPara(ex.equipamento ?? "");
+  // Plate resolution is what the bar can express; the progression step is
+  // how far one earned jump goes for this kind of exercise (see load-step.ts).
+  const step = plateResolution(ex);
+  const jump = loadIncrement(ex, heaviest);
 
   // Target reps: mid-to-top of the range, biased to the top when the last
   // session was comfortable.
@@ -130,7 +135,7 @@ export function prescribeExercise(
   // user actually handled so the jump is never wild.
   const fromE1rm = best * pctForReps(reps);
   let pesoKg = roundToStep(fromE1rm, step);
-  const ceiling = heaviest + step * (easy ? 1 : 0);
+  const ceiling = heaviest + (easy ? jump : 0);
   const floor = hard ? heaviest - step : heaviest * 0.9;
   pesoKg = Math.min(ceiling, Math.max(floor, pesoKg));
   pesoKg = Math.max(step, roundToStep(pesoKg, step));
