@@ -19,6 +19,20 @@ export interface MealIngredient {
   aisle: Aisle;
 }
 
+/**
+ * How to cook a catalogue meal. Kept out of `Meal` on purpose: it is static
+ * editorial content keyed by meal id, not part of the payload the app persists
+ * for a logged entry or an AI-estimated custom meal.
+ */
+export interface Recipe {
+  /** Servings the steps produce — one catalogue portion unless stated. */
+  servings: number;
+  /** Ordered preparation steps, written for someone cooking it first time. */
+  steps: string[];
+  /** What usually goes wrong, plus how to store or scale it. */
+  tips: string[];
+}
+
 export interface Meal {
   id: string;
   name: string;

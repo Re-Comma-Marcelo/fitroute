@@ -1,6 +1,7 @@
 import { Check, Clock, Flame, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { MealRecipe } from "@/components/diet/MealRecipe";
 import { MealThumb } from "@/components/diet/MealThumb";
 import { SLOT_LABEL } from "@/lib/data/nutrition";
 import { scaleMeal } from "@/lib/data/diet-entries";
@@ -317,6 +318,9 @@ export function MealDetailSheet({
               </ul>
             </section>
           )}
+
+          {/* How to cook it — collapsed until asked for. */}
+          <MealRecipe mealId={meal.id} prepMin={meal.prepMin} portion={p} />
 
           {onPortionChange ? (
             <section>

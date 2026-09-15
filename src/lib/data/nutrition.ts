@@ -15,6 +15,7 @@ import {
 } from "../forja.functions";
 import { meals } from "./meals.mock";
 import { getProfile } from "./profile";
+import { recipes } from "./recipes.mock";
 import { getWorkouts } from "./workouts";
 import type {
   Aisle,
@@ -23,6 +24,7 @@ import type {
   MealSchedule,
   MealSlot,
   NutritionTargets,
+  Recipe,
   ShoppingItem,
   TrainingTag,
   WeekPlan,
@@ -185,6 +187,15 @@ export async function getMeals(slot?: MealSlot): Promise<Meal[]> {
 export async function getMeal(id: string): Promise<Meal | undefined> {
   await hydrate();
   return allMeals().find((m) => m.id === id);
+}
+
+/**
+ * Cooking instructions for a catalogue meal. Static editorial content, so the
+ * read is synchronous — delivery meals and the user's own AI-estimated meals
+ * have none, and callers are expected to hide the section when it is missing.
+ */
+export function recipeFor(mealId: string): Recipe | undefined {
+  return recipes[mealId];
 }
 
 /** Saves an AI-estimated meal to the user's library. */
