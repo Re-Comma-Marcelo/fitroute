@@ -49,6 +49,7 @@ import {
 import {
   clearActiveSession,
   filledUncheckedSets,
+  isExerciseDone,
   loadActiveSession,
   makeSets,
   restSecondsLeft,
@@ -62,6 +63,9 @@ import {
   togglePause,
   takePendingExercise,
   takePendingReplaceSlot,
+  nextPendingIndex,
+  workingSets,
+  workingSetsDone,
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
@@ -120,6 +124,9 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 
 const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 
+/** Two set completions this close together are a bounced tap, not two sets. */
+const TICK_GUARD_MS = 400;
+
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -133,18 +140,6 @@ function useTick(active: boolean) {
 function viewIndex(session: ActiveSession): number {
   if (session.exercicios.length === 0) return 0;
   return Math.max(0, Math.min(session.atual, session.exercicios.length - 1));
-}
-
-/** Next exercise with something left to do, searching forward and wrapping. */
-function nextPendingIndex(session: ActiveSession, from: number): number | null {
-  const n = session.exercicios.length;
-  for (let step = 1; step <= n; step++) {
-    const idx = (from + step) % n;
-    if (idx === from) continue;
-    const ex = session.exercicios[idx];
-    if (ex && !ex.pulado && ex.sets.some((s) => !s.concluida)) return idx;
-  }
-  return null;
 }
 
 function SessionPage() {
@@ -189,6 +184,12 @@ function SessionPage() {
   const [editSet, setEditSet] = useState<{ exIdx: number; setIdx: number } | null>(null);
 
   const loadedRef = useRef(false);
+  /**
+   * When a set is ticked it collapses into a one-line row and the next card
+   * jumps up under the finger. Without this window a bounced tap logs the next
+   * set with the suggested numbers — and could finish the exercise by accident.
+   */
+  const lastTickRef = useRef(0);
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
   sessionRef.current = session;
@@ -576,6 +577,7 @@ function SessionPage() {
     effects: NonNullable<ReturnType<typeof completeSet>["effects"]>,
   ) {
     const ex = next.exercicios[exIdx];
+    lastTickRef.current = Date.now();
     hapticTick();
     setJustSet(`${exIdx}:${setIdx}`);
     setTargetTips((prev) => {
@@ -616,6 +618,7 @@ function SessionPage() {
       saveActiveSession(next);
       return;
     }
+    if (Date.now() - lastTickRef.current < TICK_GUARD_MS) return;
     const { session: next, effects } = completeSet(current, exIdx, setIdx, completeDeps);
     if (!effects) return;
     sessionRef.current = next;
@@ -1052,6 +1055,16 @@ function SessionPage() {
       })),
   );
 
+  /** Exercises still owed work — finishing drops them silently otherwise. */
+  const incompleteList = session.exercicios
+    .map((ex, exIdx) => ({ ex, exIdx }))
+    .filter(({ ex }) => !ex.pulado && ex.sets.length > 0 && !isExerciseDone(ex))
+    .map(({ ex, exIdx }) => ({
+      key: `${exIdx}`,
+      nome: ex.nome,
+      detalhe: `${workingSetsDone(ex)}/${workingSets(ex).length}`,
+    }));
+
   const exercise = session.exercicios[viewIdx] ?? null;
   const currentRest = exercise ? restFor(exercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
@@ -1061,20 +1074,19 @@ function SessionPage() {
       )
     : {};
 
-  const exerciseDone =
-    !!exercise && exercise.sets.length > 0 && exercise.sets.every((s) => s.concluida);
+  const exerciseDone = !!exercise && exercise.sets.length > 0 && isExerciseDone(exercise);
   const currentSetIdx = exercise ? exercise.sets.findIndex((s) => !s.concluida) : -1;
   const nextIdx = nextPendingIndex(session, viewIdx);
   const allDone = setsTotal > 0 && nextIdx === null && (exerciseDone || !!exercise?.pulado);
   const exercisesDone = session.exercicios.filter(
-    (e) => e.sets.length > 0 && e.sets.every((s) => s.concluida),
+    (e) => e.sets.length > 0 && isExerciseDone(e),
   ).length;
   const exercisesTotal = session.exercicios.filter((e) => !e.pulado).length;
 
   const segments: SegmentStatus[] = session.exercicios.map((ex, idx) => {
     if (ex.pulado) return "skipped";
     if (idx === viewIdx) return "current";
-    if (ex.sets.length > 0 && ex.sets.every((s) => s.concluida)) return "done";
+    if (ex.sets.length > 0 && isExerciseDone(ex)) return "done";
     return "pending";
   });
 
@@ -1115,7 +1127,6 @@ function SessionPage() {
         onCollapse={() => navigate({ to: "/treino" })}
         onOpenSession={() => setSessionOpen(true)}
         onOpenMenu={() => exercise && setMenuOpen(true)}
-        onJump={jumpTo}
         coach={
           exercise ? (
             <SessionCoachSheet
@@ -1182,7 +1193,7 @@ function SessionPage() {
                     />
                   );
                 }
-                if (setIdx === currentSetIdx) {
+                if (setIdx === currentSetIdx && !exerciseDone) {
                   const anyDone = exercise.sets.some((s) => s.concluida);
                   return (
                     <Fragment key={set.id}>
@@ -1468,17 +1479,25 @@ function SessionPage() {
             <AlertDialogTitle>
               {pendCount > 0
                 ? t("{count} sets filled in but not checked — include them?", { count: pendCount })
-                : t("Finish this workout?")}
+                : incompleteList.length > 0
+                  ? t("{count} exercises still have sets to do", {
+                      count: incompleteList.length,
+                    })
+                  : t("Finish this workout?")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendCount > 0
                 ? t("Unchecked sets are discarded when the workout is saved.")
-                : t("{count} completed sets will be saved.", { count: setsDone })}
+                : incompleteList.length > 0
+                  ? t("{count} completed sets will be saved. The rest stays undone.", {
+                      count: setsDone,
+                    })
+                  : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {pendCount > 0 ? (
+          {pendCount > 0 || incompleteList.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
-              {pendingList.map((item) => (
+              {(pendCount > 0 ? pendingList : incompleteList).map((item) => (
                 <li key={item.key} className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-muted-foreground">{item.nome}</span>
                   <span className="shrink-0 font-semibold tabular-nums text-foreground">
