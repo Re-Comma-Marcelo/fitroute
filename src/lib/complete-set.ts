@@ -1,6 +1,12 @@
 import { nextSetTarget } from "./next-set";
 import { isSerieDeCarga, isSerieValida } from "./progression";
-import type { ActiveExercise, ActiveSession, ActiveSet } from "./session-state";
+import {
+  isExerciseDone,
+  nextPendingIndex,
+  type ActiveExercise,
+  type ActiveSession,
+  type ActiveSet,
+} from "./session-state";
 
 /**
  * Everything the screen has to do after a set is ticked, computed in one
@@ -13,9 +19,9 @@ export interface CompleteSetEffects {
   restSeconds: number;
   /** True when the set was inside a superset and the next exercise follows at once. */
   superset: boolean;
-  /** Index of the exercise the card should auto-advance to, if any. */
+  /** Next exercise with work left, offered as the hand-off (never forced). */
   nextExerciseIdx: number | null;
-  /** True when this tick finished every set of the exercise. */
+  /** True when this tick finished the last working set of the exercise. */
   exerciseDone: boolean;
   /** Weight/reps actually recorded for a valid working set. */
   logged: { pesoKg: number; reps: number } | null;
@@ -107,12 +113,11 @@ export function completeSet(
 
   const superset = deps.supersetChain(s, exIdx);
   const restSeconds = superset ? 0 : deps.restFor(ex);
-  const exerciseDone = ex.sets.every((x) => x.concluida);
-  let nextExerciseIdx: number | null = null;
-  if (exerciseDone && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
-    s.atual = exIdx + 1;
-    nextExerciseIdx = s.atual;
-  }
+  // O exercício termina quando as séries de trabalho acabam — e a sessão NÃO
+  // se move sozinha: `atual` só muda por toque. Trocar a tela embaixo do dedo
+  // no instante do ✓ é o que fazia o app parecer pular exercício.
+  const exerciseDone = isExerciseDone(ex);
+  const nextExerciseIdx = exerciseDone ? nextPendingIndex(s, exIdx) : null;
 
   return {
     session: s,

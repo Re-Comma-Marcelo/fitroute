@@ -154,18 +154,22 @@ export function takePendingReplaceSlot(): number | null {
   return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
 }
 
+/**
+ * `quantidade` são sempre séries de trabalho. O aquecimento da sessão passada
+ * fica de fora do molde: ele é uma escolha do dia (⋯ → aquecimento) e, quando
+ * era herdado por posição, comia as vagas das séries válidas — o exercício
+ * terminava antes da hora e o app pulava para o próximo.
+ */
 export function makeSets(
   quantidade: number,
   anteriores: PrevSet[],
   opts: { pesoSugerido?: number | null; repsAlvo?: number | null } = {},
 ): ActiveSet[] {
+  const base = anteriores.filter(isSerieValida);
   return Array.from({ length: quantidade }, (_, i) => {
-    const ant = anteriores[i] ?? null;
+    const ant = base[i] ?? null;
     const tipoSerie: TipoSerie = ant?.tipoSerie ?? "normal";
-    const sugPeso =
-      tipoSerie === "aquecimento"
-        ? (ant?.pesoKg ?? null)
-        : (opts.pesoSugerido ?? ant?.pesoKg ?? null);
+    const sugPeso = opts.pesoSugerido ?? ant?.pesoKg ?? null;
     return {
       id: `s_${Math.random().toString(36).slice(2, 9)}`,
       serieNum: i + 1,
@@ -175,14 +179,49 @@ export function makeSets(
       reps: opts.repsAlvo ? String(opts.repsAlvo) : "",
       rpe: "",
       sugPeso,
-      sugReps:
-        tipoSerie === "aquecimento" ? (ant?.reps ?? null) : (opts.repsAlvo ?? ant?.reps ?? null),
+      sugReps: opts.repsAlvo ?? ant?.reps ?? null,
       antPeso: ant?.pesoKg ?? null,
       antReps: ant?.reps ?? null,
       antRpe: ant?.rpe ?? null,
       concluida: false,
     };
   });
+}
+
+/** Séries de trabalho do exercício — o que "3 séries" da rotina quer dizer. */
+export function workingSets(ex: ActiveExercise): ActiveSet[] {
+  return ex.sets.filter(isSerieValida);
+}
+
+export function workingSetsDone(ex: ActiveExercise): number {
+  return ex.sets.filter((s) => s.concluida && isSerieValida(s)).length;
+}
+
+/**
+ * Definição única de "exercício concluído": toda série de trabalho marcada.
+ * Aquecimento pendente não segura o exercício aberto nem o encerra antes.
+ */
+export function isExerciseDone(ex: ActiveExercise): boolean {
+  const validas = workingSets(ex);
+  if (validas.length === 0) return ex.sets.length > 0 && ex.sets.every((s) => s.concluida);
+  return validas.every((s) => s.concluida);
+}
+
+/** Exercício que ainda deve trabalho: nem pulado, nem concluído. */
+export function isExercisePending(ex: ActiveExercise): boolean {
+  return !ex.pulado && !isExerciseDone(ex);
+}
+
+/** Próximo exercício com trabalho pendente, olhando para frente e dando a volta. */
+export function nextPendingIndex(session: ActiveSession, from: number): number | null {
+  const n = session.exercicios.length;
+  for (let step = 1; step <= n; step++) {
+    const idx = (from + step) % n;
+    if (idx === from) continue;
+    const ex = session.exercicios[idx];
+    if (ex && isExercisePending(ex)) return idx;
+  }
+  return null;
 }
 
 /** Numeração exibida: aquecimento é "W", séries válidas contam 1, 2, 3… */
@@ -249,8 +288,8 @@ export function sessionLabel(session: { routineNome: string }): string {
 
 export function currentExerciseIndex(session: ActiveSession): number {
   const atual = session.exercicios[session.atual];
-  if (atual && !atual.pulado && atual.sets.some((s) => !s.concluida)) return session.atual;
-  const idx = session.exercicios.findIndex((ex) => !ex.pulado && ex.sets.some((s) => !s.concluida));
+  if (atual && isExercisePending(atual)) return session.atual;
+  const idx = session.exercicios.findIndex(isExercisePending);
   if (idx >= 0) return idx;
   return Math.max(0, Math.min(session.atual, session.exercicios.length - 1));
 }
