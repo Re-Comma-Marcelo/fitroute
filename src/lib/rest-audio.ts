@@ -4,6 +4,7 @@
  */
 
 let ctx: AudioContext | null = null;
+let lastBeepAt = 0;
 
 function context(): AudioContext | null {
   if (typeof window === "undefined") return null;
@@ -28,6 +29,11 @@ export function unlockRestAudio() {
 export function playRestBeep() {
   const c = context();
   if (!c) return;
+  // The page timer and the service-worker alarm can both land on the same rest;
+  // one beep is the alert, two is a glitch.
+  const now = Date.now();
+  if (now - lastBeepAt < 2000) return;
+  lastBeepAt = now;
   try {
     if (c.state === "suspended") void c.resume();
     const osc = c.createOscillator();
