@@ -1,7 +1,6 @@
 import { APP_NAME, pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import heroLogin from "@/assets/hero-login.jpg";
 import { Button } from "@/components/ui/button";
@@ -19,8 +18,7 @@ export const Route = createFileRoute("/")({
       title: "Sign in",
       description:
         "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.",
-      ogDescription:
-        "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
+      ogDescription: "Your AI trainer that adapts to your actual life. Sign in with your email.",
     }),
   }),
   component: AuthPage,
@@ -32,8 +30,6 @@ type Sent = "signup" | "magic" | "reset";
 type Notice = { kind: "error" | "info"; text: string; action?: "signin" | "resend" };
 
 const RESUME_KEY = "ironlogger.oauth.resume";
-/** Set once Supabase answers that Google is not configured on this project. */
-const GOOGLE_OFF_KEY = "forja.auth.googleDisabled";
 const RESEND_COOLDOWN_SEC = 45;
 
 /** Same-origin path to resume after sign-in (e.g. the MCP consent screen). */
@@ -62,8 +58,8 @@ function linkParams(url: string): URLSearchParams {
 /**
  * Turn a Supabase auth error into something a person can act on. The raw
  * messages ("Invalid login credentials") send people in circles: the same
- * reply covers a typo, an unconfirmed email and an account that is signed up
- * with Google.
+ * reply covers a typo, an unconfirmed email and an account that never
+ * finished being created.
  */
 function authMessage(t: TFunction, raw: string, code: string): Notice {
   const text = `${code} ${raw}`.toLowerCase();
@@ -137,7 +133,6 @@ function AuthPage() {
   const [recovering, setRecovering] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
   const [cooldown, setCooldown] = useState(0);
-  const [googleOff, setGoogleOff] = useState(false);
   // Read once, before the Supabase client consumes the URL fragment.
   const [entryUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.href));
 
@@ -174,11 +169,6 @@ function AuthPage() {
       // Keep the address bar clean so a refresh doesn't repeat the message.
       window.history.replaceState(null, "", window.location.pathname);
     }
-    try {
-      if (window.localStorage.getItem(GOOGLE_OFF_KEY) === "1") setGoogleOff(true);
-    } catch {
-      /* storage unavailable */
-    }
     // The session only arrives after Supabase parses the URL.
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setRecovering(true);
@@ -212,39 +202,6 @@ function AuthPage() {
       alive = false;
     };
   }, [navigate, entryUrl, recovering]);
-
-  async function handleGoogle() {
-    setBusy(true);
-    setNotice(null);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: redirectUrl() },
-      });
-      if (error) throw error;
-    } catch (error) {
-      setBusy(false);
-      const { raw } = errorParts(error);
-      const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(
-        raw,
-      );
-      if (notEnabled) {
-        // Google isn't configured on this project: stop offering a dead button.
-        setGoogleOff(true);
-        try {
-          window.localStorage.setItem(GOOGLE_OFF_KEY, "1");
-        } catch {
-          /* storage unavailable */
-        }
-        setNotice({
-          kind: "info",
-          text: t("Google sign-in isn't available yet. Use your email below — it works the same."),
-        });
-        return;
-      }
-      toast.error(raw || t("Google sign-in failed"));
-    }
-  }
 
   function requireEmail(): boolean {
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return true;
@@ -516,28 +473,6 @@ function AuthPage() {
             </div>
           ) : (
             <>
-              {googleOff ? null : (
-                <>
-                  <Button
-                    type="button"
-                    disabled={busy}
-                    onClick={handleGoogle}
-                    className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
-                  >
-                    <GoogleMark />
-                    {t("Continue with Google")}
-                  </Button>
-
-                  <div className="my-5 flex items-center gap-3">
-                    <span className="h-px flex-1 bg-border" />
-                    <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                      {t("or")}
-                    </span>
-                    <span className="h-px flex-1 bg-border" />
-                  </div>
-                </>
-              )}
-
               <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
                 {(["signin", "signup"] as Mode[]).map((value) => (
                   <button
@@ -626,25 +561,5 @@ function AuthPage() {
         </div>
       </div>
     </main>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3a7.3 7.3 0 0 1-11-3.8H1v3.1A12 12 0 0 0 12 24Z"
-      />
-      <path fill="#FBBC05" d="M5 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1a12 12 0 0 0 0 10.8L5 14.3Z" />
-      <path
-        fill="#EA4335"
-        d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.4-3.4A11.5 11.5 0 0 0 12 0 12 12 0 0 0 1 6.6l4 3.1A7.2 7.2 0 0 1 12 4.8Z"
-      />
-    </svg>
   );
 }

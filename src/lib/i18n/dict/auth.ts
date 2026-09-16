@@ -17,8 +17,6 @@ export const dict: DictFragment = {
       "A criação de novas contas está desativada no momento.",
     "That link expired or was already used. Send a new one below.":
       "Esse link expirou ou já foi usado. Peça um novo abaixo.",
-    "Google sign-in isn't available yet. Use your email below — it works the same.":
-      "O login com Google ainda não está disponível. Use seu e-mail abaixo — funciona igual.",
     "Enter your email address first.": "Informe seu e-mail primeiro.",
     "Sent. It can take a minute to arrive.": "Enviado. Pode levar um minuto para chegar.",
     "Send again in {seconds}s": "Enviar de novo em {seconds}s",
@@ -52,8 +50,6 @@ export const dict: DictFragment = {
     "New sign-ups are turned off on this project right now.": "Nieuwe registraties staan nu uit.",
     "That link expired or was already used. Send a new one below.":
       "Die link is verlopen of al gebruikt. Vraag hieronder een nieuwe aan.",
-    "Google sign-in isn't available yet. Use your email below — it works the same.":
-      "Inloggen met Google kan nog niet. Gebruik hieronder je e-mail — dat werkt hetzelfde.",
     "Enter your email address first.": "Vul eerst je e-mailadres in.",
     "Sent. It can take a minute to arrive.": "Verstuurd. Het kan een minuut duren.",
     "Send again in {seconds}s": "Opnieuw versturen over {seconds}s",
