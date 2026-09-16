@@ -17,7 +17,6 @@ const GROW_DURATION = 0.5;
 const FLIP_HOLD_MS = 150;
 const FLIP_DURATION = 0.5;
 const SWIPE_THRESHOLD = 60;
-const TAP_SLOP = 10;
 
 export interface CardRect {
   left: number;
@@ -87,11 +86,7 @@ export function ExerciseCard({
   );
 
   function handlePanEnd(_event: unknown, info: PanInfo) {
-    const { x, y } = info.offset;
-    if (Math.abs(x) < TAP_SLOP && Math.abs(y) < TAP_SLOP) {
-      onDismiss();
-      return;
-    }
+    const { x } = info.offset;
     if (panel !== "default") {
       setPanel("default");
       return;
@@ -138,11 +133,12 @@ export function ExerciseCard({
           </svg>
         </div>
 
-        {/* Front: next exercise, swipeable for detail. */}
+        {/* Front: next exercise, swipeable for detail; a plain tap ends the sequence. */}
         <motion.div
-          className="absolute inset-0 overflow-hidden rounded-3xl border border-border bg-card"
+          className="absolute inset-0 touch-none select-none overflow-hidden rounded-3xl border border-border bg-card"
           style={{ backfaceVisibility: "hidden", rotateY: 180 }}
           onPanEnd={handlePanEnd}
+          onTap={onDismiss}
         >
           <AnimatePresence mode="wait" initial={false}>
             {panel === "default" ? (
