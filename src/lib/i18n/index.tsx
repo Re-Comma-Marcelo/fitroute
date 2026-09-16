@@ -10,6 +10,7 @@ import {
 
 import { setFormatLocale } from "@/lib/format";
 
+import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
 import { dict as generatedDict } from "./dict/generated";
@@ -108,6 +109,7 @@ const FRAGMENTS: DictFragment[] = [
   round31Dict,
   round32Dict,
   round33Dict,
+  authDict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {
