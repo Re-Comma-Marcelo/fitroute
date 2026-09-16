@@ -15,13 +15,13 @@ export function BottomNav() {
   const t = useT();
 
   return (
-    <nav className="z-40 shrink-0 border-t border-border bg-background/85 backdrop-blur-xl">
-      <ul className="mx-auto flex max-w-md">
+    <nav className="z-40 shrink-0 px-4 pb-3 pt-1">
+      <ul className="mx-auto flex max-w-md items-center rounded-full border border-border/60 bg-card/90 shadow-2xl backdrop-blur-xl">
         {tabs.map(({ to, label, icon: Icon, accent }) => (
           <li key={to} className="flex-1">
             <Link
               to={to}
-              className="tap-target flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium tracking-wide text-muted-foreground transition-colors"
+              className="tap-target flex flex-col items-center justify-center gap-1 py-3 text-[10px] font-medium tracking-wide text-muted-foreground transition-colors"
               activeProps={{ className: "text-primary" }}
             >
               {({ isActive }: { isActive: boolean }) => (
