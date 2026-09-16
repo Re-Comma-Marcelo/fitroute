@@ -109,6 +109,7 @@ import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session
 import { SessionSheet } from "@/components/session/SessionSheet";
 import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet";
 import type { SetField } from "@/components/session/SetFields";
+import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -182,6 +183,16 @@ function SessionPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
   const [editSet, setEditSet] = useState<{ exIdx: number; setIdx: number } | null>(null);
+  /** Exercise-finished takeover: card → checkmark → route → logo → next exercise. */
+  const [completion, setCompletion] = useState<{
+    originRect: DOMRect;
+    completedName: string;
+    completedDetail: string;
+    nextExerciseIdx: number;
+    nextExerciseId: string;
+    nextExerciseName: string;
+  } | null>(null);
+  const currentCardRef = useRef<HTMLLIElement>(null);
 
   const loadedRef = useRef(false);
   /**
@@ -592,6 +603,22 @@ function SessionPage() {
       setPrBurst({ key: Date.now(), nome: ex.nome });
     }
     if (effects.exerciseDone) setJustExercise(exIdx);
+    if (effects.exerciseDone && effects.nextExerciseIdx !== null && ex) {
+      const rect = currentCardRef.current?.getBoundingClientRect();
+      const nextEx = next.exercicios[effects.nextExerciseIdx];
+      if (rect && nextEx) {
+        setCompletion({
+          originRect: rect,
+          completedName: ex.nome,
+          completedDetail: effects.logged
+            ? `${formatKg(effects.logged.pesoKg)} × ${effects.logged.reps}`
+            : ex.nome,
+          nextExerciseIdx: effects.nextExerciseIdx,
+          nextExerciseId: nextEx.exerciseId,
+          nextExerciseName: nextEx.nome,
+        });
+      }
+    }
     // The rest starts before the RPE sheet opens, so the countdown is visible at once.
     if (effects.restSeconds > 0) startRest(effects.restSeconds);
     if (effects.superset) {
@@ -1197,7 +1224,7 @@ function SessionPage() {
                   const anyDone = exercise.sets.some((s) => s.concluida);
                   return (
                     <Fragment key={set.id}>
-                      <li className={cn(setIdx > 0 && "pt-2")}>
+                      <li ref={currentCardRef} className={cn(setIdx > 0 && "pt-2")}>
                         <CurrentSetCard
                           exercise={exercise}
                           set={set}
@@ -1540,6 +1567,20 @@ function SessionPage() {
       />
 
       {prBurst ? <PrCelebration key={prBurst.key} nome={prBurst.nome} /> : null}
+
+      {completion ? (
+        <ExerciseCompleteSequence
+          originRect={completion.originRect}
+          completedName={completion.completedName}
+          completedDetail={completion.completedDetail}
+          nextExerciseId={completion.nextExerciseId}
+          nextExerciseName={completion.nextExerciseName}
+          onFinish={() => {
+            jumpTo(completion.nextExerciseIdx);
+            setCompletion(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

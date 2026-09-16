@@ -13,6 +13,7 @@ import { setFormatLocale } from "@/lib/format";
 import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
 import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
 import { dict as libraryDict } from "./dict/library";
@@ -74,6 +75,7 @@ const FRAGMENTS: DictFragment[] = [
   upgradesDict,
   sessionDict,
   sessionFocusDict,
+  exerciseCompleteDict,
   libraryDict,
   dietDict,
   progressDict,
