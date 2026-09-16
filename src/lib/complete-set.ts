@@ -23,6 +23,13 @@ export interface CompleteSetEffects {
   nextExerciseIdx: number | null;
   /** True when this tick finished the last working set of the exercise. */
   exerciseDone: boolean;
+  /**
+   * True when the screen may hand over to `nextExerciseIdx` by itself: the
+   * exercise has no set left to do (nem aquecimento) and there is somewhere to
+   * go. Só o último ✓ do exercício abre essa porta — no meio da série o dedo
+   * fica onde está.
+   */
+  advance: boolean;
   /** Weight/reps actually recorded for a valid working set. */
   logged: { pesoKg: number; reps: number } | null;
   /** Coach line describing the target for the next set. */
@@ -113,11 +120,13 @@ export function completeSet(
 
   const superset = deps.supersetChain(s, exIdx);
   const restSeconds = superset ? 0 : deps.restFor(ex);
-  // O exercício termina quando as séries de trabalho acabam — e a sessão NÃO
-  // se move sozinha: `atual` só muda por toque. Trocar a tela embaixo do dedo
-  // no instante do ✓ é o que fazia o app parecer pular exercício.
+  // O exercício termina quando as séries de trabalho acabam. A passagem
+  // automática exige mais: nenhuma linha pendente (aquecimento incluso), para
+  // que uma série esquecida no meio nunca vire "exercício concluído". No meio
+  // da série a tela nunca troca embaixo do dedo — só o último ✓ entrega a vez.
   const exerciseDone = isExerciseDone(ex);
   const nextExerciseIdx = exerciseDone ? nextPendingIndex(s, exIdx) : null;
+  const advance = exerciseDone && nextExerciseIdx !== null && ex.sets.every((x) => x.concluida);
 
   return {
     session: s,
@@ -126,6 +135,7 @@ export function completeSet(
       superset,
       nextExerciseIdx,
       exerciseDone,
+      advance,
       logged,
       targetLine,
       volumeKg,

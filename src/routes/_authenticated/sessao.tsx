@@ -50,6 +50,7 @@ import {
   clearActiveSession,
   filledUncheckedSets,
   isExerciseDone,
+  isExercisePending,
   loadActiveSession,
   makeSets,
   restSecondsLeft,
@@ -127,6 +128,13 @@ const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 /** Two set completions this close together are a bounced tap, not two sets. */
 const TICK_GUARD_MS = 400;
 
+/**
+ * Pausa entre o último ✓ do exercício e a passagem para o próximo: tempo de
+ * ver o cartão verde "Exercício concluído" e o volume subir, sem a tela trocar
+ * embaixo do dedo.
+ */
+const ADVANCE_DELAY_MS = 1200;
+
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -190,6 +198,12 @@ function SessionPage() {
    * set with the suggested numbers — and could finish the exercise by accident.
    */
   const lastTickRef = useRef(0);
+  /**
+   * Exercício que assume a tela quando o exercício atual acaba, e o timer que
+   * o entrega. Fica pendente (sem timer) enquanto a folha de PSE está aberta.
+   */
+  const advanceToRef = useRef<number | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
   sessionRef.current = session;
@@ -407,6 +421,14 @@ function SessionPage() {
     return () => clearTimeout(id);
   }, [prBurst]);
 
+  /** Nada de troca de exercício depois que a tela sai do ar. */
+  useEffect(
+    () => () => {
+      if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    },
+    [],
+  );
+
   const [scrubHint] = useState(() => shouldShowScrubHint());
   useEffect(() => {
     if (scrubHint) markScrubHintShown();
@@ -598,8 +620,14 @@ function SessionPage() {
       const chained = next.exercicios[exIdx + 1];
       setSupersetHint({ until: Date.now() + 45000, nome: chained?.nome ?? "" });
     }
-    if (effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe) {
-      setRpePrompt({ exIdx, setIdx });
+    const perguntaRpe = !!effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe;
+    if (perguntaRpe) setRpePrompt({ exIdx, setIdx });
+    // A passagem para o próximo exercício acontece só no último ✓ — e espera a
+    // folha de PSE fechar, para não trocar a tela por baixo dela.
+    cancelAdvance();
+    if (effects.advance && effects.nextExerciseIdx !== null && exIdx === viewIndex(next)) {
+      advanceToRef.current = effects.nextExerciseIdx;
+      if (!perguntaRpe) advanceTimerRef.current = setTimeout(flushAdvance, ADVANCE_DELAY_MS);
     }
     if (effects.logged && ex) {
       void checkPerformanceDrop(ex, exIdx, effects.logged, next.id);
@@ -612,6 +640,7 @@ function SessionPage() {
     const set = current?.exercicios[exIdx]?.sets[setIdx];
     if (!current || !set) return;
     if (set.concluida) {
+      cancelAdvance();
       const next = uncompleteSet(current, exIdx, setIdx);
       sessionRef.current = next;
       setSession(next);
@@ -818,7 +847,42 @@ function SessionPage() {
     hapticTick();
   }
 
+  /** Desmarca a passagem agendada — qualquer toque do usuário manda mais. */
+  function cancelAdvance() {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+    advanceToRef.current = null;
+  }
+
+  /**
+   * Entrega a vez ao próximo exercício, se ele ainda faz sentido: o exercício
+   * que acabou continua concluído e o destino ainda tem trabalho. Um "Voltar"
+   * fica no brinde por alguns segundos.
+   */
+  function flushAdvance() {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+    const target = advanceToRef.current;
+    advanceToRef.current = null;
+    if (target === null) return;
+    const current = sessionRef.current;
+    const from = current ? viewIndex(current) : 0;
+    const saindo = current?.exercicios[from];
+    const destino = current?.exercicios[target];
+    if (!current || !saindo || !destino) return;
+    // Uma série desmarcada (ou adicionada) no meio do caminho cancela a troca.
+    if (isExercisePending(saindo) || !isExercisePending(destino)) return;
+    setSupersetHint(null);
+    jumpTo(target);
+    undoToast({
+      message: t("Next: {name}", { name: destino.nome }),
+      undoLabel: t("Back"),
+      onUndo: () => jumpTo(from),
+    });
+  }
+
   function jumpTo(idx: number) {
+    cancelAdvance();
     update((s) => ({ ...s, atual: idx }));
   }
 
@@ -1422,8 +1486,12 @@ function SessionPage() {
           onSave={(value) => {
             setField(rpePrompt.exIdx, rpePrompt.setIdx, "rpe", value);
             setRpePrompt(null);
+            flushAdvance();
           }}
-          onSkip={() => setRpePrompt(null)}
+          onSkip={() => {
+            setRpePrompt(null);
+            flushAdvance();
+          }}
         />
       ) : null}
 
