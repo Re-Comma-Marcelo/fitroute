@@ -94,7 +94,7 @@
       endTimer = setTimeout(showDone, ms);
       if (msg.ongoing) {
         showOngoing();
-        tickTimer = setInterval(showOngoing, 5000);
+        tickTimer = setInterval(showOngoing, 30000);
       }
     } else if (msg.type === "rest-cancel") {
       state = null;

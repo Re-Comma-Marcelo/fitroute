@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import { ArrowRight, Check, Flag, Plus, RotateCcw, Trophy, Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -204,6 +204,8 @@ function SessionPage() {
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
   sessionRef.current = session;
+  /** Swipe left/right on the exercise content to move to the next/previous exercise. */
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
 
@@ -810,6 +812,22 @@ function SessionPage() {
     });
   }
 
+  /** Reorder sets within an exercise — e.g. move a warm-up set added late back to the front. */
+  function moveSet(exIdx: number, setIdx: number, dir: -1 | 1) {
+    const target = setIdx + dir;
+    update((s) => {
+      const ex = s.exercicios[exIdx];
+      if (!ex || target < 0 || target >= ex.sets.length) return s;
+      const sets = [...ex.sets];
+      const [moved] = sets.splice(setIdx, 1);
+      sets.splice(target, 0, moved!);
+      sets.forEach((x, i) => (x.serieNum = i + 1));
+      ex.sets = sets;
+      return s;
+    });
+    hapticTick();
+  }
+
   function removeExercise(exIdx: number) {
     const removed = session?.exercicios[exIdx];
     const previousAtual = session?.atual ?? 0;
@@ -847,6 +865,25 @@ function SessionPage() {
 
   function jumpTo(idx: number) {
     update((s) => ({ ...s, atual: idx }));
+  }
+
+  function handleExerciseTouchStart(e: TouchEvent) {
+    const touch = e.touches[0];
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }
+
+  function handleExerciseTouchEnd(e: TouchEvent) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || !session) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    // Horizontal-dominant swipes only, so vertical scrolling keeps working.
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0 && viewIdx < session.exercicios.length - 1) jumpTo(viewIdx + 1);
+    else if (dx > 0 && viewIdx > 0) jumpTo(viewIdx - 1);
   }
 
   /** Open the in-session picker in replace mode: suggestions first, then the search. */
@@ -1169,7 +1206,11 @@ function SessionPage() {
         }
       />
 
-      <main className="mx-auto max-w-md space-y-3 px-3 py-3">
+      <main
+        className="mx-auto max-w-md space-y-3 px-3 py-3"
+        onTouchStart={handleExerciseTouchStart}
+        onTouchEnd={handleExerciseTouchEnd}
+      >
         {paused ? (
           <p className="text-center text-[11px] font-semibold text-muted-foreground">
             {t("Clock paused — logging still works.")}
@@ -1433,6 +1474,13 @@ function SessionPage() {
         onNote={(value) => editSet && setSetNote(editSet.exIdx, editSet.setIdx, value)}
         onUncheck={() => editSet && toggleSet(editSet.exIdx, editSet.setIdx)}
         onRemove={() => editSet && removeSet(editSet.exIdx, editSet.setIdx)}
+        onMove={(dir) => {
+          if (!editSet) return;
+          moveSet(editSet.exIdx, editSet.setIdx, dir);
+          setEditSet({ exIdx: editSet.exIdx, setIdx: editSet.setIdx + dir });
+        }}
+        canMoveUp={editSet ? editSet.setIdx > 0 : false}
+        canMoveDown={editing ? editSet!.setIdx < editing.exercise.sets.length - 1 : false}
       />
 
       {rpePrompt ? (

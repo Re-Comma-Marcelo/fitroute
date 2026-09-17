@@ -19,6 +19,7 @@ import {
   weekDates,
 } from "@/lib/data/nutrition";
 import { getArchivedWeeks, getWeekMenu, removeListItem } from "@/lib/data/week-menu";
+import { suggestedPackage } from "@/lib/data/packaging";
 import { addEntry, getDayEntries } from "@/lib/data/diet-entries";
 import { WeekMenuSection } from "@/components/diet/WeekMenuSection";
 import { MealDetailSheet } from "@/components/MealDetailSheet";
@@ -274,7 +275,21 @@ function MarketPage() {
                             {item.name}
                           </span>
                           <span className="shrink-0 text-right text-xs tabular-nums text-muted-foreground">
-                            {formatNumber(Math.round(item.qty * 10) / 10)} {item.unit}
+                            <span className="block">
+                              {formatNumber(Math.round(item.qty * 10) / 10)} {item.unit}
+                            </span>
+                            {(() => {
+                              const pkg = suggestedPackage(item.name, item.qty, item.unit);
+                              return pkg ? (
+                                <span className="block text-muted-foreground/70">
+                                  {t("buy {n}× {size} {unit}", {
+                                    n: pkg.packages,
+                                    size: pkg.size,
+                                    unit: pkg.unit,
+                                  })}
+                                </span>
+                              ) : null;
+                            })()}
                           </span>
                         </button>
                         <button

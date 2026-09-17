@@ -104,19 +104,44 @@ export function planPrompt(
     (m) => `${m.id}|${m.name}|${m.slots.join("/")}|${m.kcal}kcal|${m.proteinG}gP|${m.prepMin}min`,
   );
 
+  const scope = intake.planScope;
+  const wantsTraining = scope !== "diet";
+  const wantsDiet = scope !== "training";
+
+  const trainingRules = wantsTraining
+    ? [
+        `- Use at most ${Math.max(1, budget.gymSlots.length)} gym day(s), on exactly the weekdays listed in the derived time budget.`,
+        "- Each gym day's exercise count must fit its minutes (roughly one exercise per 10-12 minutes).",
+        "- Mark days with a sport session as kind 'sport' (no exercises) and truly free days as 'rest'. Cover all 7 weekdays exactly once.",
+        "- exerciseId MUST come from the exercise library.",
+        "- Respect injuries/limitations and skip anything the person cannot do.",
+        "- Every day needs a short 'why' referencing their life (time, sport, sleep, stress).",
+      ]
+    : [
+        "- The person does NOT want a training plan from this app (they train on their own, or not at all).",
+        "- Still return all 7 weekdays, each with kind 'rest', empty exercises, and a one-line why noting training isn't part of this plan.",
+      ];
+
+  const dietRules = wantsDiet
+    ? [
+        `- Diet: general framing only, no medical precision. Add this note verbatim as the last item of notes: "${CONSULT_NOTE}"`,
+        "- Diet meals: one entry per meal slot (breakfast, lunch, snack, dinner), matched to their likes and cooking time.",
+        "- mealId MUST come from the meal library.",
+      ]
+    : [
+        "- The person does NOT want a diet plan from this app.",
+        "- Still return the diet object, but with kcal, proteinG, carbsG and fatG set to 0, notes and meals as empty arrays, and sportDayNote as an empty string.",
+      ];
+
   return [
     "You are a strength & conditioning coach and nutrition planner inside a training app.",
     "Ground every recommendation in mainstream, established science: progressive overload, standard rep ranges for the goal (strength 3-6, hypertrophy 6-12, endurance 12-20), adequate recovery. No fringe methodology.",
-    "The person may train other sports too — plan the gym AROUND those sessions and their real weekly time, never on top of them.",
+    wantsTraining
+      ? "The person may train other sports too — plan the gym AROUND those sessions and their real weekly time, never on top of them."
+      : "",
     "Hard rules:",
-    `- Use at most ${Math.max(1, budget.gymSlots.length)} gym day(s), on exactly the weekdays listed in the derived time budget.`,
-    "- Each gym day's exercise count must fit its minutes (roughly one exercise per 10-12 minutes).",
-    "- Mark days with a sport session as kind 'sport' (no exercises) and truly free days as 'rest'. Cover all 7 weekdays exactly once.",
-    "- exerciseId MUST come from the exercise library. mealId MUST come from the meal library.",
-    "- Respect injuries/limitations and skip anything the person cannot do.",
-    "- Every day needs a short 'why' referencing their life (time, sport, sleep, stress).",
-    `- Diet: general framing only, no medical precision. Add this note verbatim as the last item of notes: "${CONSULT_NOTE}"`,
-    "- Diet meals: one entry per meal slot (breakfast, lunch, snack, dinner), matched to their likes and cooking time.",
+    ...trainingRules,
+    ...dietRules,
     "Return JSON only:",
     '{"summary":string,"days":[{"day":"mon","kind":"gym|sport|rest","label":string,"minutes":number,"why":string,"exercises":[{"exerciseId":string,"sets":number,"repsMin":number,"repsMax":number,"restSec":number,"note":string}]}],"diet":{"kcal":number,"proteinG":number,"carbsG":number,"fatG":number,"notes":[string],"sportDayNote":string,"meals":[{"slot":"breakfast","mealId":string,"why":string}]}}',
     "",
@@ -128,11 +153,11 @@ export function planPrompt(
     feedback ? `## User feedback on the previous plan (apply it)\n${feedback}` : "",
     previous ? `## Previous plan (JSON)\n${JSON.stringify(previous).slice(0, 4000)}` : "",
     "",
-    "## Exercise library (id|name|group|equipment)",
-    exerciseList.join("\n"),
+    wantsTraining ? "## Exercise library (id|name|group|equipment)" : "",
+    wantsTraining ? exerciseList.join("\n") : "",
     "",
-    "## Meal library (id|name|slots|kcal|protein|prep)",
-    mealList.join("\n"),
+    wantsDiet ? "## Meal library (id|name|slots|kcal|protein|prep)" : "",
+    wantsDiet ? mealList.join("\n") : "",
   ]
     .filter((line) => line !== "")
     .join("\n");
