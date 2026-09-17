@@ -48,6 +48,7 @@ import { dict as round30Dict } from "./dict/round30";
 import { dict as round31Dict } from "./dict/round31";
 import { dict as round32Dict } from "./dict/round32";
 import { dict as round33Dict } from "./dict/round33";
+import { dict as round34Dict } from "./dict/round34";
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as sessionFocusDict } from "./dict/session-focus";
@@ -111,6 +112,7 @@ const FRAGMENTS: DictFragment[] = [
   round31Dict,
   round32Dict,
   round33Dict,
+  round34Dict,
   authDict,
 ];
 
