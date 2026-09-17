@@ -1,43 +1,54 @@
-# Supabase echt aanzetten: migraties uitvoeren + Site URL
+# Supabase zelf aanzetten: handleiding + controle achteraf
 
-## Wat ik doe (migraties)
+Jij voert de scripts zelf uit in je Supabase-dashboard. Ik lever een duidelijke handleiding en controleer achteraf vanuit de app of alles werkt.
 
-De secrets `FORJA_SUPABASE_URL`, `FORJA_SUPABASE_PUBLISHABLE_KEY` en `FORJA_SUPABASE_DB_URL` zijn al opgeslagen in het project. Met de database-URL kan ik de scripts rechtstreeks uitvoeren via `psql` — je hoeft de SQL Editor niet te openen.
+## Stap 1 — SQL-scripts uitvoeren (jij)
 
-1. **Test de verbinding** met `FORJA_SUPABASE_DB_URL` (alleen een `SELECT 1`).
-2. **Voer de scripts uit in volgorde**, elk met `ON_ERROR_STOP`:
-   1. `scripts/supabase-schema.sql` — tabellen, RLS, grants
-   2. `scripts/supabase-seed.sql` — oefeningen, maaltijden, routines
-   3. `scripts/supabase-migration-coaching.sql`
-   4. `scripts/supabase-migration-body-weight.sql`
-   5. `scripts/supabase-migration-language.sql`
-   6. `scripts/supabase-migration-profile-targets.sql`
-   7. `scripts/supabase-migration-route.sql`
-   8. `scripts/supabase-migration-meal-entries.sql`
-   9. `scripts/supabase-migration-week-menu.sql`
-   10. `scripts/supabase-migration-custom-meals.sql`
-3. **Verifieer**: lijst van aangemaakte tabellen + rijtellingen (oefeningen, maaltijden) om te bevestigen dat schema en seed gelukt zijn.
-4. **Schema cache verversen**: `NOTIFY pgrst, 'reload schema';` zodat PostgREST de nieuwe tabellen direct ziet (lost de eerdere "table not found in schema cache" fouten op).
-5. **Test in de app**: preview openen, inloggen werkt al; check dat Home/Train/Dieet data laden zonder fallback-meldingen.
+Ga naar je Supabase-project → **SQL Editor** → **New query**. Plak per script de volledige inhoud en klik **Run**. Volgorde is belangrijk:
 
-Als een script faalt (bijv. "already exists" omdat je deels al iets hebt uitgevoerd), rapporteer ik welke stap en pas ik alleen dat deel idempotent aan — niets wordt stilletjes overgeslagen.
+1. `scripts/supabase-schema.sql` — tabellen, RLS, grants
+2. `scripts/supabase-seed.sql` — oefeningen, maaltijden, routines
+3. `scripts/supabase-migration-coaching.sql`
+4. `scripts/supabase-migration-body-weight.sql`
+5. `scripts/supabase-migration-language.sql`
+6. `scripts/supabase-migration-profile-targets.sql`
+7. `scripts/supabase-migration-route.sql`
+8. `scripts/supabase-migration-meal-entries.sql`
+9. `scripts/supabase-migration-week-menu.sql`
+10. `scripts/supabase-migration-custom-meals.sql`
 
-## Wat jij moet doen (Site URL — kan ik niet)
+De bestanden staan klaar in de projectmap `scripts/`; open ze hier in de editor om te kopiëren.
 
-De Site URL zit in het dashboard, niet in de database. Twee minuten werk:
+**Waar je op let:**
+- "Success. No rows returned" is goed.
+- "already exists" → dat deel was al uitgevoerd; ga door met het volgende script en meld het mij.
+- Elke andere fout: stop, kopieer de foutmelding hierheen — ik pas het script aan.
 
-1. Ga naar **Authentication → URL Configuration** in je Supabase-project.
-2. Zet **Site URL** op `https://fitroute.lovable.app`.
-3. Voeg bij **Redirect URLs** toe:
-   - `https://fitroute.lovable.app/**`
-   - `https://id-preview--6348699b-3af7-46e0-9c05-163e356b7bc2.lovable.app/**`
-4. Save.
+Sluit af met dit losse commando in de SQL Editor om de tabel-cache te verversen (lost de eerdere "not found in schema cache" fouten op):
+```sql
+NOTIFY pgrst, 'reload schema';
+```
 
-Zonder dit sturen bevestigings- en reset-mails naar de verkeerde plek en breekt Google-login.
+## Stap 2 — Site URL instellen (jij)
+
+**Authentication → URL Configuration**:
+- Site URL: `https://fitroute.lovable.app`
+- Redirect URLs toevoegen:
+  - `https://fitroute.lovable.app/**`
+  - `https://id-preview--6348699b-3af7-46e0-9c05-163e356b7bc2.lovable.app/**`
+- Save.
+
+Zonder dit breken bevestigingsmails en Google-login.
+
+## Stap 3 — Controle (ik)
+
+Zodra jij zegt dat het klaar is:
+1. Ik test de verbinding vanuit de app (lezen van oefeningen/maaltijden via de bestaande datafuncties).
+2. Ik check dat de fallback-waarschuwingen (`custom_meals`, `coaching_events`) verdwenen zijn.
+3. Ik rapporteer welke tabellen en hoeveel rijen er staan, zodat je zeker weet dat schema + seed gelukt zijn.
 
 ## Technische details
 
-- Verbinding: `psql "$FORJA_SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f <script>` — de waarde wordt nooit gelogd of getoond.
-- Alle scripts staan al in `scripts/`; er wordt geen SQL herschreven, alleen uitgevoerd.
-- Fallback-gedrag in de app (`custom_meals`, `coaching_events`) blijft bestaan als veiligheid, maar is na deze migraties niet meer nodig.
-- Geen frontend-wijzigingen; geen nieuwe secrets nodig.
+- Geen frontend-wijzigingen, geen nieuwe secrets — `FORJA_SUPABASE_URL` en `FORJA_SUPABASE_PUBLISHABLE_KEY` zijn al opgeslagen en werkend.
+- De app blijft intussen werken met lokale fallback; niets breekt als je dit op een rustig moment doet.
+- Eventuele "already exists"-varianten pas ik idempotent aan als je ze tegenkomt.
