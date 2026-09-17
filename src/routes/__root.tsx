@@ -13,7 +13,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { RouteLogo } from "../components/RouteLogo";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { configureSupabase, supabase } from "../integrations/supabase/client";
+import { configureSupabase, supabase, supabaseConfig } from "../integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 import { LanguageProvider, currentLangFromStorage, translate } from "../lib/i18n";
 import { registerAppServiceWorker } from "../lib/pwa";
