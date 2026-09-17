@@ -179,6 +179,9 @@ function RootComponent() {
   }, []);
 
   useEffect(() => {
+    // Without runtime config there is no client to subscribe to; the app still
+    // renders (login screen shows a configuration notice) instead of blanking.
+    if (!supabaseConfig()) return;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
@@ -188,6 +191,7 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+
 
   return (
     <QueryClientProvider client={queryClient}>
