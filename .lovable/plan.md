@@ -1,54 +1,36 @@
-# Supabase zelf aanzetten: handleiding + controle achteraf
+# Supabase-rechten repareren (diagnose: tabellen staan er, toegang ontbreekt)
 
-Jij voert de scripts zelf uit in je Supabase-dashboard. Ik lever een duidelijke handleiding en controleer achteraf vanuit de app of alles werkt.
+## Diagnose (zojuist live gecontroleerd)
 
-## Stap 1 — SQL-scripts uitvoeren (jij)
+- Alle 21 tabellen bestaan en de seed-data staat erin (80 catalogus-oefeningen, routines, maaltijden). Je had dus gelijk: de scripts zijn gedraaid.
+- **Maar**: er zijn geen toegangsrechten (`GRANT`s) voor app-gebruikers en **nul RLS-policies**. Daardoor krijgt de app bij elke lees- en schrijfactie "permission denied" / "table not found in schema cache", en vallen onderdelen terug op lokale opslag.
+- Ook goed nieuws: ik heb een directe, alleen-lezen verbinding kunnen testen — de database zelf werkt prima.
 
-Ga naar je Supabase-project → **SQL Editor** → **New query**. Plak per script de volledige inhoud en klik **Run**. Volgorde is belangrijk:
+## Wat ik doe
 
-1. `scripts/supabase-schema.sql` — tabellen, RLS, grants
-2. `scripts/supabase-seed.sql` — oefeningen, maaltijden, routines
-3. `scripts/supabase-migration-coaching.sql`
-4. `scripts/supabase-migration-body-weight.sql`
-5. `scripts/supabase-migration-language.sql`
-6. `scripts/supabase-migration-profile-targets.sql`
-7. `scripts/supabase-migration-route.sql`
-8. `scripts/supabase-migration-meal-entries.sql`
-9. `scripts/supabase-migration-week-menu.sql`
-10. `scripts/supabase-migration-custom-meals.sql`
+1. **Nieuw script** `scripts/supabase-migration-grants-policies.sql`:
+   - `GRANT` per tabel aan `authenticated` (en `anon` alleen waar de app dat nodig heeft), plus `service_role` overal.
+   - **RLS-policies per tabel**, eigenaar-gebaseerd (`user_id = ingelogde gebruiker`):
+     - Persoonlijk (volledige toegang alleen eigen rijen): profiles, workouts, workout_sets (via workout), routines + routine_exercises, meal_plan, meal_schedule, meal_entries, custom_meals, week_menu, shopping_checked, body_weight_log, weekly_checkins, coach_notes, coach_chat_messages, coaching_events, cross_training_logs, tracked_lifts, route_checkpoints, route_progress_photos.
+     - Catalogus: `exercises` — iedereen leest rijen zonder eigenaar (de 80 standaard-oefeningen), gebruikers beheren alleen hun eigen custom oefeningen.
+   - Idempotent geschreven (`DROP POLICY IF EXISTS` vooraf), dus dubbel draaien is onschadelijk.
+2. **Uitvoeren** via de bestaande databaseverbinding (`psql`, met ON_ERROR_STOP).
+3. **Verifiëren**:
+   - Anonieme API-call op `exercises` moet nu data teruggeven (was: permission denied).
+   - Controle dat elke tabel minstens één policy heeft en grants kloppen.
+   - Preview openen: Home/Train/Dieet laden zonder fallback-meldingen.
 
-De bestanden staan klaar in de projectmap `scripts/`; open ze hier in de editor om te kopiëren.
+## Wat jij nog moet doen (2 minuten, kan ik niet)
 
-**Waar je op let:**
-- "Success. No rows returned" is goed.
-- "already exists" → dat deel was al uitgevoerd; ga door met het volgende script en meld het mij.
-- Elke andere fout: stop, kopieer de foutmelding hierheen — ik pas het script aan.
-
-Sluit af met dit losse commando in de SQL Editor om de tabel-cache te verversen (lost de eerdere "not found in schema cache" fouten op):
-```sql
-NOTIFY pgrst, 'reload schema';
-```
-
-## Stap 2 — Site URL instellen (jij)
-
-**Authentication → URL Configuration**:
+**Authentication → URL Configuration** in je Supabase-dashboard:
 - Site URL: `https://fitroute.lovable.app`
-- Redirect URLs toevoegen:
-  - `https://fitroute.lovable.app/**`
-  - `https://id-preview--6348699b-3af7-46e0-9c05-163e356b7bc2.lovable.app/**`
-- Save.
+- Redirect URLs: `https://fitroute.lovable.app/**` en `https://id-preview--6348699b-3af7-46e0-9c05-163e356b7bc2.lovable.app/**`
 
-Zonder dit breken bevestigingsmails en Google-login.
-
-## Stap 3 — Controle (ik)
-
-Zodra jij zegt dat het klaar is:
-1. Ik test de verbinding vanuit de app (lezen van oefeningen/maaltijden via de bestaande datafuncties).
-2. Ik check dat de fallback-waarschuwingen (`custom_meals`, `coaching_events`) verdwenen zijn.
-3. Ik rapporteer welke tabellen en hoeveel rijen er staan, zodat je zeker weet dat schema + seed gelukt zijn.
+Dit is nodig voor bevestigingsmails en Google-login van je ouders/vrienden.
 
 ## Technische details
 
-- Geen frontend-wijzigingen, geen nieuwe secrets — `FORJA_SUPABASE_URL` en `FORJA_SUPABASE_PUBLISHABLE_KEY` zijn al opgeslagen en werkend.
-- De app blijft intussen werken met lokale fallback; niets breekt als je dit op een rustig moment doet.
-- Eventuele "already exists"-varianten pas ik idempotent aan als je ze tegenkomt.
+- Geen frontend-wijzigingen; geen schema-wijzigingen aan tabellen zelf.
+- `user_id`-kolommen zijn tekst; policies casten `auth.uid()` correct.
+- De bestaande lokale fallback in de app blijft als vangnet, maar is hierna niet meer nodig.
+- Na goedkeuring voer ik direct uit en rapporteer ik per stap het resultaat.
