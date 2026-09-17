@@ -83,7 +83,8 @@ function OnboardingPage() {
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
       toast.success(t('Routine "{name}" created', { name: saved.nome }));
       finish();
-    } catch {
+    } catch (error) {
+      console.error("Failed to save routine from onboarding:", error);
       toast.error(t("Could not create the routine. Try again."));
     } finally {
       setCreating(false);

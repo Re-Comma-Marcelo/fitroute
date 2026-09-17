@@ -69,6 +69,8 @@ export function PlanReview({
 
   const exerciseById = new Map(exercises.map((e) => [e.id, e]));
   const mealById = new Map(meals.map((m) => [m.id, m]));
+  const hasTraining = plan.days.some((d) => d.exercises.length > 0);
+  const hasDiet = plan.diet.meals.length > 0 || plan.diet.kcal > 0;
 
   return (
     <div className="space-y-5">
@@ -76,195 +78,199 @@ export function PlanReview({
         <p className="text-sm leading-relaxed text-foreground/90">{plan.summary}</p>
       </section>
 
-      <section className="space-y-2">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <span className="flex size-6 items-center justify-center rounded-md bg-primary/15 text-primary">
-            <Dumbbell className="h-3.5 w-3.5" />
-          </span>
-          {t("Your week")}
-        </h2>
-        {planDayOrder(plan).map((day) => {
-          const isOpen = open === day.day;
-          return (
-            <div
-              key={day.day}
-              className={cn(
-                "overflow-hidden rounded-xl border border-border/60 bg-card/40 border-l-[3px]",
-                day.kind === "gym" && "border-l-primary",
-                day.kind === "sport" && "border-l-accent",
-                day.kind === "rest" && "border-l-muted-foreground/40",
-              )}
-            >
-              <button
-                type="button"
-                onClick={() => setOpen(isOpen ? null : day.day)}
-                aria-expanded={isOpen}
-                className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
-              >
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium">{t(DAY_LABEL[day.day] ?? "")}</span>
-                  <span className="block truncate text-xs text-muted-foreground">
-                    {day.kind === "rest" ? t("Rest") : day.label}
-                    {day.minutes > 0 ? ` · ${day.minutes} ${t("min")}` : ""}
-                  </span>
-                </span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                    isOpen && "rotate-180",
-                  )}
-                />
-              </button>
-              {isOpen ? (
-                <div className="space-y-3 border-t border-border/60 px-4 py-3">
-                  <p className="text-xs leading-relaxed text-muted-foreground">{day.why}</p>
-                  {day.exercises.map((ex) => {
-                    const exercise = exerciseById.get(ex.exerciseId);
-                    return (
-                      <div key={ex.exerciseId} className="flex items-center gap-3">
-                        <ExerciseThumb
-                          grupo={exercise?.grupoPrimario}
-                          nome={exercise?.nome}
-                          className="h-10 w-10 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm">{exercise?.nome ?? ex.exerciseId}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {t("{sets} sets · {min}-{max} reps · {rest}s rest", {
-                              sets: ex.sets,
-                              min: ex.repsMin,
-                              max: ex.repsMax,
-                              rest: ex.restSec,
-                            })}
-                          </p>
-                          {ex.note ? (
-                            <p className="text-xs text-muted-foreground/80">{ex.note}</p>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
-            </div>
-          );
-        })}
-      </section>
-
-      <section className="space-y-2">
-        <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          <span className="flex size-6 items-center justify-center rounded-md bg-accent/20 text-accent-foreground">
-            <Utensils className="h-3.5 w-3.5" />
-          </span>
-          {t("Your food")}
-        </h2>
-
-        <div className="grid grid-cols-4 gap-1.5">
-          {MACROS.map((macro) => (
-            <div
-              key={macro.label}
-              className={cn("rounded-xl border p-2 text-center", macro.className)}
-            >
-              <p className="text-sm font-semibold tabular-nums">
-                {macro.value(plan.diet)}
-                {macro.suffix}
-              </p>
-              <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                {t(macro.label)}
-              </p>
-            </div>
-          ))}
-        </div>
-
-        <div className="space-y-1.5">
-          {plan.diet.meals.map((meal) => {
-            const key = `${meal.slot}-${meal.mealId}`;
-            const isOpen = openMeal === key;
-            const found = mealById.get(meal.mealId);
+      {hasTraining ? (
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="flex size-6 items-center justify-center rounded-md bg-primary/15 text-primary">
+              <Dumbbell className="h-3.5 w-3.5" />
+            </span>
+            {t("Your week")}
+          </h2>
+          {planDayOrder(plan).map((day) => {
+            const isOpen = open === day.day;
             return (
               <div
-                key={key}
-                className="overflow-hidden rounded-xl border border-border/60 bg-card/40"
+                key={day.day}
+                className={cn(
+                  "overflow-hidden rounded-xl border border-border/60 bg-card/40 border-l-[3px]",
+                  day.kind === "gym" && "border-l-primary",
+                  day.kind === "sport" && "border-l-accent",
+                  day.kind === "rest" && "border-l-muted-foreground/40",
+                )}
               >
                 <button
                   type="button"
-                  onClick={() => setOpenMeal(isOpen ? null : key)}
+                  onClick={() => setOpen(isOpen ? null : day.day)}
                   aria-expanded={isOpen}
                   className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
                 >
                   <span className="min-w-0">
-                    <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                      {t(meal.slot)}
+                    <span className="block text-sm font-medium">{t(DAY_LABEL[day.day] ?? "")}</span>
+                    <span className="block truncate text-xs text-muted-foreground">
+                      {day.kind === "rest" ? t("Rest") : day.label}
+                      {day.minutes > 0 ? ` · ${day.minutes} ${t("min")}` : ""}
                     </span>
-                    <span className="block truncate text-sm">{found?.name ?? meal.mealId}</span>
                   </span>
-                  <span className="flex shrink-0 items-center gap-2">
-                    {found ? (
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {t("{kcal} kcal · {p}g P", { kcal: found.kcal, p: found.proteinG })}
-                      </span>
-                    ) : null}
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 text-muted-foreground transition-transform",
-                        isOpen && "rotate-180",
-                      )}
-                    />
-                  </span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                      isOpen && "rotate-180",
+                    )}
+                  />
                 </button>
                 {isOpen ? (
-                  <div className="space-y-2 border-t border-border/60 px-4 py-3">
-                    <p className="text-xs leading-relaxed text-muted-foreground">{meal.why}</p>
-                    {found?.ingredients.length ? (
-                      <ul className="space-y-0.5 text-xs text-muted-foreground/90">
-                        {found.ingredients.map((ing) => (
-                          <li key={ing.name} className="flex justify-between gap-2">
-                            <span>{ing.name}</span>
-                            <span className="tabular-nums">
-                              {ing.qty} {ing.unit}
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+                  <div className="space-y-3 border-t border-border/60 px-4 py-3">
+                    <p className="text-xs leading-relaxed text-muted-foreground">{day.why}</p>
+                    {day.exercises.map((ex) => {
+                      const exercise = exerciseById.get(ex.exerciseId);
+                      return (
+                        <div key={ex.exerciseId} className="flex items-center gap-3">
+                          <ExerciseThumb
+                            grupo={exercise?.grupoPrimario}
+                            nome={exercise?.nome}
+                            className="h-10 w-10 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <p className="truncate text-sm">{exercise?.nome ?? ex.exerciseId}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {t("{sets} sets · {min}-{max} reps · {rest}s rest", {
+                                sets: ex.sets,
+                                min: ex.repsMin,
+                                max: ex.repsMax,
+                                rest: ex.restSec,
+                              })}
+                            </p>
+                            {ex.note ? (
+                              <p className="text-xs text-muted-foreground/80">{ex.note}</p>
+                            ) : null}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 ) : null}
               </div>
             );
           })}
+        </section>
+      ) : null}
 
-          {plan.diet.notes.length > 0 || plan.diet.sportDayNote ? (
-            <div className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
-              <button
-                type="button"
-                onClick={() => setOpenMeal(openMeal === NOTES_KEY ? null : NOTES_KEY)}
-                aria-expanded={openMeal === NOTES_KEY}
-                className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
+      {hasDiet ? (
+        <section className="space-y-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            <span className="flex size-6 items-center justify-center rounded-md bg-accent/20 text-accent-foreground">
+              <Utensils className="h-3.5 w-3.5" />
+            </span>
+            {t("Your food")}
+          </h2>
+
+          <div className="grid grid-cols-4 gap-1.5">
+            {MACROS.map((macro) => (
+              <div
+                key={macro.label}
+                className={cn("rounded-xl border p-2 text-center", macro.className)}
               >
-                <span className="text-sm">{t("Notes and adjustments")}</span>
-                <ChevronDown
-                  className={cn(
-                    "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                    openMeal === NOTES_KEY && "rotate-180",
-                  )}
-                />
-              </button>
-              {openMeal === NOTES_KEY ? (
-                <div className="space-y-2 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
-                  {plan.diet.sportDayNote ? <p>{plan.diet.sportDayNote}</p> : null}
-                  <ul className="space-y-1">
-                    {plan.diet.notes.map((note) => (
-                      <li key={note}>{note}</li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </div>
+                <p className="text-sm font-semibold tabular-nums">
+                  {macro.value(plan.diet)}
+                  {macro.suffix}
+                </p>
+                <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {t(macro.label)}
+                </p>
+              </div>
+            ))}
+          </div>
 
-        <p className="px-1 text-xs text-muted-foreground/80">{t(CONSULT_NOTE)}</p>
-      </section>
+          <div className="space-y-1.5">
+            {plan.diet.meals.map((meal) => {
+              const key = `${meal.slot}-${meal.mealId}`;
+              const isOpen = openMeal === key;
+              const found = mealById.get(meal.mealId);
+              return (
+                <div
+                  key={key}
+                  className="overflow-hidden rounded-xl border border-border/60 bg-card/40"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setOpenMeal(isOpen ? null : key)}
+                    aria-expanded={isOpen}
+                    className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
+                  >
+                    <span className="min-w-0">
+                      <span className="block text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                        {t(meal.slot)}
+                      </span>
+                      <span className="block truncate text-sm">{found?.name ?? meal.mealId}</span>
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      {found ? (
+                        <span className="text-xs tabular-nums text-muted-foreground">
+                          {t("{kcal} kcal · {p}g P", { kcal: found.kcal, p: found.proteinG })}
+                        </span>
+                      ) : null}
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 text-muted-foreground transition-transform",
+                          isOpen && "rotate-180",
+                        )}
+                      />
+                    </span>
+                  </button>
+                  {isOpen ? (
+                    <div className="space-y-2 border-t border-border/60 px-4 py-3">
+                      <p className="text-xs leading-relaxed text-muted-foreground">{meal.why}</p>
+                      {found?.ingredients.length ? (
+                        <ul className="space-y-0.5 text-xs text-muted-foreground/90">
+                          {found.ingredients.map((ing) => (
+                            <li key={ing.name} className="flex justify-between gap-2">
+                              <span>{ing.name}</span>
+                              <span className="tabular-nums">
+                                {ing.qty} {ing.unit}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+
+            {plan.diet.notes.length > 0 || plan.diet.sportDayNote ? (
+              <div className="overflow-hidden rounded-xl border border-border/60 bg-card/40">
+                <button
+                  type="button"
+                  onClick={() => setOpenMeal(openMeal === NOTES_KEY ? null : NOTES_KEY)}
+                  aria-expanded={openMeal === NOTES_KEY}
+                  className="flex min-h-[3.25rem] w-full items-center justify-between gap-2 px-4 py-3 text-left"
+                >
+                  <span className="text-sm">{t("Notes and adjustments")}</span>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
+                      openMeal === NOTES_KEY && "rotate-180",
+                    )}
+                  />
+                </button>
+                {openMeal === NOTES_KEY ? (
+                  <div className="space-y-2 border-t border-border/60 px-4 py-3 text-xs text-muted-foreground">
+                    {plan.diet.sportDayNote ? <p>{plan.diet.sportDayNote}</p> : null}
+                    <ul className="space-y-1">
+                      {plan.diet.notes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <p className="px-1 text-xs text-muted-foreground/80">{t(CONSULT_NOTE)}</p>
+        </section>
+      ) : null}
 
       <section className="space-y-2">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">

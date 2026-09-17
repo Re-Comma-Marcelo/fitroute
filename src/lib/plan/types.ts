@@ -31,7 +31,12 @@ export type Consistency = "barely" | "onOff" | "steady";
 export type Budget = "tight" | "normal" | "comfortable";
 export type TimeAdjust = "less" | "asIs" | "more";
 
+/** What the interview should build: everything, training only, or diet only. */
+export type PlanScope = "full" | "training" | "diet";
+
 export interface PlanIntake {
+  // Step 0 — what you want
+  planScope: PlanScope;
   // Step 1 — you
   age: number;
   sex: "male" | "female" | "other";

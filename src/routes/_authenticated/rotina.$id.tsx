@@ -234,7 +234,8 @@ function RoutineEditor() {
       await queryClient.invalidateQueries({ queryKey: ["routines"] });
       window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
-    } catch {
+    } catch (error) {
+      console.error("Failed to save routine:", error);
       toast.error(t("Could not save the routine. Check your connection and try again."));
     } finally {
       setSaving(false);
@@ -251,7 +252,8 @@ function RoutineEditor() {
       }
       window.localStorage.removeItem(DRAFT_KEY);
       navigate({ to: "/treino" });
-    } catch {
+    } catch (error) {
+      console.error("Failed to delete routine:", error);
       toast.error(t("Could not delete the routine. Check your connection and try again."));
     } finally {
       setSaving(false);
