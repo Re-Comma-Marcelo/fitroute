@@ -161,8 +161,9 @@ export function latestPR(workouts: Workout[], sets: WorkoutSet[]): PRInfo | null
 }
 
 /**
- * Next routine: a routine scheduled for today wins, otherwise the rotation
- * continues after the last completed routine session.
+ * Next routine: a routine scheduled for today wins, unless today's session
+ * is already logged — then the rotation continues after the last completed
+ * routine session, same as any other day.
  */
 export function nextRoutine(
   routines: Routine[],
@@ -170,8 +171,12 @@ export function nextRoutine(
   now: Date = new Date(),
 ): Routine | null {
   if (routines.length === 0) return null;
-  const today = routines.find((r) => (r.diasSemana ?? []).includes(now.getDay()));
-  if (today) return today;
+  const todayKey = isoDay(now);
+  const trainedToday = done(workouts).some((w) => isoDay(new Date(w.iniciadoEm)) === todayKey);
+  if (!trainedToday) {
+    const today = routines.find((r) => (r.diasSemana ?? []).includes(now.getDay()));
+    if (today) return today;
+  }
   const last = done(workouts)
     .filter((w) => w.routineId)
     .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];

@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Dumbbell, Search, Timer, Trophy } from "lucide-react";
+import { Check, ChevronRight, Dumbbell, Search, Timer } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
@@ -11,13 +11,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CountUp } from "@/components/CountUp";
 import { QueryError } from "@/components/QueryError";
 import { CoachChatButton } from "@/components/CoachChatSheet";
-import { CoachNotesCard } from "@/components/CoachNotesCard";
 import { WeeklyCheckInCard } from "@/components/WeeklyCheckInCard";
 import { WeekMenuPrompt } from "@/components/diet/WeekMenuPrompt";
 import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
+import { WorkoutCalendar } from "@/components/WorkoutCalendar";
+import { WeightQuickLogBar } from "@/components/WeightQuickLogBar";
 
 import { useT } from "@/lib/i18n";
-import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkoutLog } from "@/lib/data/workouts";
@@ -27,15 +27,15 @@ import { onboardingDone } from "@/lib/onboarding";
 import { loadActiveSession, sessionLabel } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
-import { formatFullDate, formatKg, formatNumber, relativeDays } from "@/lib/format";
+import { formatFullDate, formatNumber } from "@/lib/format";
 import type { Routine } from "@/lib/types";
 import {
+  isoDay,
   latestPR,
   nextRoutine,
   sessionsThisWeek,
   weekStreak,
   weeklyVolume,
-  type PRInfo,
 } from "@/lib/home-metrics";
 import { RouteLogo } from "@/components/RouteLogo";
 import { RoutePreviewCard } from "@/components/RoutePreviewCard";
@@ -75,7 +75,6 @@ export default function Inicio() {
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
-  const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const today = isoDate(new Date());
   const dayFoodQ = useQuery({
@@ -99,8 +98,10 @@ export default function Inicio() {
   const next = useMemo(() => nextRoutine(routines, workouts), [routines, workouts]);
 
   const hasData = workouts.some((w) => w.finalizadoEm);
-  const prName =
-    (pr && exercisesQ.data?.find((e) => e.id === pr.exerciseId)?.nome) || t("Latest PR");
+  const doneToday = useMemo(() => {
+    const today = isoDay(new Date());
+    return workouts.some((w) => w.finalizadoEm && isoDay(new Date(w.iniciadoEm)) === today);
+  }, [workouts]);
   const weekGoal = Math.max(1, profileQ.data?.metaTreinosSemana ?? 4);
 
   // First-run: send brand-new accounts through onboarding once.
@@ -180,6 +181,7 @@ export default function Inicio() {
               routine={next}
               sessions={sessions}
               goal={weekGoal}
+              doneToday={doneToday}
               onStart={primaryAction}
             />
 
@@ -191,8 +193,9 @@ export default function Inicio() {
               streak={streak}
             />
 
-            {/* The route replaces the old consistency grid: where you are on
-                the way to your goal, not just which days you showed up. */}
+            {!isLoading && <WorkoutCalendar workouts={workouts} />}
+
+            {/* Where you are on the way to your goal, day by day. */}
             <RoutePreviewCard
               checkpoints={checkpointsQ.data ?? []}
               current={currentCheckpoint(checkpointsQ.data ?? [])}
@@ -200,11 +203,7 @@ export default function Inicio() {
               loading={checkpointsQ.isLoading}
             />
 
-            <PRStrip loading={isLoading} pr={pr} name={prName} />
-
-            {/* Adaptive coach: drops, check-ins and recovery notes, plus the
-                cross-training log that explains them. */}
-            <CoachNotesCard />
+            <WeightQuickLogBar />
 
             <DietCard
               kcal={kcalToday}
@@ -274,6 +273,7 @@ function TodayCard({
   routine,
   sessions,
   goal,
+  doneToday,
   onStart,
 }: {
   loading: boolean;
@@ -281,6 +281,7 @@ function TodayCard({
   routine: Routine | null;
   sessions: number;
   goal: number;
+  doneToday: boolean;
   onStart: () => void;
 }) {
   const t = useT();
@@ -288,23 +289,40 @@ function TodayCard({
 
   const minutes = routine ? estimateRoutineMinutes(routine) : 0;
   const done = Math.min(sessions, goal);
+  /** Already trained today: this card shifts from "go train" to "up next". */
+  const showDone = doneToday && !activeLabel;
 
   return (
     <Card className="rounded-2xl border-border bg-surface-1 p-4 shadow-elegant">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="label-caps">{activeLabel ? t("In progress") : t("Today's session")}</p>
+          <p className="label-caps">
+            {activeLabel ? t("In progress") : showDone ? t("Done for today") : t("Today's session")}
+          </p>
           <p className="mt-1 truncate text-lg font-semibold">
-            {activeLabel ?? routine?.nome ?? t("Start a workout")}
+            {activeLabel ??
+              (showDone
+                ? t("Nice work — logged for today")
+                : (routine?.nome ?? t("Start a workout")))}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {routine
-              ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
-              : t("Pick a routine and start logging.")}
+            {showDone
+              ? routine
+                ? t("Up next: {routine}", { routine: routine.nome })
+                : t("Rest up — you're done for today.")
+              : routine
+                ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
+                : t("Pick a routine and start logging.")}
           </p>
         </div>
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-train/15 text-train">
-          {activeLabel ? <Timer className="size-5" /> : <Dumbbell className="size-5" />}
+          {activeLabel ? (
+            <Timer className="size-5" />
+          ) : showDone ? (
+            <Check className="size-5" />
+          ) : (
+            <Dumbbell className="size-5" />
+          )}
         </span>
       </div>
 
@@ -329,10 +347,18 @@ function TodayCard({
         </div>
       </div>
 
-      <Button onClick={onStart} className="mt-4 h-14 w-full text-base font-semibold">
+      <Button
+        onClick={onStart}
+        variant={showDone ? "outline" : "default"}
+        className="mt-4 h-14 w-full text-base font-semibold"
+      >
         {activeLabel ? (
           <>
             <Timer className="mr-2 size-5" /> {t("Resume workout")}
+          </>
+        ) : showDone ? (
+          <>
+            <Dumbbell className="mr-2 size-5" /> {t("Train again")}
           </>
         ) : routine ? (
           <>
@@ -374,9 +400,9 @@ function StatsRow({
       : t("{pct}% vs last week", { pct: `${pct >= 0 ? "+" : ""}${formatNumber(pct, 0)}` });
 
   return (
-    <section>
-      <div className="grid grid-cols-3 gap-2">
-        <Card className="rounded-2xl border-border bg-card p-3">
+    <Card className="rounded-2xl border-border bg-card p-3">
+      <div className="grid grid-cols-3 divide-x divide-border">
+        <div className="pr-3">
           <p className="label-caps">{t("Volume")}</p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums">
             {hasData ? (
@@ -388,18 +414,18 @@ function StatsRow({
               <span className="text-muted-foreground/40">0</span>
             )}
           </p>
-        </Card>
-        <Card className="rounded-2xl border-border bg-card p-3">
+        </div>
+        <div className="px-3">
           <p className="label-caps">{t("Workouts")}</p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums">{sessions}</p>
-        </Card>
-        <Card className="rounded-2xl border-border bg-card p-3">
+        </div>
+        <div className="pl-3">
           <p className="label-caps">{t("Streak")}</p>
           <p className="mt-1 font-display text-xl font-semibold tabular-nums">
             {streak}
             <span className="ml-0.5 text-xs font-semibold text-muted-foreground">{t("wks")}</span>
           </p>
-        </Card>
+        </div>
       </div>
       <p
         className={cn(
@@ -413,38 +439,7 @@ function StatsRow({
       >
         {hasData ? trend : t("Your first workout lights this number up.")}
       </p>
-    </section>
-  );
-}
-
-/* ---------- latest PR ---------- */
-
-function PRStrip({ loading, pr, name }: { loading: boolean; pr: PRInfo | null; name: string }) {
-  const t = useT();
-  if (loading) return <Skeleton className="h-14 w-full rounded-2xl" />;
-  if (!pr) return null;
-
-  return (
-    <Link
-      to="/rota/progresso"
-      className="tap-target flex items-center gap-3 rounded-2xl border border-border bg-surface-1 px-4 py-3"
-    >
-      <span className="grid size-9 shrink-0 place-items-center rounded-full bg-success-bg text-success">
-        <Trophy className="size-4" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold">{name}</span>
-        <span className="block text-xs text-muted-foreground">
-          {t("Latest PR")}
-          {pr.date ? ` · ${relativeDays(pr.date)}` : ""}
-        </span>
-      </span>
-      <span className="shrink-0 text-sm font-semibold tabular-nums">
-        {formatKg(pr.pesoKg)}
-        <span className="text-muted-foreground"> × {pr.reps}</span>
-      </span>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
+    </Card>
   );
 }
 
