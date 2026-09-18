@@ -185,6 +185,8 @@ export default function Inicio() {
               onStart={primaryAction}
             />
 
+            <WeightQuickLogBar />
+
             <StatsRow
               loading={isLoading}
               hasData={hasData}
@@ -202,8 +204,6 @@ export default function Inicio() {
               goalDate={profileQ.data?.metaPrazo ?? null}
               loading={checkpointsQ.isLoading}
             />
-
-            <WeightQuickLogBar />
 
             <DietCard
               kcal={kcalToday}
@@ -289,40 +289,53 @@ function TodayCard({
 
   const minutes = routine ? estimateRoutineMinutes(routine) : 0;
   const done = Math.min(sessions, goal);
-  /** Already trained today: this card shifts from "go train" to "up next". */
+  /** Already trained today: a compact "up next" card replaces the big CTA. */
   const showDone = doneToday && !activeLabel;
+
+  if (showDone) {
+    return (
+      <Card className="rounded-2xl border-border bg-surface-1 p-3 shadow-elegant">
+        <div className="flex items-center gap-3">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-train/15 text-train">
+            <Check className="size-4" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">{t("Session logged for today")}</p>
+            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+              {routine
+                ? t("Up next: {routine}", { routine: routine.nome })
+                : t("Rest up for tomorrow.")}
+            </p>
+          </div>
+        </div>
+        <Button
+          onClick={onStart}
+          variant="outline"
+          size="sm"
+          className="tap-target mt-3 h-9 text-xs font-semibold"
+        >
+          <Dumbbell className="mr-1.5 size-3.5" /> {t("Train again")}
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <Card className="rounded-2xl border-border bg-surface-1 p-4 shadow-elegant">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="label-caps">
-            {activeLabel ? t("In progress") : showDone ? t("Done for today") : t("Today's session")}
-          </p>
+          <p className="label-caps">{activeLabel ? t("In progress") : t("Today's session")}</p>
           <p className="mt-1 truncate text-lg font-semibold">
-            {activeLabel ??
-              (showDone
-                ? t("Nice work — logged for today")
-                : (routine?.nome ?? t("Start a workout")))}
+            {activeLabel ?? routine?.nome ?? t("Start a workout")}
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            {showDone
-              ? routine
-                ? t("Up next: {routine}", { routine: routine.nome })
-                : t("Rest up — you're done for today.")
-              : routine
-                ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
-                : t("Pick a routine and start logging.")}
+            {routine
+              ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
+              : t("Pick a routine and start logging.")}
           </p>
         </div>
         <span className="grid size-11 shrink-0 place-items-center rounded-full bg-train/15 text-train">
-          {activeLabel ? (
-            <Timer className="size-5" />
-          ) : showDone ? (
-            <Check className="size-5" />
-          ) : (
-            <Dumbbell className="size-5" />
-          )}
+          {activeLabel ? <Timer className="size-5" /> : <Dumbbell className="size-5" />}
         </span>
       </div>
 
@@ -347,18 +360,10 @@ function TodayCard({
         </div>
       </div>
 
-      <Button
-        onClick={onStart}
-        variant={showDone ? "outline" : "default"}
-        className="mt-4 h-14 w-full text-base font-semibold"
-      >
+      <Button onClick={onStart} className="mt-4 h-14 w-full text-base font-semibold">
         {activeLabel ? (
           <>
             <Timer className="mr-2 size-5" /> {t("Resume workout")}
-          </>
-        ) : showDone ? (
-          <>
-            <Dumbbell className="mr-2 size-5" /> {t("Train again")}
           </>
         ) : routine ? (
           <>
@@ -400,7 +405,7 @@ function StatsRow({
       : t("{pct}% vs last week", { pct: `${pct >= 0 ? "+" : ""}${formatNumber(pct, 0)}` });
 
   return (
-    <Card className="rounded-2xl border-border bg-card p-3">
+    <div>
       <div className="grid grid-cols-3 divide-x divide-border">
         <div className="pr-3">
           <p className="label-caps">{t("Volume")}</p>
@@ -439,7 +444,7 @@ function StatsRow({
       >
         {hasData ? trend : t("Your first workout lights this number up.")}
       </p>
-    </Card>
+    </div>
   );
 }
 
