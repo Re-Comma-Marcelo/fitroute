@@ -421,9 +421,9 @@ com `mapRoute` (fallback local se a IA falhar) e nasce o checkpoint âncora
 checkpoints e meta e termina em "Começar o primeiro treino", que abre a sessão
 da rotina do dia. A home decide o redirect antes de pintar e lê a conclusão do
 perfil. O resumo mostra "Checkpoint alcançado" quando a sessão fecha um, e a
-sessão ganhou o coach mark do descanso. **Pendência manual:** rodar
-`scripts/supabase-migration-onboarding.sql` no SQL editor do Supabase; até lá
-a conclusão fica no aparelho, como já acontece com os campos de meta.
+sessão ganhou o coach mark do descanso. A migration
+`scripts/supabase-migration-onboarding.sql` foi aplicada no projeto Supabase em
+2026-09-20; o fallback local continua como rede de segurança.
 
 - Telas Destino (meta + prazo) e Rota mapeada (`mapRoute` + `RoutePath` +
   "Começar o primeiro treino").
