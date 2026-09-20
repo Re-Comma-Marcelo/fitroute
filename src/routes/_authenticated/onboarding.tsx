@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HevyImportPanel } from "@/components/import/HevyImportPanel";
-import { RouteLogo } from "@/components/RouteLogo";
+import { RouteMarkProgress } from "@/components/RouteLogo";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getCheckpoints, saveCheckpoint } from "@/lib/data/route";
@@ -74,7 +74,13 @@ function OnboardingPage() {
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
 
-  const [step, setStep] = useState<Step>("name");
+  const [step, setStepState] = useState<Step>("name");
+  /** Which way the next screen slides in: forward along the route, or back. */
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+  const setStep = (next: Step) => {
+    setDirection(QUESTIONS.indexOf(next) < QUESTIONS.indexOf(step) ? "back" : "forward");
+    setStepState(next);
+  };
   const [name, setName] = useState("");
   const [answers, setAnswers] = useState<Partial<StarterAnswers>>({});
   /** Weeks to the goal; `null` is "not sure yet", `undefined` is unanswered. */
@@ -258,25 +264,18 @@ function OnboardingPage() {
         ) : (
           <span />
         )}
-        <RouteLogo className="size-9" />
+        {/* The R draws itself as the route is answered: it is the progress bar. */}
+        <RouteMarkProgress
+          progress={questionIndex >= 0 ? progressPct : 100}
+          className="size-12"
+          label={t("Onboarding progress")}
+        />
       </div>
 
-      {questionIndex >= 0 ? (
-        <div
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={Math.round(progressPct)}
-          className="mb-6 h-1.5 w-full overflow-hidden rounded-full bg-surface-3"
-        >
-          <div
-            className="h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-      ) : null}
-
-      <div key={step} className="fade-in flex flex-1 flex-col">
+      <div
+        key={step}
+        className={cn("flex flex-1 flex-col", direction === "back" ? "step-back" : "step-forward")}
+      >
         {step === "name" ? (
           <section className="flex flex-1 flex-col">
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -519,7 +518,10 @@ function OnboardingPage() {
 
         {step === "route" && !route ? (
           <section className="flex flex-1 flex-col items-center justify-center text-center">
-            <RouteLogo className="size-16 animate-pulse motion-reduce:animate-none" />
+            <RouteMarkProgress
+              progress={92}
+              className="size-20 animate-pulse motion-reduce:animate-none"
+            />
             <p className="mt-5 text-sm font-semibold">{t("Mapping your route…")}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {t("Checkpoints between today and your goal, built from your answers.")}

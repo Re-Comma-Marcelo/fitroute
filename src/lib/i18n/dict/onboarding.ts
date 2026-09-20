@@ -69,6 +69,16 @@ export const dict: DictFragment = {
     "Got it": "Entendi",
     "Checkpoint reached": "Checkpoint alcançado",
     "Checkpoint reached: {title}.": "Checkpoint alcançado: {title}.",
+    "Onboarding progress": "Progresso do onboarding",
+    "Your route to your goal": "Sua rota até o seu objetivo",
+    "From the starting point to the goal, one workout at a time.":
+      "Do ponto de partida ao objetivo, um treino de cada vez.",
+    "Log sets in two taps. Your route, your training and your coach, built from your own history.":
+      "Registre séries em dois toques. Sua rota, seu treino e seu coach, a partir do seu histórico.",
+    "Sign in to Route: your route to your goal, with checkpoints, routines and a coach built from your own history.":
+      "Entre no Route: sua rota até o seu objetivo, com checkpoints, rotinas e um coach a partir do seu histórico.",
+    "From the starting point to the goal, one workout at a time. Sign in with your email.":
+      "Do ponto de partida ao objetivo, um treino de cada vez. Entre com seu e-mail.",
 
     "Import from Hevy": "Importar do Hevy",
     "Step 1 of 3": "Passo 1 de 3",
@@ -173,6 +183,16 @@ export const dict: DictFragment = {
     "Got it": "Begrepen",
     "Checkpoint reached": "Checkpoint bereikt",
     "Checkpoint reached: {title}.": "Checkpoint bereikt: {title}.",
+    "Onboarding progress": "Voortgang onboarding",
+    "Your route to your goal": "Jouw route naar je doel",
+    "From the starting point to the goal, one workout at a time.":
+      "Van startpunt tot doel, één training tegelijk.",
+    "Log sets in two taps. Your route, your training and your coach, built from your own history.":
+      "Log sets in twee tikken. Je route, je training en je coach, opgebouwd uit je eigen geschiedenis.",
+    "Sign in to Route: your route to your goal, with checkpoints, routines and a coach built from your own history.":
+      "Log in bij Route: jouw route naar je doel, met checkpoints, routines en een coach uit je eigen geschiedenis.",
+    "From the starting point to the goal, one workout at a time. Sign in with your email.":
+      "Van startpunt tot doel, één training tegelijk. Log in met je e-mail.",
 
     "Import from Hevy": "Importeren uit Hevy",
     "Step 1 of 3": "Stap 1 van 3",

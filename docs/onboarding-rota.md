@@ -434,6 +434,15 @@ a conclusão fica no aparelho, como já acontece com os campos de meta.
 
 ### Fase 3 — o logo como sistema (3 a 5 dias)
 
+**Feita em 2026-09-20.** `RouteLogo` passou a renderizar o `RouteMark` em SVG
+com os dois polígonos de `logo-paths.ts` (a forma foi conferida contra o PNG
+do ícone; o PNG segue só nos ícones do PWA). `RouteMarkProgress` desenha as
+duas linhas em traço, a branca um passo atrás da roxa, e é a barra de
+progresso do onboarding; no login o mark se desenha uma vez. Os passos do
+onboarding deslizam na direção da rota. Na aba Rota, o trecho até o último
+checkpoint alcançado é sólido em roxo. Tagline e headline do login falam de
+rota; o manifest não fixa mais `lang: en`.
+
 - `RouteMark` SVG substitui o PNG em todos os pontos; `RouteMarkProgress` no
   onboarding e no login.
 - `RoutePath` com trecho percorrido em roxo.
