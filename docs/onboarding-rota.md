@@ -24,8 +24,8 @@ exercício (`LogoRouteReveal.tsx`).
    checkpoint. A pessoa chega numa home com nove blocos e a rota vazia.
 3. A rotina sugerida cobre **um dia só** ("Upper A" para quem treina 4 dias),
    ignora o resto da semana e salva uma descrição técnica na tela da rotina.
-4. O logo é um `<img>` de 351 KB; o traçado do R, que já é literalmente uma
-   linha que percorre um caminho, não é usado como linguagem visual.
+4. O logo é um `<img>` de 351 KB; o R, duas linhas paralelas (roxa e branca)
+   que percorrem o mesmo caminho, não é usado como linguagem visual.
 5. Proposta: seis telas em menos de 90 segundos — **Partida → Destino → Ritmo
    → Primeiro trecho → Rota mapeada → Primeiro treino** — com o R se
    desenhando como barra de progresso e fechando na rota real da pessoa.
@@ -34,19 +34,19 @@ exercício (`LogoRouteReveal.tsx`).
 
 ## 1. A jornada hoje, passo a passo
 
-| #   | Tela                   | O que acontece                                                                                                                                                                                                                                   | Arquivo                                    |
-| --- | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| 0   | Login `/`              | Foto de academia, tile do logo, "Strength, tracked", headline "An AI trainer that adapts to your actual life", abas Entrar / Criar conta, link mágico.                                                                                           | `routes/index.tsx`                         |
-| 1   | Home `/inicio`         | Carrega perfil, rotinas, log, metas de dieta, checkpoints. Só depois que o log responde, se não houver treino finalizado e a flag local não existir, redireciona para o onboarding. A home chega a renderizar antes do redirect.                 | `routes/_authenticated/inicio.tsx:107-111` |
-| 2   | Onboarding `value`     | Logo 40 px, "Seu treino, transformado em progresso visível", card com volume **fictício** (12.480 kg, +12 %), heatmap fixo e "Novo recorde: Supino reto 92,5 kg". Botão "Começar" e "Pular por agora".                                           | `onboarding.tsx:111-156`                   |
-| 3   | Onboarding `fork`      | "Você já treina com outro app?" → card **Importar do Hevy**, card **"Set me up completely"** (marca onboarding concluído e vai para `/plano`), link pequeno "Just suggest a routine for now".                                                    | `onboarding.tsx:158-191`                   |
-| 3a  | Entrevista `/plano`    | Pergunta de escopo (completo / só treino / só dieta) e depois 5 passos com ~25 campos (idade, sexo, altura, peso, meta em texto ou peso-alvo, prazo, tradução da meta por IA com switch de confirmação, equipamento, grade semanal, sono, etc.). | `routes/_authenticated/plano.tsx`          |
-| 3b  | Onboarding 3 perguntas | Objetivo (hipertrofia / força / condicionamento), dias (2-3 / 4 / 5+), experiência. Barra de progresso 45 → 65 → 85 %. Toque avança; não há "Voltar".                                                                                            | `onboarding.tsx:203-249`                   |
-| 4   | Onboarding `building`  | 1,5 s de barras pulsando. Delay artificial: o plano já está calculado.                                                                                                                                                                           | `onboarding.tsx:67-71, 251-275`            |
-| 5   | Onboarding `plan`      | Uma rotina de um dia com ícone de chama por exercício. "Usar esta rotina" salva e vai para a home; "Montar eu mesmo" vai para `/treino`.                                                                                                         | `onboarding.tsx:277-320`                   |
-| 6   | Home dia 1             | Saudação "Bom dia, Athlete", card de hoje, barra de peso, stats zerados, calendário vazio, card da rota vazio ("Map your route to your goal"), dieta 0 de 0 kcal, cross-training, checklist. No domingo/segunda, ainda o check-in semanal.       | `inicio.tsx:131-227`                       |
-| 7   | Primeira sessão        | Um coach mark: "Adjust weight and reps, then tap Complete set." Ao terminar um exercício com outro na fila, a animação card → check → rota → R.                                                                                                  | `sessao.tsx:399-410, 1738`                 |
-| 8   | Aba Rota `/rota`       | Vazia: "Your route starts here" → botão "Set my goal date" → mapear. Só aqui a rota nasce, e só se a pessoa for atrás.                                                                                                                           | `rota.index.tsx:189-228`                   |
+| #   | Tela                   | O que acontece                                                                                                                                                                                                                                     | Arquivo                                    |
+| --- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| 0   | Login `/`              | Foto de academia, tile do logo, "Strength, tracked", headline "An AI trainer that adapts to your actual life", abas Entrar / Criar conta, link mágico.                                                                                             | `routes/index.tsx`                         |
+| 1   | Home `/inicio`         | Carrega perfil, rotinas, log, metas de dieta, checkpoints. Só depois que o log responde, se não houver treino finalizado e a flag local não existir, redireciona para o onboarding. A home chega a renderizar antes do redirect.                   | `routes/_authenticated/inicio.tsx:107-111` |
+| 2   | Onboarding `value`     | Logo 40 px, "Seu treino, transformado em progresso visível", card com volume **fictício** (12.480 kg, +12 %), heatmap fixo e "Novo recorde: Supino reto 92,5 kg". Botão "Começar" e "Pular por agora".                                             | `onboarding.tsx:111-156`                   |
+| 3   | Onboarding `fork`      | "Você já treina com outro app?" → card **Importar do Hevy**, card **"Set me up completely"** (marca onboarding concluído e vai para `/plano`), link pequeno "Just suggest a routine for now".                                                      | `onboarding.tsx:158-191`                   |
+| 3a  | Entrevista `/plano`    | Pergunta de escopo (completo / só treino / só dieta) e depois 5 passos com ~25 campos (idade, sexo, altura, peso, meta em texto ou peso-alvo, prazo, tradução da meta por IA com switch de confirmação, equipamento, grade semanal, sono, etc.).   | `routes/_authenticated/plano.tsx`          |
+| 3b  | Onboarding 3 perguntas | Objetivo (hipertrofia / força / condicionamento), dias (2-3 / 4 / 5+), experiência. Barra de progresso 45 → 65 → 85 %. Toque avança; não há "Voltar".                                                                                              | `onboarding.tsx:203-249`                   |
+| 4   | Onboarding `building`  | 1,5 s de barras pulsando. Delay artificial: o plano já está calculado.                                                                                                                                                                             | `onboarding.tsx:67-71, 251-275`            |
+| 5   | Onboarding `plan`      | Uma rotina de um dia com ícone de chama por exercício. "Usar esta rotina" salva e vai para a home; "Montar eu mesmo" vai para `/treino`.                                                                                                           | `onboarding.tsx:277-320`                   |
+| 6   | Home dia 1             | Saudação genérica "Bom dia, Atleta", card de hoje, barra de peso, stats zerados, calendário vazio, card da rota vazio ("Map your route to your goal"), dieta 0 de 0 kcal, cross-training, checklist. No domingo/segunda, ainda o check-in semanal. | `inicio.tsx:131-227`                       |
+| 7   | Primeira sessão        | Um coach mark: "Adjust weight and reps, then tap Complete set." Ao terminar um exercício com outro na fila, a animação card → check → rota → R.                                                                                                    | `sessao.tsx:399-410, 1738`                 |
+| 8   | Aba Rota `/rota`       | Vazia: "Your route starts here" → botão "Set my goal date" → mapear. Só aqui a rota nasce, e só se a pessoa for atrás.                                                                                                                             | `rota.index.tsx:189-228`                   |
 
 ---
 
@@ -86,8 +86,8 @@ fontes de verdade para "rotina inicial" que não conversam.
 
 ### D. O que a rota precisa nunca é perguntado
 
-O onboarding não pergunta nome (a home diz "Bom dia, Athlete" — string que,
-aliás, não tem tradução), nem meta de corpo, nem prazo. São exatamente os
+O onboarding não pergunta nome (a home cai no fallback "Bom dia, Atleta"),
+nem meta de corpo, nem prazo. São exatamente os
 campos que `mapRoute` precisa (`metaPrazo`, `pesoMetaKg`, `pesoInicialKg`). A
 frequência respondida (2-3 / 4 / 5+) não é gravada em `metaTreinosSemana`:
 quem disse "2-3 dias" vê "0/4 sessões" na home.
@@ -143,11 +143,13 @@ do asset do Lovable, sem `currentColor`, sem possibilidade de animar.
 
 ## 3. Conceito: o onboarding é a primeira rota
 
-O R do logo é **uma linha contínua**: sai da esquerda, curva, volta ao meio e
-desce em diagonal. É uma rota. A proposta é tratar o onboarding como o
-primeiro trajeto da pessoa e usar o próprio traçado do R como barra de
-progresso: cada resposta desenha um trecho, e na última tela o R fecha e
-vira a rota real, com checkpoints e data.
+O R do logo são **duas linhas paralelas**, a roxa por fora e a branca por
+dentro, que saem da esquerda, curvam, voltam ao meio e descem juntas. É uma
+rota, e a branca acompanha a roxa como quem segue o traçado. A proposta é
+tratar o onboarding como o primeiro trajeto da pessoa e usar as duas linhas
+do R como barra de progresso: cada resposta desenha um trecho (a branca um
+passo atrás da roxa, como já faz o `LogoRouteReveal`), e na última tela o R
+fecha e vira a rota real, com checkpoints e data.
 
 Princípios:
 
@@ -195,7 +197,7 @@ Transição entre telas: deslizar horizontal na direção da rota, respeitando
  [ Continuar ]
 ```
 
-- Grava `profile.nome`. Corrige o "Bom dia, Athlete".
+- Grava `profile.nome`. A home passa a saudar pelo nome.
 - Substitui a tela de valor com números falsos. Se quiser manter uma prova de
   valor, ela vem na tela 5 com a rota **da própria pessoa**.
 
@@ -305,19 +307,22 @@ Transição entre telas: deslizar horizontal na direção da rota, respeitando
 ## 5. O logo como sistema visual
 
 Hoje o R é um PNG (`RouteLogo.tsx`) e um par de polígonos preenchidos
-(`LOGO_PATH_OUTER` / `LOGO_PATH_INNER`) usados só no morph. Proposta:
+(`LOGO_PATH_OUTER` é a linha roxa, `LOGO_PATH_INNER` a branca) usados só no
+morph. Proposta:
 
 1. **`RouteMark`** — SVG inline com os dois paths existentes, `currentColor`,
    qualquer tamanho, zero download. Substitui todos os `<img>`
    (`__root.tsx`, `inicio.tsx`, `onboarding.tsx`, `index.tsx`). O PNG fica
    só para ícones do PWA e OG image.
-2. **`RouteMarkProgress`** — uma versão em **traço** do R (um único path de
-   linha central, `stroke-width` ≈ 90 no viewBox de 1254, pontas redondas)
-   com `pathLength="100"` e `strokeDashoffset = 100 - progresso`. Um ponto
-   na ponta do traço (`getPointAtLength`) marca "você está aqui". É a barra
-   de progresso do onboarding e a animação do login. O traço já passa por
-   cima do traço completo em 10 % de opacidade, então o progresso nunca
-   "começa vazio" (o mesmo efeito de progresso dotado, mas honesto).
+2. **`RouteMarkProgress`** — as duas linhas do R em **traço** (dois paths de
+   linha central, roxo e branco, `stroke-width` ≈ 78 no viewBox de 1254,
+   pontas redondas) com `pathLength="100"` e
+   `strokeDashoffset = 100 - progresso`; a branca fica um passo atrás da
+   roxa. Um ponto na ponta da roxa (`getPointAtLength`) marca "você está
+   aqui". É a barra de progresso do onboarding e a animação do login. As
+   linhas completas ficam por baixo a 10 % de opacidade, então o progresso
+   nunca "começa vazio" (o mesmo efeito de progresso dotado, mas honesto).
+   `pathLength` só vale em `<path>`, não em `<use>`.
 3. **`RouteMarkReveal`** — o `LogoRouteReveal` atual, com o alvo no centro da
    tela e sem depender de um card de origem, para a tela 5.
 4. **`RoutePath` com trecho percorrido** — na aba Rota, a linha entre a
@@ -361,7 +366,7 @@ Para quem ainda não tem treino finalizado, a ordem e a visibilidade mudam:
 | `src/routes/_authenticated/onboarding.tsx` | Reescrever em cima de `OnboardingStep` com os 6 estados: `start`, `destination`, `rhythm`, `routine`, `route`, e o handoff para `/sessao`. Sem `value`, `fork`, `building`. Salvar perfil (nome, objetivo, prazo, dias) antes de mapear a rota. |
 | `src/components/RouteMark.tsx` (novo)      | `RouteMark`, `RouteMarkProgress`; `logo-paths.ts` ganha `LOGO_CENTERLINE`.                                                                                                                                                                      |
 | `src/components/RoutePath.tsx`             | Segundo `<path>` com o trecho percorrido (`strokeDasharray` calculado até o nó atual).                                                                                                                                                          |
-| `src/routes/_authenticated/inicio.tsx`     | Redirecionar antes de renderizar (usar `beforeLoad` com o perfil, ou um estado `checking`). Ordem/visibilidade do dia 1 (seção 6). Traduzir "Athlete" → "Atleta".                                                                               |
+| `src/routes/_authenticated/inicio.tsx`     | Redirecionar antes de renderizar (usar `beforeLoad` com o perfil, ou um estado `checking`). Ordem/visibilidade do dia 1 (seção 6).                                                                                                              |
 | `src/routes/_authenticated/sessao.tsx`     | Coach marks 2 e 3 (chave única `route.sessionCoachMarks.v2` com etapa).                                                                                                                                                                         |
 | `src/routes/_authenticated/resumo.$id.tsx` | Banner de checkpoint alcançado quando `evaluateCheckpoints` mudar um status nesta sessão.                                                                                                                                                       |
 | `src/lib/i18n/dict/onboarding.ts`          | Novas chaves pt/nl; remover as da tela de valor e do fork.                                                                                                                                                                                      |
@@ -391,6 +396,12 @@ atual de "tem treino finalizado em 7 dias", que hoje dá para tirar do
 
 ### Fase 1 — ganhos rápidos (1 a 2 dias, sem tocar em schema)
 
+**Feita em 2026-09-20.** O onboarding passou a ser nome → destino → dias →
+experiência → primeiro trecho (`onboarding.tsx`); a rotina inicial vem dos
+templates com um dia por rotina (`starter-routine.ts`); nome, objetivo e
+meta semanal vão para o perfil; a home só mostra check-in semanal e cardápio
+depois do primeiro treino e a checklist virou "Primeiro trecho".
+
 - Remover a tela de valor com dados falsos e o `building` de 1,5 s.
 - Rotina inicial completa via `ROUTINE_TEMPLATES`; descrição humana.
 - Perguntar o nome; gravar `metaTreinosSemana` e `objetivo` no perfil.
@@ -398,7 +409,7 @@ atual de "tem treino finalizado em 7 dias", que hoje dá para tirar do
   home vazia.
 - Hevy e "Montar eu mesmo" viram links secundários na tela da rotina.
 - Home dia 1: `WeeklyCheckInCard` e `WeekMenuPrompt` só com treino
-  finalizado; "Athlete" traduzido; checklist "Primeiro trecho".
+  finalizado; checklist "Primeiro trecho".
 
 ### Fase 2 — a rota entra no onboarding (3 a 5 dias)
 

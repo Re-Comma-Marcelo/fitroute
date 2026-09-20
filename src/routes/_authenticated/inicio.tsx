@@ -31,7 +31,6 @@ import { formatFullDate, formatNumber } from "@/lib/format";
 import type { Routine } from "@/lib/types";
 import {
   isoDay,
-  latestPR,
   nextRoutine,
   sessionsThisWeek,
   weekStreak,
@@ -94,7 +93,6 @@ export default function Inicio() {
   const volume = useMemo(() => weeklyVolume(workouts, sets), [workouts, sets]);
   const sessions = useMemo(() => sessionsThisWeek(workouts), [workouts]);
   const streak = useMemo(() => weekStreak(workouts), [workouts]);
-  const pr = useMemo(() => latestPR(workouts, sets), [workouts, sets]);
   const next = useMemo(() => nextRoutine(routines, workouts), [routines, workouts]);
 
   const hasData = workouts.some((w) => w.finalizadoEm);
@@ -167,10 +165,9 @@ export default function Inicio() {
           />
         ) : (
           <>
-            <WeeklyCheckInCard />
-
-            {/* Only while this week's meal choice is still open. */}
-            <WeekMenuPrompt />
+            {/* Both assume a week of history; on day 1 the first workout comes first. */}
+            {hasData ? <WeeklyCheckInCard /> : null}
+            {hasData ? <WeekMenuPrompt /> : null}
 
             {/* One line, every day: am I still on my route? */}
             <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
@@ -218,7 +215,7 @@ export default function Inicio() {
               <QuickStartChecklist
                 hasRoutine={routines.length > 0}
                 hasWorkout={hasData}
-                hasPR={!!pr}
+                hasRoute={(checkpointsQ.data?.length ?? 0) > 0}
               />
             )}
           </>
@@ -502,16 +499,17 @@ function DietCard({
   );
 }
 
-/* ---------- quick start checklist ---------- */
+/* ---------- first stretch checklist ---------- */
 
+/** The first stretch of the route: routine, first workout, route mapped. */
 function QuickStartChecklist({
   hasRoutine,
   hasWorkout,
-  hasPR,
+  hasRoute,
 }: {
   hasRoutine: boolean;
   hasWorkout: boolean;
-  hasPR: boolean;
+  hasRoute: boolean;
 }) {
   const t = useT();
   const [dismissed, setDismissed] = useState(true);
@@ -522,9 +520,9 @@ function QuickStartChecklist({
 
   const items = [
     { label: t("Account created"), done: true },
-    { label: t("Create a routine"), done: hasRoutine },
+    { label: t("Routine ready"), done: hasRoutine },
     { label: t("First workout"), done: hasWorkout },
-    { label: t("First PR"), done: hasPR },
+    { label: t("Route mapped"), done: hasRoute },
   ];
   const complete = items.every((i) => i.done);
 
@@ -539,7 +537,7 @@ function QuickStartChecklist({
 
   return (
     <Card className="rounded-2xl border-border bg-card p-4">
-      <p className="label-caps">{t("Quick start")}</p>
+      <p className="label-caps">{t("First stretch")}</p>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (
           <li key={item.label} className="flex items-center gap-2 text-sm">
@@ -558,10 +556,11 @@ function QuickStartChecklist({
         ))}
       </ul>
       <Link
-        to="/treino"
+        to={hasRoutine && hasWorkout ? "/rota" : "/treino"}
         className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"
       >
-        {t("Routines")} <ChevronRight className="size-3.5" />
+        {hasRoutine && hasWorkout ? t("My route") : t("Routines")}{" "}
+        <ChevronRight className="size-3.5" />
       </Link>
     </Card>
   );
