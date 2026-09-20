@@ -42,6 +42,8 @@ export interface Profile {
   metaIniciadaEm?: string;
   /** ISO date of the goal deadline. */
   metaPrazo?: string;
+  /** ISO date the welcome flow was completed on; empty means it still has to run. */
+  onboardingConcluidoEm?: string;
   /** Age in years — used by the calorie calculation. Empty means "calculate". */
   idade?: number | undefined;
   /** Manual daily calorie target. Overrides the calculation when set. */

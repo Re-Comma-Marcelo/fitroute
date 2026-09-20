@@ -25,7 +25,9 @@ let cache: Profile | null = null;
  * those columns yet, they are kept on this device so the Route still works.
  */
 const GOAL_KEY = "ironlogger.profileGoal.v1";
-type GoalOverlay = Partial<Pick<Profile, "metaPrazo" | "pesoMetaKg" | "metaIniciadaEm">>;
+type GoalOverlay = Partial<
+  Pick<Profile, "metaPrazo" | "pesoMetaKg" | "metaIniciadaEm" | "onboardingConcluidoEm">
+>;
 
 function readGoalOverlay(): GoalOverlay {
   if (typeof window === "undefined") return {};
@@ -58,6 +60,11 @@ function withGoalOverlay(profile: Profile): Profile {
       : overlay.metaIniciadaEm
         ? { metaIniciadaEm: overlay.metaIniciadaEm }
         : {}),
+    ...(profile.onboardingConcluidoEm
+      ? {}
+      : overlay.onboardingConcluidoEm
+        ? { onboardingConcluidoEm: overlay.onboardingConcluidoEm }
+        : {}),
   };
 }
 
@@ -81,12 +88,16 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     if (
       (wanted.metaPrazo && !saved.metaPrazo) ||
       (wanted.pesoMetaKg && !saved.pesoMetaKg) ||
-      (wanted.metaIniciadaEm && !saved.metaIniciadaEm)
+      (wanted.metaIniciadaEm && !saved.metaIniciadaEm) ||
+      (wanted.onboardingConcluidoEm && !saved.onboardingConcluidoEm)
     ) {
       writeGoalOverlay({
         ...(wanted.metaPrazo ? { metaPrazo: wanted.metaPrazo } : {}),
         ...(wanted.pesoMetaKg ? { pesoMetaKg: wanted.pesoMetaKg } : {}),
         ...(wanted.metaIniciadaEm ? { metaIniciadaEm: wanted.metaIniciadaEm } : {}),
+        ...(wanted.onboardingConcluidoEm
+          ? { onboardingConcluidoEm: wanted.onboardingConcluidoEm }
+          : {}),
       });
       cache = withGoalOverlay(saved);
       return cache;
@@ -97,7 +108,7 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     const message = String((error as Error)?.message ?? error);
     const missingColumn =
       message.includes("PGRST204") ||
-      /meta_prazo|peso_meta_kg|meta_iniciada_em/.test(message) ||
+      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em/.test(message) ||
       /column .* does not exist/i.test(message);
     if (!missingColumn) throw error;
     // Keep the goal on this device and retry without the unsupported fields.
@@ -105,8 +116,17 @@ export async function saveProfile(next: Profile): Promise<Profile> {
       ...(wanted.metaPrazo ? { metaPrazo: wanted.metaPrazo } : {}),
       ...(wanted.pesoMetaKg ? { pesoMetaKg: wanted.pesoMetaKg } : {}),
       ...(wanted.metaIniciadaEm ? { metaIniciadaEm: wanted.metaIniciadaEm } : {}),
+      ...(wanted.onboardingConcluidoEm
+        ? { onboardingConcluidoEm: wanted.onboardingConcluidoEm }
+        : {}),
     });
-    const { metaPrazo: _a, pesoMetaKg: _b, metaIniciadaEm: _c, ...rest } = wanted;
+    const {
+      metaPrazo: _a,
+      pesoMetaKg: _b,
+      metaIniciadaEm: _c,
+      onboardingConcluidoEm: _d,
+      ...rest
+    } = wanted;
     const saved = (await persistProfile({ data: { profile: rest as Profile } })) as Profile;
     cache = withGoalOverlay(saved);
     return cache;

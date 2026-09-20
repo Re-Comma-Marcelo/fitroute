@@ -40,6 +40,35 @@ export const dict: DictFragment = {
     "{count} routines created.": "{count} rotinas criadas.",
     "Could not create the routines. Try again.":
       "Não foi possível criar as rotinas. Tente novamente.",
+    "How soon?": "Em quanto tempo?",
+    "{weeks} weeks": "{weeks} semanas",
+    "Not sure yet": "Ainda não sei",
+    "Goal on {date}. The route gets checkpoints along the way.":
+      "Meta em {date}. A rota ganha checkpoints pelo caminho.",
+    "You can set a date later on the Route tab.": "Dá para definir a data depois, na aba Rota.",
+    "Mapping your route…": "Mapeando sua rota…",
+    "Checkpoints between today and your goal, built from your answers.":
+      "Checkpoints entre hoje e a sua meta, a partir das suas respostas.",
+    "Your route is mapped": "Sua rota está mapeada",
+    "Your route starts today": "Sua rota começa hoje",
+    "{count} checkpoint(s) until {date}": "{count} checkpoint(s) até {date}",
+    "Start · {name}": "Partida · {name}",
+    Start: "Partida",
+    Goal: "Meta",
+    Today: "Hoje",
+    "Start the first workout": "Começar o primeiro treino",
+    "Please wait…": "Aguarde…",
+    "See my route": "Ver minha rota",
+    "First session logged": "Primeira sessão registrada",
+    "One finished workout in your first week. That is the whole checkpoint.":
+      "Um treino finalizado na primeira semana. É só isso o checkpoint.",
+    "Could not map the route right now. You can map it later on the Route tab.":
+      "Não deu para mapear a rota agora. Você pode mapear depois, na aba Rota.",
+    "Rest counts down on its own. Skip it whenever you are ready.":
+      "O descanso conta sozinho. Pule quando estiver pronto.",
+    "Got it": "Entendi",
+    "Checkpoint reached": "Checkpoint alcançado",
+    "Checkpoint reached: {title}.": "Checkpoint alcançado: {title}.",
 
     "Import from Hevy": "Importar do Hevy",
     "Step 1 of 3": "Passo 1 de 3",
@@ -114,6 +143,36 @@ export const dict: DictFragment = {
     "{count} routines created.": "{count} routines aangemaakt.",
     "Could not create the routines. Try again.":
       "Routines konden niet worden aangemaakt. Probeer opnieuw.",
+    "How soon?": "Hoe snel?",
+    "{weeks} weeks": "{weeks} weken",
+    "Not sure yet": "Weet ik nog niet",
+    "Goal on {date}. The route gets checkpoints along the way.":
+      "Doel op {date}. De route krijgt onderweg checkpoints.",
+    "You can set a date later on the Route tab.":
+      "Je kunt later een datum kiezen op het tabblad Route.",
+    "Mapping your route…": "Je route wordt uitgezet…",
+    "Checkpoints between today and your goal, built from your answers.":
+      "Checkpoints tussen vandaag en je doel, op basis van je antwoorden.",
+    "Your route is mapped": "Je route is uitgezet",
+    "Your route starts today": "Je route begint vandaag",
+    "{count} checkpoint(s) until {date}": "{count} checkpoint(s) tot {date}",
+    "Start · {name}": "Start · {name}",
+    Start: "Start",
+    Goal: "Doel",
+    Today: "Vandaag",
+    "Start the first workout": "Eerste training starten",
+    "Please wait…": "Even geduld…",
+    "See my route": "Mijn route bekijken",
+    "First session logged": "Eerste sessie gelogd",
+    "One finished workout in your first week. That is the whole checkpoint.":
+      "Eén afgeronde training in je eerste week. Dat is het hele checkpoint.",
+    "Could not map the route right now. You can map it later on the Route tab.":
+      "De route kon nu niet worden uitgezet. Je kunt dat later doen op het tabblad Route.",
+    "Rest counts down on its own. Skip it whenever you are ready.":
+      "De rust telt vanzelf af. Sla over wanneer je klaar bent.",
+    "Got it": "Begrepen",
+    "Checkpoint reached": "Checkpoint bereikt",
+    "Checkpoint reached: {title}.": "Checkpoint bereikt: {title}.",
 
     "Import from Hevy": "Importeren uit Hevy",
     "Step 1 of 3": "Stap 1 van 3",

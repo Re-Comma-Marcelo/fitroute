@@ -1,9 +1,9 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
-import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { Flame, Share2, Trophy } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useRef, useState } from "react";
+import { Flag, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
@@ -18,6 +18,11 @@ import { shareSummary } from "@/lib/share-summary";
 import { formatDateLong } from "@/lib/format";
 import { getRoutines } from "@/lib/data/routines";
 import heroLogin from "@/assets/hero-login.jpg";
+import { getCheckpoints, saveCheckpoint } from "@/lib/data/route";
+import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
+import { getBodyWeightLog } from "@/lib/data/body-weight";
+import { evaluateCheckpoints } from "@/lib/route/status";
+import type { Checkpoint } from "@/lib/route/types";
 
 export const Route = createFileRoute("/_authenticated/resumo/$id")({
   head: () => ({
@@ -35,8 +40,12 @@ type PrEntry = { nome: string; pesoKg: number; anteriorKg?: number };
 function SummaryPage() {
   const t = useT();
   const { id } = useParams({ from: "/_authenticated/resumo/$id" });
+  const queryClient = useQueryClient();
   const [prs, setPrs] = useState<PrEntry[]>([]);
   const [coachMessage, setCoachMessage] = useState("");
+  /** Checkpoints this workout just closed, so the route answers the session. */
+  const [reached, setReached] = useState<Checkpoint[]>([]);
+  const evaluated = useRef(false);
 
   useEffect(() => {
     const key = `forja.resumo.${id}`;
@@ -70,6 +79,51 @@ function SummaryPage() {
 
   const workout = workoutQuery.data;
   const sets = setsQuery.data ?? [];
+
+  // Re-read the route against the log that now includes this workout.
+  useEffect(() => {
+    if (evaluated.current || !logQuery.data) return;
+    evaluated.current = true;
+    const log = logQuery.data;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [checkpoints, cross, weights] = await Promise.all([
+          getCheckpoints(),
+          getCrossTraining(),
+          getBodyWeightLog(),
+        ]);
+        const changes = evaluateCheckpoints({
+          checkpoints,
+          workouts: log.workouts,
+          sets: log.sets,
+          cross,
+          bodyWeightKg: weights[0]?.pesoKg ?? null,
+          hadDrop: false,
+        });
+        if (cancelled || !changes.length) return;
+        const achieved: Checkpoint[] = [];
+        for (const change of changes) {
+          await saveCheckpoint(change.next);
+          if (change.next.status === "achieved") {
+            achieved.push(change.next);
+            await logCoachingEvent({
+              kind: "checkpoint_reached",
+              message: t("Checkpoint reached: {title}.", { title: change.next.title }),
+              cause: "pattern",
+            });
+          }
+        }
+        await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
+        if (!cancelled && achieved.length) setReached(achieved);
+      } catch {
+        /* the summary is still useful without the route */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [logQuery.data, queryClient, t]);
   const streak = weekStreak(workoutsQuery.data ?? []);
   const volume = workout?.volumeTotalKg ?? 0;
 
@@ -193,6 +247,31 @@ function SummaryPage() {
                 </div>
               );
             })}
+          </section>
+        ) : null}
+
+        {reached.length ? (
+          <section aria-label={t("Checkpoint reached")} className="mt-6 space-y-3">
+            {reached.map((cp) => (
+              <div
+                key={cp.id}
+                className="pr-pop rounded-3xl border border-primary/40 bg-primary/10 p-5"
+              >
+                <div className="flex items-center gap-2 text-primary">
+                  <Flag className="size-5" />
+                  <p className="text-xs font-medium uppercase tracking-[0.02em]">
+                    {t("Checkpoint reached")}
+                  </p>
+                </div>
+                <p className="mt-2 text-lg font-semibold text-foreground">{cp.title}</p>
+                <Link
+                  to="/rota"
+                  className="mt-2 inline-block text-sm font-semibold text-primary underline-offset-2"
+                >
+                  {t("See my route")}
+                </Link>
+              </div>
+            ))}
           </section>
         ) : null}
 

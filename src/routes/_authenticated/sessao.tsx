@@ -125,6 +125,8 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 });
 
 const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
+/** Second coach mark: the first rest countdown of the first session. */
+const REST_MARK_KEY = "forja.sessionCoachMarks.rest.v1";
 
 /** Two set completions this close together are a bounced tap, not two sets. */
 const TICK_GUARD_MS = 400;
@@ -179,6 +181,7 @@ function SessionPage() {
   /** Rest just ran out while the screen was open: the island pulses instead of a modal. */
   const [restDonePulse, setRestDonePulse] = useState(false);
   const [coachMark, setCoachMark] = useState(false);
+  const [restMark, setRestMark] = useState(false);
   const [historyFor, setHistoryFor] = useState<ActiveExercise | null>(null);
   const [detailFor, setDetailFor] = useState<ActiveExercise | null>(null);
   /** Coach comment per exercise index, shown under the current set. */
@@ -409,6 +412,11 @@ function SessionPage() {
     if (typeof window !== "undefined") window.localStorage.setItem(COACH_MARK_KEY, "done");
   }, []);
 
+  const dismissRestMark = useCallback(() => {
+    setRestMark(false);
+    if (typeof window !== "undefined") window.localStorage.setItem(REST_MARK_KEY, "done");
+  }, []);
+
   /** Clear the transient set/exercise feedback after the animation window. */
   useEffect(() => {
     if (!justSet) return;
@@ -441,6 +449,15 @@ function SessionPage() {
     },
     [],
   );
+
+  /** First session, first rest: one line saying the countdown runs by itself. */
+  const restActive = Boolean(rest) || restOverdueSeconds(session) > 0;
+  useEffect(() => {
+    if (typeof window === "undefined" || !firstSession) return;
+    if (window.localStorage.getItem(REST_MARK_KEY) === "done") return;
+    if (restActive) setRestMark(true);
+    else if (restMark) dismissRestMark();
+  }, [restActive, firstSession, restMark, dismissRestMark]);
 
   const [scrubHint] = useState(() => shouldShowScrubHint());
   useEffect(() => {
@@ -1573,6 +1590,15 @@ function SessionPage() {
       {/* Bottom bar has one owner: the rest countdown, or the superset hand-off. Idle: nothing. */}
       {hasFooter ? (
         <div className="fixed inset-x-0 bottom-0 z-50 px-3 pb-[max(env(safe-area-inset-bottom),12px)] pt-2">
+          {showRest && restMark ? (
+            <div className="mx-auto mb-2 max-w-md">
+              <CoachMark
+                text={t("Rest counts down on its own. Skip it whenever you are ready.")}
+                onDismiss={dismissRestMark}
+                label={t("Got it")}
+              />
+            </div>
+          ) : null}
           {showRest ? (
             <RestIsland
               className={cn(restDonePulse && "rest-done-pulse")}

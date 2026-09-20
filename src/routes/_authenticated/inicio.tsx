@@ -102,11 +102,13 @@ export default function Inicio() {
   }, [workouts]);
   const weekGoal = Math.max(1, profileQ.data?.metaTreinosSemana ?? 4);
 
-  // First-run: send brand-new accounts through onboarding once.
+  // First-run: brand-new accounts go through onboarding before the dashboard
+  // paints. Completion comes from the profile, with the local flag as fallback.
+  const needsOnboarding =
+    logQ.isSuccess && profileQ.isSuccess && !hasData && !onboardingDone(profileQ.data);
   useEffect(() => {
-    if (!logQ.isSuccess || hasData || onboardingDone()) return;
-    navigate({ to: "/onboarding", replace: true });
-  }, [logQ.isSuccess, hasData, navigate]);
+    if (needsOnboarding) navigate({ to: "/onboarding", replace: true });
+  }, [needsOnboarding, navigate]);
 
   const kcalToday = dayFoodQ.data?.eaten.kcal ?? 0;
   const proteinToday = dayFoodQ.data?.eaten.proteinG ?? 0;
@@ -124,6 +126,16 @@ export default function Inicio() {
       return;
     }
     navigate({ to: "/rotina/$id", params: { id: "nova" } });
+  }
+
+  if (needsOnboarding) {
+    return (
+      <AppShell hideHeader title={t("Home")}>
+        <div className="pt-6">
+          <Skeleton className="h-44 w-full rounded-2xl" />
+        </div>
+      </AppShell>
+    );
   }
 
   return (

@@ -413,6 +413,18 @@ depois do primeiro treino e a checklist virou "Primeiro trecho".
 
 ### Fase 2 — a rota entra no onboarding (3 a 5 dias)
 
+**Feita em 2026-09-20.** A tela Destino ganhou o prazo (8, 12, 16 semanas
+ou "ainda não sei"); ao concluir, o perfil recebe `metaPrazo`,
+`metaIniciadaEm`, `pesoInicialKg` e `onboardingConcluidoEm`, a rota é mapeada
+com `mapRoute` (fallback local se a IA falhar) e nasce o checkpoint âncora
+"Primeira sessão registrada" (1 sessão em 7 dias). A tela final lista partida,
+checkpoints e meta e termina em "Começar o primeiro treino", que abre a sessão
+da rotina do dia. A home decide o redirect antes de pintar e lê a conclusão do
+perfil. O resumo mostra "Checkpoint alcançado" quando a sessão fecha um, e a
+sessão ganhou o coach mark do descanso. **Pendência manual:** rodar
+`scripts/supabase-migration-onboarding.sql` no SQL editor do Supabase; até lá
+a conclusão fica no aparelho, como já acontece com os campos de meta.
+
 - Telas Destino (meta + prazo) e Rota mapeada (`mapRoute` + `RoutePath` +
   "Começar o primeiro treino").
 - Checkpoint âncora "Primeira sessão registrada".
