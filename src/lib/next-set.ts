@@ -22,7 +22,7 @@ export interface LoggedSet {
 }
 
 export function nextSetTarget(
-  ex: { repsMin: number; repsMax: number; equipamento?: string },
+  ex: { repsMin: number; repsMax: number; equipamento?: string; grupoPrimario?: string },
   logged: LoggedSet,
 ): NextTarget | null {
   const peso = Number(logged.pesoKg) || 0;
@@ -31,7 +31,7 @@ export function nextSetTarget(
 
   const repsMin = Math.max(1, ex.repsMin || 8);
   const repsMax = Math.max(repsMin, ex.repsMax || repsMin + 4);
-  const step = incrementoPara(ex.equipamento ?? "");
+  const step = incrementoPara(ex.equipamento ?? "", ex.grupoPrimario);
   const rpe = typeof logged.rpe === "number" && logged.rpe > 0 ? logged.rpe : null;
 
   const easy = reps >= repsMax && (rpe === null || rpe <= 8);

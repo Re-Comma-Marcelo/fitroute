@@ -54,6 +54,7 @@ export async function getExerciseInsight(
     repsMin: re.repsMin,
     repsMax: re.repsMax,
     equipamento: exercise.equipamento,
+    grupoPrimario: exercise.grupoPrimario,
   });
 
   if (suggestion?.aumentou) {

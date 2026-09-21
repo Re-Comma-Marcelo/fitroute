@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Check, ChevronDown, TrendingUp } from "lucide-react";
 import { SetFields, type SetField } from "@/components/session/SetFields";
 import { formatKg } from "@/lib/format";
@@ -9,14 +8,14 @@ import { cn } from "@/lib/utils";
 
 /**
  * The one thing on screen: the set you are about to do. Big weight and reps,
- * the last time as reference, the target the app decided, and a full-width
- * check. Everything else about the exercise lives behind the ⋯ menu.
+ * the last time as reference, the coach's note, and a full-width check.
+ * Everything else about the exercise lives behind the ⋯ menu.
  */
 export function CurrentSetCard({
   exercise,
   set,
   label,
-  target,
+  coachTip,
   warmup,
   reason,
   onField,
@@ -28,8 +27,8 @@ export function CurrentSetCard({
   exercise: ActiveExercise;
   set: ActiveSet;
   label: string;
-  /** Coach target line for this set ("62.5 kg × 8-12"). */
-  target?: string | undefined;
+  /** The coach's note for this set — the one thing worth reading before you lift. */
+  coachTip?: string | undefined;
   /** Warm-up plan, shown only before the first working set. */
   warmup?: string | undefined;
   /** Why the target is what it is (progression reason, performance note). */
@@ -43,7 +42,6 @@ export function CurrentSetCard({
   hint?: string | undefined;
 }) {
   const t = useT();
-  const [whyOpen, setWhyOpen] = useState(false);
   const warmupSet = !isSerieValida(set);
   const tempo = isSerieTempo(set);
 
@@ -51,8 +49,6 @@ export function CurrentSetCard({
     set.antPeso !== null && set.antReps !== null
       ? `${formatKg(set.antPeso)} × ${set.antReps}${set.antRpe ? ` @${set.antRpe}` : ""}`
       : null;
-
-  const beat = beatLine(t, set);
 
   return (
     <section
@@ -88,30 +84,20 @@ export function CurrentSetCard({
         ) : null}
       </div>
 
-      {target || beat || reason ? (
+      {coachTip || warmup || reason ? (
         <div className="mt-1">
-          {target || beat ? (
-            <button
-              type="button"
-              onClick={() => reason && setWhyOpen((v) => !v)}
-              aria-expanded={reason ? whyOpen : undefined}
-              className="flex w-full items-start gap-1 text-left"
-            >
+          {coachTip ? (
+            <p className="flex items-start gap-1 text-xs font-semibold leading-snug text-train">
               {exercise.sugestao?.aumentou ? (
-                <TrendingUp className="mt-0.5 size-3.5 shrink-0 text-train" strokeWidth={3} />
+                <TrendingUp className="mt-0.5 size-3.5 shrink-0" strokeWidth={3} />
               ) : null}
-              <span className="min-w-0 text-xs font-semibold leading-snug text-train">
-                {target ?? beat}
-                {target && beat ? (
-                  <span className="block font-medium text-muted-foreground">{beat}</span>
-                ) : null}
-              </span>
-            </button>
+              <span className="min-w-0">{coachTip}</span>
+            </p>
           ) : null}
           {warmup ? (
             <p className="mt-0.5 text-[11px] leading-snug text-muted-foreground">{warmup}</p>
           ) : null}
-          {reason && (whyOpen || !target) ? (
+          {reason ? (
             <p className="mt-1 text-[11px] leading-snug text-foreground/80">{reason}</p>
           ) : null}
         </div>
@@ -139,27 +125,4 @@ export function CurrentSetCard({
       </button>
     </section>
   );
-}
-
-/**
- * Turn the previous set into a target: same load means one more rep beats it,
- * heavier load already beats it.
- */
-function beatLine(
-  t: (source: string, vars?: Record<string, string | number>) => string,
-  set: ActiveSet,
-): string | null {
-  if (!isSerieValida(set) || isSerieTempo(set)) return null;
-  if (set.antPeso === null || set.antReps === null || set.antPeso <= 0) return null;
-  const planned = Number(set.pesoKg) || set.sugPeso || 0;
-  if (planned <= 0) return null;
-  if (planned > set.antPeso) {
-    return t("{delta} above last time", {
-      delta: `+${formatKg(Math.round((planned - set.antPeso) * 100) / 100)}`,
-    });
-  }
-  if (planned === set.antPeso) {
-    return t("{reps} reps beats last time", { reps: set.antReps + 1 });
-  }
-  return null;
 }
