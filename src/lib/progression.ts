@@ -20,6 +20,7 @@ export interface ProgressionInput {
   repsMin: number;
   repsMax: number;
   equipamento: string;
+  grupoPrimario?: string;
 }
 
 export interface ProgressionSuggestion {
@@ -53,9 +54,32 @@ export function isSerieTempo(set: { tipoSerie: TipoSerie }): boolean {
   return set.tipoSerie === "tempo";
 }
 
-/** +2 kg for dumbbells (1 kg per side); +2.5 kg for barbell, machine and cable. */
-export function incrementoPara(equipamento: string): number {
-  return equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
+/**
+ * Small muscle groups feel a standard plate/dumbbell jump much more than a
+ * squat or a row does — a 2.5 kg bump on lateral raises is often a 20%+
+ * jump. These get a smaller step; everything else keeps the standard one.
+ */
+const SMALL_MUSCLE_GROUPS = new Set([
+  "biceps",
+  "triceps",
+  "shoulders",
+  "calves",
+  "traps",
+  "forearms",
+  "core",
+  "adductors",
+]);
+
+/**
+ * +2 kg for dumbbells (1 kg per side), +2.5 kg for barbell/machine/cable —
+ * halved for small-muscle-group exercises (biceps, triceps, shoulders,
+ * calves, traps, forearms, core, adductors), where that step is
+ * disproportionately large relative to the working weight.
+ */
+export function incrementoPara(equipamento: string, grupoPrimario?: string): number {
+  const base = equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
+  const small = grupoPrimario ? SMALL_MUSCLE_GROUPS.has(grupoPrimario.trim().toLowerCase()) : false;
+  return small ? base / 2 : base;
 }
 
 function media(valores: number[]): number | null {
@@ -80,7 +104,7 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
   const repsNoTopo = validas.every((s) => s.reps >= input.repsMax);
   const pseOk = pseMedio === null ? true : pseMedio <= 8;
   const pseAlto = pseMedio !== null && pseMedio >= 9.5;
-  const incrementoKg = incrementoPara(input.equipamento);
+  const incrementoKg = incrementoPara(input.equipamento, input.grupoPrimario);
   const aumentou = repsNoTopo && pseOk && !pseAlto;
 
   const repsMenor = Math.min(...validas.map((s) => s.reps));

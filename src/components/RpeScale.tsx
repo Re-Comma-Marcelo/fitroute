@@ -161,9 +161,10 @@ export function RpeSheet({
   const meaning = rpeMeaning(draft);
   const restPct = restTotal > 0 ? Math.max(0, Math.min(1, restLeft / restTotal)) : 0;
 
-  /** One tap and done: the value is saved the moment it is chosen. */
-  function commit(next: number) {
-    onSave(String(next));
+  /** Picking a value only stages it — nothing saves until Confirm is tapped. */
+  function confirm() {
+    if (draft === null) return;
+    onSave(String(draft));
     onOpenChange(false);
   }
 
@@ -219,11 +220,11 @@ export function RpeSheet({
           {exerciseName} · {setLabel}
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
-          {t("Tap a number and you are done — it sets your next weights.")}
+          {t("Pick a number, then confirm — it sets your next weights.")}
         </p>
 
         <div className="mt-6">
-          <RpeScale value={draft} onChange={setDraft} onCommit={commit} />
+          <RpeScale value={draft} onChange={setDraft} onCommit={setDraft} />
         </div>
 
         <p className="mt-5 min-h-10 rounded-xl border border-border bg-card px-3 py-2 text-center text-sm font-medium text-foreground">
@@ -240,6 +241,13 @@ export function RpeSheet({
             }}
           >
             {t("Skip")}
+          </Button>
+          <Button
+            className="h-12 flex-[2] font-semibold"
+            disabled={draft === null}
+            onClick={confirm}
+          >
+            {t("Confirm")}
           </Button>
         </div>
         {value ? (

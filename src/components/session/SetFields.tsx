@@ -30,7 +30,7 @@ export function SetFields({
 }) {
   const t = useT();
   const tempo = isSerieTempo(set);
-  const passoKg = incrementoPara(exercise.equipamento);
+  const passoKg = incrementoPara(exercise.equipamento, exercise.grupoPrimario);
   const { unit } = useWeightUnit();
   const [draft, setDraft] = useState<string | null>(null);
 
@@ -124,13 +124,16 @@ export function SetFields({
     />
   );
 
+  // A timed set (plank, dead hang...) has no weight to speak of — just duration.
   if (!big) {
     return (
-      <div className="grid grid-cols-2 gap-2">
-        <label className="block">
-          <span className="label-caps block text-center">{weightUnitLabel()}</span>
-          <span className="mt-1 block">{weightField}</span>
-        </label>
+      <div className={cn("grid gap-2", tempo ? "grid-cols-1" : "grid-cols-2")}>
+        {tempo ? null : (
+          <label className="block">
+            <span className="label-caps block text-center">{weightUnitLabel()}</span>
+            <span className="mt-1 block">{weightField}</span>
+          </label>
+        )}
         <label className="block">
           <span className="label-caps block text-center">{tempo ? t("sec") : t("Reps")}</span>
           <span className="mt-1 block">{repsField}</span>
@@ -140,16 +143,18 @@ export function SetFields({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-2">
-      <Stepper
-        label={weightUnitLabel()}
-        onMinus={() => stepKg(-passoKg)}
-        onPlus={() => stepKg(passoKg)}
-        minusLabel={t("Decrease weight")}
-        plusLabel={t("Increase weight")}
-      >
-        {weightField}
-      </Stepper>
+    <div className={cn("grid gap-2", tempo ? "grid-cols-1" : "grid-cols-2")}>
+      {tempo ? null : (
+        <Stepper
+          label={weightUnitLabel()}
+          onMinus={() => stepKg(-passoKg)}
+          onPlus={() => stepKg(passoKg)}
+          minusLabel={t("Decrease weight")}
+          plusLabel={t("Increase weight")}
+        >
+          {weightField}
+        </Stepper>
+      )}
       <Stepper
         label={tempo ? t("sec") : t("Reps")}
         onMinus={() => stepReps(-1)}
