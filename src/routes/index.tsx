@@ -1,7 +1,6 @@
 import { APP_NAME, pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 
 import heroLogin from "@/assets/hero-login.jpg";
 import { Button } from "@/components/ui/button";
@@ -10,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { RouteLogoTile } from "@/components/RouteLogo";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n";
+import { useT, type TFunction } from "@/lib/i18n";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -19,16 +18,19 @@ export const Route = createFileRoute("/")({
       title: "Sign in",
       description:
         "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.",
-      ogDescription:
-        "Your AI trainer that adapts to your actual life. Sign in with Google or email.",
+      ogDescription: "Your AI trainer that adapts to your actual life. Sign in with your email.",
     }),
   }),
   component: AuthPage,
 });
 
 type Mode = "signin" | "signup";
+/** Which email we asked the user to go and open. */
+type Sent = "signup" | "magic" | "reset";
+type Notice = { kind: "error" | "info"; text: string; action?: "signin" | "resend" };
 
 const RESUME_KEY = "ironlogger.oauth.resume";
+const RESEND_COOLDOWN_SEC = 45;
 
 /** Same-origin path to resume after sign-in (e.g. the MCP consent screen). */
 function resumeTarget(): string | null {
@@ -40,6 +42,86 @@ function resumeTarget(): string | null {
   return candidate;
 }
 
+/** Supabase sends email-link failures back as query or hash parameters. */
+function linkParams(url: string): URLSearchParams {
+  try {
+    const parsed = new URL(url);
+    const hash = parsed.hash.startsWith("#") ? parsed.hash.slice(1) : parsed.hash;
+    const merged = new URLSearchParams(parsed.search);
+    new URLSearchParams(hash).forEach((value, key) => merged.set(key, value));
+    return merged;
+  } catch {
+    return new URLSearchParams();
+  }
+}
+
+/**
+ * Turn a Supabase auth error into something a person can act on. The raw
+ * messages ("Invalid login credentials") send people in circles: the same
+ * reply covers a typo, an unconfirmed email and an account that never
+ * finished being created.
+ */
+function authMessage(t: TFunction, raw: string, code: string): Notice {
+  const text = `${code} ${raw}`.toLowerCase();
+  if (/user already registered|already registered|user_already_exists/.test(text)) {
+    return {
+      kind: "error",
+      text: t("That email already has an account. Sign in instead, or reset the password."),
+      action: "signin",
+    };
+  }
+  if (/email not confirmed|email_not_confirmed/.test(text)) {
+    return {
+      kind: "error",
+      text: t("Your email isn't confirmed yet. Open the link we sent, or send it again."),
+      action: "resend",
+    };
+  }
+  if (/invalid login credentials|invalid_credentials/.test(text)) {
+    return {
+      kind: "error",
+      text: t(
+        "Email or password doesn't match. If you just signed up, confirm your email first — or sign in with a magic link.",
+      ),
+    };
+  }
+  if (/password should be at least|weak_password/.test(text)) {
+    return { kind: "error", text: t("Use a password with at least 6 characters.") };
+  }
+  if (/email address .* is invalid|validation_failed.*email|invalid format/.test(text)) {
+    return { kind: "error", text: t("That email address doesn't look valid.") };
+  }
+  if (/rate limit|over_email_send_rate_limit|too many requests|429/.test(text)) {
+    return {
+      kind: "error",
+      text: t("Too many emails were requested. Wait a few minutes and try again."),
+    };
+  }
+  if (/signups not allowed|signup_disabled/.test(text)) {
+    return {
+      kind: "error",
+      text: t("New sign-ups are turned off on this project right now."),
+    };
+  }
+  if (/otp_expired|token has expired|invalid or has expired|one-time token not found/.test(text)) {
+    return {
+      kind: "error",
+      text: t("That link expired or was already used. Send a new one below."),
+      action: "resend",
+    };
+  }
+  return { kind: "error", text: raw || t("Could not sign in") };
+}
+
+function errorParts(error: unknown): { raw: string; code: string } {
+  const raw = error instanceof Error ? error.message : String(error ?? "");
+  const code =
+    typeof error === "object" && error !== null && "code" in error
+      ? String((error as { code: unknown }).code)
+      : "";
+  return { raw, code };
+}
+
 function AuthPage() {
   const navigate = useNavigate();
   const t = useT();
@@ -47,8 +129,14 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [checkEmail, setCheckEmail] = useState(false);
-  const [formError, setFormError] = useState("");
+  const [sent, setSent] = useState<Sent | null>(null);
+  const [recovering, setRecovering] = useState(false);
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [cooldown, setCooldown] = useState(0);
+  // Read once, before the Supabase client consumes the URL fragment.
+  const [entryUrl] = useState(() => (typeof window === "undefined" ? "" : window.location.href));
+
+  const cleanEmail = email.trim().toLowerCase();
 
   function goAfterAuth() {
     const target = resumeTarget();
@@ -60,13 +148,49 @@ function AuthPage() {
     navigate({ to: "/inicio", replace: true });
   }
 
+  function redirectUrl() {
+    const target = resumeTarget();
+    if (target) window.sessionStorage.setItem(RESUME_KEY, target);
+    return target
+      ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
+      : window.location.origin;
+  }
+
+  // A failed or expired email link comes back as parameters on this page.
+  useEffect(() => {
+    const params = linkParams(entryUrl);
+    const isRecovery = params.get("type") === "recovery";
+    const rawError = params.get("error_description") ?? params.get("error") ?? "";
+    const errorCode = params.get("error_code") ?? "";
+    if (isRecovery) setRecovering(true);
+    if (rawError) {
+      setNotice(authMessage(t, rawError.replace(/\+/g, " "), errorCode));
+      setMode("signin");
+      // Keep the address bar clean so a refresh doesn't repeat the message.
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+    // The session only arrives after Supabase parses the URL.
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecovering(true);
+    });
+    return () => data.subscription.unsubscribe();
+  }, [entryUrl, t]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const id = window.setTimeout(() => setCooldown((value) => value - 1), 1000);
+    return () => window.clearTimeout(id);
+  }, [cooldown]);
+
   useEffect(() => {
     let alive = true;
     // Keep the pending consent URL across the OAuth round trip.
     const pending = resumeTarget();
     if (pending) window.sessionStorage.setItem(RESUME_KEY, pending);
+    // Someone setting a new password is signed in already: don't bounce them.
+    if (linkParams(entryUrl).get("type") === "recovery") return;
     supabase.auth.getUser().then(({ data }) => {
-      if (!alive || !data.user) return;
+      if (!alive || !data.user || recovering) return;
       if (pending) {
         window.sessionStorage.removeItem(RESUME_KEY);
         window.location.replace(pending);
@@ -77,85 +201,186 @@ function AuthPage() {
     return () => {
       alive = false;
     };
-  }, [navigate]);
+  }, [navigate, entryUrl, recovering]);
 
-  async function handleGoogle() {
-    setBusy(true);
-    try {
-      const target = resumeTarget();
-      if (target) window.sessionStorage.setItem(RESUME_KEY, target);
-      const redirectTo = target
-        ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
-        : window.location.origin;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo },
-      });
-      if (error) throw error;
-    } catch (error) {
-      setBusy(false);
-      const raw = error instanceof Error ? error.message : "";
-      const notEnabled = /provider is not enabled|Unsupported provider|validation_failed/i.test(
-        raw,
-      );
-      toast.error(
-        notEnabled
-          ? t(
-              "Google sign-in isn't enabled on this Supabase project yet. Use email and password for now.",
-            )
-          : raw || t("Google sign-in failed"),
-      );
-    }
+  function requireEmail(): boolean {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) return true;
+    setNotice({ kind: "error", text: t("Enter your email address first.") });
+    return false;
   }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    setFormError("");
+    setNotice(null);
     setBusy(true);
     try {
-      const target = resumeTarget();
-      if (target) window.sessionStorage.setItem(RESUME_KEY, target);
       if (mode === "signup") {
         const { data, error } = await supabase.auth.signUp({
-          email,
+          email: cleanEmail,
           password,
-          options: {
-            emailRedirectTo: target
-              ? `${window.location.origin}/?redirect=${encodeURIComponent(target)}`
-              : window.location.origin,
-          },
+          options: { emailRedirectTo: redirectUrl() },
         });
         if (error) throw error;
+        // Supabase hides existing accounts behind an empty identities array.
+        if (data.user && (data.user.identities?.length ?? 0) === 0) {
+          setMode("signin");
+          setNotice({
+            kind: "error",
+            text: t("That email already has an account. Sign in instead, or reset the password."),
+          });
+          return;
+        }
         if (!data.session) {
-          setCheckEmail(true);
+          setSent("signup");
+          setCooldown(RESEND_COOLDOWN_SEC);
           return;
         }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email: cleanEmail,
+          password,
+        });
         if (error) throw error;
       }
       goAfterAuth();
     } catch (error) {
-      const raw = error instanceof Error ? error.message : "";
-      const code =
-        typeof error === "object" && error !== null && "code" in error ? String(error.code) : "";
-      const emailLimitExceeded =
-        /email rate limit exceeded|over_email_send_rate_limit/i.test(raw) ||
-        code === "over_email_send_rate_limit";
-
-      if (emailLimitExceeded) {
-        setFormError(
-          t(
-            "Too many confirmation emails were requested. Please wait a few minutes before trying again.",
-          ),
-        );
-      } else {
-        toast.error(raw || t("Could not sign in"));
-      }
+      const { raw, code } = errorParts(error);
+      setNotice(authMessage(t, raw, code));
     } finally {
       setBusy(false);
     }
   }
+
+  /** Magic link: creates the account too, so nobody is stuck on a password. */
+  async function handleMagicLink() {
+    if (!requireEmail()) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
+        options: { emailRedirectTo: redirectUrl(), shouldCreateUser: true },
+      });
+      if (error) throw error;
+      setSent("magic");
+      setCooldown(RESEND_COOLDOWN_SEC);
+    } catch (error) {
+      const { raw, code } = errorParts(error);
+      setNotice(authMessage(t, raw, code));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleForgotPassword() {
+    if (!requireEmail()) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: redirectUrl(),
+      });
+      if (error) throw error;
+      setSent("reset");
+      setCooldown(RESEND_COOLDOWN_SEC);
+    } catch (error) {
+      const { raw, code } = errorParts(error);
+      setNotice(authMessage(t, raw, code));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleResend() {
+    if (!requireEmail() || cooldown > 0) return;
+    setBusy(true);
+    setNotice(null);
+    try {
+      if (sent === "magic") {
+        const { error } = await supabase.auth.signInWithOtp({
+          email: cleanEmail,
+          options: { emailRedirectTo: redirectUrl(), shouldCreateUser: true },
+        });
+        if (error) throw error;
+      } else if (sent === "reset") {
+        const { error } = await supabase.auth.resetPasswordForEmail(cleanEmail, {
+          redirectTo: redirectUrl(),
+        });
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.auth.resend({
+          type: "signup",
+          email: cleanEmail,
+          options: { emailRedirectTo: redirectUrl() },
+        });
+        if (error) throw error;
+      }
+      setCooldown(RESEND_COOLDOWN_SEC);
+      setNotice({ kind: "info", text: t("Sent. It can take a minute to arrive.") });
+    } catch (error) {
+      const { raw, code } = errorParts(error);
+      setNotice(authMessage(t, raw, code));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleNewPassword(event: React.FormEvent) {
+    event.preventDefault();
+    setBusy(true);
+    setNotice(null);
+    try {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
+      goAfterAuth();
+    } catch (error) {
+      const { raw, code } = errorParts(error);
+      setNotice(authMessage(t, raw, code));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function resetToSignIn() {
+    setSent(null);
+    setNotice(null);
+    setMode("signin");
+  }
+
+  const noticeBox = notice ? (
+    <div
+      role={notice.kind === "error" ? "alert" : "status"}
+      className={cn(
+        "rounded-lg border px-3 py-2.5 text-sm leading-relaxed text-foreground",
+        notice.kind === "error"
+          ? "border-destructive/30 bg-destructive/10"
+          : "border-border bg-surface-2",
+      )}
+    >
+      <p>{notice.text}</p>
+      {notice.action === "signin" ? (
+        <button
+          type="button"
+          className="mt-2 min-h-11 font-semibold text-primary"
+          onClick={resetToSignIn}
+        >
+          {t("Back to sign in")}
+        </button>
+      ) : null}
+      {notice.action === "resend" ? (
+        <button
+          type="button"
+          disabled={busy || cooldown > 0}
+          className="mt-2 min-h-11 font-semibold text-primary disabled:opacity-50"
+          onClick={handleResend}
+        >
+          {cooldown > 0
+            ? t("Send again in {seconds}s", { seconds: cooldown })
+            : t("Send a new link")}
+        </button>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <main className="relative flex min-h-screen flex-col justify-end overflow-hidden bg-background">
@@ -189,47 +414,65 @@ function AuthPage() {
         </p>
 
         <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 backdrop-blur-xl">
-          {checkEmail ? (
+          {recovering ? (
+            <form onSubmit={handleNewPassword} className="space-y-3">
+              <h2 className="font-display text-lg font-semibold text-foreground">
+                {t("Set a new password")}
+              </h2>
+              {noticeBox}
+              <div className="space-y-1.5">
+                <Label htmlFor="new-password">{t("New password")}</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  autoComplete="new-password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t("At least 6 characters")}
+                />
+              </div>
+              <Button type="submit" disabled={busy} className="tap-target w-full font-semibold">
+                {busy ? t("Please wait…") : t("Save and continue")}
+              </Button>
+            </form>
+          ) : sent ? (
             <div className="space-y-3 text-center">
               <h2 className="font-display text-lg font-semibold text-foreground">
                 {t("Check your email")}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {t("We sent a confirmation link to {email}. Confirm it, then sign in.", {
-                  email,
-                })}
+                {sent === "reset"
+                  ? t("We sent a password reset link to {email}.", { email: cleanEmail })
+                  : sent === "magic"
+                    ? t("We sent a sign-in link to {email}. Open it on this device.", {
+                        email: cleanEmail,
+                      })
+                    : t("We sent a confirmation link to {email}. Confirm it, then sign in.", {
+                        email: cleanEmail,
+                      })}
               </p>
+              <p className="text-xs text-muted-foreground">
+                {t("No email? Check spam and promotions — the link is valid for one use only.")}
+              </p>
+              {noticeBox}
               <Button
                 variant="outline"
+                disabled={busy || cooldown > 0}
                 className="tap-target w-full"
-                onClick={() => {
-                  setCheckEmail(false);
-                  setMode("signin");
-                }}
+                onClick={handleResend}
               >
+                {cooldown > 0
+                  ? t("Send again in {seconds}s", { seconds: cooldown })
+                  : t("Send the email again")}
+              </Button>
+              <Button variant="ghost" className="tap-target w-full" onClick={resetToSignIn}>
                 {t("Back to sign in")}
               </Button>
             </div>
           ) : (
             <>
-              <Button
-                type="button"
-                disabled={busy}
-                onClick={handleGoogle}
-                className="tap-target h-12 w-full gap-2.5 bg-foreground text-base font-semibold text-background hover:bg-foreground/90"
-              >
-                <GoogleMark />
-                {t("Continue with Google")}
-              </Button>
-
-              <div className="my-5 flex items-center gap-3">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-[11px] uppercase tracking-widest text-muted-foreground">
-                  {t("or")}
-                </span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-
               <div className="mb-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
                 {(["signin", "signup"] as Mode[]).map((value) => (
                   <button
@@ -237,7 +480,7 @@ function AuthPage() {
                     type="button"
                     onClick={() => {
                       setMode(value);
-                      setFormError("");
+                      setNotice(null);
                     }}
                     className={cn(
                       "tap-target rounded-lg text-sm font-medium transition-colors",
@@ -250,30 +493,17 @@ function AuthPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-3">
-                {formError ? (
-                  <div
-                    role="alert"
-                    className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-sm leading-relaxed text-foreground"
-                  >
-                    <p>{formError}</p>
-                    <button
-                      type="button"
-                      className="mt-2 min-h-11 font-semibold text-primary"
-                      onClick={() => {
-                        setMode("signin");
-                        setFormError("");
-                      }}
-                    >
-                      {t("Back to sign in")}
-                    </button>
-                  </div>
-                ) : null}
+                {noticeBox}
                 <div className="space-y-1.5">
                   <Label htmlFor="email">{t("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
+                    inputMode="email"
                     autoComplete="email"
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    spellCheck={false}
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -301,30 +531,35 @@ function AuthPage() {
                       : t("Sign in")}
                 </Button>
               </form>
+
+              <div className="mt-4 space-y-1 border-t border-border/60 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={busy}
+                  onClick={handleMagicLink}
+                  className="tap-target w-full"
+                >
+                  {t("Email me a sign-in link")}
+                </Button>
+                <p className="px-1 pt-1 text-center text-xs text-muted-foreground">
+                  {t("No password needed — the link signs you in and creates your account.")}
+                </p>
+                {mode === "signin" ? (
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={handleForgotPassword}
+                    className="tap-target w-full text-sm font-medium text-primary disabled:opacity-50"
+                  >
+                    {t("Forgot your password?")}
+                  </button>
+                ) : null}
+              </div>
             </>
           )}
         </div>
       </div>
     </main>
-  );
-}
-
-function GoogleMark() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4" aria-hidden>
-      <path
-        fill="#4285F4"
-        d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.4a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.6-5.2 3.6-8.8Z"
-      />
-      <path
-        fill="#34A853"
-        d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3a7.3 7.3 0 0 1-11-3.8H1v3.1A12 12 0 0 0 12 24Z"
-      />
-      <path fill="#FBBC05" d="M5 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1a12 12 0 0 0 0 10.8L5 14.3Z" />
-      <path
-        fill="#EA4335"
-        d="M12 4.8c1.8 0 3.4.6 4.6 1.8l3.4-3.4A11.5 11.5 0 0 0 12 0 12 12 0 0 0 1 6.6l4 3.1A7.2 7.2 0 0 1 12 4.8Z"
-      />
-    </svg>
   );
 }

@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Loader2, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Dumbbell, Loader2, Salad, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
@@ -46,7 +46,7 @@ import {
   saveIntakeDraft,
   setActiveVersion,
 } from "@/lib/plan/store";
-import type { GoalTranslation, PlanIntake } from "@/lib/plan/types";
+import type { GoalTranslation, PlanIntake, PlanScope } from "@/lib/plan/types";
 import { pageMeta } from "@/lib/route-meta";
 import { cn } from "@/lib/utils";
 
@@ -86,6 +86,7 @@ function PlanPage() {
   const navigate = useNavigate();
 
   const [step, setStep] = useState(0);
+  const [pickingScope, setPickingScope] = useState(true);
   const [intake, setIntake] = useState<PlanIntake>(() => blankIntake());
   const [goal, setGoal] = useState<GoalTranslation | null>(null);
   const [goalConfirmed, setGoalConfirmed] = useState(false);
@@ -101,7 +102,10 @@ function PlanPage() {
   useEffect(() => {
     const stored = readPlanState();
     setState(stored);
-    if (stored.intake) setIntake({ ...blankIntake(), ...stored.intake });
+    if (stored.intake) {
+      setIntake({ ...blankIntake(), ...stored.intake });
+      setPickingScope(false);
+    }
     if (stored.goal) {
       setGoal(stored.goal);
       setGoalConfirmed(true);
@@ -129,6 +133,16 @@ function PlanPage() {
 
   const patch = (changes: Partial<PlanIntake>) =>
     setIntake((current) => ({ ...current, ...changes }));
+
+  // Step 2 ("Training") and step 4 ("Food") are skipped when the person only
+  // wants the other half of the plan. `step` is a position within this list,
+  // not a raw content-step number.
+  const visibleSteps = useMemo(() => {
+    const skipTraining = intake.planScope === "diet";
+    const skipFood = intake.planScope === "training";
+    return [0, 1, 2, 3, 4].filter((n) => !(skipTraining && n === 2) && !(skipFood && n === 4));
+  }, [intake.planScope]);
+  const contentStep = visibleSteps[Math.min(step, visibleSteps.length - 1)] ?? 0;
 
   const budget = useMemo(() => deriveTimeBudget(intake), [intake]);
   const pace = useMemo(
@@ -264,6 +278,67 @@ function PlanPage() {
     );
   }
 
+  if (pickingScope) {
+    const scopeOptions: {
+      value: PlanScope;
+      icon: React.ReactNode;
+      title: string;
+      subtitle: string;
+    }[] = [
+      {
+        value: "full",
+        icon: <Sparkles className="size-5 text-primary" />,
+        title: t("A full plan"),
+        subtitle: t("Training and food, built together around your week."),
+      },
+      {
+        value: "training",
+        icon: <Dumbbell className="size-5 text-train" />,
+        title: t("Training only"),
+        subtitle: t("I'll handle food myself."),
+      },
+      {
+        value: "diet",
+        icon: <Salad className="size-5 text-diet" />,
+        title: t("Food only"),
+        subtitle: t("I train on my own, or elsewhere."),
+      },
+    ];
+    return (
+      <AppShell title={t("Get a plan")} hideHeader>
+        <div className="space-y-5 px-4 pb-8 pt-6">
+          <header className="space-y-1">
+            <h1 className="text-2xl font-semibold tracking-tight">{t("What do you want?")}</h1>
+            <p className="text-sm text-muted-foreground">
+              {t("You can always add the other half later.")}
+            </p>
+          </header>
+          <div className="space-y-3">
+            {scopeOptions.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  patch({ planScope: opt.value });
+                  setPickingScope(false);
+                }}
+                className="tap-target flex w-full items-start gap-3 rounded-2xl border border-border bg-card p-4 text-left"
+              >
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-xl bg-surface-2">
+                  {opt.icon}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-semibold">{opt.title}</span>
+                  <span className="block text-xs text-muted-foreground">{opt.subtitle}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </AppShell>
+    );
+  }
+
   return (
     <AppShell title={t("Get a plan")} hideHeader>
       <div className="space-y-5 px-4 pb-8 pt-6">
@@ -272,21 +347,21 @@ function PlanPage() {
           <p className="text-sm text-muted-foreground">
             {t("Step {n} of {total} — {label}", {
               n: step + 1,
-              total: STEPS.length,
-              label: t(STEPS[step] ?? ""),
+              total: visibleSteps.length,
+              label: t(STEPS[contentStep] ?? ""),
             })}
           </p>
           <div className="flex gap-1">
-            {STEPS.map((label, i) => (
+            {visibleSteps.map((n, i) => (
               <span
-                key={label}
+                key={n}
                 className={cn("h-1 flex-1 rounded-full", i <= step ? "bg-primary" : "bg-surface-3")}
               />
             ))}
           </div>
         </header>
 
-        {step === 0 ? (
+        {contentStep === 0 ? (
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <Field label={t("Age")}>
@@ -350,7 +425,7 @@ function PlanPage() {
           </div>
         ) : null}
 
-        {step === 1 ? (
+        {contentStep === 1 ? (
           <div className="space-y-4">
             <div className="flex gap-1.5">
               {(["words", "number"] as const).map((mode) => (
@@ -464,7 +539,7 @@ function PlanPage() {
           </div>
         ) : null}
 
-        {step === 2 ? (
+        {contentStep === 2 ? (
           <div className="space-y-4">
             <Field label={t("Equipment you can use")}>
               <div className="flex flex-wrap gap-1.5">
@@ -577,7 +652,7 @@ function PlanPage() {
           </div>
         ) : null}
 
-        {step === 3 ? (
+        {contentStep === 3 ? (
           <div className="space-y-4">
             <Field label={t("Which parts of your week are open?")}>
               <WeeklySlotGrid value={intake.slots} onChange={(slots) => patch({ slots })} />
@@ -663,7 +738,7 @@ function PlanPage() {
           </div>
         ) : null}
 
-        {step === 4 ? (
+        {contentStep === 4 ? (
           <div className="space-y-4">
             <Field label={t("Allergies or restrictions")}>
               <Textarea
@@ -756,11 +831,11 @@ function PlanPage() {
             </Button>
           ) : null}
 
-          {step < STEPS.length - 1 ? (
+          {step < visibleSteps.length - 1 ? (
             <Button
               type="button"
               className="h-12 flex-1 gap-1.5"
-              disabled={step === 1 && Boolean(goal) && !goalConfirmed}
+              disabled={contentStep === 1 && Boolean(goal) && !goalConfirmed}
               onClick={() => setStep((s) => s + 1)}
             >
               {t("Next")}
@@ -770,7 +845,9 @@ function PlanPage() {
             <Button
               type="button"
               className="h-12 flex-1 gap-1.5"
-              disabled={busy !== null || budget.gymSlots.length === 0}
+              disabled={
+                busy !== null || (intake.planScope !== "diet" && budget.gymSlots.length === 0)
+              }
               onClick={() => runPlan("")}
             >
               {busy === "plan" ? (

@@ -28,7 +28,9 @@ function sync(menu: WeekMenu): void {
       mealIds: menu.mealIds,
       completedAt: menu.completedAt ?? null,
     },
-  }).catch(() => {});
+  }).catch((error) => {
+    console.error("Background sync of week menu failed:", error);
+  });
 }
 
 /** This week's selection, rolling the previous week into the archive first. */

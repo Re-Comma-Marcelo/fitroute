@@ -1,7 +1,7 @@
 import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
-import { suggestProgression, type PrevSet } from "./progression";
+import { isSerieValida, suggestProgression, type PrevSet } from "./progression";
 import { prescribeExercise, restForExercise } from "./prescription";
 import {
   makeSets,
@@ -35,7 +35,9 @@ export async function buildActiveExercise(
   }));
   const repsMin = opts.repsMin ?? 8;
   const repsMax = opts.repsMax ?? 12;
-  const baseSeries = opts.seriesAlvo ?? Math.max(3, anteriores.length);
+  // Só séries de trabalho contam: o aquecimento da última sessão não infla nem
+  // encolhe o número de séries do dia.
+  const baseSeries = opts.seriesAlvo ?? Math.max(3, anteriores.filter(isSerieValida).length);
   const seriesAlvo = opts.deload ? Math.max(2, baseSeries - 1) : baseSeries;
   const sugestao = suggestProgression({
     anteriores,

@@ -1,6 +1,12 @@
 import { nextSetTarget } from "./next-set";
 import { isSerieDeCarga, isSerieValida } from "./progression";
-import type { ActiveExercise, ActiveSession, ActiveSet } from "./session-state";
+import {
+  isExerciseDone,
+  nextPendingIndex,
+  type ActiveExercise,
+  type ActiveSession,
+  type ActiveSet,
+} from "./session-state";
 
 /**
  * Everything the screen has to do after a set is ticked, computed in one
@@ -13,10 +19,17 @@ export interface CompleteSetEffects {
   restSeconds: number;
   /** True when the set was inside a superset and the next exercise follows at once. */
   superset: boolean;
-  /** Index of the exercise the card should auto-advance to, if any. */
+  /** Next exercise with work left, offered as the hand-off (never forced). */
   nextExerciseIdx: number | null;
-  /** True when this tick finished every set of the exercise. */
+  /** True when this tick finished the last working set of the exercise. */
   exerciseDone: boolean;
+  /**
+   * True when the screen may hand over to `nextExerciseIdx` by itself: the
+   * exercise has no set left to do (nem aquecimento) and there is somewhere to
+   * go. Só o último ✓ do exercício abre essa porta — no meio da série o dedo
+   * fica onde está.
+   */
+  advance: boolean;
   /** Weight/reps actually recorded for a valid working set. */
   logged: { pesoKg: number; reps: number } | null;
   /** Coach line describing the target for the next set. */
@@ -107,12 +120,13 @@ export function completeSet(
 
   const superset = deps.supersetChain(s, exIdx);
   const restSeconds = superset ? 0 : deps.restFor(ex);
-  const exerciseDone = ex.sets.every((x) => x.concluida);
-  let nextExerciseIdx: number | null = null;
-  if (exerciseDone && exIdx === s.atual && exIdx < s.exercicios.length - 1) {
-    s.atual = exIdx + 1;
-    nextExerciseIdx = s.atual;
-  }
+  // O exercício termina quando as séries de trabalho acabam. A passagem
+  // automática exige mais: nenhuma linha pendente (aquecimento incluso), para
+  // que uma série esquecida no meio nunca vire "exercício concluído". No meio
+  // da série a tela nunca troca embaixo do dedo — só o último ✓ entrega a vez.
+  const exerciseDone = isExerciseDone(ex);
+  const nextExerciseIdx = exerciseDone ? nextPendingIndex(s, exIdx) : null;
+  const advance = exerciseDone && nextExerciseIdx !== null && ex.sets.every((x) => x.concluida);
 
   return {
     session: s,
@@ -121,6 +135,7 @@ export function completeSet(
       superset,
       nextExerciseIdx,
       exerciseDone,
+      advance,
       logged,
       targetLine,
       volumeKg,

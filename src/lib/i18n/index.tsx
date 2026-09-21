@@ -10,8 +10,10 @@ import {
 
 import { setFormatLocale } from "@/lib/format";
 
+import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
 import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
 import { dict as libraryDict } from "./dict/library";
@@ -45,6 +47,8 @@ import { dict as round29Dict } from "./dict/round29";
 import { dict as round30Dict } from "./dict/round30";
 import { dict as round31Dict } from "./dict/round31";
 import { dict as round32Dict } from "./dict/round32";
+import { dict as round33Dict } from "./dict/round33";
+import { dict as round34Dict } from "./dict/round34";
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as sessionFocusDict } from "./dict/session-focus";
@@ -72,6 +76,7 @@ const FRAGMENTS: DictFragment[] = [
   upgradesDict,
   sessionDict,
   sessionFocusDict,
+  exerciseCompleteDict,
   libraryDict,
   dietDict,
   progressDict,
@@ -106,6 +111,9 @@ const FRAGMENTS: DictFragment[] = [
   round30Dict,
   round31Dict,
   round32Dict,
+  round33Dict,
+  round34Dict,
+  authDict,
 ];
 
 function merge(pick: (f: DictFragment) => Dict): Dict {

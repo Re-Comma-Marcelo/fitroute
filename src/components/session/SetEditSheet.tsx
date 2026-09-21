@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Trash2, Undo2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Trash2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -28,6 +28,9 @@ export function SetEditSheet({
   onNote,
   onUncheck,
   onRemove,
+  onMove,
+  canMoveUp,
+  canMoveDown,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,6 +43,10 @@ export function SetEditSheet({
   onNote: (value: string) => void;
   onUncheck: () => void;
   onRemove: () => void;
+  /** Reorder this set within the exercise — e.g. move a warm-up set added late back to the front. */
+  onMove: (dir: -1 | 1) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
 }) {
   const t = useT();
   const [note, setNote] = useState("");
@@ -71,6 +78,32 @@ export function SetEditSheet({
               />
             </div>
           ) : null}
+
+          <div>
+            <p className="label-caps mb-2">{t("Order")}</p>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="tap-target flex-1"
+                disabled={!canMoveUp}
+                onClick={() => onMove(-1)}
+                aria-label={t("Move up")}
+              >
+                <ArrowUp className="mr-1.5 size-4" /> {t("Move up")}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="tap-target flex-1"
+                disabled={!canMoveDown}
+                onClick={() => onMove(1)}
+                aria-label={t("Move down")}
+              >
+                <ArrowDown className="mr-1.5 size-4" /> {t("Move down")}
+              </Button>
+            </div>
+          </div>
 
           <div>
             <p className="label-caps mb-2">{t("Set type")}</p>

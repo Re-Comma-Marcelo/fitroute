@@ -13,7 +13,7 @@ import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { RouteLogo } from "../components/RouteLogo";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { configureSupabase, supabase } from "../integrations/supabase/client";
+import { configureSupabase, supabase, supabaseConfig } from "../integrations/supabase/client";
 import { getSupabaseBrowserConfig } from "../lib/supabase-config.functions";
 import { LanguageProvider, currentLangFromStorage, translate } from "../lib/i18n";
 import { registerAppServiceWorker } from "../lib/pwa";
@@ -179,6 +179,9 @@ function RootComponent() {
   }, []);
 
   useEffect(() => {
+    // Without runtime config there is no client to subscribe to; the app still
+    // renders (login screen shows a configuration notice) instead of blanking.
+    if (!supabaseConfig()) return;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event) => {
@@ -188,6 +191,7 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
+
 
   return (
     <QueryClientProvider client={queryClient}>

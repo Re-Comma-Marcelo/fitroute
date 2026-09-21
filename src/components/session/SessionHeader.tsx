@@ -23,7 +23,6 @@ export function SessionHeader({
   onCollapse,
   onOpenSession,
   onOpenMenu,
-  onJump,
   coach,
 }: {
   routineName: string;
@@ -38,7 +37,6 @@ export function SessionHeader({
   onCollapse: () => void;
   onOpenSession: () => void;
   onOpenMenu: () => void;
-  onJump: (idx: number) => void;
   /** Coach entry point, rendered as-is (its own trigger + sheet). */
   coach?: React.ReactNode;
 }) {
@@ -93,13 +91,11 @@ export function SessionHeader({
           role="img"
           aria-label={t("Exercise {position} of {total}", { position, total })}
         >
+          {/* Progress only. It used to be a 4 px tall button that jumped exercises:
+              a stray thumb on the sticky header silently left sets behind. */}
           {segments.map((status, idx) => (
-            <button
+            <span
               key={idx}
-              type="button"
-              tabIndex={-1}
-              aria-hidden="true"
-              onClick={() => onJump(idx)}
               className={cn(
                 "h-1 flex-1 rounded-full transition-colors",
                 status === "done" && "bg-success",

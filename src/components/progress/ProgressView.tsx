@@ -10,7 +10,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { QueryError } from "@/components/QueryError";
 import { BodyWeightCard } from "@/components/BodyWeightCard";
-import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { MuscleVolumeCard } from "@/components/MuscleVolumeCard";
 import { CoachNotesCard } from "@/components/CoachNotesCard";
 import { PersonalRecordsCard } from "@/components/PersonalRecordsCard";
@@ -251,7 +250,6 @@ export function ProgressView() {
       <div className="mt-6 space-y-3">
         <BodyWeightCard />
         <CoachNotesCard />
-        {allWorkouts.length ? <WorkoutCalendar workouts={workouts} /> : null}
       </div>
 
       <h2 className="label-caps mt-8 mb-3">{t("History")}</h2>

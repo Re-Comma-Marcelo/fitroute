@@ -1,7 +1,7 @@
 import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useT } from "@/lib/i18n";
-import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState, type TouchEvent } from "react";
 import { ArrowRight, Check, Flag, Plus, RotateCcw, Trophy, Zap } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,8 @@ import {
 import {
   clearActiveSession,
   filledUncheckedSets,
+  isExerciseDone,
+  isExercisePending,
   loadActiveSession,
   makeSets,
   restSecondsLeft,
@@ -62,6 +64,9 @@ import {
   togglePause,
   takePendingExercise,
   takePendingReplaceSlot,
+  nextPendingIndex,
+  workingSets,
+  workingSetsDone,
   type ActiveExercise,
   type ActiveSession,
   type ActiveSet,
@@ -105,6 +110,7 @@ import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session
 import { SessionSheet } from "@/components/session/SessionSheet";
 import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet";
 import type { SetField } from "@/components/session/SetFields";
+import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -120,6 +126,16 @@ export const Route = createFileRoute("/_authenticated/sessao")({
 
 const COACH_MARK_KEY = "forja.sessionCoachMarks.v1";
 
+/** Two set completions this close together are a bounced tap, not two sets. */
+const TICK_GUARD_MS = 400;
+
+/**
+ * Pausa entre o último ✓ do exercício e a passagem para o próximo: tempo de
+ * ver o cartão verde "Exercício concluído" e o volume subir, sem a tela trocar
+ * embaixo do dedo.
+ */
+const ADVANCE_DELAY_MS = 1200;
+
 function useTick(active: boolean) {
   const [, setN] = useState(0);
   useEffect(() => {
@@ -133,18 +149,6 @@ function useTick(active: boolean) {
 function viewIndex(session: ActiveSession): number {
   if (session.exercicios.length === 0) return 0;
   return Math.max(0, Math.min(session.atual, session.exercicios.length - 1));
-}
-
-/** Next exercise with something left to do, searching forward and wrapping. */
-function nextPendingIndex(session: ActiveSession, from: number): number | null {
-  const n = session.exercicios.length;
-  for (let step = 1; step <= n; step++) {
-    const idx = (from + step) % n;
-    if (idx === from) continue;
-    const ex = session.exercicios[idx];
-    if (ex && !ex.pulado && ex.sets.some((s) => !s.concluida)) return idx;
-  }
-  return null;
 }
 
 function SessionPage() {
@@ -187,11 +191,35 @@ function SessionPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
   const [editSet, setEditSet] = useState<{ exIdx: number; setIdx: number } | null>(null);
+  /** Exercise-finished takeover: card → checkmark → route → logo → next exercise. */
+  const [completion, setCompletion] = useState<{
+    originRect: DOMRect;
+    completedName: string;
+    completedDetail: string;
+    nextExerciseIdx: number;
+    nextExerciseId: string;
+    nextExerciseName: string;
+  } | null>(null);
+  const currentCardRef = useRef<HTMLLIElement>(null);
 
   const loadedRef = useRef(false);
+  /**
+   * When a set is ticked it collapses into a one-line row and the next card
+   * jumps up under the finger. Without this window a bounced tap logs the next
+   * set with the suggested numbers — and could finish the exercise by accident.
+   */
+  const lastTickRef = useRef(0);
+  /**
+   * Exercício que assume a tela quando o exercício atual acaba, e o timer que
+   * o entrega. Fica pendente (sem timer) enquanto a folha de PSE está aberta.
+   */
+  const advanceToRef = useRef<number | null>(null);
+  const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
   sessionRef.current = session;
+  /** Swipe left/right on the exercise content to move to the next/previous exercise. */
+  const touchStartRef = useRef<{ x: number; y: number } | null>(null);
   const rest = session?.rest ?? null;
   const restEndsAt = rest?.endsAt ?? null;
 
@@ -406,6 +434,14 @@ function SessionPage() {
     return () => clearTimeout(id);
   }, [prBurst]);
 
+  /** Nada de troca de exercício depois que a tela sai do ar. */
+  useEffect(
+    () => () => {
+      if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    },
+    [],
+  );
+
   const [scrubHint] = useState(() => shouldShowScrubHint());
   useEffect(() => {
     if (scrubHint) markScrubHintShown();
@@ -570,6 +606,7 @@ function SessionPage() {
     effects: NonNullable<ReturnType<typeof completeSet>["effects"]>,
   ) {
     const ex = next.exercicios[exIdx];
+    lastTickRef.current = Date.now();
     hapticTick();
     setJustSet(`${exIdx}:${setIdx}`);
     setTargetTips((prev) => {
@@ -584,14 +621,36 @@ function SessionPage() {
       setPrBurst({ key: Date.now(), nome: ex.nome });
     }
     if (effects.exerciseDone) setJustExercise(exIdx);
+    if (effects.exerciseDone && effects.nextExerciseIdx !== null && ex) {
+      const rect = currentCardRef.current?.getBoundingClientRect();
+      const nextEx = next.exercicios[effects.nextExerciseIdx];
+      if (rect && nextEx) {
+        setCompletion({
+          originRect: rect,
+          completedName: ex.nome,
+          completedDetail: effects.logged
+            ? `${formatKg(effects.logged.pesoKg)} × ${effects.logged.reps}`
+            : ex.nome,
+          nextExerciseIdx: effects.nextExerciseIdx,
+          nextExerciseId: nextEx.exerciseId,
+          nextExerciseName: nextEx.nome,
+        });
+      }
+    }
     // The rest starts before the RPE sheet opens, so the countdown is visible at once.
     if (effects.restSeconds > 0) startRest(effects.restSeconds);
     if (effects.superset) {
       const chained = next.exercicios[exIdx + 1];
       setSupersetHint({ until: Date.now() + 45000, nome: chained?.nome ?? "" });
     }
-    if (effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe) {
-      setRpePrompt({ exIdx, setIdx });
+    const perguntaRpe = !!effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe;
+    if (perguntaRpe) setRpePrompt({ exIdx, setIdx });
+    // A passagem para o próximo exercício acontece só no último ✓ — e espera a
+    // folha de PSE fechar, para não trocar a tela por baixo dela.
+    cancelAdvance();
+    if (effects.advance && effects.nextExerciseIdx !== null && exIdx === viewIndex(next)) {
+      advanceToRef.current = effects.nextExerciseIdx;
+      if (!perguntaRpe) advanceTimerRef.current = setTimeout(flushAdvance, ADVANCE_DELAY_MS);
     }
     if (effects.logged && ex) {
       void checkPerformanceDrop(ex, exIdx, effects.logged, next.id);
@@ -604,12 +663,14 @@ function SessionPage() {
     const set = current?.exercicios[exIdx]?.sets[setIdx];
     if (!current || !set) return;
     if (set.concluida) {
+      cancelAdvance();
       const next = uncompleteSet(current, exIdx, setIdx);
       sessionRef.current = next;
       setSession(next);
       saveActiveSession(next);
       return;
     }
+    if (Date.now() - lastTickRef.current < TICK_GUARD_MS) return;
     const { session: next, effects } = completeSet(current, exIdx, setIdx, completeDeps);
     if (!effects) return;
     sessionRef.current = next;
@@ -774,6 +835,22 @@ function SessionPage() {
     });
   }
 
+  /** Reorder sets within an exercise — e.g. move a warm-up set added late back to the front. */
+  function moveSet(exIdx: number, setIdx: number, dir: -1 | 1) {
+    const target = setIdx + dir;
+    update((s) => {
+      const ex = s.exercicios[exIdx];
+      if (!ex || target < 0 || target >= ex.sets.length) return s;
+      const sets = [...ex.sets];
+      const [moved] = sets.splice(setIdx, 1);
+      sets.splice(target, 0, moved!);
+      sets.forEach((x, i) => (x.serieNum = i + 1));
+      ex.sets = sets;
+      return s;
+    });
+    hapticTick();
+  }
+
   function removeExercise(exIdx: number) {
     const removed = session?.exercicios[exIdx];
     const previousAtual = session?.atual ?? 0;
@@ -809,8 +886,62 @@ function SessionPage() {
     hapticTick();
   }
 
+  /** Desmarca a passagem agendada — qualquer toque do usuário manda mais. */
+  function cancelAdvance() {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+    advanceToRef.current = null;
+  }
+
+  /**
+   * Entrega a vez ao próximo exercício, se ele ainda faz sentido: o exercício
+   * que acabou continua concluído e o destino ainda tem trabalho. Um "Voltar"
+   * fica no brinde por alguns segundos.
+   */
+  function flushAdvance() {
+    if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
+    advanceTimerRef.current = null;
+    const target = advanceToRef.current;
+    advanceToRef.current = null;
+    if (target === null) return;
+    const current = sessionRef.current;
+    const from = current ? viewIndex(current) : 0;
+    const saindo = current?.exercicios[from];
+    const destino = current?.exercicios[target];
+    if (!current || !saindo || !destino) return;
+    // Uma série desmarcada (ou adicionada) no meio do caminho cancela a troca.
+    if (isExercisePending(saindo) || !isExercisePending(destino)) return;
+    setSupersetHint(null);
+    jumpTo(target);
+    undoToast({
+      message: t("Next: {name}", { name: destino.nome }),
+      undoLabel: t("Back"),
+      onUndo: () => jumpTo(from),
+    });
+  }
+
   function jumpTo(idx: number) {
+    cancelAdvance();
     update((s) => ({ ...s, atual: idx }));
+  }
+
+  function handleExerciseTouchStart(e: TouchEvent) {
+    const touch = e.touches[0];
+    touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
+  }
+
+  function handleExerciseTouchEnd(e: TouchEvent) {
+    const start = touchStartRef.current;
+    touchStartRef.current = null;
+    if (!start || !session) return;
+    const touch = e.changedTouches[0];
+    if (!touch) return;
+    const dx = touch.clientX - start.x;
+    const dy = touch.clientY - start.y;
+    // Horizontal-dominant swipes only, so vertical scrolling keeps working.
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    if (dx < 0 && viewIdx < session.exercicios.length - 1) jumpTo(viewIdx + 1);
+    else if (dx > 0 && viewIdx > 0) jumpTo(viewIdx - 1);
   }
 
   /** Open the in-session picker in replace mode: suggestions first, then the search. */
@@ -1046,6 +1177,16 @@ function SessionPage() {
       })),
   );
 
+  /** Exercises still owed work — finishing drops them silently otherwise. */
+  const incompleteList = session.exercicios
+    .map((ex, exIdx) => ({ ex, exIdx }))
+    .filter(({ ex }) => !ex.pulado && ex.sets.length > 0 && !isExerciseDone(ex))
+    .map(({ ex, exIdx }) => ({
+      key: `${exIdx}`,
+      nome: ex.nome,
+      detalhe: `${workingSetsDone(ex)}/${workingSets(ex).length}`,
+    }));
+
   const exercise = session.exercicios[viewIdx] ?? null;
   const currentRest = exercise ? restFor(exercise) : 90;
   const blockLabel: Record<string, string> = session.routineId
@@ -1055,20 +1196,19 @@ function SessionPage() {
       )
     : {};
 
-  const exerciseDone =
-    !!exercise && exercise.sets.length > 0 && exercise.sets.every((s) => s.concluida);
+  const exerciseDone = !!exercise && exercise.sets.length > 0 && isExerciseDone(exercise);
   const currentSetIdx = exercise ? exercise.sets.findIndex((s) => !s.concluida) : -1;
   const nextIdx = nextPendingIndex(session, viewIdx);
   const allDone = setsTotal > 0 && nextIdx === null && (exerciseDone || !!exercise?.pulado);
   const exercisesDone = session.exercicios.filter(
-    (e) => e.sets.length > 0 && e.sets.every((s) => s.concluida),
+    (e) => e.sets.length > 0 && isExerciseDone(e),
   ).length;
   const exercisesTotal = session.exercicios.filter((e) => !e.pulado).length;
 
   const segments: SegmentStatus[] = session.exercicios.map((ex, idx) => {
     if (ex.pulado) return "skipped";
     if (idx === viewIdx) return "current";
-    if (ex.sets.length > 0 && ex.sets.every((s) => s.concluida)) return "done";
+    if (ex.sets.length > 0 && isExerciseDone(ex)) return "done";
     return "pending";
   });
 
@@ -1109,7 +1249,6 @@ function SessionPage() {
         onCollapse={() => navigate({ to: "/treino" })}
         onOpenSession={() => setSessionOpen(true)}
         onOpenMenu={() => exercise && setMenuOpen(true)}
-        onJump={jumpTo}
         coach={
           exercise ? (
             <SessionCoachSheet
@@ -1125,7 +1264,11 @@ function SessionPage() {
         }
       />
 
-      <main className="mx-auto max-w-md space-y-3 px-3 py-3">
+      <main
+        className="mx-auto max-w-md space-y-3 px-3 py-3"
+        onTouchStart={handleExerciseTouchStart}
+        onTouchEnd={handleExerciseTouchEnd}
+      >
         {paused ? (
           <p className="text-center text-[11px] font-semibold text-muted-foreground">
             {t("Clock paused — logging still works.")}
@@ -1176,11 +1319,11 @@ function SessionPage() {
                     />
                   );
                 }
-                if (setIdx === currentSetIdx) {
+                if (setIdx === currentSetIdx && !exerciseDone) {
                   const anyDone = exercise.sets.some((s) => s.concluida);
                   return (
                     <Fragment key={set.id}>
-                      <li className={cn(setIdx > 0 && "pt-2")}>
+                      <li ref={currentCardRef} className={cn(setIdx > 0 && "pt-2")}>
                         <CurrentSetCard
                           exercise={exercise}
                           set={set}
@@ -1389,6 +1532,13 @@ function SessionPage() {
         onNote={(value) => editSet && setSetNote(editSet.exIdx, editSet.setIdx, value)}
         onUncheck={() => editSet && toggleSet(editSet.exIdx, editSet.setIdx)}
         onRemove={() => editSet && removeSet(editSet.exIdx, editSet.setIdx)}
+        onMove={(dir) => {
+          if (!editSet) return;
+          moveSet(editSet.exIdx, editSet.setIdx, dir);
+          setEditSet({ exIdx: editSet.exIdx, setIdx: editSet.setIdx + dir });
+        }}
+        canMoveUp={editSet ? editSet.setIdx > 0 : false}
+        canMoveDown={editing ? editSet!.setIdx < editing.exercise.sets.length - 1 : false}
       />
 
       {rpePrompt ? (
@@ -1405,8 +1555,12 @@ function SessionPage() {
           onSave={(value) => {
             setField(rpePrompt.exIdx, rpePrompt.setIdx, "rpe", value);
             setRpePrompt(null);
+            flushAdvance();
           }}
-          onSkip={() => setRpePrompt(null)}
+          onSkip={() => {
+            setRpePrompt(null);
+            flushAdvance();
+          }}
         />
       ) : null}
 
@@ -1462,17 +1616,25 @@ function SessionPage() {
             <AlertDialogTitle>
               {pendCount > 0
                 ? t("{count} sets filled in but not checked — include them?", { count: pendCount })
-                : t("Finish this workout?")}
+                : incompleteList.length > 0
+                  ? t("{count} exercises still have sets to do", {
+                      count: incompleteList.length,
+                    })
+                  : t("Finish this workout?")}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendCount > 0
                 ? t("Unchecked sets are discarded when the workout is saved.")
-                : t("{count} completed sets will be saved.", { count: setsDone })}
+                : incompleteList.length > 0
+                  ? t("{count} completed sets will be saved. The rest stays undone.", {
+                      count: setsDone,
+                    })
+                  : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {pendCount > 0 ? (
+          {pendCount > 0 || incompleteList.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
-              {pendingList.map((item) => (
+              {(pendCount > 0 ? pendingList : incompleteList).map((item) => (
                 <li key={item.key} className="flex items-center justify-between gap-2">
                   <span className="min-w-0 truncate text-muted-foreground">{item.nome}</span>
                   <span className="shrink-0 font-semibold tabular-nums text-foreground">
@@ -1515,6 +1677,20 @@ function SessionPage() {
       />
 
       {prBurst ? <PrCelebration key={prBurst.key} nome={prBurst.nome} /> : null}
+
+      {completion ? (
+        <ExerciseCompleteSequence
+          originRect={completion.originRect}
+          completedName={completion.completedName}
+          completedDetail={completion.completedDetail}
+          nextExerciseId={completion.nextExerciseId}
+          nextExerciseName={completion.nextExerciseName}
+          onFinish={() => {
+            jumpTo(completion.nextExerciseIdx);
+            setCompletion(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

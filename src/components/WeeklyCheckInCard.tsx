@@ -28,6 +28,7 @@ import {
   checkInDue,
   checkInFor,
   coachLine,
+  hydrateCheckIns,
   planWeekKey,
   saveCheckIn,
   type WeekFeeling,
@@ -65,6 +66,8 @@ export function WeeklyCheckInCard() {
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState<WeeklyCheckIn | null>(null);
 
+  // Pulls in check-ins saved from another device/browser before deciding if one is due.
+  const checkInsQ = useQuery({ queryKey: ["weekly-checkins"], queryFn: hydrateCheckIns });
   const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
@@ -84,7 +87,10 @@ export function WeeklyCheckInCard() {
     };
   }, [logQ.data]);
 
-  const due = useMemo(() => checkInDue() && !checkInFor(weekKey), [weekKey]);
+  const due = useMemo(
+    () => checkInDue() && !checkInFor(weekKey),
+    [weekKey, checkInsQ.dataUpdatedAt],
+  );
   if (dismissed || (!due && !done)) return null;
 
   function toggleDay(day: number) {

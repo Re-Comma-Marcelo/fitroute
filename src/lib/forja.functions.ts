@@ -1005,3 +1005,57 @@ export const persistWeekMenu = createServerFn({ method: "POST" })
     if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
     return { ok: true, synced: !res.error };
   });
+
+// ---- Weekly check-ins -------------------------------------------------------
+
+export const fetchWeeklyCheckIns = createServerFn({ method: "POST" }).handler(async () => {
+  const { db, requireUserId, unwrapSoft } = await import("./db.server");
+  const userId = await requireUserId();
+  const rows = unwrapSoft(
+    await db().from("weekly_checkins").select("*").eq("user_id", userId),
+    [] as Record<string, unknown>[],
+  );
+  return (rows as Record<string, unknown>[]).map((r) => ({
+    weekKey: String(r["week_key"]),
+    completedAt: String(r["created_at"] ?? new Date().toISOString()),
+    feeling: (r["feeling"] ?? "ok") as string,
+    lifeNote: String(r["life_note"] ?? ""),
+    days: (r["chosen_days"] ?? []) as number[],
+    issues: (r["issues"] ?? []) as string[],
+    issueNote: "",
+    weightKg: r["weight_kg"] == null ? null : Number(r["weight_kg"]),
+  }));
+});
+
+export const persistWeeklyCheckIn = createServerFn({ method: "POST" })
+  .inputValidator(
+    (data: {
+      weekKey: string;
+      feeling: string;
+      lifeNote: string;
+      days: number[];
+      issues: string[];
+      weightKg: number | null;
+    }) => data,
+  )
+  .handler(async ({ data }) => {
+    const { db, requireUserId, isMissingTable } = await import("./db.server");
+    const userId = await requireUserId();
+    const res = await db()
+      .from("weekly_checkins")
+      .upsert(
+        {
+          user_id: userId,
+          week_key: data.weekKey,
+          feeling: data.feeling,
+          life_note: data.lifeNote,
+          chosen_days: data.days,
+          issues: data.issues,
+          weight_kg: data.weightKg,
+        },
+        { onConflict: "user_id,week_key" },
+      )
+      .select("user_id");
+    if (res.error && !isMissingTable(res.error)) throw new Error(res.error.message);
+    return { ok: true, synced: !res.error };
+  });

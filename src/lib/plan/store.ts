@@ -101,6 +101,7 @@ export function shouldShowPlanPrompt(): boolean {
 
 export function blankIntake(): PlanIntake {
   return {
+    planScope: "full",
     age: 30,
     sex: "male",
     heightCm: 178,

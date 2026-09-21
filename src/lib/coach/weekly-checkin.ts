@@ -6,6 +6,7 @@
  * chosen days and feed the coach notes.
  */
 import { isoDate } from "@/lib/data/nutrition";
+import { fetchWeeklyCheckIns, persistWeeklyCheckIn } from "@/lib/forja.functions";
 import type { Routine } from "@/lib/types";
 
 export type WeekFeeling = "strong" | "ok" | "heavy";
@@ -65,6 +66,37 @@ export function saveCheckIn(entry: WeeklyCheckIn) {
     window.localStorage.setItem(KEY, JSON.stringify([entry, ...list].slice(0, 12)));
   } catch {
     /* storage unavailable */
+  }
+  // Local save above is immediate; this is a best-effort background sync so
+  // the check-in survives a fresh device/browser instead of living only here.
+  void persistWeeklyCheckIn({
+    data: {
+      weekKey: entry.weekKey,
+      feeling: entry.feeling,
+      lifeNote: entry.lifeNote,
+      days: entry.days,
+      issues: entry.issues,
+      weightKg: entry.weightKg,
+    },
+  }).catch(() => {});
+}
+
+/**
+ * Pulls check-ins saved from another device/browser into local storage, so
+ * `checkInDue`/`checkInFor` (both local-only reads) see the full picture.
+ * Remote rows win on a weekKey collision.
+ */
+export async function hydrateCheckIns(): Promise<void> {
+  if (typeof window === "undefined") return;
+  try {
+    const remote = await fetchWeeklyCheckIns();
+    if (!remote.length) return;
+    const local = getCheckIns();
+    const remoteKeys = new Set(remote.map((r) => r.weekKey));
+    const merged = [...remote, ...local.filter((c) => !remoteKeys.has(c.weekKey))];
+    window.localStorage.setItem(KEY, JSON.stringify(merged.slice(0, 12)));
+  } catch {
+    // Table missing or offline — local state is the source of truth.
   }
 }
 

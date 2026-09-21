@@ -174,7 +174,9 @@ export async function getDayNutrition(date: string): Promise<DayNutrition> {
 }
 
 function sync(entry: DietEntry): void {
-  void persistMealEntry({ data: { ...entry, time: entry.time } }).catch(() => {});
+  void persistMealEntry({ data: { ...entry, time: entry.time } }).catch((error) => {
+    console.error("Background sync of meal entry failed:", error);
+  });
 }
 
 /** Adds a meal to a day. Never blocks a moment that already has meals. */
@@ -226,5 +228,7 @@ export async function setEntryTime(entry: DietEntry, time: string): Promise<Diet
 
 export async function removeEntry(entry: DietEntry): Promise<void> {
   removeLocalEntry(entry.date, entry.id);
-  void deleteMealEntry({ data: { id: entry.id } }).catch(() => {});
+  void deleteMealEntry({ data: { id: entry.id } }).catch((error) => {
+    console.error("Background delete of meal entry failed:", error);
+  });
 }
