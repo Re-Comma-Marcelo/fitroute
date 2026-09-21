@@ -506,12 +506,7 @@ function SessionPage() {
       rest: { total, endsAt: Date.now() + total * 1000 },
     }));
     // Backgrounded phones stop running timers; the worker still alerts.
-    scheduleRestNotification(
-      total * 1000,
-      t("Rest is over"),
-      t("Time for your next set."),
-      t("Resting"),
-    );
+    scheduleRestNotification(total * 1000, t("Rest is over"), t("Time for your next set."));
     maybeAskRestPermission();
   }
 
@@ -538,7 +533,6 @@ function SessionPage() {
           Math.max(0, next.endsAt - Date.now()),
           t("Rest is over"),
           t("Time for your next set."),
-          t("Resting"),
         );
       return { ...s, rest: next, restExpirouEm: null };
     });
