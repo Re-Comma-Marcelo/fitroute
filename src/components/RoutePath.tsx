@@ -1,5 +1,5 @@
 import { Check, Flag, MapPin } from "lucide-react";
-import { buildRoute } from "@/lib/route/path";
+import { buildRoute, pathThrough } from "@/lib/route/path";
 import type { Checkpoint } from "@/lib/route/types";
 import { useT } from "@/lib/i18n";
 import { formatDate } from "@/lib/format";
@@ -25,6 +25,13 @@ export function RoutePath({
   const t = useT();
   const geo = buildRoute(checkpoints.length + 2);
   const nodes = geo.nodes;
+  // The stretch already travelled: start up to the last achieved checkpoint,
+  // drawn solid like the R itself; the rest stays dashed.
+  const lastAchieved = checkpoints.reduce(
+    (last, cp, i) => (cp.status === "achieved" ? i : last),
+    -1,
+  );
+  const travelled = lastAchieved >= 0 ? pathThrough(nodes.slice(0, lastAchieved + 2)) : "";
 
   return (
     <div className="relative mx-auto w-full max-w-[340px]">
@@ -43,6 +50,16 @@ export function RoutePath({
           strokeDasharray="2 10"
           className="text-border"
         />
+        {travelled ? (
+          <path
+            d={travelled}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3}
+            strokeLinecap="round"
+            className="text-primary"
+          />
+        ) : null}
       </svg>
 
       {/* Start marker */}

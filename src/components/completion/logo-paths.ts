@@ -13,3 +13,21 @@ export const LOGO_PATH_INNER =
 
 /** Diameter (px) of the checkmark circle that Phase 1 ends on and Phase 2 starts from. */
 export const MORPH_CIRCLE_SIZE = 96;
+
+/**
+ * The mark with a little air around it, so an inline SVG sits like the PNG
+ * icon did: the R fills about two thirds of its box, centred.
+ */
+export const LOGO_VIEWBOX_MARK = "-87 -20 1440 1440";
+
+/**
+ * Centre lines of the two strokes, in the same viewBox, for drawing the mark
+ * progressively (stroke-dashoffset). Outer = the purple line, inner = the
+ * white one. Approximations of the filled polygons above, close enough to
+ * hand off to them once fully drawn.
+ */
+export const LOGO_STROKE_WIDTH = 78;
+export const LOGO_CENTERLINE_OUTER =
+  "M 210 288 H 808 A 247 247 0 0 1 808 784 H 690 C 630 784 646 793 668 820 L 942 1150";
+export const LOGO_CENTERLINE_INNER =
+  "M 208 414 H 808 A 125 125 0 0 1 808 664 H 610 C 520 664 470 760 505 803 L 792 1152";

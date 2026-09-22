@@ -17,8 +17,9 @@ export const Route = createFileRoute("/")({
     meta: pageMeta({
       title: "Sign in",
       description:
-        "Sign in to Route to log sets in two taps, follow adaptive routines and track real strength progress.",
-      ogDescription: "Your AI trainer that adapts to your actual life. Sign in with your email.",
+        "Sign in to Route: your route to your goal, with checkpoints, routines and a coach built from your own history.",
+      ogDescription:
+        "From the starting point to the goal, one workout at a time. Sign in with your email.",
     }),
   }),
   component: AuthPage,
@@ -395,22 +396,24 @@ function AuthPage() {
 
       <div className="relative z-10 mx-auto w-full max-w-md px-5 pb-[calc(2.5rem+env(safe-area-inset-bottom))] pt-24">
         <div className="flex items-center gap-3">
-          <RouteLogoTile />
+          <RouteLogoTile draw />
           <div>
             <p className="font-display text-lg font-semibold leading-none text-foreground">
               {APP_NAME}
             </p>
             <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.28em] text-primary">
-              {t("Strength, tracked")}
+              {t("Your route to your goal")}
             </p>
           </div>
         </div>
 
         <h1 className="mt-7 font-display text-[2rem] font-semibold leading-[1.1] text-foreground">
-          {t("An AI trainer that adapts to your actual life")}
+          {t("From the starting point to the goal, one workout at a time.")}
         </h1>
         <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">
-          {t("Log sets in two taps. Get routines, diet and coaching grounded in your own history.")}
+          {t(
+            "Log sets in two taps. Your route, your training and your coach, built from your own history.",
+          )}
         </p>
 
         <div className="mt-8 rounded-3xl border border-border/60 bg-card/80 p-5 backdrop-blur-xl">

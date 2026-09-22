@@ -492,3 +492,42 @@
     animation: none;
   }
 }
+
+/* Onboarding steps slide in the direction of the route: forward from the
+ * right, back from the left. The mark itself is the progress bar. */
+@keyframes step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@utility step-forward {
+  animation: step-forward 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@utility step-back {
+  animation: step-back 220ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-forward,
+  .step-back {
+    animation: none;
+  }
+}

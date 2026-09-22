@@ -1,5 +1,18 @@
 /** SVG geometry for the route: a gentle S-curve with a node per checkpoint. */
 
+/** The curve through `nodes`, in order; the same shape `buildRoute` draws. */
+export function pathThrough(nodes: PathNode[]): string {
+  if (!nodes.length) return "";
+  let d = `M ${nodes[0]!.x} ${nodes[0]!.y}`;
+  for (let i = 1; i < nodes.length; i++) {
+    const prev = nodes[i - 1]!;
+    const node = nodes[i]!;
+    const midY = (prev.y + node.y) / 2;
+    d += ` C ${prev.x} ${midY}, ${node.x} ${midY}, ${node.x} ${node.y}`;
+  }
+  return d;
+}
+
 export interface PathNode {
   x: number;
   y: number;
@@ -28,14 +41,7 @@ export function buildRoute(count: number, width = 320, gap = 96): RouteGeometry 
     y: 32 + gap * i,
   }));
 
-  let d = `M ${nodes[0]!.x} ${nodes[0]!.y}`;
-  for (let i = 1; i < nodes.length; i++) {
-    const prev = nodes[i - 1]!;
-    const node = nodes[i]!;
-    const midY = (prev.y + node.y) / 2;
-    d += ` C ${prev.x} ${midY}, ${node.x} ${midY}, ${node.x} ${node.y}`;
-  }
-  return { d, nodes, width, height };
+  return { d: pathThrough(nodes), nodes, width, height };
 }
 
 /** Small three-node snippet used by the home preview card. */
