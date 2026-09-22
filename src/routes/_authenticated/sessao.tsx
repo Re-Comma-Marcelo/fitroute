@@ -218,6 +218,15 @@ function SessionPage() {
    */
   const advanceToRef = useRef<number | null>(null);
   const advanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** Completion-animation payload staged at tick-time, shown only once flushAdvance runs. */
+  const pendingCompletionRef = useRef<{
+    originRect: DOMRect;
+    completedName: string;
+    completedDetail: string;
+    nextExerciseIdx: number;
+    nextExerciseId: string;
+    nextExerciseName: string;
+  } | null>(null);
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
   sessionRef.current = session;
@@ -523,12 +532,7 @@ function SessionPage() {
       rest: { total, endsAt: Date.now() + total * 1000 },
     }));
     // Backgrounded phones stop running timers; the worker still alerts.
-    scheduleRestNotification(
-      total * 1000,
-      t("Rest is over"),
-      t("Time for your next set."),
-      t("Resting"),
-    );
+    scheduleRestNotification(total * 1000, t("Rest is over"), t("Time for your next set."));
     maybeAskRestPermission();
   }
 
@@ -555,7 +559,6 @@ function SessionPage() {
           Math.max(0, next.endsAt - Date.now()),
           t("Rest is over"),
           t("Time for your next set."),
-          t("Resting"),
         );
       return { ...s, rest: next, restExpirouEm: null };
     });
@@ -644,22 +647,6 @@ function SessionPage() {
       setPrBurst({ key: Date.now(), nome: ex.nome });
     }
     if (effects.exerciseDone) setJustExercise(exIdx);
-    if (effects.exerciseDone && effects.nextExerciseIdx !== null && ex) {
-      const rect = currentCardRef.current?.getBoundingClientRect();
-      const nextEx = next.exercicios[effects.nextExerciseIdx];
-      if (rect && nextEx) {
-        setCompletion({
-          originRect: rect,
-          completedName: ex.nome,
-          completedDetail: effects.logged
-            ? `${formatKg(effects.logged.pesoKg)} × ${effects.logged.reps}`
-            : ex.nome,
-          nextExerciseIdx: effects.nextExerciseIdx,
-          nextExerciseId: nextEx.exerciseId,
-          nextExerciseName: nextEx.nome,
-        });
-      }
-    }
     // The rest starts before the RPE sheet opens, so the countdown is visible at once.
     if (effects.restSeconds > 0) startRest(effects.restSeconds);
     if (effects.superset) {
@@ -668,11 +655,27 @@ function SessionPage() {
     }
     const perguntaRpe = !!effects.logged && askRpeEnabled() && !ex?.sets[setIdx]?.rpe;
     if (perguntaRpe) setRpePrompt({ exIdx, setIdx });
-    // A passagem para o próximo exercício acontece só no último ✓ — e espera a
-    // folha de PSE fechar, para não trocar a tela por baixo dela.
+    // A passagem para o próximo exercício — e a animação que a acompanha —
+    // acontece só no último ✓ de verdade (aquecimento incluído, via
+    // effects.advance) e espera a folha de PSE fechar, para não trocar/tapar
+    // a tela por baixo dela.
     cancelAdvance();
     if (effects.advance && effects.nextExerciseIdx !== null && exIdx === viewIndex(next)) {
       advanceToRef.current = effects.nextExerciseIdx;
+      const rect = currentCardRef.current?.getBoundingClientRect();
+      const nextEx = next.exercicios[effects.nextExerciseIdx];
+      if (rect && nextEx && ex) {
+        pendingCompletionRef.current = {
+          originRect: rect,
+          completedName: ex.nome,
+          completedDetail: effects.logged
+            ? `${formatKg(effects.logged.pesoKg)} × ${effects.logged.reps}`
+            : ex.nome,
+          nextExerciseIdx: effects.nextExerciseIdx,
+          nextExerciseId: nextEx.exerciseId,
+          nextExerciseName: nextEx.nome,
+        };
+      }
       if (!perguntaRpe) advanceTimerRef.current = setTimeout(flushAdvance, ADVANCE_DELAY_MS);
     }
     if (effects.logged && ex) {
@@ -914,6 +917,7 @@ function SessionPage() {
     if (advanceTimerRef.current) clearTimeout(advanceTimerRef.current);
     advanceTimerRef.current = null;
     advanceToRef.current = null;
+    pendingCompletionRef.current = null;
   }
 
   /**
@@ -926,6 +930,8 @@ function SessionPage() {
     advanceTimerRef.current = null;
     const target = advanceToRef.current;
     advanceToRef.current = null;
+    const pending = pendingCompletionRef.current;
+    pendingCompletionRef.current = null;
     if (target === null) return;
     const current = sessionRef.current;
     const from = current ? viewIndex(current) : 0;
@@ -935,6 +941,12 @@ function SessionPage() {
     // Uma série desmarcada (ou adicionada) no meio do caminho cancela a troca.
     if (isExercisePending(saindo) || !isExercisePending(destino)) return;
     setSupersetHint(null);
+    // The completion animation owns the jump from here (its onFinish calls
+    // jumpTo) — only fall back to the quiet toast-jump if it couldn't be built.
+    if (pending && pending.nextExerciseIdx === target) {
+      setCompletion(pending);
+      return;
+    }
     jumpTo(target);
     undoToast({
       message: t("Next: {name}", { name: destino.nome }),
@@ -949,6 +961,13 @@ function SessionPage() {
   }
 
   function handleExerciseTouchStart(e: TouchEvent) {
+    // The handlers now sit on the whole screen (header included), so a drag
+    // inside an open sheet/dialog (e.g. the RPE slider) must not also swipe
+    // the exercise underneath it.
+    if ((e.target as HTMLElement | null)?.closest('[role="dialog"]')) {
+      touchStartRef.current = null;
+      return;
+    }
     const touch = e.touches[0];
     touchStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
   }
@@ -1258,7 +1277,11 @@ function SessionPage() {
     : 0;
 
   return (
-    <div className={cn("min-h-screen bg-background", hasFooter ? "pb-48" : "pb-10")}>
+    <div
+      className={cn("min-h-screen bg-background", hasFooter ? "pb-48" : "pb-10")}
+      onTouchStart={handleExerciseTouchStart}
+      onTouchEnd={handleExerciseTouchEnd}
+    >
       <SessionHeader
         routineName={sessionLabel(session)}
         elapsed={elapsed}
@@ -1287,11 +1310,7 @@ function SessionPage() {
         }
       />
 
-      <main
-        className="mx-auto max-w-md space-y-3 px-3 py-3"
-        onTouchStart={handleExerciseTouchStart}
-        onTouchEnd={handleExerciseTouchEnd}
-      >
+      <main className="mx-auto max-w-md space-y-3 px-3 py-3">
         {paused ? (
           <p className="text-center text-[11px] font-semibold text-muted-foreground">
             {t("Clock paused — logging still works.")}
@@ -1351,7 +1370,7 @@ function SessionPage() {
                           exercise={exercise}
                           set={set}
                           label={label}
-                          target={targetTips[viewIdx] ?? exercise.prescricao?.line}
+                          coachTip={coachTips[viewIdx]}
                           warmup={
                             anyDone || targetTips[viewIdx]
                               ? undefined
@@ -1378,12 +1397,6 @@ function SessionPage() {
                             onDismiss={dismissCoachMark}
                             label={t("Got it")}
                           />
-                        </li>
-                      ) : null}
-                      {coachTips[viewIdx] ? (
-                        <li className="px-1 pt-1 text-[11px] leading-snug text-muted-foreground">
-                          <span className="font-semibold text-foreground/80">{t("Coach")}: </span>
-                          {coachTips[viewIdx]}
                         </li>
                       ) : null}
                     </Fragment>

@@ -118,7 +118,7 @@ export function prescribeExercise(
   const rpeMedio = rpes.length ? rpes.reduce((a, b) => a + b, 0) / rpes.length : null;
   const topReps = Math.max(...work.map((s) => s.reps));
   const heaviest = work.reduce((max, s) => Math.max(max, s.pesoKg), 0);
-  const step = incrementoPara(ex.equipamento ?? "");
+  const step = incrementoPara(ex.equipamento ?? "", ex.grupoPrimario);
 
   // Target reps: mid-to-top of the range, biased to the top when the last
   // session was comfortable.
