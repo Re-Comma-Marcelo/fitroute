@@ -2,6 +2,7 @@ import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
 import { isSerieValida, suggestProgression, type PrevSet } from "./progression";
+import { armSessionIntro } from "./session-intro";
 import { prescribeExercise, restForExercise } from "./prescription";
 import {
   makeSets,
@@ -117,6 +118,7 @@ export async function startRoutineSession(
     atual: 0,
   };
   saveActiveSession(session);
+  armSessionIntro();
   return session;
 }
 
@@ -139,5 +141,6 @@ export async function startBlankSession(): Promise<ActiveSession> {
     atual: 0,
   };
   saveActiveSession(session);
+  armSessionIntro();
   return session;
 }

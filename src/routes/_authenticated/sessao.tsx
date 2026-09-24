@@ -111,6 +111,8 @@ import { SessionSheet } from "@/components/session/SessionSheet";
 import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet";
 import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
+import { SessionStartIntro } from "@/components/session/SessionStartIntro";
+import { consumeSessionIntro, type SessionIntroOrigin } from "@/lib/session-intro";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -236,6 +238,13 @@ function SessionPage() {
   const restEndsAt = rest?.endsAt ?? null;
 
   useTick(true);
+
+  /** Brand opening, only right after "Start" (never on resume or reload). */
+  const [intro, setIntro] = useState<{ origin: SessionIntroOrigin | undefined } | null>(null);
+  useEffect(() => {
+    const origin = consumeSessionIntro();
+    if (origin !== null) setIntro({ origin });
+  }, []);
 
   /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
   const unlockAudio = useCallback(() => {
@@ -1290,6 +1299,11 @@ function SessionPage() {
         volumeBurst={volumeBurst}
         segments={segments}
         exerciseIdx={viewIdx}
+        currentProgress={
+          exercise && exercise.sets.length > 0
+            ? exercise.sets.filter((s) => s.concluida).length / exercise.sets.length
+            : 0
+        }
         exerciseName={exercise?.nome ?? t("Add an exercise to start")}
         blockLabel={exercise ? blockLabel[exercise.exerciseId] : undefined}
         onCollapse={() => navigate({ to: "/treino" })}
@@ -1734,6 +1748,13 @@ function SessionPage() {
             jumpTo(completion.nextExerciseIdx);
             setCompletion(null);
           }}
+        />
+      ) : null}
+      {intro ? (
+        <SessionStartIntro
+          origin={intro.origin}
+          title={sessionLabel(session)}
+          onDone={() => setIntro(null)}
         />
       ) : null}
     </div>
