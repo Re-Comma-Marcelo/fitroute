@@ -4,6 +4,7 @@ import type { DictFragment } from "../types";
 export const dict: DictFragment = {
   pt: {
     "Add an exercise to start": "Adicione um exercício para começar",
+    "One more step on your route": "Mais um passo na sua rota",
     "Add the first exercise and start logging.":
       "Adicione o primeiro exercício e comece a registrar.",
     "Adjust weight and reps, then tap Complete set.":
@@ -47,6 +48,7 @@ export const dict: DictFragment = {
     Plates: "Anilhas",
   },
   nl: {
+    "One more step on your route": "Weer een stap op je route",
     "Add an exercise to start": "Voeg een oefening toe om te beginnen",
     "Add the first exercise and start logging.": "Voeg de eerste oefening toe en begin met loggen.",
     "Adjust weight and reps, then tap Complete set.":
