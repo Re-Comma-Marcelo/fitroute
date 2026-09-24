@@ -1,3 +1,4 @@
+import { isStandard } from "@/lib/data/folders";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { getExercises } from "@/lib/data/exercises";
@@ -63,9 +64,12 @@ function chooseRecommendation(
       (n.tags.includes("soreness") || n.tags.includes("injury")),
   );
 
+  // Variations are kept for when life gets in the way, never suggested on their own.
+  const standard = routines.filter(isStandard);
+  const candidates = standard.length ? standard : routines;
   let best: Routine | null = null;
   let bestScore = -Infinity;
-  for (const r of routines) {
+  for (const r of candidates) {
     const last = workouts
       .filter((w) => w.routineId === r.id && w.finalizadoEm)
       .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
@@ -88,7 +92,7 @@ function chooseRecommendation(
     }
   }
 
-  const chosen = best ?? routines[0]!;
+  const chosen = best ?? candidates[0]!;
   const last = workouts
     .filter((w) => w.routineId === chosen.id && w.finalizadoEm)
     .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];

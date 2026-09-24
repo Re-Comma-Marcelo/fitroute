@@ -163,6 +163,9 @@ export const toWorkout = (r: Row) => ({
   volumeTotalKg: Number(r["volume_total_kg"] ?? 0),
   notas: String(r["notas"] ?? ""),
   origem: (r["origem"] ?? "rotina") as string,
+  folderId: (r["folder_id"] ?? undefined) as string | undefined,
+  variacao: Boolean(r["variacao"]),
+  motivo: (r["motivo"] ?? undefined) as string | undefined,
 });
 
 export const toSet = (r: Row) => ({
@@ -177,7 +180,30 @@ export const toSet = (r: Row) => ({
   rpe: r["rpe"] == null ? undefined : Number(r["rpe"]),
   concluida: Boolean(r["concluida"]),
   coachNote: String(r["coach_note"] ?? ""),
+  substituiExerciseId: (r["substitui_exercise_id"] ?? undefined) as string | undefined,
 });
+
+export const toFolder = (r: Row) => ({
+  id: String(r["id"]),
+  nome: String(r["nome"] ?? ""),
+  status: (r["status"] ?? "atual") as string,
+  origemModeloId: (r["origem_modelo_id"] ?? undefined) as string | undefined,
+  inicioEm: String(r["inicio_em"] ?? r["created_at"] ?? ""),
+  fimEm: (r["fim_em"] ?? undefined) as string | undefined,
+});
+
+/** The user's current folder id, or null before the folders migration / first folder. */
+export async function currentFolderId(userId: string): Promise<string | null> {
+  const res = await db()
+    .from("training_folders")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "atual")
+    .limit(1);
+  if (res.error) return null;
+  const row = (res.data ?? [])[0] as Row | undefined;
+  return row ? String(row["id"]) : null;
+}
 
 export const toCoachNote = (r: Row) => ({
   id: String(r["id"]),

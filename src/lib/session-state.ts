@@ -43,6 +43,8 @@ export interface ActiveExercise {
   prescricao?: SetPrescription;
   /** Heaviest weight ever logged for this exercise, for live PR detection (0 = none). */
   prKg?: number;
+  /** Routine exercise this one replaced today (swap), kept through re-swaps. */
+  substituiDe?: string;
   sets: ActiveSet[];
 }
 
@@ -59,6 +61,12 @@ export interface ActiveSession {
   notas: string;
   exercicios: ActiveExercise[];
   atual: number;
+  /** Folder the session is filed in: the routine's, else the current one. */
+  folderId?: string;
+  /** Started as a lighter (deload) session: counts as a variation. */
+  deload?: boolean;
+  /** Started from a routine that is itself a variation. */
+  fromVariation?: boolean;
   /** Rest countdown, persisted so it survives navigation/unmount. */
   rest?: RestState | null;
   /** Epoch ms when the rest countdown hit zero (drives the "overdue" read). */
@@ -67,6 +75,24 @@ export interface ActiveSession {
   pausadoEm?: number | null;
   /** Seconds already spent paused, accumulated across pauses. */
   pausadoAcumSeg?: number;
+}
+
+/**
+ * `next` taking the slot of `prev`: remembers the routine's original exercise
+ * across repeated swaps, and forgets it when swapped back.
+ */
+export function asReplacement(next: ActiveExercise, prev: ActiveExercise): ActiveExercise {
+  const original = prev.substituiDe ?? prev.exerciseId;
+  const rest = { ...next };
+  delete rest.substituiDe;
+  return original === next.exerciseId ? rest : { ...rest, substituiDe: original };
+}
+
+/** Exercises that stand in for a routine exercise this session. */
+export function sessionSwaps(session: ActiveSession): { from: string; ex: ActiveExercise }[] {
+  return session.exercicios
+    .filter((ex) => ex.substituiDe && !ex.pulado)
+    .map((ex) => ({ from: ex.substituiDe!, ex }));
 }
 
 /** Seconds left on the persisted rest countdown (0 when idle/finished). */

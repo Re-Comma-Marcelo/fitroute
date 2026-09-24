@@ -19,7 +19,7 @@ Este plano cria a **Pasta de treino**, que agrupa as rotinas e as sessões de um
 | **Atual** / Current / Huidig | A única pasta ativa. Treino abre nela, e rotinas e sessões novas entram nela. |
 | **Padrão** / Standard / Standaard | Rotina principal da pasta (A/B/C). Aparece em destaque. |
 | **Variação** / Variation / Variant | Uma sessão que fugiu do padrão (troca de exercício, versão curta, treino social). Fica visível, só que com menos destaque. |
-| **Modelo** / Template / Sjabloon | Pasta encerrada e congelada, usada para começar a próxima pasta. |
+| **Modelo** / Template / Sjabloon | Pasta encerrada, usada para começar a próxima pasta. Continua editável. |
 
 Motivos da variação, que viram chips (reaproveitando e ampliando o `SwapReason` de `src/lib/coach/swap.ts`):
 `busy` (pouco tempo) · `social` (treino com amigos) · `pain` (dor/desconforto) · `equipment` (aparelho ocupado/indisponível) · `preference` (preferência) · `difficulty` (difícil demais).
@@ -86,8 +86,9 @@ Data layer novo, `src/lib/data/folders.ts` (componentes só importam daqui):
 Sem isso, a pasta não tem como separar padrão de variação.
 
 1. **`ActiveExercise`** (`src/lib/session-state.ts`) ganha `substituiDe?: string` e `motivoTroca?: SwapReason`.
-2. **Troca antes de começar** (TodayCoachCard → `startRoutineSession({ swaps })` em `src/lib/start-session.ts`): quando `swaps[rex.exerciseId]` é aplicado, o exercício construído recebe `substituiDe = rex.exerciseId`. O motivo vem do chip escolhido no card, e o card do Coach passa a pedir o motivo com uma linha de chips ("Por quê?").
-3. **Troca no meio da sessão** (`swapExerciseTo` e o fluxo "Replace exercise" em `sessao.tsx`): grava `substituiDe` com o exercício original. Se o original já era uma substituição, mantém o `substituiDe` de origem para não virar cadeia. O sheet de troca ganha a mesma linha de chips de motivo, opcional e com um toque.
+2. **Troca antes de começar** (TodayCoachCard → `startRoutineSession({ swaps })` em `src/lib/start-session.ts`): quando `swaps[rex.exerciseId]` é aplicado, o exercício construído recebe `substituiDe = rex.exerciseId`.
+3. **Troca no meio da sessão** (`swapExerciseTo` e o fluxo "Replace exercise" em `sessao.tsx`): grava `substituiDe` com o exercício original. Se o original já era uma substituição, mantém o `substituiDe` de origem para não virar cadeia; trocar de volta para o original apaga a marca.
+   O motivo é perguntado **uma vez, no fim da sessão** (ver abaixo), e não em cada troca, para não interromper o treino.
 4. **Sessão curta / deload / treino social iniciado de fora da rotina:** o botão "Start lighter" e um novo "Treino com amigos / pouco tempo" no card da rotina abrem a sessão já marcada como variação com o motivo certo.
 5. **Ao salvar (finish em `sessao.tsx`):** cada set leva `substituiExerciseId`; o workout leva `folderId` (pasta atual), `variacao` (há troca, motivo, deload ou rotina variação) e `motivo` (o mais frequente da sessão). A fila offline (`enqueueWorkout`) carrega os mesmos campos.
 
@@ -153,7 +154,7 @@ Ação "Encerrar ciclo" na pasta atual, com um assistente curto de três passos:
 
 1. **Revisar trocas recorrentes.** Para cada troca que aconteceu em ≥50% das sessões da rotina (ex.: Crucifixo no lugar de Supino em 4 de 6), pergunta: "Incluir no modelo?" (sim/não por troca).
 2. **Atualizar prescrição.** O modelo copia as rotinas padrão com séries e reps atuais e grava, nas `notas` de cada exercício, a carga de referência do fim do ciclo (último set válido ou prescrição de `prescribeExercise`). Assim a próxima pasta já começa com as cargas certas.
-3. **Resultado.** A pasta vira `modelo` (congelada: rotinas somente leitura, sessões preservadas). O app oferece **"Começar nova pasta a partir deste modelo"**, que duplica as rotinas padrão com ids novos numa pasta `atual` chamada "{nome} · ciclo 2", ligada por `origem_modelo_id`. Por padrão, as rotinas variação **não** são copiadas; há um checkbox para levá-las.
+3. **Resultado.** A pasta vira `modelo` (rotinas continuam editáveis, sessões preservadas). O app oferece **"Começar nova pasta a partir deste modelo"**, que duplica as rotinas padrão com ids novos numa pasta `atual` chamada "{nome} · ciclo 2", ligada por `origem_modelo_id`. Por padrão, as rotinas variação **não** são copiadas; há um checkbox para levá-las.
 
 Encerrar sem transformar em modelo também é possível: nesse caso a pasta vira `arquivada`.
 
@@ -188,9 +189,14 @@ Cada fase pode ir para produção sozinha:
 
 ---
 
-## 11. Decisões em aberto
+## 11. Decisões (fechadas em 24/09)
 
-1. **Nome:** "Pasta" (a palavra usada no pedido) ou "Ciclo"/"Bloco" (mais do vocabulário de treino)? Proposta: **Pasta** na UI, com o subtítulo "ciclo de treino" no cabeçalho.
-2. **Só uma pasta atual?** Proposta: **sim**. Isso simplifica o Coach e o "Recommended today". Quem treina dois programas em paralelo usa uma pasta só com as duas rotinas.
-3. **"Atualizar o padrão" no fim da sessão:** oferecer já na fase 2, ou deixar mudanças no padrão só para o encerramento do ciclo? Proposta: **oferecer**, porque é o caminho mais curto para ajustes que o usuário já sabe que são definitivos.
-4. **Pastas antigas / modelos são editáveis?** Proposta: modelo congelado (para editar, crie uma nova pasta a partir dele) e pasta arquivada editável.
+1. **Nome:** **Pasta**.
+2. **Só uma pasta atual:** **sim** (garantido por índice único no banco).
+3. **"Atualizar o padrão" no fim da sessão:** **sim**, já na fase 2.
+4. **Modelos e pastas arquivadas:** **editáveis**.
+
+## 12. Status
+
+- **Fase 1 — feita.** `scripts/supabase-migration-folders.sql`; tipos `TrainingFolder`/`SwapReason`; `loadFolders`/`persistFolder` em `forja.functions.ts`; `src/lib/data/folders.ts`. A primeira leitura cria "Meu treino" e arquiva nela todas as rotinas e sessões existentes. Sem a migração, tudo segue funcionando como antes.
+- **Fase 2 — feita.** Trocas registradas (`substituiDe` → `workout_sets.substitui_exercise_id`); sessão salva com `folder_id`, `variacao` e `motivo`; passo "Você trocou N exercícios" no diálogo de finalizar (motivo + só hoje / guardar como variação / atualizar o padrão); detalhe da sessão mostra "no lugar de X (grupo)" e o selo de variação. O Coach já não recomenda rotinas variação.

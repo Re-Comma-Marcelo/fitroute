@@ -1,7 +1,7 @@
-import type { Exercise, Profile, Routine } from "@/lib/types";
+import type { Exercise, Profile, Routine, SwapReason as Reason } from "@/lib/types";
 
 /** Why the user wants out: shapes the ranking without ever emptying it. */
-export type SwapReason = "busy" | "pain" | "difficulty" | "preference" | null;
+export type SwapReason = Reason | null;
 
 export interface SwapOptions {
   profile?: Pick<Profile, "equipment" | "avoidExercises"> | null;

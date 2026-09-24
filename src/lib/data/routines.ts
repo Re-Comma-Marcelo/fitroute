@@ -1,5 +1,5 @@
 import { fetchRoutines, persistRoutine, removeRoutine } from "../forja.functions";
-import type { Routine, RoutineExercise } from "../types";
+import type { Routine, RoutineExercise, SwapReason } from "../types";
 import { getWorkoutLog } from "./workouts";
 
 let cache: Routine[] | null = null;
@@ -82,4 +82,48 @@ export async function countRoutineSetsLogged(routineId: string): Promise<number>
   const { workouts, sets } = await getWorkoutLog();
   const ids = new Set(workouts.filter((w) => w.routineId === routineId).map((w) => w.id));
   return sets.filter((s) => ids.has(s.workoutId)).length;
+}
+
+/** The routine's exercises with today's swaps (original id -> replacement) applied in place. */
+function withSwaps(routine: Routine, swaps: Record<string, string>): RoutineExercise[] {
+  return routine.exercicios.map((ex) =>
+    swaps[ex.exerciseId] ? { ...ex, exerciseId: swaps[ex.exerciseId]! } : ex,
+  );
+}
+
+/** Make today's swaps the routine's standard from now on. */
+export async function applySwapsToRoutine(
+  routineId: string,
+  swaps: Record<string, string>,
+): Promise<Routine | null> {
+  const routine = await getRoutine(routineId);
+  if (!routine) return null;
+  return saveRoutine({ ...routine, exercicios: withSwaps(routine, swaps) });
+}
+
+/**
+ * Keep today's swaps as a variation of the routine, filed in the same folder.
+ * Variations are never scheduled: the standard routine keeps its weekdays.
+ */
+export async function saveSwapVariation(
+  routineId: string,
+  swaps: Record<string, string>,
+  nome: string,
+  motivo?: SwapReason,
+): Promise<Routine | null> {
+  const routine = await getRoutine(routineId);
+  if (!routine) return null;
+  return saveRoutine({
+    ...routine,
+    id: `rot_${Math.random().toString(36).slice(2, 10)}`,
+    nome,
+    diasSemana: [],
+    papel: "variacao",
+    variacaoDe: routine.variacaoDe ?? routine.id,
+    ...(motivo ? { motivo } : {}),
+    exercicios: withSwaps(routine, swaps).map((ex) => ({
+      ...ex,
+      id: `rex_${Math.random().toString(36).slice(2, 10)}`,
+    })),
+  });
 }

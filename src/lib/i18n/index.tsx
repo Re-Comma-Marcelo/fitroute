@@ -13,6 +13,7 @@ import { setFormatLocale } from "@/lib/format";
 import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as foldersDict } from "./dict/folders";
 import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
 import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
@@ -113,6 +114,7 @@ const FRAGMENTS: DictFragment[] = [
   round32Dict,
   round33Dict,
   round34Dict,
+  foldersDict,
   authDict,
 ];
 
