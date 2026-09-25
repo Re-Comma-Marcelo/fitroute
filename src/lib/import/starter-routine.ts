@@ -33,8 +33,8 @@ export interface StarterAnswers {
   trainingYears: TrainingYears;
   /** Short & few exercises vs. longer & more thorough sessions. null = today's default balance. */
   pace: Pace | null;
-  /** A muscle group to emphasize with an extra exercise, or null for no preference. */
-  focusMuscle: FocusMuscle | null;
+  /** Muscle groups to emphasize with an extra exercise — empty for no preference. */
+  focusMuscles: FocusMuscle[];
 }
 
 /** Used for whatever the person skipped. */
@@ -43,7 +43,7 @@ export const DEFAULT_ANSWERS: StarterAnswers = {
   days: [1, 3, 5],
   trainingYears: "1to3y",
   pace: null,
-  focusMuscle: null,
+  focusMuscles: [],
 };
 
 /** Years under load only — the quiz doesn't ask about the last-6-months consistency the weekly interview does. */
@@ -92,9 +92,28 @@ export function prescriptionFor(answers: StarterAnswers): Prescription {
   return base;
 }
 
-/** Full body for up to 3 days, upper/lower for 4, push/pull/legs for 5 or more. */
+/**
+ * Day counts that split evenly across a template's routine slots: full body
+ * (any count — every session already covers the whole body), upper/lower
+ * (2 slots, needs a multiple of 2), push/pull/legs (3 slots, needs a
+ * multiple of 3). A count outside this set — 5 or 7 days, say — forced PPL
+ * into an uneven 2/2/1 or 3/2/2 rotation: the same muscle hit three times
+ * one week and twice the next for no programming reason, only because the
+ * calendar day count didn't divide evenly. See the meta-analyses on training
+ * frequency: each muscle should land on ~2x/week consistently, not "whatever
+ * the leftover days happen to produce."
+ */
+const CLEAN_DAY_COUNTS = [1, 2, 3, 4, 6] as const;
+
+/** The largest clean day count at or below `n`. */
+export function nearestCleanDayCount(n: number): number {
+  return [...CLEAN_DAY_COUNTS].reverse().find((c) => c <= n) ?? 1;
+}
+
+/** Full body for up to 3 days, upper/lower for 4, push/pull/legs for 6. */
 export function templateFor(dayCount: number): RoutineTemplate {
-  const id = dayCount <= 3 ? "full-body" : dayCount === 4 ? "upper-lower" : "ppl";
+  const clean = nearestCleanDayCount(dayCount);
+  const id = clean <= 3 ? "full-body" : clean === 4 ? "upper-lower" : "ppl";
   return ROUTINE_TEMPLATES.find((tpl) => tpl.id === id) ?? ROUTINE_TEMPLATES[0]!;
 }
 
@@ -122,13 +141,16 @@ export function buildStarterPlan(
   library: Exercise[],
   translate: (source: string) => string = (s) => s,
 ): StarterPlan {
-  const days = sortDays(answers.days);
-  const template = templateFor(days.length || DEFAULT_ANSWERS.days.length);
+  const allDays = sortDays(answers.days);
+  const dayCount = nearestCleanDayCount(allDays.length || DEFAULT_ANSWERS.days.length);
+  // Keep only what a clean split needs — an extra, unevenly-distributed day defeats the point.
+  const days = allDays.slice(0, dayCount);
+  const template = templateFor(dayCount);
   const prescription = prescriptionFor(answers);
 
   let routines = buildTemplateRoutines(template, library, translate, {
     pace: answers.pace,
-    focusMuscle: answers.focusMuscle,
+    focusMuscles: answers.focusMuscles,
   }).map((routine) => ({
     ...routine,
     exercicios: routine.exercicios.map((exercise) => ({

@@ -87,10 +87,10 @@ export function buildTemplateRoutines(
   template: RoutineTemplate,
   library: Exercise[],
   translate: (source: string) => string = (s) => s,
-  options: { pace?: Pace | null; focusMuscle?: FocusMuscle | null } = {},
+  options: { pace?: Pace | null; focusMuscles?: FocusMuscle[] } = {},
 ): Routine[] {
   const pace = options.pace ?? null;
-  const focusGroups = options.focusMuscle ? FOCUS_GROUPS[options.focusMuscle] : [];
+  const focusGroups = (options.focusMuscles ?? []).flatMap((m) => FOCUS_GROUPS[m]);
 
   return template.days.map((day) => {
     const used = new Set<string>();
@@ -99,7 +99,9 @@ export function buildTemplateRoutines(
         const standard = day.groups.length > 3 ? 1 : 2;
         const base = pace === "quick" ? 1 : pace === "relaxed" ? standard + 1 : standard;
         const isFocusDay = focusGroups.some((g) => (GROUP_ALIASES[group] ?? [group]).includes(g));
-        const take = isFocusDay ? base + 1 : base;
+        // Cap at +1 regardless of how many focus muscles land on this day —
+        // a longer, more fatiguing session isn't the point of "focus".
+        const take = Math.min(3, isFocusDay ? base + 1 : base);
         const picked = pickForGroup(library, group, used, take);
         picked.forEach((e) => used.add(e.id));
         return picked;

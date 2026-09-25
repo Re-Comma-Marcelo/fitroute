@@ -34,12 +34,14 @@ import {
   buildStarterPlan,
   goalToObjetivo,
   goalToTrainingGoal,
+  nearestCleanDayCount,
   sortDays,
   templateFor,
   yearsToExperience,
   type StarterAnswers,
   type StarterGoal,
 } from "@/lib/import/starter-routine";
+import { frequencyGuidance } from "@/lib/plan/frequency";
 import { TRAINING_YEARS_LABEL } from "@/lib/plan/experience";
 import type { TrainingYears } from "@/lib/plan/types";
 import { markOnboardingDone } from "@/lib/onboarding";
@@ -73,7 +75,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 type Step =
   "name" | "goal" | "days" | "pace" | "focus" | "experience" | "plan" | "route" | "import";
 
-const QUESTIONS: Step[] = ["name", "goal", "days", "pace", "focus", "experience", "plan", "route"];
+const QUESTIONS: Step[] = ["name", "goal", "experience", "days", "pace", "focus", "plan", "route"];
 /** Sunday first, matching `Date#getDay()`. */
 const WEEK = [0, 1, 2, 3, 4, 5, 6] as const;
 const WEEK_OPTIONS = [8, 12, 16] as const;
@@ -132,7 +134,9 @@ function OnboardingPage() {
       days: answers.days?.length ? answers.days : DEFAULT_ANSWERS.days,
       trainingYears: answers.trainingYears ?? DEFAULT_ANSWERS.trainingYears,
       pace: answers.pace ?? DEFAULT_ANSWERS.pace,
-      focusMuscle: answers.focusMuscle ?? DEFAULT_ANSWERS.focusMuscle,
+      focusMuscles: answers.focusMuscles?.length
+        ? answers.focusMuscles
+        : DEFAULT_ANSWERS.focusMuscles,
     }),
     [answers],
   );
@@ -273,6 +277,13 @@ function OnboardingPage() {
   const pickedDays = sortDays(answers.days ?? []);
   const canGoBack = step !== "name" && step !== "route";
 
+  /** Evidence-based day range for this goal/experience — asked before "days" so it can cap the picker. */
+  const frequencyRange = frequencyGuidance(
+    goalToTrainingGoal(complete.goal),
+    yearsToExperience(complete.trainingYears),
+  );
+  const dayCap = nearestCleanDayCount(frequencyRange.maxDays);
+
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-4">
       <div className="mb-4 flex h-11 items-center justify-between">
@@ -378,11 +389,35 @@ function OnboardingPage() {
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
               disabled={!answers.goal}
-              onClick={() => setStep("days")}
+              onClick={() => setStep("experience")}
             >
               {t("Continue")} <ArrowRight className="size-4" />
             </Button>
-            <SkipLink onSkip={() => setStep("days")} />
+            <SkipLink onSkip={() => setStep("experience")} />
+          </section>
+        ) : null}
+
+        {step === "experience" ? (
+          <section className="flex flex-1 flex-col">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("How long have you been training?")}
+            </h1>
+            <div className="mt-6 grid gap-3" role="group">
+              {(Object.keys(TRAINING_YEARS_LABEL) as TrainingYears[]).map((years) => (
+                <OptionButton
+                  key={years}
+                  label={t(TRAINING_YEARS_LABEL[years])}
+                  selected={answers.trainingYears === years}
+                  onClick={() => {
+                    setAnswers((a) => ({ ...a, trainingYears: years }));
+                    setStep("days");
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-auto">
+              <SkipLink onSkip={() => setStep("days")} />
+            </div>
           </section>
         ) : null}
 
@@ -394,18 +429,22 @@ function OnboardingPage() {
             <div className="mt-6 grid grid-cols-7 gap-1.5" role="group">
               {[1, 2, 3, 4, 5, 6, 0].map((day) => {
                 const on = pickedDays.includes(day);
+                const atCap = !on && pickedDays.length >= dayCap;
                 return (
                   <button
                     key={day}
                     type="button"
                     aria-pressed={on}
                     aria-label={dayLabels[day]!.short}
+                    disabled={atCap}
                     onClick={() => toggleDay(day)}
                     className={cn(
                       "tap-target aspect-square rounded-full border text-sm font-semibold transition-colors",
                       on
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-muted-foreground",
+                        : atCap
+                          ? "border-border/50 bg-card/50 text-muted-foreground/50"
+                          : "border-border bg-card text-muted-foreground",
                     )}
                   >
                     {dayLabels[day]!.narrow}
@@ -417,6 +456,12 @@ function OnboardingPage() {
               {pickedDays.length
                 ? `${t("{count} day(s) a week", { count: pickedDays.length })} · ${t(templateFor(pickedDays.length).nome)}`
                 : t("Skip — you can change this later")}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground/80">
+              {t(
+                "{min}-{max} days is the evidence-based range for this goal and level — more doesn't train any better.",
+                { min: frequencyRange.minDays, max: frequencyRange.maxDays },
+              )}
             </p>
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
@@ -492,12 +537,17 @@ function OnboardingPage() {
                   <OptionButton
                     key={o.value}
                     label={o.label}
-                    selected={answers.focusMuscle === o.value}
+                    selected={Boolean(answers.focusMuscles?.includes(o.value))}
                     onClick={() => {
-                      setAnswers((a) => ({
-                        ...a,
-                        focusMuscle: a.focusMuscle === o.value ? null : o.value,
-                      }));
+                      setAnswers((a) => {
+                        const current = a.focusMuscles ?? [];
+                        return {
+                          ...a,
+                          focusMuscles: current.includes(o.value)
+                            ? current.filter((m) => m !== o.value)
+                            : [...current, o.value],
+                        };
+                      });
                     }}
                   />
                 ))
@@ -505,35 +555,11 @@ function OnboardingPage() {
             </div>
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
-              onClick={() => setStep("experience")}
+              onClick={() => setStep("plan")}
             >
               {t("Continue")} <ArrowRight className="size-4" />
             </Button>
-            <SkipLink onSkip={() => setStep("experience")} />
-          </section>
-        ) : null}
-
-        {step === "experience" ? (
-          <section className="flex flex-1 flex-col">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {t("How long have you been training?")}
-            </h1>
-            <div className="mt-6 grid gap-3" role="group">
-              {(Object.keys(TRAINING_YEARS_LABEL) as TrainingYears[]).map((years) => (
-                <OptionButton
-                  key={years}
-                  label={t(TRAINING_YEARS_LABEL[years])}
-                  selected={answers.trainingYears === years}
-                  onClick={() => {
-                    setAnswers((a) => ({ ...a, trainingYears: years }));
-                    setStep("plan");
-                  }}
-                />
-              ))}
-            </div>
-            <div className="mt-auto">
-              <SkipLink onSkip={() => setStep("plan")} />
-            </div>
+            <SkipLink onSkip={() => setStep("plan")} />
           </section>
         ) : null}
 
