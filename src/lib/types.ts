@@ -61,6 +61,15 @@ export interface Profile {
   trainingGoal?: TrainingGoal | undefined;
 }
 
+/** A different way to perform the same exercise (e.g. grip width) — shares
+ * the parent exercise's history and progression, just tags which way a set
+ * was done. */
+export interface ExerciseVariant {
+  id: string;
+  label: string;
+  instrucoes?: string;
+}
+
 export interface Exercise {
   id: string;
   nome: string;
@@ -71,6 +80,8 @@ export interface Exercise {
   midiaUrl?: string;
   /** Static thumb path in the public media bucket (derived when absent). */
   thumbUrl?: string;
+  /** Alternate ways to perform this exercise, when logging it differently matters. */
+  variants?: ExerciseVariant[];
 
   isCustom: boolean;
 }
@@ -126,6 +137,8 @@ export interface WorkoutSet {
   concluida: boolean;
   /** Optional short context the user wrote for the coach ("lower back tight"). */
   coachNote?: string;
+  /** Which ExerciseVariant this set was performed as, when the exercise has more than one. */
+  variantId?: string;
 }
 
 export interface CoachNote {

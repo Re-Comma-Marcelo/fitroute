@@ -81,6 +81,9 @@ export async function buildActiveExercise(
     sugestao: opts.deload ? null : sugestao,
     ...(prescricao ? { prescricao } : {}),
     prKg,
+    ...(exercise.variants?.length
+      ? { variants: exercise.variants, selectedVariantId: exercise.variants[0]!.id }
+      : {}),
     sets: makeSets(seriesAlvo, anteriores, {
       pesoSugerido: prescricao ? prescricao.pesoKg : pesoSugerido,
       repsAlvo: prescricao ? prescricao.reps : null,

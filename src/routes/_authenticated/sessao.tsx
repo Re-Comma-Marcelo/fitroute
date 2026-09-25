@@ -105,6 +105,7 @@ import type { TipoSerie, WorkoutSet } from "@/lib/types";
 import { SessionHeader, type SegmentStatus } from "@/components/session/SessionHeader";
 import { CurrentSetCard } from "@/components/session/CurrentSetCard";
 import { DoneSetRow, PendingSetRow } from "@/components/session/SetRows";
+import { VariantPicker } from "@/components/session/VariantPicker";
 import { SetEditSheet } from "@/components/session/SetEditSheet";
 import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session/ExerciseMenuSheet";
 import { SessionSheet } from "@/components/session/SessionSheet";
@@ -767,6 +768,14 @@ function SessionPage() {
     });
   }
 
+  /** Which variant (e.g. grip) new sets for this exercise get tagged as. */
+  function setExerciseVariant(exIdx: number, variantId: string) {
+    update((s) => {
+      s.exercicios[exIdx]!.selectedVariantId = variantId;
+      return s;
+    });
+  }
+
   /** Context the coach reads later ("lower back felt tight"). */
   function setSetNote(exIdx: number, setIdx: number, value: string) {
     patchSet(exIdx, setIdx, { coachNote: value });
@@ -1122,6 +1131,7 @@ function SessionPage() {
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
             ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
+            ...(s.variantId ? { variantId: s.variantId } : {}),
           });
         });
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
@@ -1363,6 +1373,13 @@ function SessionPage() {
           </div>
         ) : (
           <>
+            {exercise.variants && exercise.variants.length > 1 ? (
+              <VariantPicker
+                variants={exercise.variants}
+                selectedId={exercise.selectedVariantId ?? exercise.variants[0]!.id}
+                onSelect={(variantId) => setExerciseVariant(viewIdx, variantId)}
+              />
+            ) : null}
             <ul className="space-y-0.5">
               {exercise.sets.map((set, setIdx) => {
                 const label = serieLabel(exercise.sets, setIdx);
