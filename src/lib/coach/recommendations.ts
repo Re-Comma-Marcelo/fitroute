@@ -1,4 +1,4 @@
-import { isStandard } from "@/lib/data/folders";
+import { getCurrentFolder, isStandard, routinesInFolder } from "@/lib/data/folders";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { getExercises } from "@/lib/data/exercises";
@@ -19,13 +19,18 @@ import type { Routine, Workout, WorkoutSet, Exercise, Profile, CoachNote } from 
 import type { CoachInsight, TodayPlan } from "./types";
 
 export async function getTodayPlan(): Promise<TodayPlan> {
-  const [routines, workouts, exercises, profile, notes] = await Promise.all([
+  const [allRoutines, workouts, exercises, profile, notes, folder] = await Promise.all([
     getRoutines(),
     getWorkouts(),
     getExercises(),
     getProfile(),
     getCoachNotes(),
+    // Folders are optional (migration not applied yet): fall back to every routine.
+    getCurrentFolder().catch(() => null),
   ]);
+  // The plan is the current folder: older folders' routines are not suggested.
+  const inFolder = folder ? routinesInFolder(allRoutines, folder.id, folder.id) : allRoutines;
+  const routines = inFolder.length ? inFolder : allRoutines;
   const allSets = workouts.length
     ? (await Promise.all(workouts.map((w) => getWorkoutSets(w.id)))).flat()
     : [];

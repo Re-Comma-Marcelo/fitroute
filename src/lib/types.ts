@@ -106,9 +106,9 @@ export interface Routine {
   /** Folder it belongs to; unset means the current folder. */
   folderId?: string;
   papel?: RoutineRole;
-  /** Standard routine this variation was derived from. */
-  variacaoDe?: string;
-  motivo?: SwapReason;
+  /** Standard routine this variation was derived from (null clears it). */
+  variacaoDe?: string | null;
+  motivo?: SwapReason | null;
 }
 
 /** One body-weight measurement, keyed by ISO date (one per day). */

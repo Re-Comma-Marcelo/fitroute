@@ -1,6 +1,8 @@
 import { loadFolders, persistFolder } from "../forja.functions";
 import { tx } from "../format";
-import type { Routine, TrainingFolder, Workout } from "../types";
+import type { Routine, TrainingFolder, Workout, WorkoutSet } from "../types";
+import { copyRoutinesToFolder, refreshRoutines } from "./routines";
+import { refreshWorkoutLog } from "./workouts";
 
 let cache: TrainingFolder[] | null = null;
 let inflight: Promise<TrainingFolder[]> | null = null;
@@ -36,13 +38,51 @@ export async function getCurrentFolder(): Promise<TrainingFolder | null> {
 
 export async function saveFolder(folder: TrainingFolder): Promise<TrainingFolder> {
   const saved = (await persistFolder({ data: { folder } })) as TrainingFolder;
-  // Making a folder current archives the previous one server-side: refetch.
+  // Making a folder current archives the previous one server-side, and rows
+  // cached without a folder must not follow the switch: refetch everything.
   cache = null;
+  refreshRoutines();
+  refreshWorkoutLog();
   return saved;
 }
 
-export async function createFolder(nome: string): Promise<TrainingFolder> {
-  return saveFolder({ id: "", nome, status: "atual", inicioEm: new Date().toISOString() });
+export async function renameFolder(id: string, nome: string): Promise<TrainingFolder | null> {
+  const folder = await getFolder(id);
+  if (!folder) return null;
+  return saveFolder({ ...folder, nome });
+}
+
+/** Switch the current folder; the previous current one is archived. */
+export async function makeFolderCurrent(id: string): Promise<TrainingFolder | null> {
+  const folder = await getFolder(id);
+  if (!folder) return null;
+  return saveFolder({ ...folder, status: "atual" });
+}
+
+/**
+ * Start a new current folder. With `copy`, those routines come along (new
+ * ids), so the next block starts from where this one ended.
+ */
+export async function createFolder(nome: string, copy: Routine[] = []): Promise<TrainingFolder> {
+  const created = await saveFolder({
+    id: "",
+    nome,
+    status: "atual",
+    inicioEm: new Date().toISOString(),
+  });
+  if (copy.length) await copyRoutinesToFolder(copy, created.id);
+  return created;
+}
+
+/** A session's swaps as original exercise id -> the one done instead. */
+export function sessionSwapMap(sets: WorkoutSet[], workoutId: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const s of sets) {
+    if (s.workoutId === workoutId && s.substituiExerciseId) {
+      map[s.substituiExerciseId] = s.exerciseId;
+    }
+  }
+  return map;
 }
 
 /** Routines filed in `folderId`; a routine with no folder counts as the current one's. */

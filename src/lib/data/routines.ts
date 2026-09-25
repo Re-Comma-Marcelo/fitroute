@@ -38,7 +38,8 @@ export async function saveRoutine(routine: Routine): Promise<Routine> {
   const saved = (await persistRoutine({ data: { routine } })) as Routine;
   const list = [...(cache ?? [])];
   const idx = list.findIndex((r) => r.id === saved.id);
-  if (idx >= 0) list[idx] = saved;
+  // Keep fields the caller did not send (folder, role): the server kept them too.
+  if (idx >= 0) list[idx] = { ...list[idx]!, ...saved };
   else list.push(saved);
   cache = list;
   return saved;
@@ -58,6 +59,12 @@ export async function duplicateRoutine(id: string, copyLabel: string): Promise<R
     })),
   };
   return saveRoutine(copy);
+}
+
+/** Drop the cache so the next read reflects server-side moves (folder switches). */
+export function refreshRoutines(): void {
+  cache = null;
+  inflight = null;
 }
 
 export async function deleteRoutine(id: string): Promise<void> {
@@ -126,4 +133,52 @@ export async function saveSwapVariation(
       id: `rex_${Math.random().toString(36).slice(2, 10)}`,
     })),
   });
+}
+
+/**
+ * Make a variation the standard: it takes over the weekdays, and the routine
+ * it came from steps back to a variation of it.
+ */
+export async function promoteVariation(id: string): Promise<Routine | null> {
+  const variation = await getRoutine(id);
+  if (!variation) return null;
+  const parent = variation.variacaoDe ? await getRoutine(variation.variacaoDe) : null;
+  const promoted = await saveRoutine({
+    ...variation,
+    papel: "padrao",
+    variacaoDe: null,
+    motivo: null,
+    diasSemana: parent?.diasSemana?.length ? parent.diasSemana : (variation.diasSemana ?? []),
+  });
+  if (parent) {
+    await saveRoutine({ ...parent, papel: "variacao", variacaoDe: promoted.id, diasSemana: [] });
+  }
+  return promoted;
+}
+
+/** Copy routines (new ids) into another folder, keeping their roles and links. */
+export async function copyRoutinesToFolder(
+  routines: Routine[],
+  folderId: string,
+): Promise<Routine[]> {
+  const newId = new Map(
+    routines.map((r) => [r.id, `rot_${Math.random().toString(36).slice(2, 10)}`]),
+  );
+  const saved: Routine[] = [];
+  for (const r of routines) {
+    saved.push(
+      await saveRoutine({
+        ...r,
+        id: newId.get(r.id)!,
+        folderId,
+        // A variation follows its standard into the new folder when both are copied.
+        variacaoDe: r.variacaoDe ? (newId.get(r.variacaoDe) ?? null) : null,
+        exercicios: r.exercicios.map((ex) => ({
+          ...ex,
+          id: `rex_${Math.random().toString(36).slice(2, 10)}`,
+        })),
+      }),
+    );
+  }
+  return saved;
 }

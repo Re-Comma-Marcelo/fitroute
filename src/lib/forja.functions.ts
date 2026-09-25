@@ -96,8 +96,8 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
     diasSemana: ((r["dias_semana"] ?? []) as number[]).map(Number),
     folderId: r["folder_id"] ?? undefined,
     papel: r["papel"] ?? "padrao",
-    variacaoDe: r["variacao_de"] ?? undefined,
-    motivo: r["motivo"] ?? undefined,
+    variacaoDe: r["variacao_de"] ?? null,
+    motivo: r["motivo"] ?? null,
     exercicios: items
       .filter((i: Record<string, unknown>) => i["routine_id"] === r["id"])
       .map(toRoutineExercise),
