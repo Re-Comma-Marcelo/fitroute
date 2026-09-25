@@ -7,10 +7,14 @@ import {
   type SlotState,
   type TimeBudget,
 } from "./types";
+import { frequencyGuidance } from "./frequency";
 import { sportLoadUnits, sportMinutesPerWeek } from "./sports";
 
 /** Minutes a slot state is worth before any adjustment. */
 const SLOT_MINUTES: Record<SlotState, number> = { free: 75, tight: 35, blocked: 0 };
+
+/** Below this, a slot is too short for a full gym session — offer a lighter "active" day instead. */
+const ACTIVE_DAY_MINUTES = 40;
 
 const ADJUST_FACTOR = { less: 0.7, asIs: 1, more: 1.25 } as const;
 
@@ -50,7 +54,14 @@ export function deriveTimeBudget(intake: PlanIntake): TimeBudget {
       if (intake.careDuties) minutes -= 10;
       if (intake.workPattern === "shifts" || intake.workPattern === "nights") minutes -= 5;
       minutes = Math.round(Math.max(0, minutes) * ADJUST_FACTOR[intake.timeAdjust]);
-      if (minutes >= 25) raw.push({ day, part, minutes });
+      if (minutes >= 25) {
+        raw.push({
+          day,
+          part,
+          minutes,
+          suggestedKind: minutes < ACTIVE_DAY_MINUTES ? "active" : "gym",
+        });
+      }
     }
   }
 
@@ -69,19 +80,30 @@ export function deriveTimeBudget(intake: PlanIntake): TimeBudget {
   if (intake.dailyActivity === "physical") recoveryFactor -= 0.05;
   recoveryFactor = Math.max(0.65, Math.round(recoveryFactor * 100) / 100);
 
+  // More days than the goal/experience actually needs adds no benefit (Schoenfeld
+  // et al. meta-analyses) — cap the request instead of just mirroring it.
+  const guidance = intake.trainingGoal
+    ? frequencyGuidance(intake.trainingGoal, intake.experience)
+    : null;
+
   const maxGymDays = Math.max(
     1,
     Math.min(
       intake.gymDaysPerWeek || 3,
       Math.round((intake.gymDaysPerWeek || 3) * recoveryFactor + 0.35),
       raw.length,
+      guidance?.maxDays ?? Infinity,
     ),
   );
 
-  const gymSlots = raw.slice(0, maxGymDays).map((slot) => ({
-    ...slot,
-    minutes: Math.max(30, Math.min(90, Math.round((slot.minutes * recoveryFactor) / 5) * 5)),
-  }));
+  const gymSlots = raw.slice(0, maxGymDays).map((slot) => {
+    const minutes = Math.max(30, Math.min(90, Math.round((slot.minutes * recoveryFactor) / 5) * 5));
+    return {
+      ...slot,
+      minutes,
+      suggestedKind: minutes < ACTIVE_DAY_MINUTES ? "active" : "gym",
+    } as const;
+  });
 
   const gymMinutesPerWeek = gymSlots.reduce((sum, s) => sum + s.minutes, 0);
 
@@ -91,6 +113,10 @@ export function deriveTimeBudget(intake: PlanIntake): TimeBudget {
     gymSlots,
     freeSlotCount: counts.free,
     tightSlotCount: counts.tight,
+    recommendedDays: guidance ? { min: guidance.minDays, max: guidance.maxDays } : null,
+    // WHO/ACSM recommend >=150 min/week aerobic activity as its own guideline,
+    // independent of training goal — worth flagging when nothing else covers it.
+    suggestConditioning: intake.sports.length === 0,
     recoveryFactor,
     tight: gymMinutesPerWeek < 120 || gymSlots.length < 2,
   };

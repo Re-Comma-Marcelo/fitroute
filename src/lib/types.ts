@@ -10,6 +10,13 @@ export type OrigemTreino = "rotina" | "branco";
 export type PreferredTime = "morning" | "midday" | "afternoon" | "evening";
 export type CheckInMode = "prompt" | "card";
 export type CoachNoteKind = "checkin" | "observation";
+/**
+ * Training-style goal, asked once in the very first onboarding quiz and
+ * reused everywhere a workout plan is generated (see src/lib/plan/frequency.ts).
+ * Distinct from `Objetivo` (derived from this via `goalToObjetivo`), which
+ * drives calorie targets, not training-day frequency.
+ */
+export type TrainingGoal = "muscle" | "strength" | "fat-loss" | "comeback";
 
 export interface AvoidedExercise {
   exerciseId: string;
@@ -50,6 +57,8 @@ export interface Profile {
   metaKcal?: number | undefined;
   /** Manual daily protein target in grams. Overrides the calculation when set. */
   metaProteinaG?: number | undefined;
+  /** Training-style goal from the first onboarding quiz — undefined if skipped. */
+  trainingGoal?: TrainingGoal | undefined;
 }
 
 export interface Exercise {

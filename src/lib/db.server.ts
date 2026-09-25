@@ -4,6 +4,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getRequest } from "@tanstack/react-start/server";
+import type { Profile } from "./types";
 
 /**
  * Resolve the signed-in Supabase user from the request bearer token.
@@ -103,6 +104,7 @@ export const toProfile = (r: Row) => ({
   idade: r["idade"] == null ? undefined : Number(r["idade"]),
   metaKcal: r["meta_kcal"] == null ? undefined : Number(r["meta_kcal"]),
   metaProteinaG: r["meta_proteina_g"] == null ? undefined : Number(r["meta_proteina_g"]),
+  trainingGoal: (r["training_goal"] ?? undefined) as Profile["trainingGoal"],
 });
 
 export const fromProfile = (p: Row, userId: string) => ({
@@ -130,6 +132,7 @@ export const fromProfile = (p: Row, userId: string) => ({
   idade: p["idade"] ?? null,
   meta_kcal: p["metaKcal"] ?? null,
   meta_proteina_g: p["metaProteinaG"] ?? null,
+  training_goal: p["trainingGoal"] ?? null,
 });
 
 export const toExercise = (r: Row) => ({

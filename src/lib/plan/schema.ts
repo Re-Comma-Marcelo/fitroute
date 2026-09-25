@@ -23,7 +23,7 @@ export const planDayExerciseSchema = z.object({
 
 export const planDaySchema = z.object({
   day: z.enum(DAY_KEYS),
-  kind: z.enum(["gym", "sport", "rest"]),
+  kind: z.enum(["gym", "active", "sport", "rest"]),
   label: z.string(),
   minutes: z.number(),
   why: z.string(),
