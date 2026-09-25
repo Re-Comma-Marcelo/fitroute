@@ -4,36 +4,68 @@
  * same templates the "Start from a template" sheet uses, so a new account
  * gets a whole week instead of a single day.
  */
+import type { Experience, TrainingYears } from "../plan/types";
 import {
   ROUTINE_TEMPLATES,
   buildTemplateRoutines,
+  type FocusMuscle,
+  type Pace,
   type RoutineTemplate,
 } from "../routine-templates";
 import type { Exercise, Objetivo, Routine, TrainingGoal } from "../types";
 
-/** Alias kept for readability at onboarding call sites — same type the profile stores. */
-export type StarterGoal = TrainingGoal;
-export type StarterExperience = "beginner" | "intermediate" | "advanced";
+/**
+ * Body-composition direction × training emphasis, not just a training style —
+ * "build muscle" and "get stronger" alone read as near-synonyms to most
+ * people. Standard bulk/maintain/recomp/cut framing (see e.g. Longland et al.
+ * 2012 on recomposition, or any mainstream bulk-vs-cut guide) resolves that.
+ */
+export type StarterGoal =
+  "muscle-gain" | "muscle-maintain" | "muscle-cut" | "fat-loss" | "strength" | "comeback";
+
+export type StarterExperience = Experience;
 
 export interface StarterAnswers {
   goal: StarterGoal;
   /** Weekdays picked for training, 0 = Sunday … 6 = Saturday. */
   days: number[];
-  experience: StarterExperience;
+  /** How long they've trained, asked directly (matches the weekly plan interview). */
+  trainingYears: TrainingYears;
+  /** Short & few exercises vs. longer & more thorough sessions. null = today's default balance. */
+  pace: Pace | null;
+  /** A muscle group to emphasize with an extra exercise, or null for no preference. */
+  focusMuscle: FocusMuscle | null;
 }
 
 /** Used for whatever the person skipped. */
 export const DEFAULT_ANSWERS: StarterAnswers = {
-  goal: "muscle",
+  goal: "muscle-gain",
   days: [1, 3, 5],
-  experience: "intermediate",
+  trainingYears: "1to3y",
+  pace: null,
+  focusMuscle: null,
 };
 
-/** What the training goal means for the body objective kept on the profile. */
+/** Years under load only — the quiz doesn't ask about the last-6-months consistency the weekly interview does. */
+export function yearsToExperience(years: TrainingYears): StarterExperience {
+  if (years === "lt6m" || years === "6to12m") return "beginner";
+  if (years === "1to3y") return "intermediate";
+  return "advanced";
+}
+
+/** What the goal means for the body objective kept on the profile (drives calorie targets). */
 export function goalToObjetivo(goal: StarterGoal): Objetivo {
-  if (goal === "muscle") return "bulking";
-  if (goal === "fat-loss") return "cutting";
-  return "manutencao";
+  if (goal === "muscle-gain") return "bulking";
+  if (goal === "muscle-cut" || goal === "fat-loss") return "cutting";
+  return "manutencao"; // muscle-maintain, strength, comeback
+}
+
+/** What the goal means for training-day frequency guidance (src/lib/plan/frequency.ts). */
+export function goalToTrainingGoal(goal: StarterGoal): TrainingGoal {
+  if (goal === "strength") return "strength";
+  if (goal === "fat-loss") return "fat-loss";
+  if (goal === "comeback") return "comeback";
+  return "muscle"; // muscle-gain, muscle-maintain, muscle-cut
 }
 
 export interface Prescription {
@@ -43,17 +75,20 @@ export interface Prescription {
   restSec: number;
 }
 
+function baseFor(goal: StarterGoal): Prescription {
+  if (goal === "strength") return { sets: 4, repsMin: 4, repsMax: 6, restSec: 180 };
+  if (goal === "fat-loss") return { sets: 3, repsMin: 12, repsMax: 15, restSec: 60 };
+  // muscle-gain / muscle-maintain / muscle-cut / comeback: standard hypertrophy range.
+  return { sets: 3, repsMin: 8, repsMax: 12, restSec: 90 };
+}
+
 export function prescriptionFor(answers: StarterAnswers): Prescription {
-  const base: Prescription =
-    answers.goal === "strength"
-      ? { sets: 4, repsMin: 4, repsMax: 6, restSec: 180 }
-      : answers.goal === "fat-loss"
-        ? { sets: 3, repsMin: 12, repsMax: 15, restSec: 60 }
-        : { sets: 3, repsMin: 8, repsMax: 12, restSec: 90 };
-  if (answers.experience === "beginner" || answers.goal === "comeback") {
+  const base = baseFor(answers.goal);
+  const experience = yearsToExperience(answers.trainingYears);
+  if (experience === "beginner" || answers.goal === "comeback") {
     return { ...base, sets: Math.max(2, base.sets - 1) };
   }
-  if (answers.experience === "advanced") return { ...base, sets: base.sets + 1 };
+  if (experience === "advanced") return { ...base, sets: base.sets + 1 };
   return base;
 }
 
@@ -91,7 +126,10 @@ export function buildStarterPlan(
   const template = templateFor(days.length || DEFAULT_ANSWERS.days.length);
   const prescription = prescriptionFor(answers);
 
-  let routines = buildTemplateRoutines(template, library, translate).map((routine) => ({
+  let routines = buildTemplateRoutines(template, library, translate, {
+    pace: answers.pace,
+    focusMuscle: answers.focusMuscle,
+  }).map((routine) => ({
     ...routine,
     exercicios: routine.exercicios.map((exercise) => ({
       ...exercise,
