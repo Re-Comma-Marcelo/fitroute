@@ -1,37 +1,71 @@
 import { Check, Flag, MapPin } from "lucide-react";
 import { buildRoute, pathThrough } from "@/lib/route/path";
 import type { Checkpoint } from "@/lib/route/types";
+import type { WeekMarker } from "@/lib/route/weight-progress";
 import { useT } from "@/lib/i18n";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatKg } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+type RouteNode =
+  | { kind: "checkpoint"; date: string; checkpoint: Checkpoint; ordinal: number }
+  | { kind: "week"; date: string; marker: WeekMarker };
 
 /**
  * The route itself: one curved line from where the user started to the goal,
- * with a node per checkpoint. Status is carried by tone and icon, never by red.
+ * with a node per checkpoint (and, for a weight goal, a smaller node per week
+ * in between). Two overlaid tracks carry status, like the two lines under
+ * each exercise in the session header: purple as soon as a point in time is
+ * reached, white once the data actually confirms it.
  */
 export function RoutePath({
   checkpoints,
+  weekMarkers = [],
   currentId,
   startLabel,
   goalLabel,
   onSelect,
 }: {
   checkpoints: Checkpoint[];
+  /** Weekly weight read-outs between checkpoints — only passed for a weight goal. */
+  weekMarkers?: WeekMarker[];
   currentId: string | null;
   startLabel: string;
   goalLabel: string;
   onSelect: (cp: Checkpoint) => void;
 }) {
   const t = useT();
-  const geo = buildRoute(checkpoints.length + 2);
+
+  let ordinal = 0;
+  const middle: RouteNode[] = [
+    ...checkpoints.map((cp): RouteNode => {
+      ordinal += 1;
+      return { kind: "checkpoint" as const, date: cp.targetDate, checkpoint: cp, ordinal };
+    }),
+    ...weekMarkers.map((w): RouteNode => ({
+      kind: "week" as const,
+      date: w.weekStartIso,
+      marker: w,
+    })),
+  ].sort((a, b) => a.date.localeCompare(b.date));
+
+  const geo = buildRoute(middle.length + 2);
   const nodes = geo.nodes;
-  // The stretch already travelled: start up to the last achieved checkpoint,
-  // drawn solid like the R itself; the rest stays dashed.
-  const lastAchieved = checkpoints.reduce(
-    (last, cp, i) => (cp.status === "achieved" ? i : last),
-    -1,
+  const today = new Date().toISOString().slice(0, 10);
+
+  // "Purple marks where you are [in time], white follows one step behind [as
+  // the data confirms it]" — the same two-signal idea as the exercise
+  // progress bar in the session header, just walked along the route's curve
+  // instead of a straight segment.
+  const timeReached = middle.map((n) =>
+    n.kind === "checkpoint" ? today >= n.checkpoint.targetDate : today >= n.marker.weekEndIso,
   );
-  const travelled = lastAchieved >= 0 ? pathThrough(nodes.slice(0, lastAchieved + 2)) : "";
+  const dataFilled = middle.map((n) =>
+    n.kind === "checkpoint" ? n.checkpoint.status === "achieved" : n.marker.avgKg != null,
+  );
+  const lastTimeIdx = timeReached.reduce((last, v, i) => (v ? i : last), -1);
+  const lastDataIdx = dataFilled.reduce((last, v, i) => (v ? i : last), -1);
+  const purpleTravelled = lastTimeIdx >= 0 ? pathThrough(nodes.slice(0, lastTimeIdx + 2)) : "";
+  const whiteTravelled = lastDataIdx >= 0 ? pathThrough(nodes.slice(0, lastDataIdx + 2)) : "";
 
   return (
     <div className="relative mx-auto w-full max-w-[340px]">
@@ -50,14 +84,24 @@ export function RoutePath({
           strokeDasharray="2 10"
           className="text-border"
         />
-        {travelled ? (
+        {purpleTravelled ? (
           <path
-            d={travelled}
+            d={purpleTravelled}
             fill="none"
             stroke="currentColor"
             strokeWidth={3}
             strokeLinecap="round"
             className="text-primary"
+          />
+        ) : null}
+        {whiteTravelled ? (
+          <path
+            d={whiteTravelled}
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            strokeLinecap="round"
+            className="text-primary-foreground"
           />
         ) : null}
       </svg>
@@ -70,8 +114,26 @@ export function RoutePath({
         </div>
       </Marker>
 
-      {checkpoints.map((cp, i) => {
+      {middle.map((n, i) => {
         const node = nodes[i + 1]!;
+        if (n.kind === "week") {
+          const has = n.marker.avgKg != null;
+          return (
+            <Marker key={`w_${n.date}`} x={node.x} y={node.y} width={geo.width}>
+              <div
+                className={cn(
+                  "flex items-center justify-center rounded-full border px-2 py-1 text-[9px] font-semibold tabular-nums",
+                  has
+                    ? "border-primary-foreground/40 bg-card text-foreground"
+                    : "border-dashed border-border/70 text-muted-foreground/60",
+                )}
+              >
+                {has ? formatKg(n.marker.avgKg!) : "—"}
+              </div>
+            </Marker>
+          );
+        }
+        const cp = n.checkpoint;
         const achieved = cp.status === "achieved";
         const isCurrent = cp.id === currentId;
         return (
@@ -92,7 +154,7 @@ export function RoutePath({
                   achieved ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
                 )}
               >
-                {achieved ? <Check className="size-3.5" /> : i + 1}
+                {achieved ? <Check className="size-3.5" /> : n.ordinal}
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-xs font-semibold leading-tight">
