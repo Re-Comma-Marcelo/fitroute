@@ -40,6 +40,9 @@ export async function renderSummaryCard(
   canvas.height = size;
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
+  // Canvas only draws webfonts that are already loaded; otherwise it falls
+  // back silently to the system face.
+  await document.fonts?.ready;
 
   const gradient = ctx.createLinearGradient(0, 0, size, size);
   gradient.addColorStop(0, "#12101a");
@@ -48,23 +51,28 @@ export async function renderSummaryCard(
   ctx.fillRect(0, 0, size, size);
 
   ctx.fillStyle = "#a78bfa";
-  ctx.font = "600 34px Inter, system-ui, sans-serif";
+  ctx.font = "600 34px Archivo, system-ui, sans-serif";
+  // Expanded like the app's headings; ignored where fontStretch is unsupported.
+  ctx.fontStretch = "expanded";
   ctx.fillText("ROUTE", 88, 140);
+  ctx.fontStretch = "normal";
 
   ctx.fillStyle = "#f5f3ff";
-  ctx.font = "700 68px Inter, system-ui, sans-serif";
+  ctx.font = "700 68px Archivo, system-ui, sans-serif";
   ctx.fillText(data.routineName.slice(0, 22), 88, 250);
 
   ctx.fillStyle = "#a1a1aa";
-  ctx.font = "400 34px Inter, system-ui, sans-serif";
+  ctx.font = "400 34px Archivo, system-ui, sans-serif";
   ctx.fillText(data.dateLabel, 88, 306);
 
   ctx.fillStyle = "#71717a";
-  ctx.font = "600 30px Inter, system-ui, sans-serif";
+  ctx.font = "600 30px Archivo, system-ui, sans-serif";
   ctx.fillText(labels["volume"]!.toUpperCase(), 88, 430);
   ctx.fillStyle = "#fb923c";
-  ctx.font = "700 150px Inter, system-ui, sans-serif";
-  ctx.fillText(data.volumeLabel, 88, 570);
+  ctx.font = "700 150px Archivo, system-ui, sans-serif";
+  ctx.fontStretch = "expanded";
+  ctx.fillText(data.volumeLabel, 88, 570, size - 88 * 2);
+  ctx.fontStretch = "normal";
 
   const stats: [string, string][] = [
     [labels["duration"]!, data.durationLabel],
@@ -74,21 +82,21 @@ export async function renderSummaryCard(
   stats.forEach(([label, value], i) => {
     const x = 88 + i * 310;
     ctx.fillStyle = "#71717a";
-    ctx.font = "600 28px Inter, system-ui, sans-serif";
+    ctx.font = "600 28px Archivo, system-ui, sans-serif";
     ctx.fillText(label.toUpperCase(), x, 690);
     ctx.fillStyle = "#f5f3ff";
-    ctx.font = "700 62px Inter, system-ui, sans-serif";
+    ctx.font = "700 62px Archivo, system-ui, sans-serif";
     ctx.fillText(value, x, 760);
   });
 
   if (data.prs.length) {
     ctx.fillStyle = "#34d399";
-    ctx.font = "600 32px Inter, system-ui, sans-serif";
+    ctx.font = "600 32px Archivo, system-ui, sans-serif";
     ctx.fillText(`${labels["prs"]}: ${data.prs[0]!.nome} ${data.prs[0]!.pesoKg}kg`, 88, 890);
   }
 
   ctx.fillStyle = "#52525b";
-  ctx.font = "400 28px Inter, system-ui, sans-serif";
+  ctx.font = "400 28px Archivo, system-ui, sans-serif";
   ctx.fillText(labels["footer"]!, 88, 990);
 
   return new Promise((resolve) => canvas.toBlob((blob) => resolve(blob), "image/png"));
