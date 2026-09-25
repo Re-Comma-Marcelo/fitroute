@@ -26,12 +26,19 @@ function sessionsBetween(workouts: Workout[], from: string, to: string): number 
   ).length;
 }
 
-/** Was the metric behind this checkpoint reached on or before its target date? */
+/**
+ * Was the metric behind this checkpoint reached on or before its target date?
+ * `startWeightKg` (the weight the user began the route at) tells a weight
+ * checkpoint which direction counts as progress — without it, "below target"
+ * would read as success even for a bulking goal, where the target is above
+ * where the user started.
+ */
 export function metricHit(
   cp: Checkpoint,
   workouts: Workout[],
   sets: WorkoutSet[],
   bodyWeightKg: number | null,
+  startWeightKg?: number | null,
 ): boolean {
   const metric = cp.metric;
   if (!metric) return false;
@@ -44,7 +51,11 @@ export function metricHit(
     return sessionsBetween(workouts, from, cp.targetDate) >= metric.value;
   }
   if (metric.kind === "weight" && bodyWeightKg != null) {
-    return Math.abs(bodyWeightKg - metric.value) <= 0.7 || bodyWeightKg <= metric.value;
+    if (Math.abs(bodyWeightKg - metric.value) <= 0.7) return true;
+    // Gaining (target above where the route started): hit once at/above it.
+    if (startWeightKg != null && metric.value > startWeightKg) return bodyWeightKg >= metric.value;
+    // Losing, or direction unknown: hit once at/below it (the original rule).
+    return bodyWeightKg <= metric.value;
   }
   return false;
 }
@@ -70,6 +81,8 @@ export interface EvaluateInput {
   sets: WorkoutSet[];
   cross: CrossTrainingLog[];
   bodyWeightKg: number | null;
+  /** Weight the user started the route at, so a gain-goal checkpoint isn't misread as "below target = done". */
+  startWeightKg?: number | null;
   hadDrop: boolean;
   now?: Date;
 }
@@ -81,6 +94,7 @@ export function evaluateCheckpoints({
   sets,
   cross,
   bodyWeightKg,
+  startWeightKg,
   hadDrop,
   now = new Date(),
 }: EvaluateInput): Evaluation[] {
@@ -88,7 +102,7 @@ export function evaluateCheckpoints({
   const out: Evaluation[] = [];
 
   for (const cp of checkpoints) {
-    const hit = metricHit(cp, workouts, sets, bodyWeightKg);
+    const hit = metricHit(cp, workouts, sets, bodyWeightKg, startWeightKg);
 
     if (hit && cp.status !== "achieved") {
       out.push({

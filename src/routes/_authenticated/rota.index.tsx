@@ -90,7 +90,9 @@ function RoutePage() {
         workouts: log.workouts,
         sets: log.sets,
         cross,
-        bodyWeightKg: weights[0]?.pesoKg ?? null,
+        // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
+        bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
+        startWeightKg: profile?.pesoInicialKg ?? null,
         hadDrop: false,
       });
       if (cancelled || !changes.length) return;
@@ -120,7 +122,7 @@ function RoutePage() {
       cancelled = true;
     };
     // Runs when the route or the logs change identity.
-  }, [checkpoints, queryClient, t]);
+  }, [checkpoints, profile, queryClient, t]);
 
   const generate = useMutation({
     mutationFn: async () => {

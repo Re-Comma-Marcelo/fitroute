@@ -61,7 +61,8 @@ export async function buildCoachContext(): Promise<CoachContext> {
       targetWeightKg: profile.pesoMetaKg ?? null,
       deadline: profile.metaPrazo ?? null,
     },
-    currentWeightKg: weights[0]?.pesoKg ?? profile.pesoKg ?? null,
+    // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
+    currentWeightKg: weights[weights.length - 1]?.pesoKg ?? profile.pesoKg ?? null,
     weeklyTarget: profile.metaTreinosSemana,
     sessionsLast30: log.workouts.filter(
       (w) => w.finalizadoEm && w.iniciadoEm.slice(0, 10) >= sinceIso,
