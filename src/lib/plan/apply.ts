@@ -28,7 +28,9 @@ function routineFor(day: PlanDay): Routine {
  * and the week's planned meals. Nothing here is plan-only.
  */
 export async function applyPlan(plan: GeneratedPlan): Promise<{ routines: number; meals: number }> {
-  const gymDays = plan.days.filter((d) => d.kind === "gym" && d.exercises.length > 0);
+  const gymDays = plan.days.filter(
+    (d) => (d.kind === "gym" || d.kind === "active") && d.exercises.length > 0,
+  );
   let routines = 0;
   for (const day of gymDays) {
     await saveRoutine(routineFor(day));

@@ -132,6 +132,8 @@ function OnboardingPage() {
       ...profile,
       nome: trimmed || profile.nome,
       objetivo: goalToObjetivo(complete.goal),
+      // Reused by the weekly plan generator's training-frequency guideline.
+      trainingGoal: complete.goal,
       metaTreinosSemana: sortDays(complete.days).length,
       onboardingConcluidoEm: today,
       ...(goalDate

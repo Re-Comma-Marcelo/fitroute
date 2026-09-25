@@ -1,4 +1,5 @@
 import type { MealSlot } from "../nutrition-types";
+import type { TrainingGoal } from "../types";
 
 export const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 export type DayKey = (typeof DAY_KEYS)[number];
@@ -51,6 +52,8 @@ export interface PlanIntake {
   // Step 3 — training
   equipment: string[];
   gymDaysPerWeek: number;
+  /** Training-style goal from the first onboarding quiz — null if it was skipped. */
+  trainingGoal: TrainingGoal | null;
   /** How long they have been training — asked directly. */
   trainingYears: TrainingYears;
   /** How consistent the last 6 months were — asked directly. */
@@ -81,6 +84,8 @@ export interface PlannedSlot {
   day: DayKey;
   part: SlotPart;
   minutes: number;
+  /** Too short for a full gym session — a candidate for a lighter "active" day instead. */
+  suggestedKind: "gym" | "active";
 }
 
 export interface TimeBudget {
@@ -96,6 +101,10 @@ export interface TimeBudget {
   recoveryFactor: number;
   /** True when the week barely allows structured training. */
   tight: boolean;
+  /** Evidence-based day range for the goal/experience — null when no goal is known. */
+  recommendedDays: { min: number; max: number } | null;
+  /** True when the user has no other sport, so added conditioning is worth suggesting. */
+  suggestConditioning: boolean;
 }
 
 export interface GoalTranslation {
@@ -119,7 +128,7 @@ export interface PlanDayExercise {
 
 export interface PlanDay {
   day: DayKey;
-  kind: "gym" | "sport" | "rest";
+  kind: "gym" | "active" | "sport" | "rest";
   label: string;
   minutes: number;
   why: string;

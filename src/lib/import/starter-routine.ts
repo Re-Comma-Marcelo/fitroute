@@ -9,9 +9,10 @@ import {
   buildTemplateRoutines,
   type RoutineTemplate,
 } from "../routine-templates";
-import type { Exercise, Objetivo, Routine } from "../types";
+import type { Exercise, Objetivo, Routine, TrainingGoal } from "../types";
 
-export type StarterGoal = "muscle" | "strength" | "fat-loss" | "comeback";
+/** Alias kept for readability at onboarding call sites — same type the profile stores. */
+export type StarterGoal = TrainingGoal;
 export type StarterExperience = "beginner" | "intermediate" | "advanced";
 
 export interface StarterAnswers {

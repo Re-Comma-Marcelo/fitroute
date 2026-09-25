@@ -113,6 +113,7 @@ export function blankIntake(): PlanIntake {
     timelineWeeks: 12,
     equipment: DEFAULT_EQUIPMENT_FALLBACK,
     gymDaysPerWeek: 3,
+    trainingGoal: null,
     trainingYears: "1to3y",
     consistency: "onOff",
     experience: "intermediate",

@@ -1,6 +1,7 @@
 import { exercises } from "../data/mocks";
 import { meals } from "../data/meals.mock";
 import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
+import { GOAL_PROMPT_LABEL } from "./frequency";
 import { CONSULT_NOTE, filterMeals } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
@@ -25,6 +26,7 @@ export function intakeSummary(intake: PlanIntake): string {
     "## Person",
     `- ${intake.age} y, ${intake.sex}, ${intake.heightCm} cm, ${intake.weightKg} kg`,
     `- Daily activity outside sport: ${intake.dailyActivity}`,
+    `- Training-style goal: ${intake.trainingGoal ? GOAL_PROMPT_LABEL[intake.trainingGoal] : "not stated"}`,
     `- Experience level (derived): ${intake.experience}`,
     `- Training history: ${TRAINING_YEARS_LABEL[intake.trainingYears]}, consistency last 6 months: ${CONSISTENCY_LABEL[intake.consistency]}`,
     "",
@@ -57,9 +59,17 @@ export function intakeSummary(intake: PlanIntake): string {
     "",
     "## Derived time budget (already computed — respect it)",
     `- Gym time available: ${hoursLabel(budget.gymMinutesPerWeek)} across ${budget.gymSlots.length} session(s)`,
-    budget.gymSlots.map((s) => `  - ${s.day} ${s.part}: ${s.minutes} min`).join("\n"),
+    budget.gymSlots
+      .map((s) => `  - ${s.day} ${s.part}: ${s.minutes} min, use kind '${s.suggestedKind}'`)
+      .join("\n"),
     `- Sport time already committed: ${hoursLabel(budget.sportMinutesPerWeek)}`,
     `- Recovery factor: ${budget.recoveryFactor} (1 = fully recovered)`,
+    budget.recommendedDays
+      ? `- Research-based day range for this goal/experience: ${budget.recommendedDays.min}-${budget.recommendedDays.max} days/week. Requested: ${intake.gymDaysPerWeek}.`
+      : "",
+    budget.suggestConditioning
+      ? "- The person does not train any other sport, so WHO/ACSM's separate aerobic-activity guideline (150+ min/week) is not otherwise met."
+      : "",
     "",
     "## Food",
     `- Allergies / restrictions: ${intake.allergies || "none"}`,
@@ -110,12 +120,15 @@ export function planPrompt(
 
   const trainingRules = wantsTraining
     ? [
-        `- Use at most ${Math.max(1, budget.gymSlots.length)} gym day(s), on exactly the weekdays listed in the derived time budget.`,
+        `- Use at most ${Math.max(1, budget.gymSlots.length)} training day(s), on exactly the weekdays listed in the derived time budget, each using the kind noted there ('gym' or 'active').`,
+        "- kind 'gym': a normal full session with 3+ exercises. kind 'active': the slot is too short for a full session — give it 1-4 bodyweight exercises (a short strength circuit) OR make it a plain cardio session (a brisk walk or light jog, exercises: []). Never leave an 'active' day with a full gym-length exercise list.",
         "- Each gym day's exercise count must fit its minutes (roughly one exercise per 10-12 minutes).",
         "- Mark days with a sport session as kind 'sport' (no exercises) and truly free days as 'rest'. Cover all 7 weekdays exactly once.",
         "- exerciseId MUST come from the exercise library.",
         "- Respect injuries/limitations and skip anything the person cannot do.",
         "- Every day needs a short 'why' referencing their life (time, sport, sleep, stress).",
+        "- If the requested gym days exceed the research-based range, `summary` must briefly say so and explain, in one sentence, why the plan uses fewer (more days past that range gives no extra benefit — cite the frequency finding in plain words, no jargon).",
+        "- If the person trains no other sport, `summary` should briefly note that adding some walking/jogging or other conditioning is worth it for general health, independent of their main training goal.",
       ]
     : [
         "- The person does NOT want a training plan from this app (they train on their own, or not at all).",
@@ -143,7 +156,7 @@ export function planPrompt(
     ...trainingRules,
     ...dietRules,
     "Return JSON only:",
-    '{"summary":string,"days":[{"day":"mon","kind":"gym|sport|rest","label":string,"minutes":number,"why":string,"exercises":[{"exerciseId":string,"sets":number,"repsMin":number,"repsMax":number,"restSec":number,"note":string}]}],"diet":{"kcal":number,"proteinG":number,"carbsG":number,"fatG":number,"notes":[string],"sportDayNote":string,"meals":[{"slot":"breakfast","mealId":string,"why":string}]}}',
+    '{"summary":string,"days":[{"day":"mon","kind":"gym|active|sport|rest","label":string,"minutes":number,"why":string,"exercises":[{"exerciseId":string,"sets":number,"repsMin":number,"repsMax":number,"restSec":number,"note":string}]}],"diet":{"kcal":number,"proteinG":number,"carbsG":number,"fatG":number,"notes":[string],"sportDayNote":string,"meals":[{"slot":"breakfast","mealId":string,"why":string}]}}',
     "",
     intakeSummary(intake),
     "",
