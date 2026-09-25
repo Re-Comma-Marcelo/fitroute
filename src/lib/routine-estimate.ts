@@ -1,7 +1,12 @@
 import type { Routine } from "@/lib/types";
 
-/** Seconds spent actually performing one set (rough average across lifts). */
-const WORK_SECONDS_PER_SET = 40;
+/**
+ * Seconds spent actually performing one set (rough average across lifts).
+ * Exported so every duration estimate in the app (session-length fit checks
+ * included, see coach/today-card.ts) uses the same figure instead of each
+ * guessing its own.
+ */
+export const WORK_SECONDS_PER_SET = 40;
 
 /** Rough duration of a routine: work time plus programmed rest between sets. */
 export function estimateRoutineMinutes(routine: Routine): number {

@@ -1,16 +1,24 @@
 import type { Meal } from "../nutrition-types";
 import type { PlanIntake, TimeBudget } from "./types";
 
+/**
+ * Mainstream guidance is a 0.5-1% of bodyweight per week range; this targets
+ * the midpoint as one enforceable number rather than leaving a range
+ * unenforced. Exported so the AI-plan prompt (see goalPrompt() in
+ * prompt.ts) states this exact figure instead of an independently-hardcoded
+ * description that could silently drift from what this guardrail enforces.
+ */
+export const WEEKLY_PACE_PCT = 0.0075;
+
 export interface PaceCheck {
   /** Absolute weekly change implied by the request, in kg. */
   weeklyKg: number;
-  /** Safe weekly change for this bodyweight (0.5–1% of bodyweight). */
+  /** Safe weekly change for this bodyweight, at WEEKLY_PACE_PCT of bodyweight. */
   safeWeeklyKg: number;
   ok: boolean;
   suggestedWeeks: number;
 }
 
-/** Mainstream guidance: 0.5–1% of bodyweight per week is a sustainable pace. */
 export function checkPace(
   currentKg: number,
   targetKg: number | null,
@@ -19,7 +27,7 @@ export function checkPace(
   if (!targetKg || !weeks || weeks <= 0) return null;
   const delta = Math.abs(currentKg - targetKg);
   const weeklyKg = delta / weeks;
-  const safeWeeklyKg = Math.max(0.25, currentKg * 0.0075);
+  const safeWeeklyKg = Math.max(0.25, currentKg * WEEKLY_PACE_PCT);
   const ok = weeklyKg <= safeWeeklyKg * 1.05;
   return {
     weeklyKg: Math.round(weeklyKg * 100) / 100,

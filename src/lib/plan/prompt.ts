@@ -2,7 +2,7 @@ import { exercises } from "../data/mocks";
 import { meals } from "../data/meals.mock";
 import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
 import { GOAL_PROMPT_LABEL } from "./frequency";
-import { CONSULT_NOTE, filterMeals } from "./guardrails";
+import { CONSULT_NOTE, WEEKLY_PACE_PCT, filterMeals } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
 import {
@@ -83,7 +83,7 @@ export function intakeSummary(intake: PlanIntake): string {
 export function goalPrompt(intake: PlanIntake): string {
   return [
     "You translate a vague fitness goal into concrete numbers using mainstream, established exercise and nutrition science.",
-    "Sustainable bodyweight change is 0.5-1% of bodyweight per week. Never encourage faster.",
+    `Sustainable bodyweight change is about ${WEEKLY_PACE_PCT * 100}% of bodyweight per week (mainstream guidance spans 0.5-1%, this app targets the midpoint — the same figure checkPace() enforces in code). Never encourage faster.`,
     "Return JSON only, matching this shape:",
     '{"targetWeightLowKg":number,"targetWeightHighKg":number,"bodyCompNote":string,"timelineWeeks":number,"rationale":string,"unrealistic":boolean,"saferTimelineWeeks":number}',
     "rationale: one or two short sentences the user will read. bodyCompNote: a rough body-composition estimate in plain words.",

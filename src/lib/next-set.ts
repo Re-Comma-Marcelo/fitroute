@@ -1,5 +1,6 @@
 import { formatNumber, tx } from "./format";
 import { incrementoPara } from "./progression";
+import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
 
 /**
  * Autoregulation between sets: the app decides the target for the next set from
@@ -34,8 +35,8 @@ export function nextSetTarget(
   const step = incrementoPara(ex.equipamento ?? "", ex.grupoPrimario);
   const rpe = typeof logged.rpe === "number" && logged.rpe > 0 ? logged.rpe : null;
 
-  const easy = reps >= repsMax && (rpe === null || rpe <= 8);
-  const grindy = rpe !== null && rpe >= 9.5;
+  const easy = reps >= repsMax && (rpe === null || rpe <= RPE_EASY_MAX);
+  const grindy = rpe !== null && rpe >= RPE_NEAR_FAILURE_MIN;
   // Missed the rep floor: fatigue plus a target it couldn't hit means the next
   // set needs less weight, not the same weight with a *higher* rep ask.
   const missedBy = Math.max(0, repsMin - reps);

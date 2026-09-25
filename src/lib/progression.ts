@@ -1,5 +1,25 @@
 import { formatNumber, tx } from "./format";
+import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
 import type { TipoSerie, WorkoutSet } from "./types";
+
+/**
+ * Load-reduction magnitudes for three distinct triggers — named and kept
+ * together so they stay intentional choices, not silently-drifting magic
+ * numbers copy-pasted across files:
+ * - A voluntary deload session (the user explicitly asks for a lighter day):
+ *   a meaningful, immediate cut they chose themselves.
+ * - A fatigue plateau (3+ stalled sessions AND rising/high RPE): the deepest
+ *   cut of the three, since this is the accumulated-fatigue case.
+ * - An early performance dip (worse reps at the same weight for 2 sessions
+ *   running, no plausible external cause): the lightest nudge, since it's
+ *   the earliest and weakest of the three signals.
+ * These are reactive, single-session autoregulation — not a substitute for a
+ * periodic (every 4-8 weeks) programmed deload week, which this app doesn't
+ * currently have.
+ */
+export const VOLUNTARY_DELOAD_PCT = 0.1;
+export const FATIGUE_PLATEAU_DELOAD_PCT = 0.15;
+export const PERFORMANCE_DIP_ADJUST_PCT = 0.05;
 
 /**
  * Regra de progressão de carga — pura e testável.
@@ -102,8 +122,8 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
     validas.map((s) => s.rpe).filter((v): v is number => typeof v === "number" && v > 0),
   );
   const repsNoTopo = validas.every((s) => s.reps >= input.repsMax);
-  const pseOk = pseMedio === null ? true : pseMedio <= 8;
-  const pseAlto = pseMedio !== null && pseMedio >= 9.5;
+  const pseOk = pseMedio === null ? true : pseMedio <= RPE_EASY_MAX;
+  const pseAlto = pseMedio !== null && pseMedio >= RPE_NEAR_FAILURE_MIN;
   const incrementoKg = incrementoPara(input.equipamento, input.grupoPrimario);
   const aumentou = repsNoTopo && pseOk && !pseAlto;
 

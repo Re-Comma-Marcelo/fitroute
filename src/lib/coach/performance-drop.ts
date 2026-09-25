@@ -7,6 +7,7 @@
  * a soreness/energy note) and for whether the dip repeats across sessions.
  */
 import { tx } from "@/lib/format";
+import { PERFORMANCE_DIP_ADJUST_PCT } from "@/lib/progression";
 import type { CoachNote, CoachingCause, CrossTrainingLog, WorkoutSet } from "@/lib/types";
 
 export interface DropInput {
@@ -78,7 +79,7 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
   const repsLost = last.reps - current.reps;
   if (repsLost <= 0) return null;
 
-  const suggestedKg = Math.round(current.pesoKg * 0.95 * 2) / 2;
+  const suggestedKg = Math.round(current.pesoKg * (1 - PERFORMANCE_DIP_ADJUST_PCT) * 2) / 2;
 
   // 1. Plausible external cause: cross-training in the last 48h.
   const cross = input.crossTraining.find((c) => {

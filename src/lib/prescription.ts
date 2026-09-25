@@ -1,6 +1,8 @@
 import { formatNumber, tx } from "./format";
-import { e1rm } from "./e1rm";
+import { e1rm, pctOfE1rmForReps } from "./e1rm";
 import { incrementoPara, isSerieDeCarga, type PrevSet } from "./progression";
+import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
+import { buildWarmupSets } from "./warmup";
 
 /**
  * The app decides the work for you: rest length, working weight and reps.
@@ -95,11 +97,6 @@ function roundToStep(value: number, step: number): number {
   return Math.round(value / step) * step;
 }
 
-/** Percentage of 1RM that lines up with a rep target (Epley inverted). */
-function pctForReps(reps: number): number {
-  return 1 / (1 + reps / 30);
-}
-
 /**
  * Calculates today's work from recent sets: no user-set goals needed.
  * `anteriores` are the sets from the last completed session of this exercise.
@@ -122,13 +119,13 @@ export function prescribeExercise(
 
   // Target reps: mid-to-top of the range, biased to the top when the last
   // session was comfortable.
-  const easy = topReps >= ex.repsMax && (rpeMedio === null || rpeMedio <= 8);
-  const hard = rpeMedio !== null && rpeMedio >= 9.5;
+  const easy = topReps >= ex.repsMax && (rpeMedio === null || rpeMedio <= RPE_EASY_MAX);
+  const hard = rpeMedio !== null && rpeMedio >= RPE_NEAR_FAILURE_MIN;
   const reps = easy ? ex.repsMax : hard ? ex.repsMin : Math.round((ex.repsMin + ex.repsMax) / 2);
 
   // Weight from the estimated 1RM for that rep target, kept close to what the
   // user actually handled so the jump is never wild.
-  const fromE1rm = best * pctForReps(reps);
+  const fromE1rm = best * pctOfE1rmForReps(reps);
   let pesoKg = roundToStep(fromE1rm, step);
   const ceiling = heaviest + step * (easy ? 1 : 0);
   const floor = hard ? heaviest - step : heaviest * 0.9;
@@ -150,19 +147,23 @@ export function prescribeExercise(
           reps,
         });
 
-  // Warm-up: worth it once the working weight is meaningful. ~50% for 10-12
-  // easy reps primes the pattern without eating into the working sets.
-  const warmupKg = Math.max(step, roundToStep(pesoKg * 0.5, step));
-  const warmup =
-    pesoKg >= step * 8
-      ? {
-          pesoKg: warmupKg,
-          reps: 12,
-          line: tx("First set is a warm-up: {weight} kg x 12, easy — just prime the movement.", {
-            weight: formatNumber(warmupKg, 1),
-          }),
-        }
-      : undefined;
+  // Warm-up hint: describes the same ramp buildWarmupSets() would actually add
+  // (see warmup.ts), so this coach tip and the real "add warm-up" action never
+  // disagree on how to ramp up. Only the last (heaviest) ramp step is shown —
+  // enough to tell the user a warm-up is worth it and roughly where it lands.
+  const ramp = buildWarmupSets(pesoKg, step);
+  const lastRampSet = ramp[ramp.length - 1];
+  const warmup = lastRampSet
+    ? {
+        pesoKg: Number(lastRampSet.pesoKg),
+        reps: Number(lastRampSet.reps),
+        line: tx("Warm up first — {sets} ramp-up set(s), the last at {weight} kg x {reps}.", {
+          sets: ramp.length,
+          weight: formatNumber(Number(lastRampSet.pesoKg), 1),
+          reps: Number(lastRampSet.reps),
+        }),
+      }
+    : undefined;
 
   return warmup ? { pesoKg, reps, line, warmup } : { pesoKg, reps, line };
 }

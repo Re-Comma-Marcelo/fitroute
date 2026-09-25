@@ -15,6 +15,7 @@ import {
   weeklyAggregate,
 } from "./signals";
 import { restDayVerdict, type RestDayVerdict } from "./rest-day";
+import { WORK_SECONDS_PER_SET } from "@/lib/routine-estimate";
 import type { CoachInsight } from "./types";
 import type { Exercise, Profile, Routine, Workout, WorkoutSet } from "@/lib/types";
 
@@ -238,7 +239,7 @@ function whyBullets(
 function setupBullets(routine: Routine, exercises: Exercise[], profile: Profile): string[] {
   const out: string[] = [];
   const minutes = routine.exercicios.reduce(
-    (sum, re) => sum + re.seriesAlvo * ((re.descansoSeg + 45) / 60),
+    (sum, re) => sum + re.seriesAlvo * ((re.descansoSeg + WORK_SECONDS_PER_SET) / 60),
     0,
   );
   const est = Math.round(minutes / 5) * 5;
