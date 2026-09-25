@@ -143,6 +143,9 @@ export const toExercise = (r: Row) => ({
   equipamento: String(r["equipamento"]),
   instrucoes: String(r["instrucoes"] ?? ""),
   midiaUrl: (r["midia_url"] ?? undefined) as string | undefined,
+  variants: Array.isArray(r["variants"])
+    ? (r["variants"] as { id: string; label: string; instrucoes?: string }[])
+    : undefined,
   isCustom: Boolean(r["is_custom"]),
 });
 
@@ -180,6 +183,7 @@ export const toSet = (r: Row) => ({
   rpe: r["rpe"] == null ? undefined : Number(r["rpe"]),
   concluida: Boolean(r["concluida"]),
   coachNote: String(r["coach_note"] ?? ""),
+  variantId: (r["variant_id"] ?? undefined) as string | undefined,
 });
 
 export const toCoachNote = (r: Row) => ({
@@ -209,6 +213,7 @@ export const toCrossTraining = (r: Row) => ({
   duracaoMin: Number(r["duracao_min"] ?? 0),
   intensidade: String(r["intensidade"] ?? "moderate"),
   nota: String(r["nota"] ?? ""),
+  distanciaKm: r["distancia_km"] == null ? undefined : Number(r["distancia_km"]),
 });
 
 export const toChatEntry = (r: Row) => ({

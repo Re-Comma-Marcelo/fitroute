@@ -5,6 +5,8 @@ import {
   isSameWeightForLastN,
 } from "./signals";
 import type { CoachInsight } from "./types";
+import { FATIGUE_PLATEAU_DELOAD_PCT } from "@/lib/progression";
+import { RPE_FATIGUE_MIN } from "@/lib/rpe";
 import type { Exercise, Workout, WorkoutSet } from "@/lib/types";
 
 export interface PlateauFlag {
@@ -47,7 +49,7 @@ export function detectPlateau(
 
     if (!flatRun && stalledSessions < 3) continue;
 
-    const fatigued = rpeTrend(stats) === "up" || (last.avgRpe ?? 0) >= 8.5;
+    const fatigued = rpeTrend(stats) === "up" || (last.avgRpe ?? 0) >= RPE_FATIGUE_MIN;
     const reasoning = [
       `Top set has sat at ${last.maxWeight} kg for the last ${Math.max(3, stalledSessions)} sessions.`,
       `${stats.length} logged sessions of ${exercise.nome} in your history.`,
@@ -76,7 +78,7 @@ export function detectPlateau(
         },
         reasoning,
         action: fatigued
-          ? "Next session: drop to ~85% of the current load, keep the reps, and rebuild from there."
+          ? `Next session: drop to ~${Math.round((1 - FATIGUE_PLATEAU_DELOAD_PCT) * 100)}% of the current load, keep the reps, and rebuild from there.`
           : "Next session: shift down the rep range (e.g. 5-8 instead of 8-12) and add load once you hit the top.",
       },
     });

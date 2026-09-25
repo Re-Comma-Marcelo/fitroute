@@ -53,22 +53,27 @@ export const persistExercise = createServerFn({ method: "POST" })
     const { db, requireUserId, toExercise, uid, unwrap } = await import("./db.server");
     const DEMO_USER_ID = await requireUserId();
     const e = data.exercise;
-    const row = unwrap(
-      await db()
-        .from("exercises")
-        .insert({
-          id: uid("ex"),
-          user_id: DEMO_USER_ID,
-          nome: e.nome,
-          grupo_primario: e.grupoPrimario,
-          grupos_secundarios: e.gruposSecundarios,
-          equipamento: e.equipamento,
-          instrucoes: e.instrucoes,
-          midia_url: e.midiaUrl ?? null,
-          is_custom: true,
-        })
-        .select("*")
-        .single(),
+    const base = {
+      id: uid("ex"),
+      user_id: DEMO_USER_ID,
+      nome: e.nome,
+      grupo_primario: e.grupoPrimario,
+      grupos_secundarios: e.gruposSecundarios,
+      equipamento: e.equipamento,
+      instrucoes: e.instrucoes,
+      midia_url: e.midiaUrl ?? null,
+      is_custom: true,
+    };
+    // variants comes from a later migration; fall back when a project hasn't run it yet.
+    const withVariants = await db()
+      .from("exercises")
+      .insert({ ...base, variants: e.variants ?? null })
+      .select("*")
+      .single();
+    const row = (
+      withVariants.error
+        ? unwrap(await db().from("exercises").insert(base).select("*").single())
+        : unwrap(withVariants)
     ) as Record<string, unknown>;
     return toExercise(row) as unknown as Exercise;
   });
@@ -207,13 +212,26 @@ export const persistWorkout = createServerFn({ method: "POST" })
         rpe: s.rpe ?? null,
         concluida: s.concluida,
       }));
-      // coach_note comes from the coaching migration; fall back when missing.
-      const withNote = await client
+      // coach_note and variant_id come from later migrations; fall back in
+      // stages when a given deployment hasn't run them yet.
+      const withNoteAndVariant = await client
         .from("workout_sets")
-        .insert(rows.map((r, i) => ({ ...r, coach_note: data.sets[i]?.coachNote ?? "" })))
+        .insert(
+          rows.map((r, i) => ({
+            ...r,
+            coach_note: data.sets[i]?.coachNote ?? "",
+            variant_id: data.sets[i]?.variantId ?? null,
+          })),
+        )
         .select("id");
-      if (withNote.error) {
-        unwrap(await client.from("workout_sets").insert(rows).select("id"));
+      if (withNoteAndVariant.error) {
+        const withNote = await client
+          .from("workout_sets")
+          .insert(rows.map((r, i) => ({ ...r, coach_note: data.sets[i]?.coachNote ?? "" })))
+          .select("id");
+        if (withNote.error) {
+          unwrap(await client.from("workout_sets").insert(rows).select("id"));
+        }
       }
     }
 
@@ -579,8 +597,14 @@ export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(asyn
 
 export const persistCrossTraining = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { kind: string; data: string; duracaoMin: number; intensidade: string; nota: string }) =>
-      data,
+    (data: {
+      kind: string;
+      data: string;
+      duracaoMin: number;
+      intensidade: string;
+      nota: string;
+      distanciaKm?: number;
+    }) => data,
   )
   .handler(async ({ data }) => {
     const { db, requireUserId, toCrossTraining, uid, unwrap } = await import("./db.server");
@@ -596,6 +620,7 @@ export const persistCrossTraining = createServerFn({ method: "POST" })
           duracao_min: data.duracaoMin,
           intensidade: data.intensidade,
           nota: data.nota,
+          distancia_km: data.distanciaKm ?? null,
         })
         .select("*")
         .single(),

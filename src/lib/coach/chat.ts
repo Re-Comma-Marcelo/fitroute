@@ -124,7 +124,7 @@ export async function askCoach(
   ) {
     return {
       answer: tx(
-        "Rest long enough to hit the next set with quality. Compound lifts usually need 90–180s; isolation moves 60–90s. If your RPE is climbing, add 15–30s.",
+        "Rest long enough to hit the next set with quality. Heavy compound lifts usually need 90–210s; isolation moves 45–90s — the app already sets this per exercise from its rep range. If your RPE is climbing, add 15–30s.",
       ),
       insights: [],
     };

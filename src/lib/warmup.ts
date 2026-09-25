@@ -1,4 +1,5 @@
 /** Builds a warm-up ramp for a working weight. Pure. */
+import { roundToStep } from "./progression";
 import { makeSets, type ActiveSet } from "./session-state";
 
 const RAMP = [
@@ -6,10 +7,6 @@ const RAMP = [
   { pct: 0.7, reps: 5 },
   { pct: 0.85, reps: 3 },
 ];
-
-function roundToStep(value: number, step: number): number {
-  return Math.max(step, Math.round(value / step) * step);
-}
 
 /**
  * Warm-up sets (type "aquecimento") for a target working weight.

@@ -75,9 +75,16 @@ export interface Prescription {
   restSec: number;
 }
 
+/**
+ * Rep ranges here match the ones stated to the AI weekly-plan prompt
+ * (planPrompt() in plan/prompt.ts: "strength 3-6, hypertrophy 6-12,
+ * endurance 12-20") — two independent goal systems (this quiz's 6-way goal
+ * vs. the AI plan's free-text goal) can't share one literal table, but the
+ * actual numbers should never disagree with each other.
+ */
 function baseFor(goal: StarterGoal): Prescription {
-  if (goal === "strength") return { sets: 4, repsMin: 4, repsMax: 6, restSec: 180 };
-  if (goal === "fat-loss") return { sets: 3, repsMin: 12, repsMax: 15, restSec: 60 };
+  if (goal === "strength") return { sets: 4, repsMin: 3, repsMax: 6, restSec: 180 };
+  if (goal === "fat-loss") return { sets: 3, repsMin: 12, repsMax: 20, restSec: 60 };
   // muscle-gain / muscle-maintain / muscle-cut / comeback: standard hypertrophy range.
   return { sets: 3, repsMin: 8, repsMax: 12, restSec: 90 };
 }

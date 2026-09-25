@@ -1,5 +1,25 @@
 import { formatNumber, tx } from "./format";
+import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
 import type { TipoSerie, WorkoutSet } from "./types";
+
+/**
+ * Load-reduction magnitudes for three distinct triggers — named and kept
+ * together so they stay intentional choices, not silently-drifting magic
+ * numbers copy-pasted across files:
+ * - A voluntary deload session (the user explicitly asks for a lighter day):
+ *   a meaningful, immediate cut they chose themselves.
+ * - A fatigue plateau (3+ stalled sessions AND rising/high RPE): the deepest
+ *   cut of the three, since this is the accumulated-fatigue case.
+ * - An early performance dip (worse reps at the same weight for 2 sessions
+ *   running, no plausible external cause): the lightest nudge, since it's
+ *   the earliest and weakest of the three signals.
+ * These are reactive, single-session autoregulation — not a substitute for a
+ * periodic (every 4-8 weeks) programmed deload week, which this app doesn't
+ * currently have.
+ */
+export const VOLUNTARY_DELOAD_PCT = 0.1;
+export const FATIGUE_PLATEAU_DELOAD_PCT = 0.15;
+export const PERFORMANCE_DIP_ADJUST_PCT = 0.05;
 
 /**
  * Regra de progressão de carga — pura e testável.
@@ -75,11 +95,23 @@ const SMALL_MUSCLE_GROUPS = new Set([
  * halved for small-muscle-group exercises (biceps, triceps, shoulders,
  * calves, traps, forearms, core, adductors), where that step is
  * disproportionately large relative to the working weight.
+ *
+ * Dumbbells are the one exception to the halving: fixed dumbbell pairs only
+ * come in whole even-kg steps (10, 12, 14 kg...) — a halved 1 kg step would
+ * suggest an odd weight (e.g. 15 kg) that doesn't exist on the rack. Plates
+ * on a barbell/machine/cable stack genuinely do go down to ~1.25 kg, so only
+ * those get the smaller step.
  */
 export function incrementoPara(equipamento: string, grupoPrimario?: string): number {
-  const base = equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
+  const isDumbbell = equipamento.trim().toLowerCase().startsWith("dumbbell");
+  const base = isDumbbell ? 2 : 2.5;
   const small = grupoPrimario ? SMALL_MUSCLE_GROUPS.has(grupoPrimario.trim().toLowerCase()) : false;
-  return small ? base / 2 : base;
+  return small && !isDumbbell ? base / 2 : base;
+}
+
+/** Snaps a weight to the nearest multiple of `step`, never below one step. */
+export function roundToStep(value: number, step: number): number {
+  return Math.max(step, Math.round(value / step) * step);
 }
 
 function media(valores: number[]): number | null {
@@ -102,8 +134,8 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
     validas.map((s) => s.rpe).filter((v): v is number => typeof v === "number" && v > 0),
   );
   const repsNoTopo = validas.every((s) => s.reps >= input.repsMax);
-  const pseOk = pseMedio === null ? true : pseMedio <= 8;
-  const pseAlto = pseMedio !== null && pseMedio >= 9.5;
+  const pseOk = pseMedio === null ? true : pseMedio <= RPE_EASY_MAX;
+  const pseAlto = pseMedio !== null && pseMedio >= RPE_NEAR_FAILURE_MIN;
   const incrementoKg = incrementoPara(input.equipamento, input.grupoPrimario);
   const aumentou = repsNoTopo && pseOk && !pseAlto;
 
