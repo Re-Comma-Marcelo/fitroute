@@ -164,7 +164,7 @@ export interface CoachingEvent {
   userReply?: string | undefined;
 }
 
-export type CrossTrainingKind = "run" | "sport" | "bike" | "walk" | "other";
+export type CrossTrainingKind = "run" | "sport" | "bike" | "walk" | "swim" | "other";
 
 export interface CrossTrainingLog {
   id: string;
@@ -174,6 +174,8 @@ export interface CrossTrainingLog {
   duracaoMin: number;
   intensidade: "easy" | "moderate" | "hard";
   nota: string;
+  /** Distance in km — only meaningful (and only asked) for run/walk/bike/swim. */
+  distanciaKm?: number;
 }
 
 export interface CoachChatEntry {

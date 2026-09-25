@@ -579,8 +579,14 @@ export const fetchCrossTraining = createServerFn({ method: "GET" }).handler(asyn
 
 export const persistCrossTraining = createServerFn({ method: "POST" })
   .inputValidator(
-    (data: { kind: string; data: string; duracaoMin: number; intensidade: string; nota: string }) =>
-      data,
+    (data: {
+      kind: string;
+      data: string;
+      duracaoMin: number;
+      intensidade: string;
+      nota: string;
+      distanciaKm?: number;
+    }) => data,
   )
   .handler(async ({ data }) => {
     const { db, requireUserId, toCrossTraining, uid, unwrap } = await import("./db.server");
@@ -596,6 +602,7 @@ export const persistCrossTraining = createServerFn({ method: "POST" })
           duracao_min: data.duracaoMin,
           intensidade: data.intensidade,
           nota: data.nota,
+          distancia_km: data.distanciaKm ?? null,
         })
         .select("*")
         .single(),

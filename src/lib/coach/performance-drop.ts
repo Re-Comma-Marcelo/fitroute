@@ -7,8 +7,14 @@
  * a soreness/energy note) and for whether the dip repeats across sessions.
  */
 import { tx } from "@/lib/format";
-import { PERFORMANCE_DIP_ADJUST_PCT } from "@/lib/progression";
-import type { CoachNote, CoachingCause, CrossTrainingLog, WorkoutSet } from "@/lib/types";
+import { PERFORMANCE_DIP_ADJUST_PCT, incrementoPara, roundToStep } from "@/lib/progression";
+import type {
+  CoachNote,
+  CoachingCause,
+  CrossTrainingKind,
+  CrossTrainingLog,
+  WorkoutSet,
+} from "@/lib/types";
 
 export interface DropInput {
   exerciseName: string;
@@ -22,6 +28,9 @@ export interface DropInput {
   recentNotes: CoachNote[];
   /** Workout the current set belongs to, excluded from the comparison. */
   currentWorkoutId?: string;
+  /** Drives the equipment-realistic step (and the cross-training relevance check below). */
+  equipamento?: string;
+  grupoPrimario?: string;
 }
 
 export interface DropResult {
@@ -33,15 +42,36 @@ export interface DropResult {
   suggestedKg?: number;
 }
 
-const CROSS_LABEL: Record<string, string> = {
+const CROSS_LABEL: Record<CrossTrainingKind, string> = {
   run: "a run",
   sport: "a sports session",
   bike: "a ride",
   walk: "a long walk",
+  swim: "a swim",
   other: "another activity",
 };
 
-const PUSH_GROUPS = ["bench", "press", "supino", "push", "dip", "ohp"];
+/**
+ * Muscle groups a cardio activity plausibly fatigues — gates whether it's a
+ * believable cause for THIS exercise's dip, instead of blaming any logged
+ * activity for any exercise regardless of what either one actually trains
+ * (the old check only looked at whether the exercise's own name contained a
+ * push-lift keyword, never at what the cross-training itself worked).
+ * "sport" and "other" are intentionally absent — too open-ended to assume a
+ * muscle group, so those keep the old always-plausible behaviour.
+ */
+const CROSS_EMPHASIS: Partial<Record<CrossTrainingKind, string[]>> = {
+  run: ["quads", "hamstrings", "glutes", "calves"],
+  walk: ["quads", "hamstrings", "glutes", "calves"],
+  bike: ["quads", "hamstrings", "glutes"],
+  swim: ["shoulders", "back", "chest", "triceps", "core"],
+};
+
+function isRelevantCross(kind: CrossTrainingKind, grupoPrimario?: string): boolean {
+  const emphasis = CROSS_EMPHASIS[kind];
+  if (!emphasis || !grupoPrimario) return true;
+  return emphasis.includes(grupoPrimario.trim().toLowerCase());
+}
 
 function hoursSince(iso: string): number {
   const then = new Date(`${iso.length <= 10 ? `${iso}T12:00:00` : iso}`).getTime();
@@ -79,26 +109,26 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
   const repsLost = last.reps - current.reps;
   if (repsLost <= 0) return null;
 
-  const suggestedKg = Math.round(current.pesoKg * (1 - PERFORMANCE_DIP_ADJUST_PCT) * 2) / 2;
+  const step = incrementoPara(input.equipamento ?? "", input.grupoPrimario);
+  const suggestedKg = roundToStep(current.pesoKg * (1 - PERFORMANCE_DIP_ADJUST_PCT), step);
 
-  // 1. Plausible external cause: cross-training in the last 48h.
+  // 1. Plausible external cause: cross-training in the last 48h that
+  // plausibly fatigued the same muscle group as the exercise just logged.
   const cross = input.crossTraining.find((c) => {
     const h = hoursSince(c.data);
-    return h >= 0 && h <= 48;
+    return h >= 0 && h <= 48 && isRelevantCross(c.kind, input.grupoPrimario);
   });
   if (cross) {
-    const isPush = PUSH_GROUPS.some((k) => input.exerciseName.toLowerCase().includes(k));
     return {
       cause: "cross_training",
       repsLost,
       pesoKg: current.pesoKg,
       message: tx(
-        "{reps} reps less on {exercise} today. You logged {activity} recently — that can cost you strength{where}. How are you feeling?",
+        "{reps} reps less on {exercise} today. You logged {activity} recently — that likely explains it. How are you feeling?",
         {
           reps: repsLost,
           exercise: input.exerciseName,
           activity: CROSS_LABEL[cross.kind] ?? CROSS_LABEL["other"]!,
-          where: isPush ? tx(" in push exercises") : "",
         },
       ),
     };

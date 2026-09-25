@@ -610,6 +610,8 @@ function SessionPage() {
         crossTraining: cross,
         recentNotes: notes,
         currentWorkoutId: workoutId,
+        equipamento: ex.equipamento,
+        grupoPrimario: ex.grupoPrimario,
       });
       if (!result) return;
       setCoachTips((prev) => ({ ...prev, [exIdx]: result.message }));

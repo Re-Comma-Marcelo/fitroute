@@ -1,5 +1,5 @@
 import { formatNumber, tx } from "./format";
-import { incrementoPara } from "./progression";
+import { incrementoPara, roundToStep } from "./progression";
 import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
 
 /**
@@ -48,11 +48,14 @@ export function nextSetTarget(
   let kind: "easy" | "deload" | "hold" | "grind" | "climb";
 
   if (easy) {
-    pesoKg = peso + step;
+    // Snap to a step multiple, not just "+step on whatever was logged" — a
+    // manually-typed or already-drifted weight (13.8 kg) must not turn into
+    // another odd one (16.3 kg) that doesn't exist on a real dumbbell/plate.
+    pesoKg = roundToStep(peso + step, step);
     alvo = repsMin;
     kind = "easy";
   } else if (bigMiss) {
-    pesoKg = Math.max(0, peso - step);
+    pesoKg = roundToStep(peso - step, step);
     alvo = repsMin;
     kind = "deload";
   } else if (closeMiss) {

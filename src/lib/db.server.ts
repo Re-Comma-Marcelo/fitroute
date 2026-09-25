@@ -209,6 +209,7 @@ export const toCrossTraining = (r: Row) => ({
   duracaoMin: Number(r["duracao_min"] ?? 0),
   intensidade: String(r["intensidade"] ?? "moderate"),
   nota: String(r["nota"] ?? ""),
+  distanciaKm: r["distancia_km"] == null ? undefined : Number(r["distancia_km"]),
 });
 
 export const toChatEntry = (r: Row) => ({

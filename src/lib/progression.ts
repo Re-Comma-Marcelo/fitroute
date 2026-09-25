@@ -95,11 +95,23 @@ const SMALL_MUSCLE_GROUPS = new Set([
  * halved for small-muscle-group exercises (biceps, triceps, shoulders,
  * calves, traps, forearms, core, adductors), where that step is
  * disproportionately large relative to the working weight.
+ *
+ * Dumbbells are the one exception to the halving: fixed dumbbell pairs only
+ * come in whole even-kg steps (10, 12, 14 kg...) — a halved 1 kg step would
+ * suggest an odd weight (e.g. 15 kg) that doesn't exist on the rack. Plates
+ * on a barbell/machine/cable stack genuinely do go down to ~1.25 kg, so only
+ * those get the smaller step.
  */
 export function incrementoPara(equipamento: string, grupoPrimario?: string): number {
-  const base = equipamento.trim().toLowerCase().startsWith("dumbbell") ? 2 : 2.5;
+  const isDumbbell = equipamento.trim().toLowerCase().startsWith("dumbbell");
+  const base = isDumbbell ? 2 : 2.5;
   const small = grupoPrimario ? SMALL_MUSCLE_GROUPS.has(grupoPrimario.trim().toLowerCase()) : false;
-  return small ? base / 2 : base;
+  return small && !isDumbbell ? base / 2 : base;
+}
+
+/** Snaps a weight to the nearest multiple of `step`, never below one step. */
+export function roundToStep(value: number, step: number): number {
+  return Math.max(step, Math.round(value / step) * step);
 }
 
 function media(valores: number[]): number | null {

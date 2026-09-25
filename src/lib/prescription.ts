@@ -1,6 +1,6 @@
 import { formatNumber, tx } from "./format";
 import { e1rm, pctOfE1rmForReps } from "./e1rm";
-import { incrementoPara, isSerieDeCarga, type PrevSet } from "./progression";
+import { incrementoPara, isSerieDeCarga, roundToStep, type PrevSet } from "./progression";
 import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
 import { buildWarmupSets } from "./warmup";
 
@@ -93,10 +93,6 @@ export interface SetPrescription {
   warmup?: { pesoKg: number; reps: number; line: string };
 }
 
-function roundToStep(value: number, step: number): number {
-  return Math.round(value / step) * step;
-}
-
 /**
  * Calculates today's work from recent sets: no user-set goals needed.
  * `anteriores` are the sets from the last completed session of this exercise.
@@ -130,7 +126,7 @@ export function prescribeExercise(
   const ceiling = heaviest + step * (easy ? 1 : 0);
   const floor = hard ? heaviest - step : heaviest * 0.9;
   pesoKg = Math.min(ceiling, Math.max(floor, pesoKg));
-  pesoKg = Math.max(step, roundToStep(pesoKg, step));
+  pesoKg = roundToStep(pesoKg, step);
 
   const line = hard
     ? tx("{weight} kg x {reps} — last time was near your limit, so hold here and own every rep.", {
