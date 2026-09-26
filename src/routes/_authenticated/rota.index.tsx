@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Camera, Plus, Sparkles, Target } from "lucide-react";
+import { Camera, Maximize2, Minimize2, Plus, Sparkles, Target } from "lucide-react";
 import { toast } from "sonner";
 import { pageMeta } from "@/lib/route-meta";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
 import { mapRoute } from "@/lib/route/auto-map";
 import { isoDay, addDays } from "@/lib/route/cadence";
 import { currentCheckpoint, evaluateCheckpoints, nearestCheckpoint } from "@/lib/route/status";
+import { weekMarkers as buildWeekMarkers, type WeekMarker } from "@/lib/route/weight-progress";
 import type { Checkpoint } from "@/lib/route/types";
 
 import { formatDate } from "@/lib/format";
@@ -64,16 +65,52 @@ function RoutePage() {
   const [editOpen, setEditOpen] = useState(false);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [goalOpen, setGoalOpen] = useState(false);
+  const [showWeeks, setShowWeeks] = useState(true);
 
   const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
   const photosQ = useQuery({ queryKey: ["route-photos"], queryFn: getProgressPhotos });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
+  const weightsQ = useQuery({ queryKey: ["body-weight"], queryFn: getBodyWeightLog });
 
   const checkpoints = checkpointsQ.data ?? [];
   const photos = photosQ.data ?? [];
   const profile = profileQ.data;
+  const weights = weightsQ.data ?? [];
   const goalDate = profile?.metaPrazo ?? null;
   const current = useMemo(() => currentCheckpoint(checkpoints), [checkpoints]);
+
+  // Weekly weight read-outs between weight checkpoints — never a target, just
+  // a confirmation of what actually happened, since one day's weigh-in
+  // fluctuates too much to mean much on its own. "Show whole route" hides
+  // them so the route stays quick to scan when that level of detail isn't
+  // wanted right now.
+  const hasWeightGoal = useMemo(
+    () => checkpoints.some((c) => c.metric?.kind === "weight"),
+    [checkpoints],
+  );
+
+  const weekMarkers = useMemo<WeekMarker[]>(() => {
+    if (!showWeeks || checkpoints.length === 0) return [];
+    const weightCheckpoints = checkpoints
+      .filter((c) => c.metric?.kind === "weight")
+      .sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+    if (!weightCheckpoints.length) return [];
+    // There's no separately persisted "route start date" today — the earliest
+    // checkpoint's createdAt (when the route was last (re-)mapped) is the
+    // practical anchor for where week 1 begins.
+    const routeStartIso = checkpoints
+      .reduce(
+        (earliest, c) => (c.createdAt < earliest ? c.createdAt : earliest),
+        checkpoints[0]!.createdAt,
+      )
+      .slice(0, 10);
+    const bounds = [routeStartIso, ...weightCheckpoints.map((c) => c.targetDate)];
+    const out: WeekMarker[] = [];
+    for (let i = 0; i < bounds.length - 1; i++) {
+      out.push(...buildWeekMarkers(bounds[i]!, bounds[i + 1]!, weights));
+    }
+    return out;
+  }, [showWeeks, checkpoints, weights]);
 
   /** Re-reads the route against the logs, so status is never stale. */
   useEffect(() => {
@@ -90,7 +127,9 @@ function RoutePage() {
         workouts: log.workouts,
         sets: log.sets,
         cross,
-        bodyWeightKg: weights[0]?.pesoKg ?? null,
+        // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
+        bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
+        startWeightKg: profile?.pesoInicialKg ?? null,
         hadDrop: false,
       });
       if (cancelled || !changes.length) return;
@@ -120,7 +159,7 @@ function RoutePage() {
       cancelled = true;
     };
     // Runs when the route or the logs change identity.
-  }, [checkpoints, queryClient, t]);
+  }, [checkpoints, profile, queryClient, t]);
 
   const generate = useMutation({
     mutationFn: async () => {
@@ -264,12 +303,31 @@ function RoutePage() {
           <div className="mt-4">
             <RoutePath
               checkpoints={checkpoints}
+              weekMarkers={weekMarkers}
               currentId={current?.id ?? null}
               startLabel={t("Start")}
               goalLabel={goalDate ? formatDate(goalDate) : t("Goal")}
               onSelect={setSelected}
             />
           </div>
+
+          {hasWeightGoal ? (
+            <Button
+              variant="ghost"
+              className="tap-target mt-2 w-full text-xs"
+              onClick={() => setShowWeeks((v) => !v)}
+            >
+              {showWeeks ? (
+                <>
+                  <Minimize2 className="size-4" /> {t("Show whole route")}
+                </>
+              ) : (
+                <>
+                  <Maximize2 className="size-4" /> {t("Show weekly detail")}
+                </>
+              )}
+            </Button>
+          ) : null}
 
           <ProgressPhotoGallery photos={photos} />
 

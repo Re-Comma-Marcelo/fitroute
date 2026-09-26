@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Flame, Plus } from "lucide-react";
+import { ChevronDown, Flame, FolderOpen, Plus } from "lucide-react";
 import { KeyLiftsSection, type KeyLiftRow } from "@/components/KeyLiftsSection";
 import { PlateauCoachCard } from "@/components/PlateauCoachCard";
 import { ProgressTrendChart } from "@/components/ProgressTrendChart";
@@ -21,6 +21,9 @@ import { muscleVolumeComparison } from "@/lib/muscle-volume";
 
 import { getWorkouts, getWorkoutLog } from "@/lib/data/workouts";
 import { getRoutines } from "@/lib/data/routines";
+import { getFolders, routinesInFolder } from "@/lib/data/folders";
+import { FolderDetailSheet } from "@/components/folders/FolderDetailSheet";
+import { WorkoutHistoryItem } from "@/components/progress/WorkoutHistoryItem";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getTrackedLifts, setTrackedLift } from "@/lib/data/tracked-lifts";
@@ -33,7 +36,7 @@ import {
   weeklySeries,
   type StatDelta,
 } from "@/lib/progress-analytics";
-import { formatDateLong, formatDurationShort, formatKg } from "@/lib/format";
+import { formatDurationShort } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 import { Link } from "@tanstack/react-router";
@@ -45,6 +48,10 @@ export function ProgressView() {
   const [manualOpen, setManualOpen] = useState(false);
   const [weeks, setWeeks] = useState<4 | 8 | 12>(8);
   const [routineFilter, setRoutineFilter] = useState<string | null>(null);
+  const [folderFilter, setFolderFilter] = useState<string | null>(null);
+  const [folderDetail, setFolderDetail] = useState<string | null>(null);
+  /** Folder groups the user opened in the history; the current one starts open. */
+  const [openGroups, setOpenGroups] = useState<Set<string>>(new Set());
   // Local-only weekly targets: read after hydration to keep SSR markup stable.
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
@@ -55,10 +62,26 @@ export function ProgressView() {
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const trackedQuery = useQuery({ queryKey: ["tracked-lifts"], queryFn: getTrackedLifts });
+  // Empty until the folders migration is applied: history stays one flat list.
+  const foldersQuery = useQuery({ queryKey: ["folders"], queryFn: getFolders });
 
   const allWorkouts = workoutsQuery.data ?? [];
   const sets = logQuery.data?.sets ?? [];
-  const routines = routinesQuery.data ?? [];
+  const allRoutines = routinesQuery.data ?? [];
+  const folders = foldersQuery.data ?? [];
+  const currentFolderId = folders.find((f) => f.status === "atual")?.id ?? null;
+  /** Current folder first, then the others newest first. */
+  const orderedFolders = useMemo(
+    () =>
+      [...folders].sort((a, b) =>
+        a.status === "atual" ? -1 : b.status === "atual" ? 1 : b.inicioEm.localeCompare(a.inicioEm),
+      ),
+    [folders],
+  );
+  /** Routine chips follow the folder filter. */
+  const routines = folderFilter
+    ? routinesInFolder(allRoutines, folderFilter, currentFolderId)
+    : allRoutines;
   const exercises = exercisesQuery.data ?? [];
   const trackedIds = trackedQuery.data ?? [];
   const weeklyTarget = profileQuery.data?.metaTreinosSemana ?? 4;
@@ -68,10 +91,23 @@ export function ProgressView() {
     const since = Date.now() - weeks * 7 * 24 * 60 * 60 * 1000;
     return allWorkouts.filter(
       (w) =>
+        (!folderFilter || (w.folderId ?? currentFolderId) === folderFilter) &&
         (!routineFilter || w.routineId === routineFilter) &&
         new Date(w.iniciadoEm).getTime() >= since,
     );
-  }, [allWorkouts, routineFilter, weeks]);
+  }, [allWorkouts, folderFilter, currentFolderId, routineFilter, weeks]);
+
+  /** History split by folder, in folder order; empty groups are skipped. */
+  const historyGroups = useMemo(
+    () =>
+      orderedFolders
+        .map((folder) => ({
+          folder,
+          items: workouts.filter((w) => (w.folderId ?? currentFolderId) === folder.id),
+        }))
+        .filter((g) => g.items.length > 0),
+    [orderedFolders, workouts, currentFolderId],
+  );
 
   const comparison = useMemo(() => monthComparison(workouts), [workouts]);
   const summary = useMemo(
@@ -134,6 +170,31 @@ export function ProgressView() {
             </Chip>
           ))}
         </div>
+        {folders.length > 1 ? (
+          <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
+            <Chip
+              active={folderFilter === null}
+              onClick={() => {
+                setFolderFilter(null);
+                setRoutineFilter(null);
+              }}
+            >
+              {t("All folders")}
+            </Chip>
+            {orderedFolders.map((f) => (
+              <Chip
+                key={f.id}
+                active={folderFilter === f.id}
+                onClick={() => {
+                  setFolderFilter(f.id);
+                  setRoutineFilter(null);
+                }}
+              >
+                {f.nome}
+              </Chip>
+            ))}
+          </div>
+        ) : null}
         {routines.length > 1 ? (
           <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
             <Chip active={routineFilter === null} onClick={() => setRoutineFilter(null)}>
@@ -268,47 +329,84 @@ export function ProgressView() {
         </div>
       ) : null}
 
-      <ul className="space-y-2">
-        {workouts.map((w) => (
-          <li key={w.id}>
-            <Link
-              to="/progresso/$id"
-              params={{ id: w.id }}
-              className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-colors hover:border-primary/40"
-            >
-              <div className="flex-1">
-                <p className="font-display text-base font-semibold leading-tight">
-                  {routines.find((r) => r.id === w.routineId)?.nome ?? t("Blank workout")}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground/80 first-letter:uppercase">
-                  {formatDateLong(w.iniciadoEm)}
-                </p>
-                <div className="mt-1.5 flex flex-wrap gap-1">
-                  {Array.from(
-                    new Set(
-                      sets
-                        .filter((s) => s.workoutId === w.id)
-                        .map((s) => exercises.find((e) => e.id === s.exerciseId)?.grupoPrimario)
-                        .filter((g): g is string => Boolean(g)),
-                    ),
-                  ).map((g) => (
-                    <span
-                      key={g}
-                      className="rounded-full bg-train/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-train"
-                    >
-                      {g}
+      {historyGroups.length ? (
+        <div className="space-y-4">
+          {historyGroups.map(({ folder, items }) => {
+            const isOpen =
+              folder.id === currentFolderId
+                ? !openGroups.has(folder.id)
+                : openGroups.has(folder.id);
+            return (
+              <section key={folder.id}>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    aria-expanded={isOpen}
+                    onClick={() =>
+                      setOpenGroups((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(folder.id)) next.delete(folder.id);
+                        else next.add(folder.id);
+                        return next;
+                      })
+                    }
+                    className="tap-target flex min-w-0 flex-1 items-center gap-2 text-left"
+                  >
+                    <FolderOpen
+                      className={cn(
+                        "size-4 shrink-0",
+                        folder.id === currentFolderId ? "text-primary" : "text-muted-foreground",
+                      )}
+                    />
+                    <span className="min-w-0 truncate text-sm font-semibold">{folder.nome}</span>
+                    <span className="shrink-0 text-xs text-muted-foreground">
+                      {t("{count} sessions", { count: items.length })}
                     </span>
-                  ))}
+                    <ChevronDown
+                      className={cn(
+                        "size-4 shrink-0 text-muted-foreground transition-transform",
+                        isOpen && "rotate-180",
+                      )}
+                    />
+                  </button>
+                  <Button
+                    variant="ghost"
+                    className="h-9 shrink-0 px-2 text-xs font-semibold"
+                    onClick={() => setFolderDetail(folder.id)}
+                  >
+                    {t("See folder")}
+                  </Button>
                 </div>
-                <p className="mt-1 text-xs font-semibold text-muted-foreground">
-                  {formatDurationShort(w.duracaoSeg)} · {formatKg(w.volumeTotalKg)}
-                </p>
-              </div>
-              <ChevronRight className="size-5 text-muted-foreground" />
-            </Link>
-          </li>
-        ))}
-      </ul>
+                {isOpen ? (
+                  <ul className="mt-2 space-y-2">
+                    {items.map((w) => (
+                      <WorkoutHistoryItem
+                        key={w.id}
+                        workout={w}
+                        routines={allRoutines}
+                        sets={sets}
+                        exercises={exercises}
+                      />
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            );
+          })}
+        </div>
+      ) : (
+        <ul className="space-y-2">
+          {workouts.map((w) => (
+            <WorkoutHistoryItem
+              key={w.id}
+              workout={w}
+              routines={allRoutines}
+              sets={sets}
+              exercises={exercises}
+            />
+          ))}
+        </ul>
+      )}
 
       <Button
         variant="outline"
@@ -325,10 +423,17 @@ export function ProgressView() {
         onToggle={(id, tracked) => void toggleLift(id, tracked)}
       />
 
+      <FolderDetailSheet
+        folderId={folderDetail}
+        onOpenChange={(o) => {
+          if (!o) setFolderDetail(null);
+        }}
+      />
+
       <ManualWorkoutSheet
         open={manualOpen}
         onOpenChange={setManualOpen}
-        routines={routines}
+        routines={allRoutines}
         exercises={exercises}
       />
     </>

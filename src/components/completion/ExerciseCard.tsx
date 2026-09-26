@@ -4,7 +4,8 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { getExercises } from "@/lib/data/exercises";
 import { getExerciseHistory, getWorkouts } from "@/lib/data/workouts";
 import { exerciseLoopUrl } from "@/lib/exerciseMedia";
-import { formatDateLong } from "@/lib/format";
+import type { ExercisePreview } from "@/lib/exercise-preview";
+import { formatDateLong, formatKg } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
@@ -32,18 +33,27 @@ type Panel = "default" | "info" | "history";
  * flips again to fill the front with the next exercise. A programmed swipe
  * (not a drag-follow) switches between the default face, exercise info +
  * loop, and the last time this exercise was done. Any tap ends the sequence.
+ *
+ * With a `preview`, the default face introduces the exercise properly: its
+ * loop, today's target next to last time, the record and one line worth
+ * reading before the first set.
  */
 export function ExerciseCard({
   target,
   cardRect,
   exerciseId,
   exerciseName,
+  label,
+  preview,
   onDismiss,
 }: {
   target: MorphTarget;
   cardRect: CardRect;
   exerciseId: string;
   exerciseName: string;
+  /** Caption above the name; defaults to "Next exercise". */
+  label?: string | undefined;
+  preview?: ExercisePreview | undefined;
   onDismiss: () => void;
 }) {
   const t = useT();
@@ -144,16 +154,47 @@ export function ExerciseCard({
             {panel === "default" ? (
               <motion.div
                 key="default"
-                className="flex h-full flex-col items-center justify-center gap-2 px-6 text-center"
+                className="flex h-full flex-col items-center gap-3 px-5 pb-4 pt-5 text-center"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
               >
-                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {t("Next exercise")}
+                {preview && loop ? (
+                  <div className="h-24 w-32 shrink-0 overflow-hidden rounded-2xl bg-surface-3">
+                    <img
+                      src={loop}
+                      alt={t("How to perform {name}", { name: exerciseName })}
+                      loading="eager"
+                      className="size-full object-contain"
+                    />
+                  </div>
+                ) : null}
+                <div
+                  className={cn(
+                    "flex flex-col items-center gap-1",
+                    !preview || !loop ? "mt-auto" : undefined,
+                  )}
+                >
+                  <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    {label ?? t("Next exercise")}
+                  </span>
+                  <span className="text-2xl font-bold leading-tight">{exerciseName}</span>
+                </div>
+                {preview ? (
+                  <PreviewFace
+                    preview={preview}
+                    fallbackTip={firstSentence(exercise?.instrucoes)}
+                  />
+                ) : null}
+                <span
+                  className={cn(
+                    "text-[11px] text-muted-foreground",
+                    preview ? "mt-auto" : "mt-auto pb-1",
+                  )}
+                >
+                  {t("Swipe for how-to and history · tap to start")}
                 </span>
-                <span className="text-2xl font-bold">{exerciseName}</span>
               </motion.div>
             ) : panel === "info" ? (
               <motion.div
@@ -216,5 +257,71 @@ export function ExerciseCard({
         </motion.div>
       </motion.div>
     </motion.div>
+  );
+}
+
+function firstSentence(text: string | undefined): string | null {
+  const trimmed = text?.trim();
+  if (!trimmed) return null;
+  const end = trimmed.search(/[.!?](\s|$)/);
+  return end > 0 ? trimmed.slice(0, end + 1) : trimmed;
+}
+
+/** Today's target next to last time, the record and one tip. */
+function PreviewFace({
+  preview,
+  fallbackTip,
+}: {
+  preview: ExercisePreview;
+  fallbackTip: string | null;
+}) {
+  const t = useT();
+  const reps =
+    preview.todayReps !== null
+      ? String(preview.todayReps)
+      : preview.repsMin === preview.repsMax
+        ? String(preview.repsMin)
+        : `${preview.repsMin}–${preview.repsMax}`;
+  const today =
+    preview.todayKg !== null
+      ? t("{weight} × {reps}", { weight: formatKg(preview.todayKg), reps })
+      : t("{reps} reps", { reps });
+  const last =
+    preview.lastKg !== null && preview.lastReps !== null
+      ? t("{weight} × {reps}", { weight: formatKg(preview.lastKg), reps: preview.lastReps })
+      : preview.lastReps !== null
+        ? t("{reps} reps", { reps: preview.lastReps })
+        : t("First time");
+  const tip = preview.tip ?? fallbackTip;
+  return (
+    <div className="flex w-full flex-col items-center gap-2">
+      <div className="grid w-full grid-cols-2 gap-2 text-left">
+        <div
+          className={cn(
+            "rounded-2xl border px-3 py-2",
+            preview.up ? "border-primary/50 bg-primary/10" : "border-border bg-surface-2",
+          )}
+        >
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("Today · {count} sets", { count: preview.sets })}
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{today}</p>
+        </div>
+        <div className="rounded-2xl border border-border bg-surface-2 px-3 py-2">
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("Last time")}
+          </p>
+          <p className="text-sm font-semibold tabular-nums">{last}</p>
+        </div>
+      </div>
+      {preview.prKg !== null ? (
+        <p className="text-xs text-muted-foreground">
+          {t("Best ever: {weight}", { weight: formatKg(preview.prKg) })}
+        </p>
+      ) : null}
+      {tip ? (
+        <p className="line-clamp-3 text-xs leading-snug text-muted-foreground">{tip}</p>
+      ) : null}
+    </div>
   );
 }

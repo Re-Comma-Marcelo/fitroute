@@ -13,6 +13,7 @@ import { setFormatLocale } from "@/lib/format";
 import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as foldersDict } from "./dict/folders";
 import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
 import { dict as exerciseVariantsDict } from "./dict/exercise-variants";
 import { dict as generatedDict } from "./dict/generated";
@@ -24,6 +25,7 @@ import { dict as planDict } from "./dict/plan";
 
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
+import { dict as routeWeeklyDict } from "./dict/route-weekly";
 import { dict as pwaDict } from "./dict/pwa";
 import { dict as round10Dict } from "./dict/round10";
 import { dict as round11Dict } from "./dict/round11";
@@ -54,6 +56,7 @@ import { dict as round34Dict } from "./dict/round34";
 import { dict as sessionDict } from "./dict/session";
 import { dict as crossTrainingDict } from "./dict/cross-training";
 import { dict as sessionFocusDict } from "./dict/session-focus";
+import { dict as sessionStartDict } from "./dict/session-start";
 import { dict as weeklyCheckinDict } from "./dict/weekly-checkin";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
@@ -79,6 +82,7 @@ const FRAGMENTS: DictFragment[] = [
   upgradesDict,
   sessionDict,
   sessionFocusDict,
+  sessionStartDict,
   exerciseCompleteDict,
   exerciseVariantsDict,
   weeklyCheckinDict,
@@ -86,6 +90,7 @@ const FRAGMENTS: DictFragment[] = [
   libraryDict,
   dietDict,
   progressDict,
+  routeWeeklyDict,
   profileDict,
   coachDict,
   planDict,
@@ -119,6 +124,7 @@ const FRAGMENTS: DictFragment[] = [
   round32Dict,
   round33Dict,
   round34Dict,
+  foldersDict,
   authDict,
 ];
 

@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { hapticSuccess, hapticTick } from "@/lib/haptics";
 import { markScrubHintShown, shouldShowScrubHint } from "@/lib/use-value-scrub";
 
-import { buildWarmupSets } from "@/lib/warmup";
+import { buildWarmupSets, withWarmup } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
 import { SessionExercisePickerSheet } from "@/components/SessionExercisePickerSheet";
@@ -47,8 +47,10 @@ import {
   uncompleteSet,
 } from "@/lib/complete-set";
 import {
+  asReplacement,
   clearActiveSession,
   filledUncheckedSets,
+  isFilledUnchecked,
   isExerciseDone,
   isExercisePending,
   loadActiveSession,
@@ -72,9 +74,10 @@ import {
   type ActiveSet,
   type RestState,
   sessionLabel,
+  sessionSwaps,
 } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
-import { buildActiveExercise } from "@/lib/start-session";
+import { buildActiveExercise, rebuildSessionLoad } from "@/lib/start-session";
 import {
   getExerciseHistory,
   getPersonalRecord,
@@ -83,6 +86,9 @@ import {
   saveWorkout,
 } from "@/lib/data/workouts";
 import { getRecentCoachNotes } from "@/lib/data/coach-notes";
+import { applySwapsToRoutine, saveSwapVariation } from "@/lib/data/routines";
+import { swapReasonLabel } from "@/lib/swap-reasons";
+import { stripReferenceNotes } from "@/lib/data/folders";
 import {
   firedToday,
   getCoachingEvents,
@@ -90,6 +96,8 @@ import {
   logCoachingEvent,
 } from "@/lib/data/coaching";
 import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
+import { readinessMessage } from "@/lib/coach/readiness";
+import { exercisePreview } from "@/lib/exercise-preview";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, isoDate } from "@/lib/data/nutrition";
 import { getDayNutrition } from "@/lib/data/diet-entries";
@@ -100,7 +108,7 @@ import { RestIsland } from "@/components/RestIsland";
 import { RpeSheet } from "@/components/RpeScale";
 import { askRpeEnabled } from "@/lib/rpe";
 import { useQuery } from "@tanstack/react-query";
-import type { TipoSerie, WorkoutSet } from "@/lib/types";
+import type { SwapReason, TipoSerie, Workout, WorkoutSet } from "@/lib/types";
 
 import { SessionHeader, type SegmentStatus } from "@/components/session/SessionHeader";
 import { CurrentSetCard } from "@/components/session/CurrentSetCard";
@@ -110,10 +118,12 @@ import { SetEditSheet } from "@/components/session/SetEditSheet";
 import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session/ExerciseMenuSheet";
 import { SessionSheet } from "@/components/session/SessionSheet";
 import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet";
+import { SwapFinishPanel, type SwapKeep } from "@/components/session/SwapFinishPanel";
 import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 import { SessionStartIntro } from "@/components/session/SessionStartIntro";
 import { consumeSessionIntro, type SessionIntroOrigin } from "@/lib/session-intro";
+import type { BriefingChoices } from "@/components/session/SessionBriefing";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -169,7 +179,12 @@ function SessionPage() {
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  /** Sync guard: a second tap on Finish while the first save runs must not save twice. */
+  const finishingRef = useRef(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  /** Finish-dialog answers about today's swaps. */
+  const [swapReason, setSwapReason] = useState<SwapReason | null>(null);
+  const [swapKeep, setSwapKeep] = useState<SwapKeep>("today");
   /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
   const [justSet, setJustSet] = useState<string | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
@@ -240,12 +255,65 @@ function SessionPage() {
 
   useTick(true);
 
-  /** Brand opening, only right after "Start" (never on resume or reload). */
+  /** Brand opening + briefing, only right after "Start" (never on resume or reload). */
   const [intro, setIntro] = useState<{ origin: SessionIntroOrigin | undefined } | null>(null);
   useEffect(() => {
     const origin = consumeSessionIntro();
     if (origin !== null) setIntro({ origin });
   }, []);
+
+  /** Briefing: 😴 → rebuild today's session as the lighter version (or back). */
+  const switchLoad = useCallback(
+    async (deload: boolean): Promise<boolean> => {
+      const current = sessionRef.current;
+      if (!current || sessionSetsDone(current) > 0) return false;
+      try {
+        const next = await rebuildSessionLoad(current, deload);
+        if (!next) throw new Error("rebuild failed");
+        setSession(next);
+        saveActiveSession(next);
+        return true;
+      } catch {
+        toast.error(t("Could not switch the load. Check your connection and try again."));
+        return false;
+      }
+    },
+    [t],
+  );
+
+  /**
+   * Briefing "Let's go": the clock starts now (not while reading the plan),
+   * the warm-up ramp goes in front of the first exercise, and how the user
+   * feels is kept on the session and told to the coach.
+   */
+  function beginSession(choices: BriefingChoices) {
+    const current = sessionRef.current;
+    if (!current) return;
+    update((s) => {
+      if (sessionSetsDone(s) === 0 && !s.pausadoEm) s.iniciadoEm = new Date().toISOString();
+      if (choices.readiness) s.disposicao = choices.readiness;
+      if (choices.warmup) {
+        const idx = viewIndex(s);
+        const warmed = s.exercicios[idx] ? withWarmup(s.exercicios[idx]) : null;
+        if (warmed) s.exercicios[idx] = warmed;
+      }
+      return s;
+    });
+    if (choices.readiness) {
+      const level = choices.readiness;
+      void logCoachingEvent({
+        kind: "readiness",
+        cause: "none",
+        workoutId: current.id,
+        message: readinessMessage(level, sessionLabel(current), {
+          deload: Boolean(current.deload),
+        }),
+        detail: { level, deload: Boolean(current.deload) },
+      }).catch(() => {
+        /* best effort: the answer is still on the session */
+      });
+    }
+  }
 
   /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
   const unlockAudio = useCallback(() => {
@@ -312,7 +380,9 @@ function SessionPage() {
             if (!prev) return prev;
             // Coming from "Replace exercise": swap in place, keeping the order.
             if (slot !== null && prev.exercicios[slot]) {
-              const exercicios = prev.exercicios.map((e, i) => (i === slot ? built : e));
+              const exercicios = prev.exercicios.map((e, i) =>
+                i === slot ? asReplacement(built, e) : e,
+              );
               const next = { ...prev, exercicios, atual: slot };
               saveActiveSession(next);
               return next;
@@ -611,6 +681,7 @@ function SessionPage() {
         crossTraining: cross,
         recentNotes: notes,
         currentWorkoutId: workoutId,
+        readiness: sessionRef.current?.disposicao,
         equipamento: ex.equipamento,
         grupoPrimario: ex.grupoPrimario,
       });
@@ -796,7 +867,7 @@ function SessionPage() {
     });
     if (!built) return;
     update((s) => {
-      s.exercicios[exIdx] = built;
+      s.exercicios[exIdx] = asReplacement(built, s.exercicios[exIdx] ?? current);
       return s;
     });
     setCoachTips((prev) => {
@@ -1088,7 +1159,7 @@ function SessionPage() {
     const target = structuredClone(session!);
     target.exercicios.forEach((ex) =>
       ex.sets.forEach((set) => {
-        if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+        if (isFilledUnchecked(set)) {
           set.concluida = true;
         }
       }),
@@ -1100,7 +1171,8 @@ function SessionPage() {
 
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
-    if (!target) return;
+    if (!target || finishingRef.current) return;
+    finishingRef.current = true;
     setFinishing(true);
     try {
       const duracaoSeg = elapsed;
@@ -1134,6 +1206,7 @@ function SessionPage() {
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
             ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
+            ...(ex.substituiDe ? { substituiExerciseId: ex.substituiDe } : {}),
             ...(s.variantId ? { variantId: s.variantId } : {}),
           });
         });
@@ -1141,13 +1214,28 @@ function SessionPage() {
       }
 
       // Per-exercise notes would otherwise be dropped: fold them into the
-      // workout note so they show up on the workout detail screen.
+      // workout note so they show up on the workout detail screen. The
+      // routine's reference-load line (end of a cycle) is not session news.
       const exerciseNotes = target.exercicios
-        .filter((ex) => ex.notas.trim() !== "")
-        .map((ex) => `${ex.nome}: ${ex.notas.trim()}`);
+        .map((ex) => ({ nome: ex.nome, notas: stripReferenceNotes(ex.notas) }))
+        .filter((ex) => ex.notas !== "")
+        .map((ex) => `${ex.nome}: ${ex.notas}`);
       const notas = [target.notas.trim(), ...exerciseNotes].filter(Boolean).join("\n");
 
-      const workout = {
+      // Swaps decide where the session sits in its folder: a one-off or kept
+      // variation stays quieter than the standard; "update the standard" makes
+      // today's session the new standard.
+      const swaps = sessionSwaps(target);
+      const swapMap = Object.fromEntries(swaps.map(({ from, ex }) => [from, ex.exerciseId]));
+      const keep: SwapKeep = target.routineId && swaps.length ? swapKeep : "today";
+      const motivo = swaps.length ? swapReason : null;
+      const variacao =
+        (swaps.length > 0 && keep !== "standard") ||
+        Boolean(target.deload) ||
+        Boolean(target.fromVariation) ||
+        !target.routineId;
+
+      const workout: Workout = {
         id: target.id,
         ...(target.routineId ? { routineId: target.routineId } : {}),
         iniciadoEm: target.iniciadoEm,
@@ -1155,15 +1243,46 @@ function SessionPage() {
         duracaoSeg,
         volumeTotalKg: Math.round(volume),
         notas,
-        origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
+        origem: target.routineId ? "rotina" : "branco",
+        ...(target.folderId ? { folderId: target.folderId } : {}),
+        variacao,
+        ...(motivo ? { motivo } : {}),
       };
 
-      // Offline: queue it locally and let the app sync when the connection is back.
-      if (isOffline()) {
+      // Offline — or "online" with no real connection, common in gyms — queue it
+      // locally and let the app sync when the connection is back.
+      let queued = isOffline();
+      if (!queued) {
+        try {
+          await saveWorkout(workout, sets);
+        } catch {
+          queued = true;
+        }
+      }
+      if (queued) {
         enqueueWorkout(workout, sets);
         toast.success(t("Saved on this device — it will sync when you are back online."));
-      } else {
-        await saveWorkout(workout, sets);
+      }
+
+      if (target.routineId && keep !== "today") {
+        if (queued) {
+          toast(t("You are offline — the routine was not changed."));
+        } else {
+          try {
+            if (keep === "standard") {
+              await applySwapsToRoutine(target.routineId, swapMap);
+            } else {
+              const reasonLabel = swapReasonLabel(motivo);
+              const nome = reasonLabel
+                ? t("{routine} · {reason}", { routine: target.routineNome, reason: t(reasonLabel) })
+                : t("{routine} · variation", { routine: target.routineNome });
+              await saveSwapVariation(target.routineId, swapMap, nome, motivo ?? undefined);
+            }
+          } catch {
+            // The workout is already saved; only the routine change failed.
+            toast.error(t("The workout was saved, but the routine could not be updated."));
+          }
+        }
       }
 
       // Post-workout coach message: recovery + food that fits the open macros.
@@ -1219,6 +1338,7 @@ function SessionPage() {
         t("Could not save the workout. It is still stored on this device — try again in a moment."),
       );
     } finally {
+      finishingRef.current = false;
       setFinishing(false);
     }
   }
@@ -1235,7 +1355,7 @@ function SessionPage() {
   const pendingList = session.exercicios.flatMap((ex, exIdx) =>
     ex.sets
       .map((set, setIdx) => ({ set, setIdx }))
-      .filter(({ set }) => !set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "")
+      .filter(({ set }) => isFilledUnchecked(set))
       .map(({ set, setIdx }) => ({
         key: `${exIdx}:${setIdx}`,
         nome: `${ex.nome} · ${serieLabel(ex.sets, setIdx)}`,
@@ -1252,6 +1372,9 @@ function SessionPage() {
       nome: ex.nome,
       detalhe: `${workingSetsDone(ex)}/${workingSets(ex).length}`,
     }));
+
+  /** Today's swaps, for the finish dialog's keep-or-not step. */
+  const finishSwaps = sessionSwaps(session);
 
   const exercise = session.exercicios[viewIdx] ?? null;
   const currentRest = exercise ? restFor(exercise) : 90;
@@ -1692,7 +1815,7 @@ function SessionPage() {
 
       {/* One dialog for every finish path, so no two modals swap in the same tick. */}
       <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[90dvh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendCount > 0
@@ -1713,6 +1836,16 @@ function SessionPage() {
                   : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {finishSwaps.length > 0 ? (
+            <SwapFinishPanel
+              swaps={finishSwaps}
+              canKeep={Boolean(session.routineId)}
+              reason={swapReason}
+              onReason={setSwapReason}
+              keep={swapKeep}
+              onKeep={setSwapKeep}
+            />
+          ) : null}
           {pendCount > 0 || incompleteList.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
               {(pendCount > 0 ? pendingList : incompleteList).map((item) => (
@@ -1766,6 +1899,11 @@ function SessionPage() {
           completedDetail={completion.completedDetail}
           nextExerciseId={completion.nextExerciseId}
           nextExerciseName={completion.nextExerciseName}
+          nextPreview={
+            session?.exercicios[completion.nextExerciseIdx]
+              ? exercisePreview(session.exercicios[completion.nextExerciseIdx]!)
+              : undefined
+          }
           onFinish={() => {
             jumpTo(completion.nextExerciseIdx);
             setCompletion(null);
@@ -1776,6 +1914,9 @@ function SessionPage() {
         <SessionStartIntro
           origin={intro.origin}
           title={sessionLabel(session)}
+          session={session}
+          onDeload={switchLoad}
+          onBegin={beginSession}
           onDone={() => setIntro(null)}
         />
       ) : null}

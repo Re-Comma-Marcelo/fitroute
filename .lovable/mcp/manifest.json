@@ -19,7 +19,7 @@
       {
         "name": "get_training_context",
         "title": "Get Route context",
-        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
+        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -60,7 +60,7 @@
       {
         "name": "create_routine",
         "title": "Create a workout routine",
-        "description": "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. Call get_training_context first for valid exerciseId values.",
+        "description": "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. New routines land in the user's current training folder. Use role 'variation' (with variationOf and reason) for a lighter/shorter/social version of a standard routine; variations are kept in the folder but never scheduled or recommended on their own. Call get_training_context first for valid exerciseId values and the folder's routines.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -129,6 +129,32 @@
                 ]
               },
               "description": "Exercises in the order they should be performed."
+            },
+            "role": {
+              "description": "'standard' (default for new routines) is part of the plan; 'variation' is an alternative kept for days when life gets in the way. Omit when updating to keep the routine's current role.",
+              "type": "string",
+              "enum": [
+                "standard",
+                "variation"
+              ]
+            },
+            "variationOf": {
+              "description": "Variation only: name or id of the standard routine it varies.",
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60
+            },
+            "reason": {
+              "description": "Variation only: busy (short on time), social (training with friends), pain, equipment (taken), difficulty or preference.",
+              "type": "string",
+              "enum": [
+                "busy",
+                "social",
+                "pain",
+                "equipment",
+                "difficulty",
+                "preference"
+              ]
             }
           },
           "required": [

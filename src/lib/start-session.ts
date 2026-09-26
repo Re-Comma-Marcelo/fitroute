@@ -1,4 +1,5 @@
 import { getExercise, getExercises } from "./data/exercises";
+import { getCurrentFolder } from "./data/folders";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
 import {
@@ -9,6 +10,7 @@ import {
 } from "./progression";
 import { armSessionIntro } from "./session-intro";
 import { prescribeExercise, restForExercise } from "./prescription";
+import type { Routine } from "./types";
 import {
   makeSets,
   saveActiveSession,
@@ -91,11 +93,40 @@ export async function buildActiveExercise(
   };
 }
 
+/** Folders are optional (migration, offline): never let them block a start. */
+async function currentFolderId(): Promise<string | null> {
+  return (await getCurrentFolder().catch(() => null))?.id ?? null;
+}
+
 export interface StartRoutineOptions {
   /** Per-session exercise substitutions: original exerciseId -> replacement. */
   swaps?: Record<string, string>;
   /** Lighter session: fewer sets, ~10% less load. */
   deload?: boolean;
+}
+
+/** Builds a routine's exercises in order, applying swaps and the deload option. */
+async function buildRoutineExercises(
+  routine: Routine,
+  opts: StartRoutineOptions,
+): Promise<ActiveExercise[]> {
+  const exercicios: ActiveExercise[] = [];
+  for (const rex of [...routine.exercicios].sort((a, b) => a.ordem - b.ordem)) {
+    const swapTo = opts.swaps?.[rex.exerciseId];
+    const built = await buildActiveExercise(swapTo ?? rex.exerciseId, {
+      seriesAlvo: rex.seriesAlvo,
+      repsMin: rex.repsMin,
+      repsMax: rex.repsMax,
+      descansoSeg: rex.descansoSeg,
+      notas: rex.notas,
+      ...(opts.deload ? { deload: true } : {}),
+    });
+    if (!built) continue;
+    exercicios.push(
+      swapTo && swapTo !== rex.exerciseId ? { ...built, substituiDe: rex.exerciseId } : built,
+    );
+  }
+  return exercicios;
 }
 
 export async function startRoutineSession(
@@ -104,18 +135,8 @@ export async function startRoutineSession(
 ): Promise<ActiveSession | null> {
   const routine = await getRoutine(routineId);
   if (!routine) return null;
-  const exercicios: ActiveExercise[] = [];
-  for (const rex of [...routine.exercicios].sort((a, b) => a.ordem - b.ordem)) {
-    const built = await buildActiveExercise(opts.swaps?.[rex.exerciseId] ?? rex.exerciseId, {
-      seriesAlvo: rex.seriesAlvo,
-      repsMin: rex.repsMin,
-      repsMax: rex.repsMax,
-      descansoSeg: rex.descansoSeg,
-      notas: rex.notas,
-      ...(opts.deload ? { deload: true } : {}),
-    });
-    if (built) exercicios.push(built);
-  }
+  const exercicios = await buildRoutineExercises(routine, opts);
+  const folderId = routine.folderId ?? (await currentFolderId());
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
     routineId: routine.id,
@@ -124,10 +145,36 @@ export async function startRoutineSession(
     notas: "",
     exercicios,
     atual: 0,
+    ...(folderId ? { folderId } : {}),
+    ...(opts.deload ? { deload: true } : {}),
+    ...(routine.papel === "variacao" ? { fromVariation: true } : {}),
   };
   saveActiveSession(session);
   armSessionIntro();
   return session;
+}
+
+/**
+ * Switches a just-started routine session to (or back from) the lighter
+ * deload version, keeping its id, swaps and folder. Only meant for the opening
+ * briefing, before any set is logged: the exercises are rebuilt from scratch.
+ */
+export async function rebuildSessionLoad(
+  session: ActiveSession,
+  deload: boolean,
+): Promise<ActiveSession | null> {
+  if (!session.routineId) return null;
+  const routine = await getRoutine(session.routineId);
+  if (!routine) return null;
+  const swaps = Object.fromEntries(
+    session.exercicios.filter((ex) => ex.substituiDe).map((ex) => [ex.substituiDe!, ex.exerciseId]),
+  );
+  const exercicios = await buildRoutineExercises(routine, { swaps, deload });
+  if (!exercicios.length) return null;
+  const next: ActiveSession = { ...session, exercicios, atual: 0 };
+  if (deload) next.deload = true;
+  else delete next.deload;
+  return next;
 }
 
 export async function startBlankSession(): Promise<ActiveSession> {
@@ -139,6 +186,7 @@ export async function startBlankSession(): Promise<ActiveSession> {
     const built = await buildActiveExercise(first.id);
     if (built) exercicios.push(built);
   }
+  const folderId = await currentFolderId();
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
     // Empty marker: the label is translated at render time.
@@ -147,6 +195,7 @@ export async function startBlankSession(): Promise<ActiveSession> {
     notas: "",
     exercicios,
     atual: 0,
+    ...(folderId ? { folderId } : {}),
   };
   saveActiveSession(session);
   armSessionIntro();

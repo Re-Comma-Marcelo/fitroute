@@ -12,11 +12,18 @@ let inflight: Promise<Log> | null = null;
 export async function getWorkoutLog(): Promise<Log> {
   if (cache) return cache;
   if (!inflight) {
-    inflight = fetchWorkoutLog().then((log) => {
-      cache = log as Log;
-      inflight = null;
-      return cache;
-    });
+    inflight = fetchWorkoutLog().then(
+      (log) => {
+        cache = log as Log;
+        inflight = null;
+        return cache;
+      },
+      (error: unknown) => {
+        // Don't keep a failed request around: the next call (e.g. "Try again") refetches.
+        inflight = null;
+        throw error;
+      },
+    );
   }
   return inflight;
 }
@@ -24,6 +31,11 @@ export async function getWorkoutLog(): Promise<Log> {
 function invalidate() {
   cache = null;
   inflight = null;
+}
+
+/** Drop the cache so the next read reflects server-side moves (folder switches). */
+export function refreshWorkoutLog(): void {
+  invalidate();
 }
 
 export async function getWorkouts(): Promise<Workout[]> {

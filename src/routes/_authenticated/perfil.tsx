@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { QueryError } from "@/components/QueryError";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,6 +184,14 @@ function ProfilePage() {
       profileSnapshot(form!) !== profileSnapshot(profileQuery.data!),
     [form, profileQuery.data],
   );
+
+  if (!form && profileQuery.isError) {
+    return (
+      <AppShell title={t("Profile")}>
+        <QueryError onRetry={() => void profileQuery.refetch()} />
+      </AppShell>
+    );
+  }
 
   if (!form) {
     return (
