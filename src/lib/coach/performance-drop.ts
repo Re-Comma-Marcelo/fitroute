@@ -4,7 +4,7 @@
  * Compares the set the user just logged with the most recent logged set of the
  * same exercise at the same weight. A drop alone is not worth a message — the
  * coach first looks for a plausible cause (cross-training in the last 24–48h,
- * a soreness/energy note) and for whether the dip repeats across sessions.
+ * feeling tired at the start, a soreness/energy note) and for whether the dip repeats across sessions.
  */
 import { tx } from "@/lib/format";
 import { PERFORMANCE_DIP_ADJUST_PCT, incrementoPara, roundToStep } from "@/lib/progression";
@@ -13,6 +13,7 @@ import type {
   CoachingCause,
   CrossTrainingKind,
   CrossTrainingLog,
+  Readiness,
   WorkoutSet,
 } from "@/lib/types";
 
@@ -28,6 +29,8 @@ export interface DropInput {
   recentNotes: CoachNote[];
   /** Workout the current set belongs to, excluded from the comparison. */
   currentWorkoutId?: string;
+  /** What the user answered at the start of this workout, when asked. */
+  readiness?: Readiness | undefined;
   /** Drives the equipment-realistic step (and the cross-training relevance check below). */
   equipamento?: string;
   grupoPrimario?: string;
@@ -134,7 +137,20 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
     };
   }
 
-  // 2. A soreness / low-energy note from the last two days explains it too.
+  // 2. The user said at the start that they were tired: that is the reason.
+  if (input.readiness === "low") {
+    return {
+      cause: "low_readiness",
+      repsLost,
+      pesoKg: current.pesoKg,
+      message: tx(
+        "{reps} reps less on {exercise} — you started today tired, so that's expected. Keep the form clean; the numbers come back with rest.",
+        { reps: repsLost, exercise: input.exerciseName },
+      ),
+    };
+  }
+
+  // 3. A soreness / low-energy note from the last two days explains it too.
   const note = input.recentNotes.find((n) => hoursSince(n.createdAt) <= 48);
   if (note) {
     return {
@@ -148,7 +164,7 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
     };
   }
 
-  // 3. Repeated pattern across three sessions -> name it, one suggestion only.
+  // 4. Repeated pattern across three sessions -> name it, one suggestion only.
   const tail = sessions.slice(-2).map((s) => s.reps);
   const repeated =
     tail.length === 2 &&
@@ -168,7 +184,7 @@ export function detectPerformanceDrop(input: DropInput): DropResult | null {
     };
   }
 
-  // 4. One-off dip: light touch, no drama.
+  // 5. One-off dip: light touch, no drama.
   return {
     cause: "one_off",
     repsLost,

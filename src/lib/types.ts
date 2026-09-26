@@ -190,10 +190,14 @@ export type CoachingEventKind =
   | "chat_swap"
   | "checkpoint_reached"
   | "checkpoint_adjusted"
-  | "photo_reminder";
+  | "photo_reminder"
+  | "readiness";
+
+/** How the user said they felt when a workout started (😴 / 🙂 / 🔥). */
+export type Readiness = "low" | "ok" | "high";
 
 /** Why the coach thinks something happened — drives the tone of the message. */
-export type CoachingCause = "cross_training" | "pattern" | "one_off" | "none";
+export type CoachingCause = "cross_training" | "low_readiness" | "pattern" | "one_off" | "none";
 
 export type CoachingDetail = Record<string, string | number | boolean | null>;
 

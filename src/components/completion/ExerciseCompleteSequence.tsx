@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ExerciseCompleteMorph, type MorphTarget } from "./ExerciseCompleteMorph";
 import { LogoRouteReveal } from "./LogoRouteReveal";
 import { ExerciseCard, type CardRect } from "./ExerciseCard";
+import type { ExercisePreview } from "@/lib/exercise-preview";
 
 type Phase = "morph" | "reveal" | "card" | "exit";
 
@@ -22,6 +23,7 @@ export function ExerciseCompleteSequence({
   completedDetail,
   nextExerciseId,
   nextExerciseName,
+  nextPreview,
   onFinish,
 }: {
   originRect: DOMRect;
@@ -29,6 +31,8 @@ export function ExerciseCompleteSequence({
   completedDetail: string;
   nextExerciseId: string;
   nextExerciseName: string;
+  /** Today's target vs last time for the next exercise, shown on its card. */
+  nextPreview?: ExercisePreview | undefined;
   onFinish: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>("morph");
@@ -106,6 +110,7 @@ export function ExerciseCompleteSequence({
             cardRect={cardRect}
             exerciseId={nextExerciseId}
             exerciseName={nextExerciseName}
+            preview={nextPreview}
             onDismiss={finish}
           />
         </motion.div>

@@ -103,7 +103,9 @@ export function CoachNotesCard() {
                     ? t("Route adjusted")
                     : e.kind === "photo_reminder"
                       ? t("Progress photo")
-                      : t("Check-in"),
+                      : e.kind === "readiness"
+                        ? t("Readiness")
+                        : t("Check-in"),
       content: e.message,
       tags: e.cause && e.cause !== "none" ? [e.cause.replace("_", " ")] : [],
       adaptive: true,
