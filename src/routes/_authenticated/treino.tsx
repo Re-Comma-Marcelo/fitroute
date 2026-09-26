@@ -39,23 +39,20 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
-import {
-  applySwapsToRoutine,
-  duplicateRoutine,
-  getRoutines,
-  promoteVariation,
-} from "@/lib/data/routines";
+import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
 import type { Exercise, Routine, Workout } from "@/lib/types";
 import { getWorkoutLog, getWorkouts } from "@/lib/data/workouts";
 import {
   getFolders,
   isStandard,
   routinesInFolder,
-  sessionSwapMap,
+  variationSessionsOf,
   workoutsInFolder,
 } from "@/lib/data/folders";
-import { FOLDER_QUERY_KEYS, FoldersSheet } from "@/components/folders/FoldersSheet";
-import { FolderVariations, type VariationSession } from "@/components/folders/FolderVariations";
+import { FoldersSheet } from "@/components/folders/FoldersSheet";
+import { FolderVariations } from "@/components/folders/FolderVariations";
+import { FolderDetailSheet } from "@/components/folders/FolderDetailSheet";
+import { useFolderActions } from "@/components/folders/use-folder-actions";
 import { formatDate, formatDurationShort, formatKg, relativeDays } from "@/lib/format";
 import { routineCover } from "@/lib/exercise-image";
 import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
@@ -109,6 +106,8 @@ function TrainPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
+  const [folderDetail, setFolderDetail] = useState<string | null>(null);
+  const { promoteRoutine, promoteSession } = useFolderActions();
 
   useEffect(() => {
     setActive(loadActiveSession());
@@ -142,28 +141,10 @@ function TrainPage() {
   );
 
   /** Recent sessions that strayed from a standard routine still on file. */
-  const variationSessions = useMemo<VariationSession[]>(() => {
-    const sets = logQuery.data?.sets ?? [];
-    const out: VariationSession[] = [];
-    for (const w of folderSessions) {
-      if (!w.variacao || !w.routineId) continue;
-      const routine = allRoutines.find((r) => r.id === w.routineId);
-      if (!routine) continue;
-      const swaps = sessionSwapMap(sets, w.id);
-      // Already the standard (promoted since): nothing left to set it apart.
-      const absorbed =
-        Object.keys(swaps).length > 0 &&
-        Object.entries(swaps).every(
-          ([from, to]) =>
-            routine.exercicios.some((re) => re.exerciseId === to) &&
-            !routine.exercicios.some((re) => re.exerciseId === from),
-        );
-      if (absorbed) continue;
-      out.push({ workout: w, routine, swaps });
-      if (out.length === 5) break;
-    }
-    return out;
-  }, [folderSessions, allRoutines, logQuery.data]);
+  const variationSessions = useMemo(
+    () => variationSessionsOf(folderSessions, allRoutines, logQuery.data?.sets ?? [], 5),
+    [folderSessions, allRoutines, logQuery.data],
+  );
   const exercises = exercisesQuery.data ?? [];
   const profile = profileQuery.data;
 
@@ -290,34 +271,6 @@ function TrainPage() {
       if (copy) navigate({ to: "/rotina/$id", params: { id: copy.id } });
     } catch {
       toast.error(t("Could not duplicate the routine. Try again."));
-    }
-  }
-
-  async function refreshFolderViews() {
-    await Promise.all(
-      FOLDER_QUERY_KEYS.map((queryKey) => queryClient.invalidateQueries({ queryKey })),
-    );
-  }
-
-  /** A saved variation becomes the standard; its original steps back to a variation. */
-  async function promoteRoutine(routineId: string) {
-    try {
-      const promoted = await promoteVariation(routineId);
-      await refreshFolderViews();
-      if (promoted) toast.success(t("{name} is now a standard routine.", { name: promoted.nome }));
-    } catch {
-      toast.error(t("Could not update the routine. Try again."));
-    }
-  }
-
-  /** A one-off session's swaps become the routine's standard exercises. */
-  async function promoteSession(session: VariationSession) {
-    try {
-      await applySwapsToRoutine(session.routine.id, session.swaps);
-      await refreshFolderViews();
-      toast.success(t("{name} updated with these swaps.", { name: session.routine.nome }));
-    } catch {
-      toast.error(t("Could not update the routine. Try again."));
     }
   }
 
@@ -633,6 +586,22 @@ function TrainPage() {
         folders={folders}
         routines={allRoutines}
         workouts={workouts}
+        onOpenFolder={(id) => {
+          setFoldersOpen(false);
+          setFolderDetail(id);
+        }}
+      />
+
+      <FolderDetailSheet
+        folderId={folderDetail}
+        onOpenChange={(o) => {
+          if (!o) setFolderDetail(null);
+        }}
+        onStartRoutine={(id, swaps) => {
+          setFolderDetail(null);
+          void startRoutine(id, swaps ? { swaps } : {});
+        }}
+        startDisabled={loading !== null || !!active}
       />
 
       <RoutineTemplateSheet

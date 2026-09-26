@@ -6,15 +6,11 @@ import { Button } from "@/components/ui/button";
 import { relativeDays } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { swapReasonLabel } from "@/lib/swap-reasons";
-import type { Exercise, Routine, SwapReason, Workout } from "@/lib/types";
+import type { VariationSession } from "@/lib/data/folders";
+import type { Exercise, Routine, SwapReason } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-export interface VariationSession {
-  workout: Workout;
-  routine: Routine;
-  /** Original exercise id -> the one done instead. */
-  swaps: Record<string, string>;
-}
+export type { VariationSession };
 
 /**
  * The folder's variations, below the standard routines and quieter than them:
@@ -27,6 +23,7 @@ export function FolderVariations({
   allRoutines,
   exercises,
   disabled,
+  defaultOpen = false,
   onStartRoutine,
   onRepeatSession,
   onPromoteRoutine,
@@ -37,13 +34,15 @@ export function FolderVariations({
   allRoutines: Routine[];
   exercises: Exercise[];
   disabled: boolean;
+  /** Start expanded (folder detail) instead of collapsed (Train tab). */
+  defaultOpen?: boolean;
   onStartRoutine: (routineId: string) => void;
   onRepeatSession: (session: VariationSession) => void;
   onPromoteRoutine: (routineId: string) => void;
   onPromoteSession: (session: VariationSession) => void;
 }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [expanded, setExpanded] = useState<string | null>(null);
   const count = routines.length + sessions.length;
   if (!count) return null;

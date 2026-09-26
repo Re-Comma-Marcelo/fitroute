@@ -1,6 +1,6 @@
 import { loadFolders, persistFolder } from "../forja.functions";
 import { tx } from "../format";
-import type { Routine, TrainingFolder, Workout, WorkoutSet } from "../types";
+import type { Routine, SwapReason, TrainingFolder, Workout, WorkoutSet } from "../types";
 import { copyRoutinesToFolder, refreshRoutines } from "./routines";
 import { refreshWorkoutLog } from "./workouts";
 
@@ -106,4 +106,97 @@ export function workoutsInFolder(
 /** Standard routines first; variations follow, quieter. */
 export function isStandard(routine: Routine): boolean {
   return (routine.papel ?? "padrao") === "padrao";
+}
+
+export interface VariationSession {
+  workout: Workout;
+  routine: Routine;
+  /** Original exercise id -> the one done instead. */
+  swaps: Record<string, string>;
+}
+
+/**
+ * Sessions that strayed from a routine still on file, newest first. A session
+ * whose swaps have since become the routine's standard is left out: nothing
+ * sets it apart any more.
+ */
+export function variationSessionsOf(
+  workouts: Workout[],
+  routines: Routine[],
+  sets: WorkoutSet[],
+  limit = Infinity,
+): VariationSession[] {
+  const out: VariationSession[] = [];
+  const newestFirst = [...workouts].sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm));
+  for (const w of newestFirst) {
+    if (!w.variacao || !w.routineId) continue;
+    const routine = routines.find((r) => r.id === w.routineId);
+    if (!routine) continue;
+    const swaps = sessionSwapMap(sets, w.id);
+    const absorbed =
+      Object.keys(swaps).length > 0 &&
+      Object.entries(swaps).every(
+        ([from, to]) =>
+          routine.exercicios.some((re) => re.exerciseId === to) &&
+          !routine.exercicios.some((re) => re.exerciseId === from),
+      );
+    if (absorbed) continue;
+    out.push({ workout: w, routine, swaps });
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+
+export interface SwapStat {
+  /** Muscle group of the standard exercise that was replaced. */
+  group: string;
+  from: string;
+  to: string;
+  /** Sessions in which this swap happened. */
+  count: number;
+  /** Reasons given for those sessions, most frequent first. */
+  reasons: SwapReason[];
+}
+
+/** Which standard exercises get replaced, by what, how often and why. */
+export function swapStats(
+  workouts: Workout[],
+  sets: WorkoutSet[],
+  groupOf: (exerciseId: string) => string,
+): SwapStat[] {
+  const byId = new Map(workouts.map((w) => [w.id, w]));
+  const seen = new Set<string>();
+  const stats = new Map<
+    string,
+    { from: string; to: string; count: number; reasons: SwapReason[] }
+  >();
+  for (const s of sets) {
+    if (!s.substituiExerciseId) continue;
+    const w = byId.get(s.workoutId);
+    if (!w) continue;
+    const key = `${s.substituiExerciseId}>${s.exerciseId}`;
+    // Count each swap once per session, not once per set.
+    if (seen.has(`${w.id}|${key}`)) continue;
+    seen.add(`${w.id}|${key}`);
+    const entry = stats.get(key) ?? {
+      from: s.substituiExerciseId,
+      to: s.exerciseId,
+      count: 0,
+      reasons: [],
+    };
+    entry.count += 1;
+    if (w.motivo) entry.reasons.push(w.motivo);
+    stats.set(key, entry);
+  }
+  return [...stats.values()]
+    .map((e) => {
+      const tally = new Map<SwapReason, number>();
+      e.reasons.forEach((r) => tally.set(r, (tally.get(r) ?? 0) + 1));
+      return {
+        ...e,
+        group: groupOf(e.from),
+        reasons: [...tally.entries()].sort((a, b) => b[1] - a[1]).map(([r]) => r),
+      };
+    })
+    .sort((a, b) => b.count - a.count);
 }

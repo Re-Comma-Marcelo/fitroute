@@ -38,12 +38,15 @@ export function FoldersSheet({
   folders,
   routines,
   workouts,
+  onOpenFolder,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   folders: TrainingFolder[];
   routines: Routine[];
   workouts: Workout[];
+  /** Open the folder's detail (routines, variations, swaps, sessions). */
+  onOpenFolder?: (folderId: string) => void;
 }) {
   const t = useT();
   const queryClient = useQueryClient();
@@ -183,20 +186,33 @@ export function FoldersSheet({
             </Button>
           </div>
         )}
-        {!isCurrent && renaming !== folder.id ? (
-          <Button
-            variant="secondary"
-            className="mt-3 h-10 w-full text-xs font-semibold"
-            disabled={busy}
-            onClick={() =>
-              void run(
-                () => makeFolderCurrent(folder.id),
-                t("{name} is your current folder.", { name: folder.nome }),
-              ).then((ok) => ok && onOpenChange(false))
-            }
-          >
-            {t("Make current")}
-          </Button>
+        {renaming !== folder.id && (onOpenFolder || !isCurrent) ? (
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {onOpenFolder ? (
+              <Button
+                variant="ghost"
+                className={cn("h-10 text-xs font-semibold", isCurrent && "col-span-2")}
+                onClick={() => onOpenFolder(folder.id)}
+              >
+                {t("See folder")}
+              </Button>
+            ) : null}
+            {!isCurrent ? (
+              <Button
+                variant="secondary"
+                className={cn("h-10 text-xs font-semibold", !onOpenFolder && "col-span-2")}
+                disabled={busy}
+                onClick={() =>
+                  void run(
+                    () => makeFolderCurrent(folder.id),
+                    t("{name} is your current folder.", { name: folder.nome }),
+                  ).then((ok) => ok && onOpenChange(false))
+                }
+              >
+                {t("Make current")}
+              </Button>
+            ) : null}
+          </div>
         ) : null}
       </li>
     );
