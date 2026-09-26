@@ -30,16 +30,20 @@ export function DoneSetRow({
       <button
         type="button"
         onClick={onClick}
-        aria-label={t("Edit set {label}", { label })}
         className={cn(
           "tap-target flex w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left",
           flash && "set-flash",
         )}
       >
+        {/* Name comes from the visible values, so screen readers hear what was lifted. */}
+        <span className="sr-only">{t("Edit set {label}", { label })}</span>
         <span className="grid size-6 shrink-0 place-items-center rounded-full bg-success/15 text-success">
           <Check className="size-3.5" strokeWidth={3} />
         </span>
-        <span className={cn("w-8 shrink-0 text-xs font-semibold", warm && "text-muted-foreground")}>
+        <span
+          aria-hidden="true"
+          className={cn("w-8 shrink-0 text-xs font-semibold", warm && "text-muted-foreground")}
+        >
           {warm ? t("W") : tempo ? `${label}s` : label}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm tabular-nums">
@@ -92,11 +96,11 @@ export function PendingSetRow({
       <button
         type="button"
         onClick={onClick}
-        aria-label={t("Edit set {label}", { label })}
-        className="tap-target flex w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left text-muted-foreground/60"
+        className="tap-target flex w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left text-muted-foreground"
       >
+        <span className="sr-only">{t("Edit set {label}", { label })}</span>
         <span className="size-6 shrink-0 rounded-full border border-dashed border-border" />
-        <span className="w-8 shrink-0 text-xs font-semibold">
+        <span aria-hidden="true" className="w-8 shrink-0 text-xs font-semibold">
           {warm ? t("W") : tempo ? `${label}s` : label}
         </span>
         <span className="min-w-0 flex-1 truncate text-sm tabular-nums">
