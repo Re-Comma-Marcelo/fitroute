@@ -9,6 +9,7 @@ import { QueryError } from "@/components/QueryError";
 import { getBodyWeightLog, logBodyWeight } from "@/lib/data/body-weight";
 import { getProfile } from "@/lib/data/profile";
 import { formatDate, formatDateLong, weightUnitLabel } from "@/lib/format";
+import { isoDate } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
@@ -42,7 +43,7 @@ export function BodyWeightCard() {
     mutationFn: async () => {
       const parsed = Number(draft.replace(",", "."));
       if (!Number.isFinite(parsed) || parsed <= 0) throw new Error("invalid");
-      const today = new Date().toISOString().slice(0, 10);
+      const today = isoDate(new Date());
       await logBodyWeight(today, Math.round(fromDisplayWeight(parsed, unit) * 10) / 10);
     },
     onSuccess: async () => {

@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n";
 import { buildManualWorkout, type ManualEntryRow } from "@/lib/manual-workout";
 import { saveWorkout } from "@/lib/data/workouts";
 import { weightUnitLabel } from "@/lib/format";
+import { isoDate } from "@/lib/data/nutrition";
 import { fromDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ export function ManualWorkoutSheet({
   const t = useT();
   const { unit } = useWeightUnit();
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoDate(new Date());
 
   const [data, setData] = useState(today);
   const [duration, setDuration] = useState("60");
