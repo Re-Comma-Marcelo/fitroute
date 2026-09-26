@@ -1,4 +1,5 @@
 import { getExercise, getExercises } from "./data/exercises";
+import { getCurrentFolder } from "./data/folders";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
 import {
@@ -91,6 +92,11 @@ export async function buildActiveExercise(
   };
 }
 
+/** Folders are optional (migration, offline): never let them block a start. */
+async function currentFolderId(): Promise<string | null> {
+  return (await getCurrentFolder().catch(() => null))?.id ?? null;
+}
+
 export interface StartRoutineOptions {
   /** Per-session exercise substitutions: original exerciseId -> replacement. */
   swaps?: Record<string, string>;
@@ -106,7 +112,8 @@ export async function startRoutineSession(
   if (!routine) return null;
   const exercicios: ActiveExercise[] = [];
   for (const rex of [...routine.exercicios].sort((a, b) => a.ordem - b.ordem)) {
-    const built = await buildActiveExercise(opts.swaps?.[rex.exerciseId] ?? rex.exerciseId, {
+    const swapTo = opts.swaps?.[rex.exerciseId];
+    const built = await buildActiveExercise(swapTo ?? rex.exerciseId, {
       seriesAlvo: rex.seriesAlvo,
       repsMin: rex.repsMin,
       repsMax: rex.repsMax,
@@ -114,8 +121,12 @@ export async function startRoutineSession(
       notas: rex.notas,
       ...(opts.deload ? { deload: true } : {}),
     });
-    if (built) exercicios.push(built);
+    if (!built) continue;
+    exercicios.push(
+      swapTo && swapTo !== rex.exerciseId ? { ...built, substituiDe: rex.exerciseId } : built,
+    );
   }
+  const folderId = routine.folderId ?? (await currentFolderId());
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
     routineId: routine.id,
@@ -124,6 +135,9 @@ export async function startRoutineSession(
     notas: "",
     exercicios,
     atual: 0,
+    ...(folderId ? { folderId } : {}),
+    ...(opts.deload ? { deload: true } : {}),
+    ...(routine.papel === "variacao" ? { fromVariation: true } : {}),
   };
   saveActiveSession(session);
   armSessionIntro();
@@ -139,6 +153,7 @@ export async function startBlankSession(): Promise<ActiveSession> {
     const built = await buildActiveExercise(first.id);
     if (built) exercicios.push(built);
   }
+  const folderId = await currentFolderId();
   const session: ActiveSession = {
     id: `w_${Math.random().toString(36).slice(2, 9)}`,
     // Empty marker: the label is translated at render time.
@@ -147,6 +162,7 @@ export async function startBlankSession(): Promise<ActiveSession> {
     notas: "",
     exercicios,
     atual: 0,
+    ...(folderId ? { folderId } : {}),
   };
   saveActiveSession(session);
   armSessionIntro();

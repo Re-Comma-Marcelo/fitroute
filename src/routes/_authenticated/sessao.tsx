@@ -47,6 +47,7 @@ import {
   uncompleteSet,
 } from "@/lib/complete-set";
 import {
+  asReplacement,
   clearActiveSession,
   filledUncheckedSets,
   isExerciseDone,
@@ -72,6 +73,7 @@ import {
   type ActiveSet,
   type RestState,
   sessionLabel,
+  sessionSwaps,
 } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
 import { buildActiveExercise } from "@/lib/start-session";
@@ -83,6 +85,9 @@ import {
   saveWorkout,
 } from "@/lib/data/workouts";
 import { getRecentCoachNotes } from "@/lib/data/coach-notes";
+import { applySwapsToRoutine, saveSwapVariation } from "@/lib/data/routines";
+import { swapReasonLabel } from "@/lib/swap-reasons";
+import { stripReferenceNotes } from "@/lib/data/folders";
 import {
   firedToday,
   getCoachingEvents,
@@ -100,7 +105,7 @@ import { RestIsland } from "@/components/RestIsland";
 import { RpeSheet } from "@/components/RpeScale";
 import { askRpeEnabled } from "@/lib/rpe";
 import { useQuery } from "@tanstack/react-query";
-import type { TipoSerie, WorkoutSet } from "@/lib/types";
+import type { SwapReason, TipoSerie, Workout, WorkoutSet } from "@/lib/types";
 
 import { SessionHeader, type SegmentStatus } from "@/components/session/SessionHeader";
 import { CurrentSetCard } from "@/components/session/CurrentSetCard";
@@ -110,6 +115,7 @@ import { SetEditSheet } from "@/components/session/SetEditSheet";
 import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session/ExerciseMenuSheet";
 import { SessionSheet } from "@/components/session/SessionSheet";
 import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet";
+import { SwapFinishPanel, type SwapKeep } from "@/components/session/SwapFinishPanel";
 import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 import { SessionStartIntro } from "@/components/session/SessionStartIntro";
@@ -170,6 +176,9 @@ function SessionPage() {
   const [ready, setReady] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  /** Finish-dialog answers about today's swaps. */
+  const [swapReason, setSwapReason] = useState<SwapReason | null>(null);
+  const [swapKeep, setSwapKeep] = useState<SwapKeep>("today");
   /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
   const [justSet, setJustSet] = useState<string | null>(null);
   const [justExercise, setJustExercise] = useState<number | null>(null);
@@ -312,7 +321,9 @@ function SessionPage() {
             if (!prev) return prev;
             // Coming from "Replace exercise": swap in place, keeping the order.
             if (slot !== null && prev.exercicios[slot]) {
-              const exercicios = prev.exercicios.map((e, i) => (i === slot ? built : e));
+              const exercicios = prev.exercicios.map((e, i) =>
+                i === slot ? asReplacement(built, e) : e,
+              );
               const next = { ...prev, exercicios, atual: slot };
               saveActiveSession(next);
               return next;
@@ -793,7 +804,7 @@ function SessionPage() {
     });
     if (!built) return;
     update((s) => {
-      s.exercicios[exIdx] = built;
+      s.exercicios[exIdx] = asReplacement(built, s.exercicios[exIdx] ?? current);
       return s;
     });
     setCoachTips((prev) => {
@@ -1131,6 +1142,7 @@ function SessionPage() {
             concluida: true,
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
             ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
+            ...(ex.substituiDe ? { substituiExerciseId: ex.substituiDe } : {}),
             ...(s.variantId ? { variantId: s.variantId } : {}),
           });
         });
@@ -1138,13 +1150,28 @@ function SessionPage() {
       }
 
       // Per-exercise notes would otherwise be dropped: fold them into the
-      // workout note so they show up on the workout detail screen.
+      // workout note so they show up on the workout detail screen. The
+      // routine's reference-load line (end of a cycle) is not session news.
       const exerciseNotes = target.exercicios
-        .filter((ex) => ex.notas.trim() !== "")
-        .map((ex) => `${ex.nome}: ${ex.notas.trim()}`);
+        .map((ex) => ({ nome: ex.nome, notas: stripReferenceNotes(ex.notas) }))
+        .filter((ex) => ex.notas !== "")
+        .map((ex) => `${ex.nome}: ${ex.notas}`);
       const notas = [target.notas.trim(), ...exerciseNotes].filter(Boolean).join("\n");
 
-      const workout = {
+      // Swaps decide where the session sits in its folder: a one-off or kept
+      // variation stays quieter than the standard; "update the standard" makes
+      // today's session the new standard.
+      const swaps = sessionSwaps(target);
+      const swapMap = Object.fromEntries(swaps.map(({ from, ex }) => [from, ex.exerciseId]));
+      const keep: SwapKeep = target.routineId && swaps.length ? swapKeep : "today";
+      const motivo = swaps.length ? swapReason : null;
+      const variacao =
+        (swaps.length > 0 && keep !== "standard") ||
+        Boolean(target.deload) ||
+        Boolean(target.fromVariation) ||
+        !target.routineId;
+
+      const workout: Workout = {
         id: target.id,
         ...(target.routineId ? { routineId: target.routineId } : {}),
         iniciadoEm: target.iniciadoEm,
@@ -1152,15 +1179,40 @@ function SessionPage() {
         duracaoSeg,
         volumeTotalKg: Math.round(volume),
         notas,
-        origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
+        origem: target.routineId ? "rotina" : "branco",
+        ...(target.folderId ? { folderId: target.folderId } : {}),
+        variacao,
+        ...(motivo ? { motivo } : {}),
       };
 
       // Offline: queue it locally and let the app sync when the connection is back.
-      if (isOffline()) {
+      const offline = isOffline();
+      if (offline) {
         enqueueWorkout(workout, sets);
         toast.success(t("Saved on this device — it will sync when you are back online."));
       } else {
         await saveWorkout(workout, sets);
+      }
+
+      if (target.routineId && keep !== "today") {
+        if (offline) {
+          toast(t("You are offline — the routine was not changed."));
+        } else {
+          try {
+            if (keep === "standard") {
+              await applySwapsToRoutine(target.routineId, swapMap);
+            } else {
+              const reasonLabel = swapReasonLabel(motivo);
+              const nome = reasonLabel
+                ? t("{routine} · {reason}", { routine: target.routineNome, reason: t(reasonLabel) })
+                : t("{routine} · variation", { routine: target.routineNome });
+              await saveSwapVariation(target.routineId, swapMap, nome, motivo ?? undefined);
+            }
+          } catch {
+            // The workout is already saved; only the routine change failed.
+            toast.error(t("The workout was saved, but the routine could not be updated."));
+          }
+        }
       }
 
       // Post-workout coach message: recovery + food that fits the open macros.
@@ -1249,6 +1301,9 @@ function SessionPage() {
       nome: ex.nome,
       detalhe: `${workingSetsDone(ex)}/${workingSets(ex).length}`,
     }));
+
+  /** Today's swaps, for the finish dialog's keep-or-not step. */
+  const finishSwaps = sessionSwaps(session);
 
   const exercise = session.exercicios[viewIdx] ?? null;
   const currentRest = exercise ? restFor(exercise) : 90;
@@ -1689,7 +1744,7 @@ function SessionPage() {
 
       {/* One dialog for every finish path, so no two modals swap in the same tick. */}
       <AlertDialog open={confirmFinish} onOpenChange={setConfirmFinish}>
-        <AlertDialogContent>
+        <AlertDialogContent className="max-h-[90dvh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>
               {pendCount > 0
@@ -1710,6 +1765,16 @@ function SessionPage() {
                   : t("{count} completed sets will be saved.", { count: setsDone })}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {finishSwaps.length > 0 ? (
+            <SwapFinishPanel
+              swaps={finishSwaps}
+              canKeep={Boolean(session.routineId)}
+              reason={swapReason}
+              onReason={setSwapReason}
+              keep={swapKeep}
+              onKeep={setSwapKeep}
+            />
+          ) : null}
           {pendCount > 0 || incompleteList.length > 0 ? (
             <ul className="max-h-40 space-y-1 overflow-y-auto rounded-xl border border-border bg-surface-2 p-2 text-xs">
               {(pendCount > 0 ? pendingList : incompleteList).map((item) => (

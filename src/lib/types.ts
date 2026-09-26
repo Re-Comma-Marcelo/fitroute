@@ -7,6 +7,25 @@ export type Objetivo = "cutting" | "manutencao" | "bulking";
 export type TipoSerie = "aquecimento" | "normal" | "falha" | "drop" | "tempo";
 export type OrigemTreino = "rotina" | "branco";
 
+/** Why a session strayed from the folder's standard routine. */
+export type SwapReason = "busy" | "social" | "pain" | "equipment" | "difficulty" | "preference";
+
+/** A training block: routines + the sessions done while it was current. */
+export type FolderStatus = "atual" | "arquivada" | "modelo";
+
+export interface TrainingFolder {
+  id: string;
+  nome: string;
+  status: FolderStatus;
+  /** Template this folder was started from, when any. */
+  origemModeloId?: string;
+  inicioEm: string;
+  fimEm?: string;
+}
+
+/** Standard routines lead the folder; variations are kept, quieter. */
+export type RoutineRole = "padrao" | "variacao";
+
 export type PreferredTime = "morning" | "midday" | "afternoon" | "evening";
 export type CheckInMode = "prompt" | "card";
 export type CoachNoteKind = "checkin" | "observation";
@@ -104,6 +123,12 @@ export interface Routine {
   exercicios: RoutineExercise[];
   /** Planned weekdays, 0 = Sunday … 6 = Saturday. Empty means unscheduled. */
   diasSemana?: number[];
+  /** Folder it belongs to; unset means the current folder. */
+  folderId?: string;
+  papel?: RoutineRole;
+  /** Standard routine this variation was derived from (null clears it). */
+  variacaoDe?: string | null;
+  motivo?: SwapReason | null;
 }
 
 /** One body-weight measurement, keyed by ISO date (one per day). */
@@ -122,6 +147,11 @@ export interface Workout {
   volumeTotalKg: number;
   notas: string;
   origem: OrigemTreino;
+  /** Folder the session was filed in when it was done (a snapshot, never moved). */
+  folderId?: string;
+  /** True when the session strayed from the standard routine. */
+  variacao?: boolean;
+  motivo?: SwapReason;
 }
 
 export interface WorkoutSet {
@@ -137,6 +167,8 @@ export interface WorkoutSet {
   concluida: boolean;
   /** Optional short context the user wrote for the coach ("lower back tight"). */
   coachNote?: string;
+  /** Standard exercise this one stood in for, when it was a swap. */
+  substituiExerciseId?: string;
   /** Which ExerciseVariant this set was performed as, when the exercise has more than one. */
   variantId?: string;
 }
