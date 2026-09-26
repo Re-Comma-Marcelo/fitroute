@@ -39,6 +39,8 @@ export function AddMealSheet({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<Omit<Meal, "id"> | null>(null);
+  /** Quantity exactly as typed, per ingredient row, while editing — so "0," survives until the "5". */
+  const [qtyText, setQtyText] = useState<Record<number, string>>({});
   const [slot, setSlot] = useState<MealSlot>(defaultSlot);
   const [aiNote, setAiNote] = useState<string | null>(null);
   const [confidence, setConfidence] = useState<string | null>(null);
@@ -297,14 +299,23 @@ export function AddMealSheet({
                       className="h-11 flex-1"
                     />
                     <Input
-                      value={String(ing.qty)}
+                      value={qtyText[i] ?? String(ing.qty)}
                       inputMode="decimal"
                       aria-label={t("Quantity")}
                       onChange={(e) => {
+                        const raw = e.target.value.replace(/[^\d.,]/g, "");
+                        setQtyText((prev) => ({ ...prev, [i]: raw }));
                         const next = [...draft.ingredients];
-                        next[i] = { ...ing, qty: Number(e.target.value) || 0 };
+                        next[i] = { ...ing, qty: Number(raw.replace(",", ".")) || 0 };
                         setDraft({ ...draft, ingredients: next });
                       }}
+                      onBlur={() =>
+                        setQtyText((prev) => {
+                          const next = { ...prev };
+                          delete next[i];
+                          return next;
+                        })
+                      }
                       className="h-11 w-16 text-center tabular-nums"
                     />
                     <Input

@@ -184,9 +184,9 @@ function Stepper({
   plusLabel: string;
 }) {
   return (
-    <div className="rounded-2xl bg-surface-2 px-1 pb-1 pt-2">
+    <div className="rounded-2xl bg-surface-2 px-0.5 pb-1 pt-2">
       <p className="label-caps text-center">{label}</p>
-      <div className="mt-0.5 grid grid-cols-[36px_minmax(0,1fr)_36px] items-center">
+      <div className="mt-0.5 grid grid-cols-[40px_minmax(0,1fr)_40px] items-center">
         <StepButton onClick={onMinus} label={minusLabel}>
           <Minus className="size-4" strokeWidth={2.6} />
         </StepButton>
@@ -208,17 +208,17 @@ function StepButton({
   label: string;
   children: React.ReactNode;
 }) {
+  // The whole cell is the hit area (40 × 56 px); only the circle shows.
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={cn(
-        "flex size-9 items-center justify-center rounded-full text-muted-foreground",
-        "active:bg-surface-3",
-      )}
+      className="group flex h-14 w-full items-center justify-center text-muted-foreground"
     >
-      {children}
+      <span className="grid size-9 place-items-center rounded-full group-active:bg-surface-3">
+        {children}
+      </span>
     </button>
   );
 }

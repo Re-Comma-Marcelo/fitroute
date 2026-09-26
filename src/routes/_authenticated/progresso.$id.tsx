@@ -85,6 +85,8 @@ function WorkoutDetail() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draftSets, setDraftSets] = useState<WorkoutSet[]>([]);
+  /** Weight exactly as typed, per set, while editing — so "72," survives until the "5". */
+  const [weightText, setWeightText] = useState<Record<string, string>>({});
   const [draftNotes, setDraftNotes] = useState("");
 
   // Fresh copy every time edit mode opens, so cancel really cancels.
@@ -127,7 +129,7 @@ function WorkoutDetail() {
                 field === "pesoKg"
                   ? Number.isNaN(parsed)
                     ? s.pesoKg
-                    : Math.round(fromDisplayWeight(parsed, unit) * 1000) / 1000
+                    : Math.max(0, Math.round(fromDisplayWeight(parsed, unit) * 1000) / 1000)
                   : Number.isNaN(parsed)
                     ? s.reps
                     : Math.max(0, Math.round(parsed)),
@@ -332,8 +334,22 @@ function WorkoutDetail() {
                     {editing ? (
                       <span className="flex items-center gap-1">
                         <Input
-                          value={String(Math.round(toDisplayWeight(s.pesoKg, unit) * 100) / 100)}
-                          onChange={(e) => patchDraft(s.id, "pesoKg", e.target.value)}
+                          value={
+                            weightText[s.id] ??
+                            String(Math.round(toDisplayWeight(s.pesoKg, unit) * 100) / 100)
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value.replace(/[^\d.,]/g, "");
+                            setWeightText((prev) => ({ ...prev, [s.id]: raw }));
+                            patchDraft(s.id, "pesoKg", raw);
+                          }}
+                          onBlur={() =>
+                            setWeightText((prev) => {
+                              const next = { ...prev };
+                              delete next[s.id];
+                              return next;
+                            })
+                          }
                           inputMode="decimal"
                           aria-label={t("Weight in {unit}", { unit: weightUnitLabel() })}
                           className="numeric-field h-11 w-20 text-center"

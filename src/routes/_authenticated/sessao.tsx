@@ -50,6 +50,7 @@ import {
   asReplacement,
   clearActiveSession,
   filledUncheckedSets,
+  isFilledUnchecked,
   isExerciseDone,
   isExercisePending,
   loadActiveSession,
@@ -175,6 +176,8 @@ function SessionPage() {
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  /** Sync guard: a second tap on Finish while the first save runs must not save twice. */
+  const finishingRef = useRef(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
   /** Finish-dialog answers about today's swaps. */
   const [swapReason, setSwapReason] = useState<SwapReason | null>(null);
@@ -1096,7 +1099,7 @@ function SessionPage() {
     const target = structuredClone(session!);
     target.exercicios.forEach((ex) =>
       ex.sets.forEach((set) => {
-        if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+        if (isFilledUnchecked(set)) {
           set.concluida = true;
         }
       }),
@@ -1108,7 +1111,8 @@ function SessionPage() {
 
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
-    if (!target) return;
+    if (!target || finishingRef.current) return;
+    finishingRef.current = true;
     setFinishing(true);
     try {
       const duracaoSeg = elapsed;
@@ -1185,17 +1189,23 @@ function SessionPage() {
         ...(motivo ? { motivo } : {}),
       };
 
-      // Offline: queue it locally and let the app sync when the connection is back.
-      const offline = isOffline();
-      if (offline) {
+      // Offline — or "online" with no real connection, common in gyms — queue it
+      // locally and let the app sync when the connection is back.
+      let queued = isOffline();
+      if (!queued) {
+        try {
+          await saveWorkout(workout, sets);
+        } catch {
+          queued = true;
+        }
+      }
+      if (queued) {
         enqueueWorkout(workout, sets);
         toast.success(t("Saved on this device — it will sync when you are back online."));
-      } else {
-        await saveWorkout(workout, sets);
       }
 
       if (target.routineId && keep !== "today") {
-        if (offline) {
+        if (queued) {
           toast(t("You are offline — the routine was not changed."));
         } else {
           try {
@@ -1268,6 +1278,7 @@ function SessionPage() {
         t("Could not save the workout. It is still stored on this device — try again in a moment."),
       );
     } finally {
+      finishingRef.current = false;
       setFinishing(false);
     }
   }
@@ -1284,7 +1295,7 @@ function SessionPage() {
   const pendingList = session.exercicios.flatMap((ex, exIdx) =>
     ex.sets
       .map((set, setIdx) => ({ set, setIdx }))
-      .filter(({ set }) => !set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "")
+      .filter(({ set }) => isFilledUnchecked(set))
       .map(({ set, setIdx }) => ({
         key: `${exIdx}:${setIdx}`,
         nome: `${ex.nome} · ${serieLabel(ex.sets, setIdx)}`,

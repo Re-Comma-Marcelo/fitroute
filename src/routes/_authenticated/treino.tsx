@@ -440,11 +440,13 @@ function TrainPage() {
         </section>
       ) : null}
 
-      {coachQuery.isLoading || !coach ? (
+      {/* While a workout is running, its Start buttons would silently resume that
+          workout and drop the choice — the banner above is the only start action. */}
+      {active ? null : coachQuery.isLoading || !coach ? (
         routines.length ? (
           <div className="mt-5 h-24 animate-pulse rounded-2xl bg-card" />
         ) : null
-      ) : coach.restDay && !overrideRest && !active ? null : (
+      ) : coach.restDay && !overrideRest ? null : (
         <TodayCoachCard
           model={coach}
           swapOptions={swapOptions}
@@ -778,7 +780,7 @@ function RoutineCard({
             <Button
               variant={isChoice ? "default" : "secondary"}
               className="h-12 w-full font-semibold"
-              disabled={loading !== null || active}
+              disabled={loading !== null}
               onClick={() => onStart()}
             >
               {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}

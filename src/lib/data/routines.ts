@@ -8,11 +8,18 @@ let inflight: Promise<Routine[]> | null = null;
 async function all(): Promise<Routine[]> {
   if (cache) return cache;
   if (!inflight) {
-    inflight = fetchRoutines().then((list) => {
-      cache = list as Routine[];
-      inflight = null;
-      return cache;
-    });
+    inflight = fetchRoutines().then(
+      (list) => {
+        cache = list as Routine[];
+        inflight = null;
+        return cache;
+      },
+      (error: unknown) => {
+        // Don't keep a failed request around: the next call (e.g. "Try again") refetches.
+        inflight = null;
+        throw error;
+      },
+    );
   }
   return inflight;
 }
