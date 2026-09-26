@@ -1,6 +1,17 @@
-/** SVG geometry for the route: a gentle S-curve with a node per checkpoint. */
+/** SVG geometry for the route: an organically varied curve with a node per checkpoint. */
 
-/** The curve through `nodes`, in order; the same shape `buildRoute` draws. */
+/** Deterministic pseudo-random in [0, 1), seeded by an integer — stable across renders. */
+function hash01(seed: number): number {
+  const x = Math.sin(seed * 12.9898) * 43758.5453;
+  return x - Math.floor(x);
+}
+
+/**
+ * The curve through `nodes`, in order; the same shape `buildRoute` draws.
+ * Each bend's control points are nudged asymmetrically (seeded by its index,
+ * not randomly re-rolled) so consecutive bends don't all read as one
+ * identical repeating wave.
+ */
 export function pathThrough(nodes: PathNode[]): string {
   if (!nodes.length) return "";
   let d = `M ${nodes[0]!.x} ${nodes[0]!.y}`;
@@ -8,7 +19,8 @@ export function pathThrough(nodes: PathNode[]): string {
     const prev = nodes[i - 1]!;
     const node = nodes[i]!;
     const midY = (prev.y + node.y) / 2;
-    d += ` C ${prev.x} ${midY}, ${node.x} ${midY}, ${node.x} ${node.y}`;
+    const bulge = (hash01(i * 17 + 11) - 0.5) * (node.y - prev.y) * 0.18;
+    d += ` C ${prev.x} ${midY + bulge}, ${node.x} ${midY - bulge}, ${node.x} ${node.y}`;
   }
   return d;
 }
@@ -28,20 +40,28 @@ export interface RouteGeometry {
 
 /**
  * Builds a vertical snaking path for `count` nodes (start + checkpoints + goal).
- * Nodes alternate left/right of the centre so the line never runs straight.
+ * Nodes alternate left/right of the centre, each with its own swing and gap
+ * (seeded by index) so the route doesn't repeat the same bend over and over.
  */
 export function buildRoute(count: number, width = 320, gap = 96): RouteGeometry {
   const n = Math.max(2, count);
-  const height = gap * (n - 1) + 64;
   const cx = width / 2;
-  const swing = Math.min(90, width / 2 - 44);
+  const baseSwing = Math.min(90, width / 2 - 44);
 
-  const nodes: PathNode[] = Array.from({ length: n }, (_, i) => ({
-    x: cx + (i % 2 === 0 ? -swing : swing) * (i === 0 || i === n - 1 ? 0.45 : 1),
-    y: 32 + gap * i,
-  }));
+  let y = 32;
+  const nodes: PathNode[] = [];
+  for (let i = 0; i < n; i++) {
+    const isEnd = i === 0 || i === n - 1;
+    const swingVariance = 0.8 + hash01(i * 7 + 3) * 0.4; // 0.8x - 1.2x
+    const swing = baseSwing * (isEnd ? 0.45 : swingVariance);
+    nodes.push({ x: cx + (i % 2 === 0 ? -swing : swing), y });
+    if (i < n - 1) {
+      const gapVariance = 0.85 + hash01(i * 13 + 5) * 0.3; // 0.85x - 1.15x
+      y += gap * gapVariance;
+    }
+  }
 
-  return { d: pathThrough(nodes), nodes, width, height };
+  return { d: pathThrough(nodes), nodes, width, height: y + 32 };
 }
 
 /** Small three-node snippet used by the home preview card. */

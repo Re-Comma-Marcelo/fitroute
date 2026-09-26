@@ -1,4 +1,4 @@
-import { Check, Flag, MapPin } from "lucide-react";
+import { CalendarCheck, Check, Dumbbell, Flag, MapPin, Weight } from "lucide-react";
 import { buildRoute, pathThrough } from "@/lib/route/path";
 import type { Checkpoint } from "@/lib/route/types";
 import type { WeekMarker } from "@/lib/route/weight-progress";
@@ -9,6 +9,20 @@ import { cn } from "@/lib/utils";
 type RouteNode =
   | { kind: "checkpoint"; date: string; checkpoint: Checkpoint; ordinal: number }
   | { kind: "week"; date: string; marker: WeekMarker };
+
+/** Small icon hinting what a checkpoint actually measures. */
+function metricIcon(cp: Checkpoint) {
+  switch (cp.metric?.kind) {
+    case "lift":
+      return Dumbbell;
+    case "weight":
+      return Weight;
+    case "sessions":
+      return CalendarCheck;
+    default:
+      return null;
+  }
+}
 
 /**
  * The route itself: one curved line from where the user started to the goal,
@@ -75,6 +89,12 @@ export function RoutePath({
         style={{ height: geo.height }}
         aria-hidden
       >
+        <defs>
+          <linearGradient id="routeTravelled" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.72 0.2 286.2)" />
+            <stop offset="100%" stopColor="oklch(0.5 0.23 286.2)" />
+          </linearGradient>
+        </defs>
         <path
           d={geo.d}
           fill="none"
@@ -88,10 +108,9 @@ export function RoutePath({
           <path
             d={purpleTravelled}
             fill="none"
-            stroke="currentColor"
+            stroke="url(#routeTravelled)"
             strokeWidth={3}
             strokeLinecap="round"
-            className="text-primary"
           />
         ) : null}
         {whiteTravelled ? (
@@ -122,13 +141,23 @@ export function RoutePath({
             <Marker key={`w_${n.date}`} x={node.x} y={node.y} width={geo.width}>
               <div
                 className={cn(
-                  "flex items-center justify-center rounded-full border px-2 py-1 text-[9px] font-semibold tabular-nums",
+                  "flex flex-col items-center gap-0.5 rounded-2xl border px-2.5 py-1.5",
                   has
-                    ? "border-primary-foreground/40 bg-card text-foreground"
-                    : "border-dashed border-border/70 text-muted-foreground/60",
+                    ? "border-primary-foreground/25 bg-card shadow-[0_0_16px_-6px_oklch(0.72_0.2_286.2)]"
+                    : "border-dashed border-border/60",
                 )}
               >
-                {has ? formatKg(n.marker.avgKg!) : "—"}
+                <span className="whitespace-nowrap text-[8px] font-medium uppercase tracking-wide text-muted-foreground/80">
+                  {t("Week of {date}", { date: formatDate(n.marker.weekStartIso) })}
+                </span>
+                <span
+                  className={cn(
+                    "text-[11px] font-bold tabular-nums",
+                    has ? "text-foreground" : "text-muted-foreground/50",
+                  )}
+                >
+                  {has ? formatKg(n.marker.avgKg!) : "—"}
+                </span>
               </div>
             </Marker>
           );
@@ -136,37 +165,45 @@ export function RoutePath({
         const cp = n.checkpoint;
         const achieved = cp.status === "achieved";
         const isCurrent = cp.id === currentId;
+        const Icon = metricIcon(cp);
         return (
           <Marker key={cp.id} x={node.x} y={node.y} width={geo.width}>
-            <button
-              type="button"
-              onClick={() => onSelect(cp)}
-              className={cn(
-                "tap-target flex max-w-[190px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
-                achieved && "border-primary/40 bg-primary/10",
-                isCurrent && "border-primary bg-primary/15 shadow-lg shadow-primary/20",
-                !achieved && !isCurrent && "border-border bg-card",
-              )}
-            >
-              <span
+            <div className="relative">
+              {isCurrent ? (
+                <span className="absolute inset-0 -z-10 animate-pulse rounded-2xl bg-primary/25 blur-md" />
+              ) : null}
+              <button
+                type="button"
+                onClick={() => onSelect(cp)}
                 className={cn(
-                  "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold tabular-nums",
-                  achieved ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
+                  "tap-target flex max-w-[190px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
+                  achieved && "border-primary/40 bg-primary/10",
+                  isCurrent &&
+                    "border-primary bg-primary/15 shadow-[0_0_28px_-4px_oklch(0.6_0.23_286.2)]",
+                  !achieved && !isCurrent && "border-border bg-card",
                 )}
               >
-                {achieved ? <Check className="size-3.5" /> : n.ordinal}
-              </span>
-              <span className="min-w-0">
-                <span className="block truncate text-xs font-semibold leading-tight">
-                  {cp.title}
+                <span
+                  className={cn(
+                    "grid size-6 shrink-0 place-items-center rounded-full text-[11px] font-bold tabular-nums",
+                    achieved ? "bg-primary text-primary-foreground" : "bg-muted text-foreground",
+                  )}
+                >
+                  {achieved ? <Check className="size-3.5" /> : n.ordinal}
                 </span>
-                <span className="block text-[10px] text-muted-foreground tabular-nums">
-                  {formatDate(cp.targetDate)}
-                  {cp.status === "adjusted" ? ` · ${t("moved")}` : ""}
-                  {cp.status === "missed" ? ` · ${t("open")}` : ""}
+                <span className="min-w-0">
+                  <span className="flex items-center gap-1 truncate text-xs font-semibold leading-tight">
+                    {Icon ? <Icon className="size-3 shrink-0 text-muted-foreground" /> : null}
+                    <span className="truncate">{cp.title}</span>
+                  </span>
+                  <span className="block text-[10px] text-muted-foreground tabular-nums">
+                    {formatDate(cp.targetDate)}
+                    {cp.status === "adjusted" ? ` · ${t("moved")}` : ""}
+                    {cp.status === "missed" ? ` · ${t("open")}` : ""}
+                  </span>
                 </span>
-              </span>
-            </button>
+              </button>
+            </div>
           </Marker>
         );
       })}
