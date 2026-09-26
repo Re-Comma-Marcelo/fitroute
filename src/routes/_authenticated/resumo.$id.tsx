@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
 import { getWorkout, getWorkouts, getWorkoutLog, getWorkoutSets } from "@/lib/data/workouts";
+import { pendingWorkouts } from "@/lib/offline-queue";
 import { getExercises } from "@/lib/data/exercises";
 import { compareWithPreviousRun } from "@/lib/session-compare";
 import { SessionDiffCard } from "@/components/SessionDiffCard";
@@ -77,8 +78,12 @@ function SummaryPage() {
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const [sharing, setSharing] = useState(false);
 
-  const workout = workoutQuery.data;
-  const sets = setsQuery.data ?? [];
+  // Saved offline: the workout waits in the device queue until it syncs, so the
+  // server log doesn't have it yet — read it from the queue instead.
+  const [queued] = useState(() => pendingWorkouts().find((p) => p.workout.id === id) ?? null);
+  const workout = workoutQuery.data ?? queued?.workout;
+  const sets = setsQuery.data?.length ? setsQuery.data : (queued?.sets ?? []);
+  const onlyOnDevice = !workoutQuery.data && queued !== null;
 
   // Re-read the route against the log that now includes this workout.
   useEffect(() => {
@@ -182,6 +187,11 @@ function SummaryPage() {
         <p className="label-caps">{t("Session finished")}</p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
+        {onlyOnDevice ? (
+          <p className="mt-3 rounded-2xl border border-dashed border-border bg-card px-4 py-3 text-xs leading-snug text-muted-foreground">
+            {t("Saved on this device — it will sync when you are back online.")}
+          </p>
+        ) : null}
 
         {/* Hero: the volume moved in this session. */}
         <section className="mt-8" aria-label={t("Total volume")}>

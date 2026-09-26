@@ -170,6 +170,8 @@ function SessionPage() {
   const [session, setSession] = useState<ActiveSession | null>(null);
   const [ready, setReady] = useState(false);
   const [finishing, setFinishing] = useState(false);
+  /** Sync guard: a second tap on Finish while the first save runs must not save twice. */
+  const finishingRef = useRef(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
   /** Key of the set just checked (drives the pop + green flash) and of the exercise just completed. */
   const [justSet, setJustSet] = useState<string | null>(null);
@@ -1098,7 +1100,8 @@ function SessionPage() {
 
   async function finalizar(override?: ActiveSession) {
     const target = override ?? session;
-    if (!target) return;
+    if (!target || finishingRef.current) return;
+    finishingRef.current = true;
     setFinishing(true);
     try {
       const duracaoSeg = elapsed;
@@ -1156,12 +1159,19 @@ function SessionPage() {
         origem: (target.routineId ? "rotina" : "branco") as "rotina" | "branco",
       };
 
-      // Offline: queue it locally and let the app sync when the connection is back.
-      if (isOffline()) {
+      // Offline — or "online" with no real connection, common in gyms — queue it
+      // locally and let the app sync when the connection is back.
+      let queued = isOffline();
+      if (!queued) {
+        try {
+          await saveWorkout(workout, sets);
+        } catch {
+          queued = true;
+        }
+      }
+      if (queued) {
         enqueueWorkout(workout, sets);
         toast.success(t("Saved on this device — it will sync when you are back online."));
-      } else {
-        await saveWorkout(workout, sets);
       }
 
       // Post-workout coach message: recovery + food that fits the open macros.
@@ -1217,6 +1227,7 @@ function SessionPage() {
         t("Could not save the workout. It is still stored on this device — try again in a moment."),
       );
     } finally {
+      finishingRef.current = false;
       setFinishing(false);
     }
   }
