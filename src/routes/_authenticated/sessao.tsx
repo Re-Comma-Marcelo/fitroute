@@ -750,7 +750,10 @@ function SessionPage() {
   }
 
   function setField(exIdx: number, setIdx: number, field: SetField, value: string) {
-    patchSet(exIdx, setIdx, { [field]: value });
+    // Mark hand-set numbers so a target recomputed later never wipes them.
+    const edited =
+      field === "pesoKg" ? { editadoPeso: true } : field === "reps" ? { editadoReps: true } : {};
+    patchSet(exIdx, setIdx, { [field]: value, ...edited });
     if (field === "rpe") refreshTargetWithRpe(exIdx, setIdx, value);
   }
 

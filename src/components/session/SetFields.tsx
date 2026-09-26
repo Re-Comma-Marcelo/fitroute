@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Minus, Plus } from "lucide-react";
 import { NumberField } from "@/components/session/NumberField";
+import { repsPadrao } from "@/lib/complete-set";
 import { formatSignedStep } from "@/lib/set-input";
 import { formatKg, weightUnitLabel } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { incrementoPara, isSerieTempo } from "@/lib/progression";
 import type { ActiveExercise, ActiveSet } from "@/lib/session-state";
 import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import { useHoldRepeat } from "@/lib/use-hold-repeat";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +17,9 @@ export type SetField = "pesoKg" | "reps" | "rpe";
 /**
  * Weight and reps for one set. Weight is always stored in kg; the field shows
  * the user's unit. The grey target is accepted on focus so you only edit what
- * changed. `big` is the current-set layout: tall values with −/+ on the sides.
+ * changed, and it is always a concrete number — exactly what the ✓ records if
+ * the field is left alone. `big` is the current-set layout: tall values with
+ * large −/+ buttons underneath that repeat while held.
  */
 export function SetFields({
   set,
@@ -43,7 +47,16 @@ export function SetFields({
     set.sugPeso !== null && set.sugPeso > 0
       ? String(Math.round(toDisplayWeight(set.sugPeso, unit) * 100) / 100)
       : "";
-  const alvoReps = set.sugReps !== null && set.sugReps > 0 ? String(set.sugReps) : "";
+  const repsAlvo = repsPadrao(set, exercise);
+  const alvoReps = repsAlvo > 0 ? String(repsAlvo) : "";
+  // Timed sets hold seconds: 5 s per step, 15 s for the big jump.
+  const passoReps = tempo ? 5 : 1;
+  const passoRepsGrande = tempo ? 15 : 5;
+  const faixa =
+    exercise.repsMin === exercise.repsMax
+      ? `${exercise.repsMax}`
+      : `${exercise.repsMin}–${exercise.repsMax}`;
+  const repsLabel = tempo ? t("sec") : `${t("Reps")} ${faixa}`;
 
   function writeWeight(displayValue: string) {
     setDraft(displayValue);
@@ -68,7 +81,7 @@ export function SetFields({
   }
 
   function stepReps(delta: number) {
-    const atual = Number(set.reps) || set.sugReps || 0;
+    const atual = Number(set.reps) || repsAlvo;
     onField("reps", String(Math.max(0, Math.round(atual + delta))));
   }
 
@@ -108,17 +121,17 @@ export function SetFields({
       value={set.reps}
       onChange={(v) => onField("reps", v)}
       onFocus={acceptRepsTarget}
-      onStep={(direction, bigStep) => stepReps(direction * (bigStep ? 5 : 1))}
+      onStep={(direction, bigStep) => stepReps(direction * (bigStep ? passoRepsGrande : passoReps))}
       scrub={{
-        getValue: () => Number(set.reps) || set.sugReps || 0,
-        stepFor: (tier) => (tier === "fine" ? 1 : 5),
+        getValue: () => Number(set.reps) || repsAlvo,
+        stepFor: (tier) => (tier === "fine" ? passoReps : passoRepsGrande),
         onValue: (value) => onField("reps", String(Math.round(value))),
         formatValue: (value, delta) =>
           `${Math.round(value)}${delta ? ` ${formatSignedStep(delta)}` : ""}`,
         formatStep: (step) => t("step {step}", { step: String(step) }),
       }}
       inputMode="numeric"
-      placeholder={tempo ? t("sec") : alvoReps || `${exercise.repsMin}-${exercise.repsMax}`}
+      placeholder={alvoReps || (tempo ? t("sec") : faixa)}
       ariaLabel={tempo ? t("Seconds") : t("Reps")}
       size={big ? "lg" : "md"}
     />
@@ -135,7 +148,7 @@ export function SetFields({
           </label>
         )}
         <label className="block">
-          <span className="label-caps block text-center">{tempo ? t("sec") : t("Reps")}</span>
+          <span className="label-caps block text-center">{repsLabel}</span>
           <span className="mt-1 block">{repsField}</span>
         </label>
       </div>
@@ -156,9 +169,9 @@ export function SetFields({
         </Stepper>
       )}
       <Stepper
-        label={tempo ? t("sec") : t("Reps")}
-        onMinus={() => stepReps(-1)}
-        onPlus={() => stepReps(1)}
+        label={repsLabel}
+        onMinus={() => stepReps(-passoReps)}
+        onPlus={() => stepReps(passoReps)}
         minusLabel={t("Decrease reps")}
         plusLabel={t("Increase reps")}
       >
@@ -168,6 +181,10 @@ export function SetFields({
   );
 }
 
+/**
+ * Number on top, two wide −/+ buttons underneath: 48 px tall and half the tile
+ * wide, so a sweaty thumb can't miss, and the number keeps the full width.
+ */
 function Stepper({
   label,
   children,
@@ -184,15 +201,15 @@ function Stepper({
   plusLabel: string;
 }) {
   return (
-    <div className="rounded-2xl bg-surface-2 px-1 pb-1 pt-2">
+    <div className="rounded-2xl bg-surface-2 p-1 pt-2">
       <p className="label-caps text-center">{label}</p>
-      <div className="mt-0.5 grid grid-cols-[36px_minmax(0,1fr)_36px] items-center">
-        <StepButton onClick={onMinus} label={minusLabel}>
-          <Minus className="size-4" strokeWidth={2.6} />
+      <div className="mt-0.5 px-1">{children}</div>
+      <div className="mt-1 grid grid-cols-2 gap-1">
+        <StepButton onStep={onMinus} label={minusLabel}>
+          <Minus className="size-5" strokeWidth={2.6} />
         </StepButton>
-        {children}
-        <StepButton onClick={onPlus} label={plusLabel}>
-          <Plus className="size-4" strokeWidth={2.6} />
+        <StepButton onStep={onPlus} label={plusLabel}>
+          <Plus className="size-5" strokeWidth={2.6} />
         </StepButton>
       </div>
     </div>
@@ -200,22 +217,23 @@ function Stepper({
 }
 
 function StepButton({
-  onClick,
+  onStep,
   label,
   children,
 }: {
-  onClick: () => void;
+  onStep: () => void;
   label: string;
   children: React.ReactNode;
 }) {
+  const hold = useHoldRepeat(onStep);
   return (
     <button
       type="button"
-      onClick={onClick}
+      {...hold}
       aria-label={label}
       className={cn(
-        "flex size-9 items-center justify-center rounded-full text-muted-foreground",
-        "active:bg-surface-3",
+        "flex h-12 touch-manipulation select-none items-center justify-center rounded-xl bg-surface-3 text-foreground [-webkit-touch-callout:none]",
+        "active:bg-primary/20",
       )}
     >
       {children}

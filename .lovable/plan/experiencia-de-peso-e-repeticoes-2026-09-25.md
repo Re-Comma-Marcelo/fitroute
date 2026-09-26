@@ -27,7 +27,9 @@ O que atrapalha:
 
 ## Plano
 
-### Fase 1 — Corrigir armadilhas (pequeno, baixo risco)
+### Fase 1 — Corrigir armadilhas (pequeno, baixo risco) — feita em 2026-09-26
+
+Obs.: os −/+ ficaram *abaixo* do número (dois botões largos de 48 px), não nas laterais — com 48 px nas laterais o número não cabe em telas de 360–375 px para cargas como "102,5".
 
 1. **Reps sempre com um número concreto.** Sem `sugReps`, o valor exibido passa a ser um número (topo da faixa, igual ao que já é gravado hoje) e a faixa "8–12" vai para o rótulo/linha auxiliar. Assim o ✓ grava exatamente o que está na tela.
 2. **Não apagar o que o usuário ajustou.** `applyNextTarget` só atualiza o alvo (`sugPeso`/`sugReps`) e só limpa `pesoKg`/`reps` da próxima série se o usuário não tiver mexido nela (marcar a série como "editada" ao alterar pelo sheet).
