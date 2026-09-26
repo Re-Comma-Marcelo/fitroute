@@ -18,6 +18,7 @@ export function SessionHeader({
   volumeBurst,
   segments,
   exerciseIdx,
+  currentProgress,
   exerciseName,
   blockLabel,
   onCollapse,
@@ -32,6 +33,8 @@ export function SessionHeader({
   volumeBurst: { key: number; kg: number } | null;
   segments: SegmentStatus[];
   exerciseIdx: number;
+  /** Share (0-1) of the current exercise's sets already done. */
+  currentProgress: number;
   exerciseName: string;
   blockLabel?: string | undefined;
   onCollapse: () => void;
@@ -92,19 +95,26 @@ export function SessionHeader({
           aria-label={t("Exercise {position} of {total}", { position, total })}
         >
           {/* Progress only. It used to be a 4 px tall button that jumped exercises:
-              a stray thumb on the sticky header silently left sets behind. */}
-          {segments.map((status, idx) => (
-            <span
-              key={idx}
-              className={cn(
-                "h-1 flex-1 rounded-full transition-colors",
-                status === "done" && "bg-success",
-                status === "current" && "bg-primary",
-                status === "pending" && "bg-surface-3",
-                status === "skipped" && "bg-surface-3 opacity-40",
-              )}
-            />
-          ))}
+              a stray thumb on the sticky header silently left sets behind.
+              Two lines per exercise, like the Route mark: purple marks where you
+              are, white follows one step behind as the sets get done. */}
+          {segments.map((status, idx) => {
+            const purple = status === "done" || status === "current" ? 1 : 0;
+            const white =
+              status === "done" ? 1 : status === "current" ? clampUnit(currentProgress) : 0;
+            return (
+              <span
+                key={idx}
+                className={cn(
+                  "flex flex-1 flex-col gap-[2px]",
+                  status === "skipped" && "opacity-40",
+                )}
+              >
+                <SegmentLine fill={purple} className="bg-primary" />
+                <SegmentLine fill={white} className="bg-foreground" />
+              </span>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2 px-2 pb-2.5">
@@ -132,5 +142,24 @@ export function SessionHeader({
         </div>
       </div>
     </header>
+  );
+}
+
+function clampUnit(n: number) {
+  return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
+}
+
+/** One of the two lines of a segment: a muted track filled from the left. */
+function SegmentLine({ fill, className }: { fill: number; className: string }) {
+  return (
+    <span className="relative h-[3px] overflow-hidden rounded-full bg-surface-3">
+      <span
+        className={cn(
+          "absolute inset-0 origin-left rounded-full transition-transform duration-500 ease-out",
+          className,
+        )}
+        style={{ transform: `scaleX(${fill})` }}
+      />
+    </span>
   );
 }

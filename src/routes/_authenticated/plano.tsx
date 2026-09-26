@@ -124,6 +124,7 @@ function PlanPage() {
       equipment: profile.equipment.length ? profile.equipment : current.equipment,
       gymDaysPerWeek: profile.metaTreinosSemana || current.gymDaysPerWeek,
       targetWeightKg: profile.pesoMetaKg ?? current.targetWeightKg,
+      trainingGoal: profile.trainingGoal ?? current.trainingGoal,
     }));
   }, [profileQuery.data, hydrated]);
 

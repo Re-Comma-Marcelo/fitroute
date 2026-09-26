@@ -8,6 +8,19 @@ export const RPE_VALUES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10] as const;
 
 export type RpeValue = (typeof RPE_VALUES)[number];
 
+/**
+ * Shared effort thresholds — used across progression, autoregulation and
+ * coaching so "was that easy/hard/fatigued" means the same thing everywhere
+ * instead of drifting between files (some used 8.5, others 8 or 9.5 for
+ * essentially the same question).
+ */
+/** At/below this, the last effort had real reps in reserve — safe to add load. */
+export const RPE_EASY_MAX = 8;
+/** At/above this sustained across sessions, effort is creeping toward overreaching. */
+export const RPE_FATIGUE_MIN = 8.5;
+/** At/above this, essentially no reps were left — hold or deload, don't add load. */
+export const RPE_NEAR_FAILURE_MIN = 9.5;
+
 /** English keys: the dictionary translates them to pt/nl. */
 const MEANING: Record<string, string> = {
   "10": "Nothing left — no way you could do another rep",

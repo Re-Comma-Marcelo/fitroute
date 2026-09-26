@@ -109,6 +109,7 @@ import type { SwapReason, TipoSerie, Workout, WorkoutSet } from "@/lib/types";
 import { SessionHeader, type SegmentStatus } from "@/components/session/SessionHeader";
 import { CurrentSetCard } from "@/components/session/CurrentSetCard";
 import { DoneSetRow, PendingSetRow } from "@/components/session/SetRows";
+import { VariantPicker } from "@/components/session/VariantPicker";
 import { SetEditSheet } from "@/components/session/SetEditSheet";
 import { ExerciseMenuSheet, type ExerciseMenuAction } from "@/components/session/ExerciseMenuSheet";
 import { SessionSheet } from "@/components/session/SessionSheet";
@@ -116,6 +117,8 @@ import { ExerciseHistorySheet } from "@/components/session/ExerciseHistorySheet"
 import { SwapFinishPanel, type SwapKeep } from "@/components/session/SwapFinishPanel";
 import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
+import { SessionStartIntro } from "@/components/session/SessionStartIntro";
+import { consumeSessionIntro, type SessionIntroOrigin } from "@/lib/session-intro";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -244,6 +247,13 @@ function SessionPage() {
   const restEndsAt = rest?.endsAt ?? null;
 
   useTick(true);
+
+  /** Brand opening, only right after "Start" (never on resume or reload). */
+  const [intro, setIntro] = useState<{ origin: SessionIntroOrigin | undefined } | null>(null);
+  useEffect(() => {
+    const origin = consumeSessionIntro();
+    if (origin !== null) setIntro({ origin });
+  }, []);
 
   /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
   const unlockAudio = useCallback(() => {
@@ -611,6 +621,8 @@ function SessionPage() {
         crossTraining: cross,
         recentNotes: notes,
         currentWorkoutId: workoutId,
+        equipamento: ex.equipamento,
+        grupoPrimario: ex.grupoPrimario,
       });
       if (!result) return;
       setCoachTips((prev) => ({ ...prev, [exIdx]: result.message }));
@@ -762,6 +774,14 @@ function SessionPage() {
   function setExerciseRest(exIdx: number, segundos: number) {
     update((s) => {
       s.exercicios[exIdx]!.descansoSeg = segundos;
+      return s;
+    });
+  }
+
+  /** Which variant (e.g. grip) new sets for this exercise get tagged as. */
+  function setExerciseVariant(exIdx: number, variantId: string) {
+    update((s) => {
+      s.exercicios[exIdx]!.selectedVariantId = variantId;
       return s;
     });
   }
@@ -1122,6 +1142,7 @@ function SessionPage() {
             ...(s.rpe ? { rpe: Number(s.rpe) } : {}),
             ...(s.coachNote?.trim() ? { coachNote: s.coachNote.trim() } : {}),
             ...(ex.substituiDe ? { substituiExerciseId: ex.substituiDe } : {}),
+            ...(s.variantId ? { variantId: s.variantId } : {}),
           });
         });
         if (melhor > pr && melhor > 0) prs.push({ nome: ex.nome, pesoKg: melhor, anteriorKg: pr });
@@ -1342,6 +1363,11 @@ function SessionPage() {
         volumeBurst={volumeBurst}
         segments={segments}
         exerciseIdx={viewIdx}
+        currentProgress={
+          exercise && exercise.sets.length > 0
+            ? exercise.sets.filter((s) => s.concluida).length / exercise.sets.length
+            : 0
+        }
         exerciseName={exercise?.nome ?? t("Add an exercise to start")}
         blockLabel={exercise ? blockLabel[exercise.exerciseId] : undefined}
         onCollapse={() => navigate({ to: "/treino" })}
@@ -1399,6 +1425,13 @@ function SessionPage() {
           </div>
         ) : (
           <>
+            {exercise.variants && exercise.variants.length > 1 ? (
+              <VariantPicker
+                variants={exercise.variants}
+                selectedId={exercise.selectedVariantId ?? exercise.variants[0]!.id}
+                onSelect={(variantId) => setExerciseVariant(viewIdx, variantId)}
+              />
+            ) : null}
             <ul className="space-y-0.5">
               {exercise.sets.map((set, setIdx) => {
                 const label = serieLabel(exercise.sets, setIdx);
@@ -1796,6 +1829,13 @@ function SessionPage() {
             jumpTo(completion.nextExerciseIdx);
             setCompletion(null);
           }}
+        />
+      ) : null}
+      {intro ? (
+        <SessionStartIntro
+          origin={intro.origin}
+          title={sessionLabel(session)}
+          onDone={() => setIntro(null)}
         />
       ) : null}
     </div>

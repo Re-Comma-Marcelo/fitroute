@@ -15,6 +15,7 @@ import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
 import { dict as foldersDict } from "./dict/folders";
 import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
+import { dict as exerciseVariantsDict } from "./dict/exercise-variants";
 import { dict as generatedDict } from "./dict/generated";
 import { dict as homeDict } from "./dict/home";
 import { dict as libraryDict } from "./dict/library";
@@ -52,7 +53,9 @@ import { dict as round33Dict } from "./dict/round33";
 import { dict as round34Dict } from "./dict/round34";
 
 import { dict as sessionDict } from "./dict/session";
+import { dict as crossTrainingDict } from "./dict/cross-training";
 import { dict as sessionFocusDict } from "./dict/session-focus";
+import { dict as weeklyCheckinDict } from "./dict/weekly-checkin";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
 import { dict as trainDict } from "./dict/train";
@@ -78,6 +81,9 @@ const FRAGMENTS: DictFragment[] = [
   sessionDict,
   sessionFocusDict,
   exerciseCompleteDict,
+  exerciseVariantsDict,
+  weeklyCheckinDict,
+  crossTrainingDict,
   libraryDict,
   dietDict,
   progressDict,

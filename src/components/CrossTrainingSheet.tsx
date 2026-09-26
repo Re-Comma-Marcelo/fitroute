@@ -10,7 +10,9 @@ import { useT } from "@/lib/i18n";
 import { saveCrossTraining } from "@/lib/data/coaching";
 import type { CrossTrainingKind } from "@/lib/types";
 
-const KINDS: CrossTrainingKind[] = ["run", "sport", "bike", "walk", "other"];
+const KINDS: CrossTrainingKind[] = ["run", "walk", "bike", "swim", "sport", "other"];
+/** These kinds have a real pace/speed — worth asking distance for; "sport"/"other" don't. */
+const DISTANCE_KINDS = new Set<CrossTrainingKind>(["run", "walk", "bike", "swim"]);
 
 /** Quick log for non-lifting activity, so the coach can explain strength dips. */
 export function CrossTrainingSheet({ className }: { className?: string }) {
@@ -20,6 +22,7 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
   const [kind, setKind] = useState<CrossTrainingKind>("run");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [minutes, setMinutes] = useState("40");
+  const [distance, setDistance] = useState("");
   const [intensity, setIntensity] = useState<"easy" | "moderate" | "hard">("moderate");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
@@ -33,7 +36,19 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
           ? t("Bike")
           : k === "walk"
             ? t("Walk")
-            : t("Other");
+            : k === "swim"
+              ? t("Swim")
+              : t("Other");
+
+  const showDistance = DISTANCE_KINDS.has(kind);
+  const distanceKm = Number(distance.replace(",", "."));
+  const minutesNum = Number(minutes) || 0;
+  const pace =
+    showDistance && distanceKm > 0 && minutesNum > 0
+      ? kind === "bike"
+        ? t("{speed} km/h", { speed: (distanceKm / (minutesNum / 60)).toFixed(1) })
+        : t("{pace} min/km", { pace: (minutesNum / distanceKm).toFixed(1) })
+      : null;
 
   async function submit() {
     setSaving(true);
@@ -41,14 +56,16 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
       await saveCrossTraining({
         kind,
         data: date,
-        duracaoMin: Math.max(0, Number(minutes) || 0),
+        duracaoMin: Math.max(0, minutesNum),
         intensidade: intensity,
         nota: note.trim(),
+        ...(showDistance && distanceKm > 0 ? { distanciaKm: distanceKm } : {}),
       });
       await qc.invalidateQueries({ queryKey: ["cross-training"] });
       toast.success(t("Logged — I'll factor it into your next sessions."));
       setOpen(false);
       setNote("");
+      setDistance("");
     } catch {
       toast.error(t("Could not save that activity."));
     } finally {
@@ -122,6 +139,21 @@ export function CrossTrainingSheet({ className }: { className?: string }) {
               />
             </label>
           </div>
+
+          {showDistance ? (
+            <label className="block">
+              <span className="label-caps">{t("Distance (km)")}</span>
+              <Input
+                type="number"
+                inputMode="decimal"
+                value={distance}
+                onChange={(e) => setDistance(e.target.value)}
+                placeholder={t("optional, but lets me compute your pace")}
+                className="mt-1"
+              />
+              {pace ? <p className="mt-1 text-xs text-muted-foreground">{pace}</p> : null}
+            </label>
+          ) : null}
 
           <div>
             <span className="label-caps">{t("Intensity")}</span>

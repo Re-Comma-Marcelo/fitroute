@@ -5,6 +5,7 @@ import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { getCoachNotes } from "@/lib/data/coach-notes";
 import { tx } from "@/lib/format";
+import { RPE_FATIGUE_MIN } from "@/lib/rpe";
 import {
   currentWeekStart,
   daysSince,
@@ -184,7 +185,7 @@ function weeklyInsights(
     const stats = perWorkoutStats(lastSets, lastSessions);
     const trend = rpeTrend(stats);
     const lastAvg = stats[stats.length - 1]?.avgRpe;
-    if (trend === "up" && lastAvg && lastAvg >= 8.5) {
+    if (trend === "up" && lastAvg && lastAvg >= RPE_FATIGUE_MIN) {
       insights.push({
         id: "fatigue-week",
         scope: "week",

@@ -224,6 +224,20 @@ export async function getWeekPlan(): Promise<WeekPlan> {
 /** Default age when the profile has none — Mifflin-St Jeor needs a number. */
 export const DEFAULT_AGE = 30;
 
+/**
+ * Protein per kg bodyweight, by goal. Research on resistance-trained adults
+ * puts the effective range at 1.6-2.2 g/kg; a flat number for every goal
+ * wastes that range. Cutting sits at the top (2.2) since a deficit is
+ * exactly when protein does the most to protect muscle mass; bulking and
+ * maintenance sit lower (1.8) — comfortably inside the range without eating
+ * into the carb budget a surplus doesn't need protein to fill.
+ */
+const PROTEIN_G_PER_KG: Record<string, number> = {
+  cutting: 2.2,
+  manutencao: 1.8,
+  bulking: 1.8,
+};
+
 /** Calories and macros the app calculates from the profile. */
 export function calculateTargets(p: {
   pesoKg: number;
@@ -246,7 +260,7 @@ export function calculateTargets(p: {
   if (p.objetivo === "cutting") kcal *= 0.85;
   if (p.objetivo === "bulking") kcal *= 1.12;
   kcal = Math.round(kcal / 10) * 10;
-  const proteinG = Math.round(p.pesoKg * 2);
+  const proteinG = Math.round(p.pesoKg * (PROTEIN_G_PER_KG[p.objetivo] ?? 2));
   const fatG = Math.round((kcal * 0.25) / 9);
   const carbsG = Math.max(0, Math.round((kcal - proteinG * 4 - fatG * 9) / 4));
   return { kcal, proteinG, carbsG, fatG };

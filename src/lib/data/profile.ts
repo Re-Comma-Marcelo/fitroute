@@ -26,7 +26,10 @@ let cache: Profile | null = null;
  */
 const GOAL_KEY = "ironlogger.profileGoal.v1";
 type GoalOverlay = Partial<
-  Pick<Profile, "metaPrazo" | "pesoMetaKg" | "metaIniciadaEm" | "onboardingConcluidoEm">
+  Pick<
+    Profile,
+    "metaPrazo" | "pesoMetaKg" | "metaIniciadaEm" | "onboardingConcluidoEm" | "trainingGoal"
+  >
 >;
 
 function readGoalOverlay(): GoalOverlay {
@@ -48,24 +51,27 @@ function writeGoalOverlay(next: GoalOverlay) {
   }
 }
 
+const OVERLAY_KEYS = [
+  "metaPrazo",
+  "pesoMetaKg",
+  "metaIniciadaEm",
+  "onboardingConcluidoEm",
+  "trainingGoal",
+] as const;
+
+function overlayFrom(wanted: Profile): GoalOverlay {
+  const overlay: GoalOverlay = {};
+  for (const key of OVERLAY_KEYS) if (wanted[key]) overlay[key] = wanted[key] as never;
+  return overlay;
+}
+
 /** Overlay only fills gaps: whatever the database returned wins. */
 function withGoalOverlay(profile: Profile): Profile {
   const overlay = readGoalOverlay();
-  return {
-    ...profile,
-    ...(profile.metaPrazo ? {} : overlay.metaPrazo ? { metaPrazo: overlay.metaPrazo } : {}),
-    ...(profile.pesoMetaKg ? {} : overlay.pesoMetaKg ? { pesoMetaKg: overlay.pesoMetaKg } : {}),
-    ...(profile.metaIniciadaEm
-      ? {}
-      : overlay.metaIniciadaEm
-        ? { metaIniciadaEm: overlay.metaIniciadaEm }
-        : {}),
-    ...(profile.onboardingConcluidoEm
-      ? {}
-      : overlay.onboardingConcluidoEm
-        ? { onboardingConcluidoEm: overlay.onboardingConcluidoEm }
-        : {}),
-  };
+  const filled: GoalOverlay = {};
+  for (const key of OVERLAY_KEYS)
+    if (!profile[key] && overlay[key]) filled[key] = overlay[key] as never;
+  return { ...profile, ...filled };
 }
 
 /** Drop the in-memory copy so the next read hits the database. */
@@ -85,20 +91,8 @@ export async function saveProfile(next: Profile): Promise<Profile> {
   try {
     const saved = withGoalOverlay((await persistProfile({ data: { profile: wanted } })) as Profile);
     // The row came back without the goal fields: the columns are missing.
-    if (
-      (wanted.metaPrazo && !saved.metaPrazo) ||
-      (wanted.pesoMetaKg && !saved.pesoMetaKg) ||
-      (wanted.metaIniciadaEm && !saved.metaIniciadaEm) ||
-      (wanted.onboardingConcluidoEm && !saved.onboardingConcluidoEm)
-    ) {
-      writeGoalOverlay({
-        ...(wanted.metaPrazo ? { metaPrazo: wanted.metaPrazo } : {}),
-        ...(wanted.pesoMetaKg ? { pesoMetaKg: wanted.pesoMetaKg } : {}),
-        ...(wanted.metaIniciadaEm ? { metaIniciadaEm: wanted.metaIniciadaEm } : {}),
-        ...(wanted.onboardingConcluidoEm
-          ? { onboardingConcluidoEm: wanted.onboardingConcluidoEm }
-          : {}),
-      });
+    if (OVERLAY_KEYS.some((key) => wanted[key] && !saved[key])) {
+      writeGoalOverlay(overlayFrom(wanted));
       cache = withGoalOverlay(saved);
       return cache;
     }
@@ -108,23 +102,19 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     const message = String((error as Error)?.message ?? error);
     const missingColumn =
       message.includes("PGRST204") ||
-      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em/.test(message) ||
+      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em|training_goal/.test(
+        message,
+      ) ||
       /column .* does not exist/i.test(message);
     if (!missingColumn) throw error;
     // Keep the goal on this device and retry without the unsupported fields.
-    writeGoalOverlay({
-      ...(wanted.metaPrazo ? { metaPrazo: wanted.metaPrazo } : {}),
-      ...(wanted.pesoMetaKg ? { pesoMetaKg: wanted.pesoMetaKg } : {}),
-      ...(wanted.metaIniciadaEm ? { metaIniciadaEm: wanted.metaIniciadaEm } : {}),
-      ...(wanted.onboardingConcluidoEm
-        ? { onboardingConcluidoEm: wanted.onboardingConcluidoEm }
-        : {}),
-    });
+    writeGoalOverlay(overlayFrom(wanted));
     const {
       metaPrazo: _a,
       pesoMetaKg: _b,
       metaIniciadaEm: _c,
       onboardingConcluidoEm: _d,
+      trainingGoal: _e,
       ...rest
     } = wanted;
     const saved = (await persistProfile({ data: { profile: rest as Profile } })) as Profile;

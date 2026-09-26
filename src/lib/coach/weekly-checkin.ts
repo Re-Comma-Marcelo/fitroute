@@ -9,7 +9,7 @@ import { isoDate } from "@/lib/data/nutrition";
 import { fetchWeeklyCheckIns, persistWeeklyCheckIn } from "@/lib/forja.functions";
 import type { Routine } from "@/lib/types";
 
-export type WeekFeeling = "strong" | "ok" | "heavy";
+export type WeekFeeling = "light" | "ok" | "heavy";
 
 export interface WeeklyCheckIn {
   /** ISO date (Monday) of the week this check-in plans. */
@@ -142,8 +142,8 @@ export function coachLine(entry: WeeklyCheckIn): string {
   if (entry.days.length <= 2) {
     return "Few slots this week — train full body on those days so nothing gets skipped.";
   }
-  if (entry.feeling === "strong") {
-    return "You felt strong — add a small load bump on your first working set of each lift.";
+  if (entry.feeling === "light") {
+    return "Felt light — add a small load bump on your first working set of each lift.";
   }
   return "Plan is set — same loads as last time, and log every set so I can adjust.";
 }

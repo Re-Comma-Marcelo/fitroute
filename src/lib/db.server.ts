@@ -4,6 +4,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getRequest } from "@tanstack/react-start/server";
+import type { Profile } from "./types";
 
 /**
  * Resolve the signed-in Supabase user from the request bearer token.
@@ -103,6 +104,7 @@ export const toProfile = (r: Row) => ({
   idade: r["idade"] == null ? undefined : Number(r["idade"]),
   metaKcal: r["meta_kcal"] == null ? undefined : Number(r["meta_kcal"]),
   metaProteinaG: r["meta_proteina_g"] == null ? undefined : Number(r["meta_proteina_g"]),
+  trainingGoal: (r["training_goal"] ?? undefined) as Profile["trainingGoal"],
 });
 
 export const fromProfile = (p: Row, userId: string) => ({
@@ -130,6 +132,7 @@ export const fromProfile = (p: Row, userId: string) => ({
   idade: p["idade"] ?? null,
   meta_kcal: p["metaKcal"] ?? null,
   meta_proteina_g: p["metaProteinaG"] ?? null,
+  training_goal: p["trainingGoal"] ?? null,
 });
 
 export const toExercise = (r: Row) => ({
@@ -140,6 +143,9 @@ export const toExercise = (r: Row) => ({
   equipamento: String(r["equipamento"]),
   instrucoes: String(r["instrucoes"] ?? ""),
   midiaUrl: (r["midia_url"] ?? undefined) as string | undefined,
+  variants: Array.isArray(r["variants"])
+    ? (r["variants"] as { id: string; label: string; instrucoes?: string }[])
+    : undefined,
   isCustom: Boolean(r["is_custom"]),
 });
 
@@ -181,6 +187,7 @@ export const toSet = (r: Row) => ({
   concluida: Boolean(r["concluida"]),
   coachNote: String(r["coach_note"] ?? ""),
   substituiExerciseId: (r["substitui_exercise_id"] ?? undefined) as string | undefined,
+  variantId: (r["variant_id"] ?? undefined) as string | undefined,
 });
 
 export const toFolder = (r: Row) => ({
@@ -232,6 +239,7 @@ export const toCrossTraining = (r: Row) => ({
   duracaoMin: Number(r["duracao_min"] ?? 0),
   intensidade: String(r["intensidade"] ?? "moderate"),
   nota: String(r["nota"] ?? ""),
+  distanciaKm: r["distancia_km"] == null ? undefined : Number(r["distancia_km"]),
 });
 
 export const toChatEntry = (r: Row) => ({
