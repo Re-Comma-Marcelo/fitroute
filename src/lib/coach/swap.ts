@@ -9,6 +9,11 @@ export interface SwapOptions {
   excludeIds?: Iterable<string>;
   /** Exercises the user has logged before: a known movement is an easier swap. */
   historyIds?: Iterable<string>;
+  /**
+   * Exercises already done in place of this one in the current folder: the
+   * substitute the user keeps reaching for comes first.
+   */
+  pastSwapIds?: Iterable<string>;
   reason?: SwapReason;
   limit?: number;
 }
@@ -57,6 +62,7 @@ export function rankSwapCandidates(
   const limit = opts.limit ?? 4;
   const exclude = new Set(opts.excludeIds ?? []);
   const history = new Set(opts.historyIds ?? []);
+  const pastSwaps = new Set(opts.pastSwapIds ?? []);
   const avoided = new Set((opts.profile?.avoidExercises ?? []).map((a) => a.exerciseId));
   const owned = new Set(opts.profile?.equipment ?? []);
   const reason = opts.reason ?? null;
@@ -73,6 +79,7 @@ export function rankSwapCandidates(
     if (avoided.has(e.id)) s -= 60;
     if (exclude.has(e.id)) s -= 50;
     if (history.has(e.id)) s += 15;
+    if (pastSwaps.has(e.id)) s += 30;
     if (owned.size === 0 || owned.has(e.equipamento)) s += 10;
     // Same equipment keeps the feel of the movement; "busy" means the opposite.
     if (reason === "busy") s += e.equipamento === target.equipamento ? -25 : 12;
@@ -105,10 +112,12 @@ export function swapCandidates(
   exercises: Exercise[],
   profile: Profile,
   limit = 4,
+  pastSwapIds: Iterable<string> = [],
 ): Exercise[] {
   return rankSwapCandidates(exerciseId, exercises, {
     profile,
     excludeIds: routine.exercicios.map((re) => re.exerciseId),
+    pastSwapIds,
     limit,
   });
 }

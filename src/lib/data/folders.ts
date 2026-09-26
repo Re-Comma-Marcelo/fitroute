@@ -2,7 +2,7 @@ import { loadFolders, persistFolder } from "../forja.functions";
 import { formatKg, tx } from "../format";
 import type { Routine, SwapReason, TrainingFolder, Workout, WorkoutSet } from "../types";
 import { copyRoutinesToFolder, refreshRoutines, saveRoutine } from "./routines";
-import { refreshWorkoutLog } from "./workouts";
+import { getWorkoutLog, refreshWorkoutLog } from "./workouts";
 
 let cache: TrainingFolder[] | null = null;
 let inflight: Promise<TrainingFolder[]> | null = null;
@@ -387,4 +387,30 @@ export function nextCycleName(nome: string): string {
   const m = nome.match(/^(.*?)(\d+)\s*$/);
   if (m) return `${m[1]}${Number(m[2]) + 1}`;
   return `${nome} · 2`;
+}
+
+/** What has stood in for `exerciseId` in these sessions, most frequent first. */
+export function pastSwapsFor(
+  exerciseId: string,
+  workouts: Workout[],
+  sets: WorkoutSet[],
+): string[] {
+  const ids = new Set(workouts.map((w) => w.id));
+  const perSession = new Set<string>();
+  const tally = new Map<string, number>();
+  for (const s of sets) {
+    if (s.substituiExerciseId !== exerciseId || !ids.has(s.workoutId)) continue;
+    const key = `${s.workoutId}|${s.exerciseId}`;
+    if (perSession.has(key)) continue;
+    perSession.add(key);
+    tally.set(s.exerciseId, (tally.get(s.exerciseId) ?? 0) + 1);
+  }
+  return [...tally.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id);
+}
+
+/** pastSwapsFor over the current folder's sessions; [] before the migration. */
+export async function getPastSwaps(exerciseId: string): Promise<string[]> {
+  const [folder, log] = await Promise.all([getCurrentFolder().catch(() => null), getWorkoutLog()]);
+  const workouts = folder ? workoutsInFolder(log.workouts, folder.id, folder.id) : log.workouts;
+  return pastSwapsFor(exerciseId, workouts, log.sets);
 }

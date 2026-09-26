@@ -45,6 +45,7 @@ import { getWorkoutLog, getWorkouts } from "@/lib/data/workouts";
 import {
   getFolders,
   isStandard,
+  pastSwapsFor,
   routinesInFolder,
   variationSessionsOf,
   workoutsInFolder,
@@ -165,10 +166,17 @@ function TrainPage() {
     if (!routine) return {};
     const map: Record<string, Exercise[]> = {};
     for (const re of routine.exercicios) {
-      map[re.exerciseId] = swapCandidates(re.exerciseId, routine, exercises, profile);
+      map[re.exerciseId] = swapCandidates(
+        re.exerciseId,
+        routine,
+        exercises,
+        profile,
+        4,
+        pastSwapsFor(re.exerciseId, folderSessions, logQuery.data?.sets ?? []),
+      );
     }
     return map;
-  }, [coach, allRoutines, exercises, profile]);
+  }, [coach, allRoutines, exercises, profile, folderSessions, logQuery.data]);
 
   /** Every exercise of today's routine, so any of them can be swapped for the day. */
   const routineExercises = useMemo(() => {
