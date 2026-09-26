@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 import { hapticSuccess, hapticTick } from "@/lib/haptics";
 import { markScrubHintShown, shouldShowScrubHint } from "@/lib/use-value-scrub";
 
-import { buildWarmupSets } from "@/lib/warmup";
+import { buildWarmupSets, withWarmup } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
 import { bumpExerciseUsage } from "@/lib/exercise-usage";
 import { SessionExercisePickerSheet } from "@/components/SessionExercisePickerSheet";
@@ -77,7 +77,7 @@ import {
   sessionSwaps,
 } from "@/lib/session-state";
 import { isSerieValida } from "@/lib/progression";
-import { buildActiveExercise } from "@/lib/start-session";
+import { buildActiveExercise, rebuildSessionLoad } from "@/lib/start-session";
 import {
   getExerciseHistory,
   getPersonalRecord,
@@ -96,6 +96,8 @@ import {
   logCoachingEvent,
 } from "@/lib/data/coaching";
 import { detectPerformanceDrop } from "@/lib/coach/performance-drop";
+import { readinessMessage } from "@/lib/coach/readiness";
+import { exercisePreview } from "@/lib/exercise-preview";
 import { buildPostWorkoutMessage } from "@/lib/coach/post-workout";
 import { getTargets, isoDate } from "@/lib/data/nutrition";
 import { getDayNutrition } from "@/lib/data/diet-entries";
@@ -121,6 +123,7 @@ import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 import { SessionStartIntro } from "@/components/session/SessionStartIntro";
 import { consumeSessionIntro, type SessionIntroOrigin } from "@/lib/session-intro";
+import type { BriefingChoices } from "@/components/session/SessionBriefing";
 
 export const Route = createFileRoute("/_authenticated/sessao")({
   head: () => ({
@@ -252,12 +255,65 @@ function SessionPage() {
 
   useTick(true);
 
-  /** Brand opening, only right after "Start" (never on resume or reload). */
+  /** Brand opening + briefing, only right after "Start" (never on resume or reload). */
   const [intro, setIntro] = useState<{ origin: SessionIntroOrigin | undefined } | null>(null);
   useEffect(() => {
     const origin = consumeSessionIntro();
     if (origin !== null) setIntro({ origin });
   }, []);
+
+  /** Briefing: 😴 → rebuild today's session as the lighter version (or back). */
+  const switchLoad = useCallback(
+    async (deload: boolean): Promise<boolean> => {
+      const current = sessionRef.current;
+      if (!current || sessionSetsDone(current) > 0) return false;
+      try {
+        const next = await rebuildSessionLoad(current, deload);
+        if (!next) throw new Error("rebuild failed");
+        setSession(next);
+        saveActiveSession(next);
+        return true;
+      } catch {
+        toast.error(t("Could not switch the load. Check your connection and try again."));
+        return false;
+      }
+    },
+    [t],
+  );
+
+  /**
+   * Briefing "Let's go": the clock starts now (not while reading the plan),
+   * the warm-up ramp goes in front of the first exercise, and how the user
+   * feels is kept on the session and told to the coach.
+   */
+  function beginSession(choices: BriefingChoices) {
+    const current = sessionRef.current;
+    if (!current) return;
+    update((s) => {
+      if (sessionSetsDone(s) === 0 && !s.pausadoEm) s.iniciadoEm = new Date().toISOString();
+      if (choices.readiness) s.disposicao = choices.readiness;
+      if (choices.warmup) {
+        const idx = viewIndex(s);
+        const warmed = s.exercicios[idx] ? withWarmup(s.exercicios[idx]) : null;
+        if (warmed) s.exercicios[idx] = warmed;
+      }
+      return s;
+    });
+    if (choices.readiness) {
+      const level = choices.readiness;
+      void logCoachingEvent({
+        kind: "readiness",
+        cause: "none",
+        workoutId: current.id,
+        message: readinessMessage(level, sessionLabel(current), {
+          deload: Boolean(current.deload),
+        }),
+        detail: { level, deload: Boolean(current.deload) },
+      }).catch(() => {
+        /* best effort: the answer is still on the session */
+      });
+    }
+  }
 
   /** iOS Safari starts the AudioContext suspended: unlock it on the first tap. */
   const unlockAudio = useCallback(() => {
@@ -625,6 +681,7 @@ function SessionPage() {
         crossTraining: cross,
         recentNotes: notes,
         currentWorkoutId: workoutId,
+        readiness: sessionRef.current?.disposicao,
         equipamento: ex.equipamento,
         grupoPrimario: ex.grupoPrimario,
       });
@@ -1839,6 +1896,11 @@ function SessionPage() {
           completedDetail={completion.completedDetail}
           nextExerciseId={completion.nextExerciseId}
           nextExerciseName={completion.nextExerciseName}
+          nextPreview={
+            session?.exercicios[completion.nextExerciseIdx]
+              ? exercisePreview(session.exercicios[completion.nextExerciseIdx]!)
+              : undefined
+          }
           onFinish={() => {
             jumpTo(completion.nextExerciseIdx);
             setCompletion(null);
@@ -1849,6 +1911,9 @@ function SessionPage() {
         <SessionStartIntro
           origin={intro.origin}
           title={sessionLabel(session)}
+          session={session}
+          onDeload={switchLoad}
+          onBegin={beginSession}
           onDone={() => setIntro(null)}
         />
       ) : null}

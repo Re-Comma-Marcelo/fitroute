@@ -6,7 +6,7 @@ import {
   type PrevSet,
   type ProgressionSuggestion,
 } from "./progression";
-import type { ExerciseVariant, TipoSerie } from "./types";
+import type { ExerciseVariant, Readiness, TipoSerie } from "./types";
 
 export interface ActiveSet {
   id: string;
@@ -73,6 +73,8 @@ export interface ActiveSession {
   deload?: boolean;
   /** Started from a routine that is itself a variation. */
   fromVariation?: boolean;
+  /** How the user felt at the start (asked in the opening briefing). */
+  disposicao?: Readiness;
   /** Rest countdown, persisted so it survives navigation/unmount. */
   rest?: RestState | null;
   /** Epoch ms when the rest countdown hit zero (drives the "overdue" read). */
