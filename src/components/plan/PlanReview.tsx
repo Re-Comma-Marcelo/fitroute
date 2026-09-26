@@ -94,6 +94,7 @@ export function PlanReview({
                 className={cn(
                   "overflow-hidden rounded-xl border border-border/60 bg-card/40 border-l-[3px]",
                   day.kind === "gym" && "border-l-primary",
+                  day.kind === "active" && "border-l-train",
                   day.kind === "sport" && "border-l-accent",
                   day.kind === "rest" && "border-l-muted-foreground/40",
                 )}

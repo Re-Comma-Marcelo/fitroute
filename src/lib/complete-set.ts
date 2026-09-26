@@ -99,6 +99,7 @@ export function completeSet(
   if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
   if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
   set.concluida = true;
+  if (ex.selectedVariantId) set.variantId = ex.selectedVariantId;
 
   let logged: CompleteSetEffects["logged"] = null;
   let targetLine: string | null = null;

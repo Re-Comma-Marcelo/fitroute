@@ -36,10 +36,12 @@ import {
 } from "@/lib/coach/weekly-checkin";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+/** Monday-first, matching the "which days can you train" step below it. */
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 const FEELINGS: { key: WeekFeeling; label: string }[] = [
-  { key: "strong", label: "Strong" },
-  { key: "ok", label: "Okay" },
   { key: "heavy", label: "Heavy" },
+  { key: "ok", label: "Okay" },
+  { key: "light", label: "Light" },
 ];
 const ISSUE_LABELS: Record<string, string> = {
   shoulder: "Shoulder",
@@ -58,7 +60,9 @@ export function WeeklyCheckInCard() {
   const [dismissed, setDismissed] = useState(false);
   const [step, setStep] = useState(0);
   const [feeling, setFeeling] = useState<WeekFeeling>("ok");
-  const [lifeNote, setLifeNote] = useState("");
+  /** Per weekday (JS day number) to-do text, filled in one day at a time. */
+  const [dayNotes, setDayNotes] = useState<Record<number, string>>({});
+  const [dayCursor, setDayCursor] = useState(0);
   const [days, setDays] = useState<number[]>([]);
   const [issues, setIssues] = useState<string[]>([]);
   const [issueNote, setIssueNote] = useState("");
@@ -108,11 +112,20 @@ export function WeeklyCheckInCard() {
   async function submit() {
     setSaving(true);
     const parsedWeight = Number(weight.replace(",", "."));
+    // Combine the per-day to-dos into one string — the stored shape (lifeNote)
+    // stays a single field, only how it's filled in changed.
+    const lifeNote = WEEK_ORDER.map((d) => ({
+      day: t(DAY_LABELS[d] ?? ""),
+      note: (dayNotes[d] ?? "").trim(),
+    }))
+      .filter((x) => x.note)
+      .map((x) => `${x.day}: ${x.note}`)
+      .join("\n");
     const entry: WeeklyCheckIn = {
       weekKey,
       completedAt: new Date().toISOString(),
       feeling,
-      lifeNote: lifeNote.trim(),
+      lifeNote,
       days: [...days].sort((a, b) => a - b),
       issues,
       issueNote: issueNote.trim(),
@@ -249,15 +262,46 @@ export function WeeklyCheckInCard() {
         ))}
       </div>
     </div>,
-    // 2 — life
+    // 2 — life, one day at a time
     <div key="life" className="space-y-2">
-      <p className="text-sm font-medium">{t("What does your week look like?")}</p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm font-medium">{t("What does your week look like?")}</p>
+        <span className="text-xs tabular-nums text-muted-foreground">
+          {dayCursor + 1}/{WEEK_ORDER.length}
+        </span>
+      </div>
+      <p className="label-caps">{t(DAY_LABELS[WEEK_ORDER[dayCursor] ?? 1] ?? "")}</p>
       <Textarea
-        value={lifeNote}
-        onChange={(e) => setLifeNote(e.target.value)}
-        placeholder={t("School, work, free time, friends...")}
+        value={dayNotes[WEEK_ORDER[dayCursor] ?? 1] ?? ""}
+        onChange={(e) => {
+          const day = WEEK_ORDER[dayCursor] ?? 1;
+          setDayNotes((d) => ({ ...d, [day]: e.target.value }));
+        }}
+        placeholder={t("To-dos for this day (optional)")}
         rows={3}
       />
+      <div className="flex gap-2">
+        {dayCursor > 0 ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={() => setDayCursor((c) => c - 1)}
+          >
+            {t("Previous day")}
+          </Button>
+        ) : null}
+        {dayCursor < WEEK_ORDER.length - 1 ? (
+          <Button
+            type="button"
+            variant="outline"
+            className="flex-1"
+            onClick={() => setDayCursor((c) => c + 1)}
+          >
+            {t("Next day")}
+          </Button>
+        ) : null}
+      </div>
     </div>,
     // 3 — days
     <div key="days" className="space-y-2">

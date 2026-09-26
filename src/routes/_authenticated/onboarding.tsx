@@ -1,7 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ChevronDown, ChevronUp, Flag, Loader2 } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Dumbbell,
+  Flag,
+  Flame,
+  Loader2,
+  RotateCcw,
+  Scale,
+  Shuffle,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -18,12 +33,17 @@ import {
   DEFAULT_ANSWERS,
   buildStarterPlan,
   goalToObjetivo,
+  goalToTrainingGoal,
+  nearestCleanDayCount,
   sortDays,
   templateFor,
+  yearsToExperience,
   type StarterAnswers,
-  type StarterExperience,
   type StarterGoal,
 } from "@/lib/import/starter-routine";
+import { frequencyGuidance } from "@/lib/plan/frequency";
+import { TRAINING_YEARS_LABEL } from "@/lib/plan/experience";
+import type { TrainingYears } from "@/lib/plan/types";
 import { markOnboardingDone } from "@/lib/onboarding";
 import { pageMeta } from "@/lib/route-meta";
 import { mapRoute } from "@/lib/route/auto-map";
@@ -31,6 +51,7 @@ import { addDays, isoDay } from "@/lib/route/cadence";
 import { currentCheckpoint } from "@/lib/route/status";
 import type { Checkpoint } from "@/lib/route/types";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
+import type { FocusMuscle, Pace } from "@/lib/routine-templates";
 import { startRoutineSession } from "@/lib/start-session";
 import type { Routine } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -51,9 +72,10 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
  * every answer feeds the profile, the routines or the route itself. The flow
  * ends on a mapped route and the first workout, never on an empty home.
  */
-type Step = "name" | "goal" | "days" | "experience" | "plan" | "route" | "import";
+type Step =
+  "name" | "goal" | "days" | "pace" | "focus" | "experience" | "plan" | "route" | "import";
 
-const QUESTIONS: Step[] = ["name", "goal", "days", "experience", "plan", "route"];
+const QUESTIONS: Step[] = ["name", "goal", "experience", "days", "pace", "focus", "plan", "route"];
 /** Sunday first, matching `Date#getDay()`. */
 const WEEK = [0, 1, 2, 3, 4, 5, 6] as const;
 const WEEK_OPTIONS = [8, 12, 16] as const;
@@ -110,7 +132,11 @@ function OnboardingPage() {
     () => ({
       goal: answers.goal ?? DEFAULT_ANSWERS.goal,
       days: answers.days?.length ? answers.days : DEFAULT_ANSWERS.days,
-      experience: answers.experience ?? DEFAULT_ANSWERS.experience,
+      trainingYears: answers.trainingYears ?? DEFAULT_ANSWERS.trainingYears,
+      pace: answers.pace ?? DEFAULT_ANSWERS.pace,
+      focusMuscles: answers.focusMuscles?.length
+        ? answers.focusMuscles
+        : DEFAULT_ANSWERS.focusMuscles,
     }),
     [answers],
   );
@@ -132,6 +158,8 @@ function OnboardingPage() {
       ...profile,
       nome: trimmed || profile.nome,
       objetivo: goalToObjetivo(complete.goal),
+      // Reused by the weekly plan generator's training-frequency guideline.
+      trainingGoal: goalToTrainingGoal(complete.goal),
       metaTreinosSemana: sortDays(complete.days).length,
       onboardingConcluidoEm: today,
       ...(goalDate
@@ -249,6 +277,13 @@ function OnboardingPage() {
   const pickedDays = sortDays(answers.days ?? []);
   const canGoBack = step !== "name" && step !== "route";
 
+  /** Evidence-based day range for this goal/experience — asked before "days" so it can cap the picker. */
+  const frequencyRange = frequencyGuidance(
+    goalToTrainingGoal(complete.goal),
+    yearsToExperience(complete.trainingYears),
+  );
+  const dayCap = nearestCleanDayCount(frequencyRange.maxDays);
+
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-4">
       <div className="mb-4 flex h-11 items-center justify-between">
@@ -314,18 +349,13 @@ function OnboardingPage() {
             <h1 className="text-2xl font-semibold tracking-tight">
               {t("Where do you want to get to?")}
             </h1>
-            <div className="mt-6 grid grid-cols-2 gap-3" role="group">
-              {(
-                [
-                  { value: "muscle", label: t("Build muscle") },
-                  { value: "strength", label: t("Get stronger") },
-                  { value: "fat-loss", label: t("Lose fat") },
-                  { value: "comeback", label: t("Get back to training") },
-                ] as { value: StarterGoal; label: string }[]
-              ).map((o) => (
-                <OptionButton
+            <div className="mt-6 flex flex-col gap-2" role="group">
+              {goalOptions(t).map((o) => (
+                <GoalOptionCard
                   key={o.value}
+                  icon={o.icon}
                   label={o.label}
+                  subtitle={o.subtitle}
                   selected={answers.goal === o.value}
                   onClick={() => setAnswers((a) => ({ ...a, goal: o.value }))}
                 />
@@ -359,11 +389,35 @@ function OnboardingPage() {
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
               disabled={!answers.goal}
-              onClick={() => setStep("days")}
+              onClick={() => setStep("experience")}
             >
               {t("Continue")} <ArrowRight className="size-4" />
             </Button>
-            <SkipLink onSkip={() => setStep("days")} />
+            <SkipLink onSkip={() => setStep("experience")} />
+          </section>
+        ) : null}
+
+        {step === "experience" ? (
+          <section className="flex flex-1 flex-col">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("How long have you been training?")}
+            </h1>
+            <div className="mt-6 grid gap-3" role="group">
+              {(Object.keys(TRAINING_YEARS_LABEL) as TrainingYears[]).map((years) => (
+                <OptionButton
+                  key={years}
+                  label={t(TRAINING_YEARS_LABEL[years])}
+                  selected={answers.trainingYears === years}
+                  onClick={() => {
+                    setAnswers((a) => ({ ...a, trainingYears: years }));
+                    setStep("days");
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-auto">
+              <SkipLink onSkip={() => setStep("days")} />
+            </div>
           </section>
         ) : null}
 
@@ -375,18 +429,22 @@ function OnboardingPage() {
             <div className="mt-6 grid grid-cols-7 gap-1.5" role="group">
               {[1, 2, 3, 4, 5, 6, 0].map((day) => {
                 const on = pickedDays.includes(day);
+                const atCap = !on && pickedDays.length >= dayCap;
                 return (
                   <button
                     key={day}
                     type="button"
                     aria-pressed={on}
                     aria-label={dayLabels[day]!.short}
+                    disabled={atCap}
                     onClick={() => toggleDay(day)}
                     className={cn(
                       "tap-target aspect-square rounded-full border text-sm font-semibold transition-colors",
                       on
                         ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-card text-muted-foreground",
+                        : atCap
+                          ? "border-border/50 bg-card/50 text-muted-foreground/50"
+                          : "border-border bg-card text-muted-foreground",
                     )}
                   >
                     {dayLabels[day]!.narrow}
@@ -399,10 +457,16 @@ function OnboardingPage() {
                 ? `${t("{count} day(s) a week", { count: pickedDays.length })} · ${t(templateFor(pickedDays.length).nome)}`
                 : t("Skip — you can change this later")}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground/80">
+              {t(
+                "{min}-{max} days is the evidence-based range for this goal and level — more doesn't train any better.",
+                { min: frequencyRange.minDays, max: frequencyRange.maxDays },
+              )}
+            </p>
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
               disabled={!pickedDays.length}
-              onClick={() => setStep("experience")}
+              onClick={() => setStep("pace")}
             >
               {t("Continue")} <ArrowRight className="size-4" />
             </Button>
@@ -410,33 +474,92 @@ function OnboardingPage() {
           </section>
         ) : null}
 
-        {step === "experience" ? (
+        {step === "pace" ? (
           <section className="flex flex-1 flex-col">
             <h1 className="text-2xl font-semibold tracking-tight">
-              {t("Have you trained before?")}
+              {t("How do you like to train?")}
             </h1>
             <div className="mt-6 grid gap-3" role="group">
               {(
                 [
-                  { value: "beginner", label: t("Just starting") },
-                  { value: "intermediate", label: t("Training for a while") },
-                  { value: "advanced", label: t("Advanced") },
-                ] as { value: StarterExperience; label: string }[]
+                  {
+                    value: "quick",
+                    label: t("Short & quick"),
+                    subtitle: t("Fewer exercises, minimal rest between them"),
+                  },
+                  {
+                    value: "relaxed",
+                    label: t("Thorough, take my time"),
+                    subtitle: t("More exercises per session, more time in the gym"),
+                  },
+                ] as { value: Pace; label: string; subtitle: string }[]
               ).map((o) => (
                 <OptionButton
                   key={o.value}
                   label={o.label}
-                  selected={answers.experience === o.value}
+                  subtitle={o.subtitle}
+                  selected={answers.pace === o.value}
                   onClick={() => {
-                    setAnswers((a) => ({ ...a, experience: o.value }));
-                    setStep("plan");
+                    setAnswers((a) => ({ ...a, pace: o.value }));
+                    setStep("focus");
                   }}
                 />
               ))}
             </div>
             <div className="mt-auto">
-              <SkipLink onSkip={() => setStep("plan")} />
+              <SkipLink onSkip={() => setStep("focus")} />
             </div>
+          </section>
+        ) : null}
+
+        {step === "focus" ? (
+          <section className="flex flex-1 flex-col">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("Any muscle you want extra focus on?")}
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {t("It gets an extra exercise in the sessions that already train it.")}
+            </p>
+            <div className="mt-6 grid grid-cols-2 gap-3" role="group">
+              {
+                // Muscle-group names are shown in English throughout the app
+                // (see the exercise library) — never routed through t().
+                (
+                  [
+                    { value: "chest", label: "Chest" },
+                    { value: "back", label: "Back" },
+                    { value: "legs", label: "Legs" },
+                    { value: "shoulders", label: "Shoulders" },
+                    { value: "arms", label: "Arms" },
+                    { value: "core", label: "Core" },
+                  ] as { value: FocusMuscle; label: string }[]
+                ).map((o) => (
+                  <OptionButton
+                    key={o.value}
+                    label={o.label}
+                    selected={Boolean(answers.focusMuscles?.includes(o.value))}
+                    onClick={() => {
+                      setAnswers((a) => {
+                        const current = a.focusMuscles ?? [];
+                        return {
+                          ...a,
+                          focusMuscles: current.includes(o.value)
+                            ? current.filter((m) => m !== o.value)
+                            : [...current, o.value],
+                        };
+                      });
+                    }}
+                  />
+                ))
+              }
+            </div>
+            <Button
+              className="tap-target mt-auto h-14 w-full gap-2"
+              onClick={() => setStep("plan")}
+            >
+              {t("Continue")} <ArrowRight className="size-4" />
+            </Button>
+            <SkipLink onSkip={() => setStep("plan")} />
           </section>
         ) : null}
 
@@ -600,10 +723,12 @@ function SkipLink({ onSkip }: { onSkip: () => void }) {
 
 function OptionButton({
   label,
+  subtitle,
   selected,
   onClick,
 }: {
   label: string;
+  subtitle?: string;
   selected: boolean;
   onClick: () => void;
 }) {
@@ -613,11 +738,101 @@ function OptionButton({
       aria-pressed={selected}
       onClick={onClick}
       className={cn(
-        "tap-target min-h-14 rounded-2xl border px-4 py-4 text-left text-sm font-semibold transition-transform active:scale-[0.98]",
+        "tap-target min-h-14 rounded-2xl border px-4 py-4 text-left transition-transform active:scale-[0.98]",
         selected ? "border-primary bg-primary/15" : "border-border bg-card",
       )}
     >
-      {label}
+      <span className="block text-sm font-semibold">{label}</span>
+      {subtitle ? (
+        <span className="mt-0.5 block text-xs text-muted-foreground">{subtitle}</span>
+      ) : null}
+    </button>
+  );
+}
+
+/**
+ * Body-composition direction first, training style second — a plain 2x2 of
+ * "Build muscle" / "Get stronger" read as near-synonyms to most people, so
+ * each card names both the direction and why, in one line.
+ */
+function goalOptions(
+  t: (source: string) => string,
+): { value: StarterGoal; icon: LucideIcon; label: string; subtitle: string }[] {
+  return [
+    {
+      value: "muscle-gain",
+      icon: Dumbbell,
+      label: t("Build muscle & gain weight"),
+      subtitle: t("A calorie surplus, focused on maximum growth"),
+    },
+    {
+      value: "muscle-maintain",
+      icon: Scale,
+      label: t("Build muscle, keep my weight"),
+      subtitle: t("Around maintenance — lean growth, minimal fat gain"),
+    },
+    {
+      value: "muscle-cut",
+      icon: Shuffle,
+      label: t("Build muscle & lose fat"),
+      subtitle: t("A slight deficit with enough protein — works best early on"),
+    },
+    {
+      value: "fat-loss",
+      icon: Flame,
+      label: t("Mainly lose fat"),
+      subtitle: t("A clear deficit — keeping muscle is secondary"),
+    },
+    {
+      value: "strength",
+      icon: Zap,
+      label: t("Get stronger, not necessarily bigger"),
+      subtitle: t("Heavier weights, fewer reps, longer rest"),
+    },
+    {
+      value: "comeback",
+      icon: RotateCcw,
+      label: t("Get back into training"),
+      subtitle: t("Easing back in after time off"),
+    },
+  ];
+}
+
+function GoalOptionCard({
+  icon: Icon,
+  label,
+  subtitle,
+  selected,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  subtitle: string;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={selected}
+      onClick={onClick}
+      className={cn(
+        "tap-target flex w-full items-center gap-3 rounded-2xl border px-4 py-3.5 text-left transition-transform active:scale-[0.98]",
+        selected ? "border-primary bg-primary/15" : "border-border bg-card",
+      )}
+    >
+      <span
+        className={cn(
+          "grid size-10 shrink-0 place-items-center rounded-xl",
+          selected ? "bg-primary text-primary-foreground" : "bg-surface-2 text-muted-foreground",
+        )}
+      >
+        <Icon className="size-5" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-semibold">{label}</span>
+        <span className="block text-xs text-muted-foreground">{subtitle}</span>
+      </span>
     </button>
   );
 }

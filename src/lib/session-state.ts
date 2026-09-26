@@ -6,7 +6,7 @@ import {
   type PrevSet,
   type ProgressionSuggestion,
 } from "./progression";
-import type { TipoSerie } from "./types";
+import type { ExerciseVariant, TipoSerie } from "./types";
 
 export interface ActiveSet {
   id: string;
@@ -26,6 +26,8 @@ export interface ActiveSet {
   coachNote?: string;
   /** Set live when this set beat the best weight ever logged for the exercise. */
   pr?: boolean;
+  /** Which ExerciseVariant this set was/will be logged as. */
+  variantId?: string;
 }
 
 export interface ActiveExercise {
@@ -43,6 +45,10 @@ export interface ActiveExercise {
   prescricao?: SetPrescription;
   /** Heaviest weight ever logged for this exercise, for live PR detection (0 = none). */
   prKg?: number;
+  /** Alternate ways to perform this exercise (e.g. grip width), when it has more than one. */
+  variants?: ExerciseVariant[];
+  /** Which variant is currently selected for sets not yet logged. */
+  selectedVariantId?: string;
   sets: ActiveSet[];
 }
 

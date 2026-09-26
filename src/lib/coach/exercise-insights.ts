@@ -1,6 +1,7 @@
 import { getExercise } from "@/lib/data/exercises";
 import { getLastSetsForExercise, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { suggestProgression } from "@/lib/progression";
+import { RPE_FATIGUE_MIN } from "@/lib/rpe";
 import { isSameWeightForLastN, perWorkoutStats, rpeTrend } from "./signals";
 import type { CoachInsight } from "./types";
 import type { Routine, Workout, WorkoutSet } from "@/lib/types";
@@ -85,7 +86,7 @@ export async function getExerciseInsight(
   if (
     trend === "up" &&
     last.avgRpe &&
-    last.avgRpe >= 8.5 &&
+    last.avgRpe >= RPE_FATIGUE_MIN &&
     prev &&
     last.maxWeight <= prev.maxWeight
   ) {

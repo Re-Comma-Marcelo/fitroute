@@ -6,6 +6,28 @@ import { newRoutineExercise } from "./data/routines";
 import type { Exercise, Routine } from "./types";
 
 export type TemplateId = "ppl" | "upper-lower" | "full-body";
+export type Pace = "quick" | "relaxed";
+export type FocusMuscle = "chest" | "back" | "legs" | "shoulders" | "arms" | "core";
+
+/**
+ * "Legs" is a template-day label, not a real `grupoPrimario` — the catalog
+ * splits legs into Quads/Hamstrings/Glutes/Calves. Without this alias,
+ * `pickForGroup` matched nothing for it and every "full body" day silently
+ * dropped its leg work.
+ */
+const GROUP_ALIASES: Record<string, string[]> = {
+  Legs: ["Quads", "Hamstrings", "Glutes", "Calves"],
+};
+
+/** Same idea, keyed by the onboarding's muscle-focus answer. */
+const FOCUS_GROUPS: Record<FocusMuscle, string[]> = {
+  chest: ["Chest"],
+  back: ["Back"],
+  legs: ["Quads", "Hamstrings", "Glutes", "Calves"],
+  shoulders: ["Shoulders"],
+  arms: ["Biceps", "Triceps"],
+  core: ["Core"],
+};
 
 export interface RoutineTemplate {
   id: TemplateId;
@@ -53,8 +75,9 @@ export const ROUTINE_TEMPLATES: RoutineTemplate[] = [
 function pickForGroup(library: Exercise[], group: string, used: Set<string>, take: number) {
   const rank = (e: Exercise) =>
     e.equipamento === "Barbell" ? 0 : e.equipamento === "Machine" ? 1 : 2;
+  const groups = GROUP_ALIASES[group] ?? [group];
   return library
-    .filter((e) => e.grupoPrimario === group && !used.has(e.id))
+    .filter((e) => groups.includes(e.grupoPrimario) && !used.has(e.id))
     .sort((a, b) => rank(a) - rank(b) || a.nome.localeCompare(b.nome))
     .slice(0, take);
 }
@@ -64,12 +87,21 @@ export function buildTemplateRoutines(
   template: RoutineTemplate,
   library: Exercise[],
   translate: (source: string) => string = (s) => s,
+  options: { pace?: Pace | null; focusMuscles?: FocusMuscle[] } = {},
 ): Routine[] {
+  const pace = options.pace ?? null;
+  const focusGroups = (options.focusMuscles ?? []).flatMap((m) => FOCUS_GROUPS[m]);
+
   return template.days.map((day) => {
     const used = new Set<string>();
     const exercicios = day.groups
       .flatMap((group) => {
-        const take = day.groups.length > 3 ? 1 : 2;
+        const standard = day.groups.length > 3 ? 1 : 2;
+        const base = pace === "quick" ? 1 : pace === "relaxed" ? standard + 1 : standard;
+        const isFocusDay = focusGroups.some((g) => (GROUP_ALIASES[group] ?? [group]).includes(g));
+        // Cap at +1 regardless of how many focus muscles land on this day —
+        // a longer, more fatiguing session isn't the point of "focus".
+        const take = Math.min(3, isFocusDay ? base + 1 : base);
         const picked = pickForGroup(library, group, used, take);
         picked.forEach((e) => used.add(e.id));
         return picked;

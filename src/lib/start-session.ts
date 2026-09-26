@@ -1,7 +1,13 @@
 import { getExercise, getExercises } from "./data/exercises";
 import { getRoutine } from "./data/routines";
 import { getLastSetsForExercise, getPersonalRecord } from "./data/workouts";
-import { isSerieValida, suggestProgression, type PrevSet } from "./progression";
+import {
+  VOLUNTARY_DELOAD_PCT,
+  isSerieValida,
+  suggestProgression,
+  type PrevSet,
+} from "./progression";
+import { armSessionIntro } from "./session-intro";
 import { prescribeExercise, restForExercise } from "./prescription";
 import {
   makeSets,
@@ -18,7 +24,7 @@ export async function buildActiveExercise(
     repsMax?: number;
     descansoSeg?: number;
     notas?: string;
-    /** Lighter/deload session: fewer sets and ~10% less load. */
+    /** Lighter/deload session: fewer sets and less load — see VOLUNTARY_DELOAD_PCT. */
     deload?: boolean;
   } = {},
 ): Promise<ActiveExercise | null> {
@@ -49,7 +55,7 @@ export async function buildActiveExercise(
   const lastWeight = anteriores.find((a) => a.tipoSerie !== "aquecimento")?.pesoKg ?? null;
   const pesoSugerido = opts.deload
     ? lastWeight !== null
-      ? Math.round(lastWeight * 0.9 * 2) / 2
+      ? Math.round(lastWeight * (1 - VOLUNTARY_DELOAD_PCT) * 2) / 2
       : null
     : (sugestao?.pesoSugerido ?? null);
   // The app prescribes the work: weight/reps from the estimated 1RM and RPE trend.
@@ -75,6 +81,9 @@ export async function buildActiveExercise(
     sugestao: opts.deload ? null : sugestao,
     ...(prescricao ? { prescricao } : {}),
     prKg,
+    ...(exercise.variants?.length
+      ? { variants: exercise.variants, selectedVariantId: exercise.variants[0]!.id }
+      : {}),
     sets: makeSets(seriesAlvo, anteriores, {
       pesoSugerido: prescricao ? prescricao.pesoKg : pesoSugerido,
       repsAlvo: prescricao ? prescricao.reps : null,
@@ -117,6 +126,7 @@ export async function startRoutineSession(
     atual: 0,
   };
   saveActiveSession(session);
+  armSessionIntro();
   return session;
 }
 
@@ -139,5 +149,6 @@ export async function startBlankSession(): Promise<ActiveSession> {
     atual: 0,
   };
   saveActiveSession(session);
+  armSessionIntro();
   return session;
 }

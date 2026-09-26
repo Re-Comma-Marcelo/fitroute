@@ -221,14 +221,25 @@ export const exercises: Exercise[] = [
     "Cable",
     "Sit with your feet braced and torso slightly leaned forward. Pull the triangle to your lower abs, retracting your shoulder blades. Return with a full lat stretch.",
   ),
-  ex(
-    "e26",
-    "Chest-Supported Row",
-    "Back",
-    ["Biceps", "Traps"],
-    "Machine",
-    "Rest your chest on the support and grip the handles. Pull with your elbows going back. Lower slowly.",
-  ),
+  {
+    ...ex(
+      "e26",
+      "Chest-Supported Row",
+      "Back",
+      ["Biceps", "Traps"],
+      "Machine",
+      "Rest your chest on the support and grip the handles. Pull with your elbows going back. Lower slowly.",
+    ),
+    variants: [
+      { id: "narrow", label: "Narrow Grip" },
+      {
+        id: "wide",
+        label: "Wide Grip",
+        instrucoes:
+          "Rest your chest on the support and take the wide handles so your elbows flare out. Pull to your lower ribs, squeezing your upper back. Lower slowly.",
+      },
+    ],
+  },
   ex(
     "e27",
     "Pull-up",
