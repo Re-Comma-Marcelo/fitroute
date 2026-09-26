@@ -18,6 +18,7 @@ import { hapticSuccess } from "@/lib/haptics";
 import { shareSummary } from "@/lib/share-summary";
 import { formatDateLong } from "@/lib/format";
 import { getRoutines } from "@/lib/data/routines";
+import { getProfile } from "@/lib/data/profile";
 import heroLogin from "@/assets/hero-login.jpg";
 import { getCheckpoints, saveCheckpoint } from "@/lib/data/route";
 import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
@@ -93,17 +94,20 @@ function SummaryPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const [checkpoints, cross, weights] = await Promise.all([
+        const [checkpoints, cross, weights, profile] = await Promise.all([
           getCheckpoints(),
           getCrossTraining(),
           getBodyWeightLog(),
+          getProfile(),
         ]);
         const changes = evaluateCheckpoints({
           checkpoints,
           workouts: log.workouts,
           sets: log.sets,
           cross,
-          bodyWeightKg: weights[0]?.pesoKg ?? null,
+          // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
+          bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
+          startWeightKg: profile?.pesoInicialKg ?? null,
           hadDrop: false,
         });
         if (cancelled || !changes.length) return;

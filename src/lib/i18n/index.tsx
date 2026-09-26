@@ -25,6 +25,7 @@ import { dict as planDict } from "./dict/plan";
 
 import { dict as profileDict } from "./dict/profile";
 import { dict as progressDict } from "./dict/progress";
+import { dict as routeWeeklyDict } from "./dict/route-weekly";
 import { dict as pwaDict } from "./dict/pwa";
 import { dict as round10Dict } from "./dict/round10";
 import { dict as round11Dict } from "./dict/round11";
@@ -89,6 +90,7 @@ const FRAGMENTS: DictFragment[] = [
   libraryDict,
   dietDict,
   progressDict,
+  routeWeeklyDict,
   profileDict,
   coachDict,
   planDict,
