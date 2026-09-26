@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { createFileRoute, useNavigate, useParams } from "@tanstack/react-router";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { ArrowLeft, Check, Pencil, Trash2, X } from "lucide-react";
+import { ArrowLeft, Check, Pencil, Repeat2, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   CartesianGrid,
@@ -39,6 +39,7 @@ import {
   saveWorkout,
 } from "@/lib/data/workouts";
 import { compareWithPreviousRun } from "@/lib/session-compare";
+import { swapReasonLabel } from "@/lib/swap-reasons";
 import { SessionDiffCard } from "@/components/SessionDiffCard";
 import { timeUnderTension } from "@/lib/muscle-volume";
 import {
@@ -104,6 +105,8 @@ function WorkoutDetail() {
 
   const exerciseName = (exId: string) =>
     exercisesQuery.data?.find((e) => e.id === exId)?.nome ?? t("Exercise");
+  const exerciseGroup = (exId: string) =>
+    exercisesQuery.data?.find((e) => e.id === exId)?.grupoPrimario ?? "";
 
   const dataDe = (workoutId: string) =>
     allWorkoutsQuery.data?.find((w) => w.id === workoutId)?.iniciadoEm ?? "";
@@ -258,6 +261,15 @@ function WorkoutDetail() {
             <p className="text-sm text-muted-foreground first-letter:uppercase">
               {formatDateLong(workout.iniciadoEm)}
             </p>
+            {workout.variacao && workout.routineId ? (
+              <p className="mt-1.5">
+                <span className="rounded-full border border-dashed border-border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                  {swapReasonLabel(workout.motivo)
+                    ? t("Variation · {reason}", { reason: t(swapReasonLabel(workout.motivo)!) })
+                    : t("Variation")}
+                </span>
+              </p>
+            ) : null}
             <p className="mt-2 text-base font-semibold">
               {formatDurationShort(workout.duracaoSeg)} · {formatKg(workout.volumeTotalKg)} ·{" "}
               {t("{count} sets", { count: sets.length })}
@@ -295,9 +307,22 @@ function WorkoutDetail() {
             pesoKg: Math.round(toDisplayWeight(pesoKg, unit) * 10) / 10,
           }));
 
+          const replaced = exSets.find((s) => s.substituiExerciseId)?.substituiExerciseId;
+
           return (
             <section key={exId} className="rounded-xl border border-border bg-card p-4">
               <h2 className="text-base font-semibold">{exerciseName(exId)}</h2>
+              {replaced ? (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  <Repeat2 className="size-3.5 shrink-0" aria-hidden />
+                  {exerciseGroup(replaced)
+                    ? t("instead of {name} ({group})", {
+                        name: exerciseName(replaced),
+                        group: exerciseGroup(replaced),
+                      })
+                    : t("instead of {name}", { name: exerciseName(replaced) })}
+                </p>
+              ) : null}
               <ul className="mt-2 space-y-1 text-sm">
                 {exSets.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2 tabular-nums">

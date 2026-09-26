@@ -1,14 +1,14 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { exercises as mockExercises } from "@/lib/data/mocks";
-import { encodeBridgeCode, type RoutinePayload } from "@/lib/claude-bridge";
+import { encodeBridgeCode, swapReasonSchema, type RoutinePayload } from "@/lib/claude-bridge";
 import { dbModule, requireMcpUser } from "../db";
 
 export default defineTool({
   name: "create_routine",
   title: "Create a workout routine",
   description:
-    "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. Call get_training_context first for valid exerciseId values.",
+    "Creates or updates a workout routine directly in the connected user's app (upsert by name), and also returns an import code as a fallback. New routines land in the user's current training folder. Use role 'variation' (with variationOf and reason) for a lighter/shorter/social version of a standard routine; variations are kept in the folder but never scheduled or recommended on their own. Call get_training_context first for valid exerciseId values and the folder's routines.",
   inputSchema: {
     name: z.string().min(1).max(60).describe("Routine name, e.g. 'Upper A'."),
     description: z.string().max(200).default("").describe("One line on the intent of the routine."),
@@ -26,6 +26,23 @@ export default defineTool({
       .min(1)
       .max(15)
       .describe("Exercises in the order they should be performed."),
+    role: z
+      .enum(["standard", "variation"])
+      .optional()
+      .describe(
+        "'standard' (default for new routines) is part of the plan; 'variation' is an alternative kept for days when life gets in the way. Omit when updating to keep the routine's current role.",
+      ),
+    variationOf: z
+      .string()
+      .min(1)
+      .max(60)
+      .optional()
+      .describe("Variation only: name or id of the standard routine it varies."),
+    reason: swapReasonSchema
+      .optional()
+      .describe(
+        "Variation only: busy (short on time), social (training with friends), pain, equipment (taken), difficulty or preference.",
+      ),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
   handler: async (input, ctx) => {
@@ -66,11 +83,40 @@ export default defineTool({
       };
     }
 
+    const variation = input.role === "variation";
+    let parent: { id: string; nome: string } | null = null;
+    if (variation && input.variationOf) {
+      const target = input.variationOf.trim();
+      const own = await client.from("routines").select("id, nome").eq("user_id", userId);
+      parent =
+        ((own.data ?? []) as { id: string; nome: string }[]).find(
+          (r) => r.id === target || r.nome.toLowerCase() === target.toLowerCase(),
+        ) ?? null;
+      if (!parent) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `No routine named "${target}" to vary. Use the name or id of one of the user's standard routines from get_training_context.`,
+            },
+          ],
+          isError: true,
+        };
+      }
+    }
+
     const payload: RoutinePayload = {
       kind: "routine",
       name: input.name,
       description: input.description ?? "",
       exercises: input.exercises.map((e) => ({ ...e, notes: e.notes ?? "" })),
+      ...(variation
+        ? {
+            role: "variation" as const,
+            ...(parent ? { variationOf: parent.nome } : {}),
+            ...(input.reason ? { reason: input.reason } : {}),
+          }
+        : {}),
     };
     const code = encodeBridgeCode(payload);
 
@@ -84,21 +130,40 @@ export default defineTool({
     const updated = Boolean(existing.data?.id);
     const routineId = (existing.data?.id as string | undefined) ?? uid("r");
 
-    unwrap(
-      await client
-        .from("routines")
-        .upsert(
-          {
-            id: routineId,
-            user_id: userId,
-            nome: payload.name,
-            descricao: payload.description,
-            updated_at: new Date().toISOString(),
-          },
-          { onConflict: "id" },
-        )
-        .select("id"),
-    );
+    const base = {
+      id: routineId,
+      user_id: userId,
+      nome: payload.name,
+      descricao: payload.description,
+      updated_at: new Date().toISOString(),
+    };
+    // Folder columns come from the folders migration: a new routine lands in
+    // the current folder, an existing one stays where it is.
+    const { currentFolderId } = await dbModule();
+    const folderId = updated ? null : await currentFolderId(userId);
+    // The role is only written when given, or for a new routine (standard by
+    // default): an update without it keeps a variation a variation.
+    const setsRole = input.role !== undefined || !updated;
+    const withFolder = {
+      ...base,
+      ...(folderId ? { folder_id: folderId } : {}),
+      ...(setsRole
+        ? {
+            papel: variation ? "variacao" : "padrao",
+            variacao_de: parent?.id ?? null,
+            motivo: variation ? (input.reason ?? null) : null,
+          }
+        : {}),
+      // A variation is never scheduled on its own.
+      ...(variation ? { dias_semana: [] } : {}),
+    };
+    const saved = await client
+      .from("routines")
+      .upsert(withFolder, { onConflict: "id" })
+      .select("id");
+    if (saved.error) {
+      unwrap(await client.from("routines").upsert(base, { onConflict: "id" }).select("id"));
+    }
     unwrap(
       await client.from("routine_exercises").delete().eq("routine_id", routineId).select("id"),
     );
@@ -130,6 +195,9 @@ export default defineTool({
       updated
         ? `Routine "${payload.name}" updated in your app (${payload.exercises.length} exercises) — it already existed, so it was replaced instead of duplicated.`
         : `Routine "${payload.name}" created in your app (${payload.exercises.length} exercises).`,
+      variation
+        ? `Saved as a variation${parent ? ` of "${parent.nome}"` : ""}${input.reason ? ` (${input.reason})` : ""}: it sits under Variations in the folder, not in the weekly plan.`
+        : "",
       payload.description ? payload.description : "",
       ...lines,
       "",
@@ -141,7 +209,14 @@ export default defineTool({
 
     return {
       content: [{ type: "text", text: summary }],
-      structuredContent: { saved: true, updated, routineId, code, routine: payload },
+      structuredContent: {
+        saved: true,
+        updated,
+        routineId,
+        ...(setsRole ? { role: variation ? "variation" : "standard" } : {}),
+        code,
+        routine: payload,
+      },
     };
   },
 });

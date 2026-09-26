@@ -34,7 +34,7 @@ export default defineTool({
   name: "get_training_context",
   title: "Get Route context",
   description:
-    "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts and recent coach notes. Call this first — routines and diets may only use ids from here.",
+    "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {
@@ -44,6 +44,7 @@ export default defineTool({
     let profile: Record<string, unknown> | null = null;
     let recentWorkouts: unknown[] = [];
     let recentNotes: unknown[] = [];
+    let trainingFolder: Record<string, unknown> | null = null;
 
     try {
       const { db } = await dbModule();
@@ -87,6 +88,8 @@ export default defineTool({
           .order("created_at", { ascending: false })
           .limit(10);
         if (!notes.error) recentNotes = notes.data ?? [];
+
+        trainingFolder = await loadTrainingFolder(client, userId, library);
       }
     } catch {
       // Database unreachable / not configured: keep the static shared library.
@@ -101,6 +104,7 @@ export default defineTool({
         "Route is a strength-training + nutrition app.",
         "Use create_routine to build a workout routine, create_week_diet to plan meals and log_coach_note to record soreness/injuries or a weekly check-in. When the user is connected these write straight into the app (and still return an import code as a fallback).",
         "Only use exerciseId / mealId values from the libraries below. Respect anything in the profile's avoidExercises and available equipment, and only pick meals whose slots include the slot you are filling.",
+        "Routines live in training folders (one block/cycle each). trainingFolder.standardRoutines is the plan; trainingFolder.variations are alternatives for short-on-time, social or pain days. commonSwaps shows which standard exercises the user keeps replacing, with what and why — prefer those substitutes, and suggest making a swap standard when it happens most sessions. To add an alternative, call create_routine with role 'variation', variationOf and reason.",
       ],
       profile: profile
         ? {
@@ -121,6 +125,7 @@ export default defineTool({
         : null,
       recentWorkouts,
       recentNotes,
+      trainingFolder,
       exercises: library,
       meals: meals.map((m) => ({
         id: m.id,
@@ -141,3 +146,132 @@ export default defineTool({
     };
   },
 });
+
+type Library = ReturnType<typeof staticLibrary>;
+type Client = ReturnType<Awaited<ReturnType<typeof dbModule>>["db"]>;
+
+/**
+ * The user's current folder: its standard routines (with exercise ids), its
+ * variations, and the swaps made in its sessions. Null before the folders
+ * migration or when there is no current folder.
+ */
+async function loadTrainingFolder(
+  client: Client,
+  userId: string,
+  library: Library,
+): Promise<Record<string, unknown> | null> {
+  const folderRes = await client
+    .from("training_folders")
+    .select("id, nome, inicio_em")
+    .eq("user_id", userId)
+    .eq("status", "atual")
+    .limit(1);
+  const folder = (folderRes.data ?? [])[0] as
+    { id: string; nome: string; inicio_em: string } | undefined;
+  if (folderRes.error || !folder) return null;
+
+  const routinesRes = await client
+    .from("routines")
+    .select("id, nome, papel, variacao_de, motivo")
+    .eq("user_id", userId)
+    .or(`folder_id.eq.${folder.id},folder_id.is.null`);
+  const routines = (routinesRes.data ?? []) as {
+    id: string;
+    nome: string;
+    papel: string | null;
+    variacao_de: string | null;
+    motivo: string | null;
+  }[];
+  const standard = routines.filter((r) => (r.papel ?? "padrao") === "padrao");
+  const items = routines.length
+    ? (((
+        await client
+          .from("routine_exercises")
+          .select("routine_id, exercise_id, ordem")
+          .in(
+            "routine_id",
+            routines.map((r) => r.id),
+          )
+          .order("ordem")
+      ).data ?? []) as { routine_id: string; exercise_id: string }[])
+    : [];
+  const nameOfRoutine = (id: string | null) => routines.find((r) => r.id === id)?.nome ?? null;
+
+  const workoutsRes = await client
+    .from("workouts")
+    .select("id, variacao, motivo")
+    .eq("user_id", userId)
+    .eq("folder_id", folder.id)
+    .not("finalizado_em", "is", null)
+    .order("iniciado_em", { ascending: false })
+    .limit(40);
+  const workouts = (workoutsRes.data ?? []) as {
+    id: string;
+    variacao: boolean | null;
+    motivo: string | null;
+  }[];
+  const swapSets = workouts.length
+    ? (((
+        await client
+          .from("workout_sets")
+          .select("workout_id, exercise_id, substitui_exercise_id")
+          .in(
+            "workout_id",
+            workouts.map((w) => w.id),
+          )
+          .not("substitui_exercise_id", "is", null)
+      ).data ?? []) as { workout_id: string; exercise_id: string; substitui_exercise_id: string }[])
+    : [];
+
+  // One count per session per swap, with the reasons given for those sessions.
+  const swaps = new Map<
+    string,
+    { from: string; to: string; sessions: Set<string>; reasons: string[] }
+  >();
+  for (const s of swapSets) {
+    const key = `${s.substitui_exercise_id}>${s.exercise_id}`;
+    const entry = swaps.get(key) ?? {
+      from: s.substitui_exercise_id,
+      to: s.exercise_id,
+      sessions: new Set<string>(),
+      reasons: [],
+    };
+    if (!entry.sessions.has(s.workout_id)) {
+      entry.sessions.add(s.workout_id);
+      const reason = workouts.find((w) => w.id === s.workout_id)?.motivo;
+      if (reason) entry.reasons.push(reason);
+    }
+    swaps.set(key, entry);
+  }
+  const groupOf = (id: string) => library.find((e) => e.id === id)?.muscleGroup ?? null;
+
+  return {
+    name: folder.nome,
+    since: folder.inicio_em,
+    sessions: workouts.length,
+    variationSessions: workouts.filter((w) => w.variacao).length,
+    standardRoutines: standard.map((r) => ({
+      id: r.id,
+      name: r.nome,
+      exerciseIds: items.filter((i) => i.routine_id === r.id).map((i) => i.exercise_id),
+    })),
+    variations: routines
+      .filter((r) => r.papel === "variacao")
+      .map((r) => ({
+        id: r.id,
+        name: r.nome,
+        variationOf: nameOfRoutine(r.variacao_de),
+        reason: r.motivo,
+      })),
+    commonSwaps: [...swaps.values()]
+      .sort((a, b) => b.sessions.size - a.sessions.size)
+      .slice(0, 10)
+      .map((e) => ({
+        from: e.from,
+        to: e.to,
+        muscleGroup: groupOf(e.from),
+        sessions: e.sessions.size,
+        reasons: [...new Set(e.reasons)],
+      })),
+  };
+}

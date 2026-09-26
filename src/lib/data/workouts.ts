@@ -33,6 +33,11 @@ function invalidate() {
   inflight = null;
 }
 
+/** Drop the cache so the next read reflects server-side moves (folder switches). */
+export function refreshWorkoutLog(): void {
+  invalidate();
+}
+
 export async function getWorkouts(): Promise<Workout[]> {
   const { workouts } = await getWorkoutLog();
   return workouts
