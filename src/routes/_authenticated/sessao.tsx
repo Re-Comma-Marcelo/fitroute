@@ -49,6 +49,7 @@ import {
 import {
   clearActiveSession,
   filledUncheckedSets,
+  isFilledUnchecked,
   isExerciseDone,
   isExercisePending,
   loadActiveSession,
@@ -1085,7 +1086,7 @@ function SessionPage() {
     const target = structuredClone(session!);
     target.exercicios.forEach((ex) =>
       ex.sets.forEach((set) => {
-        if (!set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "") {
+        if (isFilledUnchecked(set)) {
           set.concluida = true;
         }
       }),
@@ -1232,7 +1233,7 @@ function SessionPage() {
   const pendingList = session.exercicios.flatMap((ex, exIdx) =>
     ex.sets
       .map((set, setIdx) => ({ set, setIdx }))
-      .filter(({ set }) => !set.concluida && set.pesoKg.trim() !== "" && set.reps.trim() !== "")
+      .filter(({ set }) => isFilledUnchecked(set))
       .map(({ set, setIdx }) => ({
         key: `${exIdx}:${setIdx}`,
         nome: `${ex.nome} · ${serieLabel(ex.sets, setIdx)}`,

@@ -305,12 +305,30 @@ export function currentExerciseName(session: ActiveSession): string {
   return session.exercicios[currentExerciseIndex(session)]?.nome ?? tx("Free workout");
 }
 
-/** Sets with weight and reps typed in but never checked — easy to lose on finish. */
+/** Values still exactly what the app prefilled (the suggestion) — the person never touched them. */
+function isUntouchedSuggestion(s: ActiveSet): boolean {
+  return (
+    s.sugPeso !== null &&
+    s.sugReps !== null &&
+    Number(s.pesoKg) === s.sugPeso &&
+    Number(s.reps) === s.sugReps
+  );
+}
+
+/**
+ * A set with weight and reps typed in but never checked — easy to lose on finish.
+ * A set that only carries the prefilled suggestion doesn't count: offering to
+ * include it would log a set that never happened.
+ */
+export function isFilledUnchecked(s: ActiveSet): boolean {
+  return (
+    !s.concluida && s.pesoKg.trim() !== "" && s.reps.trim() !== "" && !isUntouchedSuggestion(s)
+  );
+}
+
 export function filledUncheckedSets(session: ActiveSession): number {
   return session.exercicios.reduce(
-    (total, ex) =>
-      total +
-      ex.sets.filter((s) => !s.concluida && s.pesoKg.trim() !== "" && s.reps.trim() !== "").length,
+    (total, ex) => total + ex.sets.filter(isFilledUnchecked).length,
     0,
   );
 }
