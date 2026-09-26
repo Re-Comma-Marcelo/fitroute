@@ -28,6 +28,13 @@ export interface ActiveSet {
   pr?: boolean;
   /** Which ExerciseVariant this set was/will be logged as. */
   variantId?: string;
+  /**
+   * The user changed the weight / reps of this set by hand before doing it.
+   * The target recomputed between sets updates the grey hint but never wipes
+   * a number the user chose.
+   */
+  editadoPeso?: boolean;
+  editadoReps?: boolean;
 }
 
 export interface ActiveExercise {

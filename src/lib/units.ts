@@ -46,8 +46,14 @@ export function fromDisplayWeight(value: number, unit: WeightUnit = getWeightUni
   return Math.round(kg * 1000) / 1000;
 }
 
-/** Stepper increment in the active unit: 2.5 kg or 5 lb (2 kg / 5 lb dumbbells). */
+/**
+ * Stepper increment in the active unit. Pounds snap to what gyms actually load:
+ * 2.5 lb for the small isolation steps (< 2 kg), 5 lb for plates and dumbbells,
+ * and the nearest multiple of 5 lb for the big slide jumps (10 kg → 20 lb,
+ * 20 kg → 45 lb).
+ */
 export function displayStep(incrementKg: number, unit: WeightUnit = getWeightUnit()): number {
   if (unit === "kg") return incrementKg;
-  return incrementKg <= 2 ? 5 : 5;
+  if (incrementKg < 2) return 2.5;
+  return Math.max(5, Math.round((incrementKg * LB_PER_KG) / 5) * 5);
 }
