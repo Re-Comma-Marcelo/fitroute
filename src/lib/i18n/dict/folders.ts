@@ -81,6 +81,36 @@ export const dict: DictFragment = {
     "{count}×": "{count}×",
     "Sessions in this folder": "Sessões nesta pasta",
     "No sessions in this folder yet.": "Nenhuma sessão nesta pasta ainda.",
+    "End of {folder}: {load}": "Fim de {folder}: {load}",
+    "Close cycle": "Encerrar ciclo",
+    "Save as template": "Salvar como modelo",
+    "Step {n} of {total}": "Passo {n} de {total}",
+    "Swaps that stuck": "Trocas que ficaram",
+    "Swapped in at least half of a routine's sessions. Checked swaps become the template's standard.":
+      "Trocadas em pelo menos metade das sessões da rotina. As marcadas viram o padrão do modelo.",
+    "{count} of {total} sessions": "{count} de {total} sessões",
+    "No swap repeated enough to change the standard.":
+      "Nenhuma troca se repetiu o bastante para mudar o padrão.",
+    "Reference loads": "Cargas de referência",
+    "Your best set in the last session of each exercise, saved in the routine's notes for the next block.":
+      "Sua melhor série na última sessão de cada exercício, salva nas notas da rotina para o próximo ciclo.",
+    "Save reference loads": "Salvar cargas de referência",
+    "no data yet": "sem dados ainda",
+    "Next block": "Próximo ciclo",
+    "{name} becomes a template with its sessions. A new current folder starts now.":
+      "{name} vira modelo, com as sessões. Uma nova pasta atual começa agora.",
+    "From this template": "A partir deste modelo",
+    "The standard routines come along, with the changes above.":
+      "As rotinas padrão vêm junto, com as mudanças acima.",
+    "Bring the variations too": "Levar as variações também",
+    "{template} saved as a template. {next} is your current folder.":
+      "{template} salva como modelo. {next} é a sua pasta atual.",
+    "{template} saved as a template.": "{template} salva como modelo.",
+    "Could not close the cycle. Try again.": "Não deu para encerrar o ciclo. Tente de novo.",
+    "Start a new folder from this template": "Começar uma nova pasta a partir deste modelo",
+    "From template {name}": "Do modelo {name}",
+    "Its standard routines, with the swaps and loads saved when it closed.":
+      "As rotinas padrão dele, com as trocas e cargas salvas ao encerrar.",
   },
   nl: {
     "My training": "Mijn training",
@@ -163,5 +193,36 @@ export const dict: DictFragment = {
     "{count}×": "{count}×",
     "Sessions in this folder": "Sessies in deze map",
     "No sessions in this folder yet.": "Nog geen sessies in deze map.",
+    "End of {folder}: {load}": "Einde van {folder}: {load}",
+    "Close cycle": "Cyclus afsluiten",
+    "Save as template": "Opslaan als sjabloon",
+    "Step {n} of {total}": "Stap {n} van {total}",
+    "Swaps that stuck": "Wissels die bleven",
+    "Swapped in at least half of a routine's sessions. Checked swaps become the template's standard.":
+      "Gewisseld in minstens de helft van de sessies van een routine. Aangevinkte wissels worden de standaard van het sjabloon.",
+    "{count} of {total} sessions": "{count} van {total} sessies",
+    "No swap repeated enough to change the standard.":
+      "Geen wissel kwam vaak genoeg terug om de standaard te veranderen.",
+    "Reference loads": "Referentiegewichten",
+    "Your best set in the last session of each exercise, saved in the routine's notes for the next block.":
+      "Je beste set in de laatste sessie van elke oefening, bewaard in de notities van de routine voor het volgende blok.",
+    "Save reference loads": "Referentiegewichten opslaan",
+    "no data yet": "nog geen gegevens",
+    "Next block": "Volgend blok",
+    "{name} becomes a template with its sessions. A new current folder starts now.":
+      "{name} wordt een sjabloon, met de sessies. Er begint nu een nieuwe huidige map.",
+    "From this template": "Vanuit dit sjabloon",
+    "The standard routines come along, with the changes above.":
+      "De standaardroutines gaan mee, met de wijzigingen hierboven.",
+    "Bring the variations too": "Ook de varianten meenemen",
+    "{template} saved as a template. {next} is your current folder.":
+      "{template} opgeslagen als sjabloon. {next} is je huidige map.",
+    "{template} saved as a template.": "{template} opgeslagen als sjabloon.",
+    "Could not close the cycle. Try again.":
+      "De cyclus kon niet worden afgesloten. Probeer het opnieuw.",
+    "Start a new folder from this template": "Nieuwe map starten vanuit dit sjabloon",
+    "From template {name}": "Vanuit sjabloon {name}",
+    "Its standard routines, with the swaps and loads saved when it closed.":
+      "De standaardroutines, met de wissels en gewichten die bij het afsluiten zijn bewaard.",
   },
 };

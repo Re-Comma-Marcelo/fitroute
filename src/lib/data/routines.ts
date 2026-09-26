@@ -36,7 +36,10 @@ export async function getRoutineLastWorkoutDate(routineId: string): Promise<stri
 
 export async function saveRoutine(routine: Routine): Promise<Routine> {
   const saved = (await persistRoutine({ data: { routine } })) as Routine;
-  const list = [...(cache ?? [])];
+  // Nothing cached yet (or just dropped): the next read fetches the full list.
+  // Seeding the cache here would hide every routine not saved in this call.
+  if (!cache) return saved;
+  const list = [...cache];
   const idx = list.findIndex((r) => r.id === saved.id);
   // Keep fields the caller did not send (folder, role): the server kept them too.
   if (idx >= 0) list[idx] = { ...list[idx]!, ...saved };

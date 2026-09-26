@@ -87,6 +87,7 @@ import {
 import { getRecentCoachNotes } from "@/lib/data/coach-notes";
 import { applySwapsToRoutine, saveSwapVariation } from "@/lib/data/routines";
 import { swapReasonLabel } from "@/lib/swap-reasons";
+import { stripReferenceNotes } from "@/lib/data/folders";
 import {
   firedToday,
   getCoachingEvents,
@@ -1149,10 +1150,12 @@ function SessionPage() {
       }
 
       // Per-exercise notes would otherwise be dropped: fold them into the
-      // workout note so they show up on the workout detail screen.
+      // workout note so they show up on the workout detail screen. The
+      // routine's reference-load line (end of a cycle) is not session news.
       const exerciseNotes = target.exercicios
-        .filter((ex) => ex.notas.trim() !== "")
-        .map((ex) => `${ex.nome}: ${ex.notas.trim()}`);
+        .map((ex) => ({ nome: ex.nome, notas: stripReferenceNotes(ex.notas) }))
+        .filter((ex) => ex.notas !== "")
+        .map((ex) => `${ex.nome}: ${ex.notas}`);
       const notas = [target.notas.trim(), ...exerciseNotes].filter(Boolean).join("\n");
 
       // Swaps decide where the session sits in its folder: a one-off or kept

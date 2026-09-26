@@ -11,6 +11,7 @@ import {
   makeFolderCurrent,
   renameFolder,
   routinesInFolder,
+  startFromTemplate,
   workoutsInFolder,
 } from "@/lib/data/folders";
 import { formatDate } from "@/lib/format";
@@ -55,20 +56,42 @@ export function FoldersSheet({
   const [draftName, setDraftName] = useState("");
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
-  const [copyCurrent, setCopyCurrent] = useState(true);
+  /** Where the new folder's routines come from: "current", "empty" or a template id. */
+  const [source, setSource] = useState("current");
 
   useEffect(() => {
     if (open) return;
     setRenaming(null);
     setCreating(false);
     setNewName("");
-    setCopyCurrent(true);
+    setSource("current");
   }, [open]);
 
   const current = folders.find((f) => f.status === "atual") ?? null;
   const currentId = current?.id ?? null;
   const others = folders.filter((f) => f.id !== currentId).reverse();
   const currentRoutines = current ? routinesInFolder(routines, current.id, currentId) : [];
+  const templates = folders.filter((f) => f.status === "modelo");
+  const sources = [
+    ...(currentRoutines.length
+      ? [
+          {
+            value: "current",
+            label: t("Copy the current routines"),
+            hint: t("{count} routines come along — tweak them for the new block.", {
+              count: currentRoutines.length,
+            }),
+          },
+        ]
+      : []),
+    ...templates.map((tpl) => ({
+      value: tpl.id,
+      label: t("From template {name}", { name: tpl.nome }),
+      hint: t("Its standard routines, with the swaps and loads saved when it closed."),
+    })),
+    { value: "empty", label: t("Start empty"), hint: t("Build new routines or use a template.") },
+  ];
+  const chosenSource = sources.some((o) => o.value === source) ? source : sources[0]!.value;
 
   async function refresh() {
     await Promise.all(
@@ -100,11 +123,17 @@ export function FoldersSheet({
   async function create() {
     const nome = newName.trim();
     if (!nome) return;
-    const copy = copyCurrent ? currentRoutines : [];
-    if (
-      await run(() => createFolder(nome, copy), t("{name} is your current folder.", { name: nome }))
-    )
-      onOpenChange(false);
+    const template = templates.find((tpl) => tpl.id === chosenSource);
+    const action = template
+      ? () =>
+          startFromTemplate({
+            template,
+            routines: routinesInFolder(routines, template.id, currentId),
+            nome,
+            withVariations: false,
+          })
+      : () => createFolder(nome, chosenSource === "current" ? currentRoutines : []);
+    if (await run(action, t("{name} is your current folder.", { name: nome }))) onOpenChange(false);
   }
 
   function summary(folder: TrainingFolder) {
@@ -247,31 +276,18 @@ export function FoldersSheet({
                 aria-label={t("Folder name")}
                 className="h-11"
               />
-              {currentRoutines.length ? (
+              {sources.length > 1 ? (
                 <div role="radiogroup" aria-label={t("Start with")} className="space-y-1.5">
-                  {[
-                    {
-                      value: true,
-                      label: t("Copy the current routines"),
-                      hint: t("{count} routines come along — tweak them for the new block.", {
-                        count: currentRoutines.length,
-                      }),
-                    },
-                    {
-                      value: false,
-                      label: t("Start empty"),
-                      hint: t("Build new routines or use a template."),
-                    },
-                  ].map((o) => (
+                  {sources.map((o) => (
                     <button
-                      key={String(o.value)}
+                      key={o.value}
                       type="button"
                       role="radio"
-                      aria-checked={copyCurrent === o.value}
-                      onClick={() => setCopyCurrent(o.value)}
+                      aria-checked={chosenSource === o.value}
+                      onClick={() => setSource(o.value)}
                       className={cn(
                         "w-full rounded-xl border px-3 py-2 text-left transition-colors",
-                        copyCurrent === o.value
+                        chosenSource === o.value
                           ? "border-primary/60 bg-primary/10"
                           : "border-border bg-surface-2",
                       )}

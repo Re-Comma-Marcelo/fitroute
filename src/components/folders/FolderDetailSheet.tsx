@@ -10,13 +10,16 @@ import { Input } from "@/components/ui/input";
 import { FolderVariations } from "@/components/folders/FolderVariations";
 import { useFolderActions } from "@/components/folders/use-folder-actions";
 import { WorkoutHistoryItem } from "@/components/progress/WorkoutHistoryItem";
+import { CloseCycleSheet } from "@/components/folders/CloseCycleSheet";
 import { getExercises } from "@/lib/data/exercises";
 import {
   getFolders,
   isStandard,
   makeFolderCurrent,
+  nextCycleName,
   renameFolder,
   routinesInFolder,
+  startFromTemplate,
   swapStats,
   variationSessionsOf,
   workoutsInFolder,
@@ -28,6 +31,7 @@ import { useT } from "@/lib/i18n";
 import { loadActiveSession } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
 import { swapReasonLabel } from "@/lib/swap-reasons";
+import { cn } from "@/lib/utils";
 
 /**
  * One folder at a glance: how the block went (standard vs variation),
@@ -52,6 +56,7 @@ export function FolderDetailSheet({
   const [renaming, setRenaming] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [closing, setClosing] = useState(false);
 
   const open = folderId !== null;
   const foldersQuery = useQuery({ queryKey: ["folders"], queryFn: getFolders, enabled: open });
@@ -80,6 +85,7 @@ export function FolderDetailSheet({
     const variationCount = workouts.filter((w) => w.variacao).length;
     const groupOf = (id: string) => exercises.find((e) => e.id === id)?.grupoPrimario ?? "";
     return {
+      routines,
       standard,
       variations,
       workouts,
@@ -223,21 +229,78 @@ export function FolderDetailSheet({
               </p>
             ) : null}
 
-            {folder.status !== "atual" ? (
+            {folder.status === "atual" ? (
               <Button
                 variant="secondary"
                 className="mt-3 h-11 w-full font-semibold"
                 disabled={busy}
-                onClick={() =>
-                  void act(
-                    () => makeFolderCurrent(folder.id),
-                    t("{name} is your current folder.", { name: folder.nome }),
-                  )
-                }
+                onClick={() => setClosing(true)}
               >
-                {t("Make current")}
+                {t("Close cycle")}
               </Button>
-            ) : null}
+            ) : (
+              <div className="mt-3 space-y-2">
+                {folder.status === "modelo" ? (
+                  <Button
+                    className="h-11 w-full font-semibold"
+                    disabled={busy || !view.standard.length}
+                    onClick={() => {
+                      const nome = nextCycleName(folder.nome);
+                      void act(
+                        () =>
+                          startFromTemplate({
+                            template: folder,
+                            routines: view.routines,
+                            nome,
+                            withVariations: false,
+                          }),
+                        t("{name} is your current folder.", { name: nome }),
+                      ).then((ok) => ok && onOpenChange(false));
+                    }}
+                  >
+                    {t("Start a new folder from this template")}
+                  </Button>
+                ) : null}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="secondary"
+                    className={cn(
+                      "h-11 text-xs font-semibold",
+                      folder.status === "modelo" && "col-span-2",
+                    )}
+                    disabled={busy}
+                    onClick={() =>
+                      void act(
+                        () => makeFolderCurrent(folder.id),
+                        t("{name} is your current folder.", { name: folder.nome }),
+                      )
+                    }
+                  >
+                    {t("Make current")}
+                  </Button>
+                  {folder.status === "arquivada" ? (
+                    <Button
+                      variant="ghost"
+                      className="h-11 text-xs font-semibold"
+                      disabled={busy}
+                      onClick={() => setClosing(true)}
+                    >
+                      {t("Save as template")}
+                    </Button>
+                  ) : null}
+                </div>
+              </div>
+            )}
+
+            <CloseCycleSheet
+              open={closing}
+              onOpenChange={setClosing}
+              folder={folder}
+              routines={view.routines}
+              workouts={view.workouts}
+              sets={sets}
+              exercises={exercises}
+            />
 
             <h3 className="label-caps mt-6 mb-2">{t("Standard routines")}</h3>
             {view.standard.length ? (
