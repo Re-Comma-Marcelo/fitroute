@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Check, Flag, MapPin } from "lucide-react";
 import { RouteMark } from "@/components/RouteLogo";
 import { buildRoute, pathThrough } from "@/lib/route/path";
@@ -38,6 +39,12 @@ export function RoutePath({
   onSelect: (cp: Checkpoint) => void;
 }) {
   const t = useT();
+  // Unique per instance: a hardcoded id here would collide if the route ever
+  // renders more than once on a page (or gets id-stripped by a build
+  // optimizer), silently breaking the url(#...) reference and leaving only
+  // the thin white line visible with no purple gradient/glow at all.
+  const gradientId = useId();
+  const glowId = useId();
 
   let ordinal = 0;
   const middle: RouteNode[] = [
@@ -87,11 +94,11 @@ export function RoutePath({
         aria-hidden
       >
         <defs>
-          <linearGradient id="routeTravelled" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="oklch(0.78 0.19 286.2)" />
             <stop offset="100%" stopColor="oklch(0.48 0.24 286.2)" />
           </linearGradient>
-          <filter id="routeGlow" x="-60%" y="-60%" width="220%" height="220%">
+          <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
             <feGaussianBlur stdDeviation="5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -112,10 +119,13 @@ export function RoutePath({
           <path
             d={purpleTravelled}
             fill="none"
-            stroke="url(#routeTravelled)"
+            // Trailing colour is the fallback SVG itself uses if the url()
+            // reference ever fails to resolve, instead of silently painting
+            // nothing.
+            stroke={`url(#${gradientId}) oklch(0.599 0.2299 286.2)`}
             strokeWidth={4.5}
             strokeLinecap="round"
-            filter="url(#routeGlow)"
+            filter={`url(#${glowId})`}
           />
         ) : null}
         {whiteTravelled ? (
