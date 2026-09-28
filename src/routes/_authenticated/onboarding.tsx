@@ -159,13 +159,19 @@ function OnboardingPage() {
       objetivo: goalToObjetivo(complete.goal),
       // Reused by the weekly plan generator's training-frequency guideline.
       trainingGoal: goalToTrainingGoal(complete.goal),
+      // Reused by the route's muscle-gain pace check (see plan/guardrails.ts).
+      trainingExperience: yearsToExperience(complete.trainingYears),
       metaTreinosSemana: sortDays(complete.days).length,
       onboardingConcluidoEm: today,
       ...(goalDate
         ? {
             metaPrazo: goalDate,
             metaIniciadaEm: today,
-            ...(profile.pesoInicialKg ? {} : { pesoInicialKg: profile.pesoKg }),
+            // Refreshed alongside metaIniciadaEm, not just set once: a new
+            // goal needs its own starting weight, or the route's "gaining vs
+            // losing" direction check (see route/status.ts) reads against a
+            // weight from a previous, possibly opposite-direction goal.
+            pesoInicialKg: profile.pesoKg,
           }
         : {}),
     });

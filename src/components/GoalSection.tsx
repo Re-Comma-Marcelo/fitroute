@@ -10,6 +10,7 @@ import { getProfile, saveProfile } from "@/lib/data/profile";
 import { buildCoachContext } from "@/lib/route/context";
 import { daysBetween, isoDay, addDays } from "@/lib/route/cadence";
 import { suggestGoalDate } from "@/lib/route-ai.functions";
+import { checkPace } from "@/lib/plan/guardrails";
 import { formatDate, weightUnitLabel } from "@/lib/format";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
@@ -57,6 +58,23 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
           : "")),
   );
 
+  const targetKgForPace = useMemo(() => {
+    const parsed = Number(weightText.replace(",", "."));
+    return weightText.trim() && Number.isFinite(parsed) ? fromDisplayWeight(parsed, unit) : null;
+  }, [weightText, unit]);
+  const weeksOut = daysOut !== null ? daysOut / 7 : null;
+  // Never checked against research before: this screen let a goal+date
+  // combination through with no pace validation at all, unlike the plan
+  // interview's checkPace() call. Undefined experience defaults to
+  // "intermediate" (checkPace()'s own default) rather than guessing.
+  const pace = useMemo(
+    () =>
+      profile
+        ? checkPace(profile.pesoKg, targetKgForPace, weeksOut, profile.trainingExperience)
+        : null,
+    [profile, targetKgForPace, weeksOut],
+  );
+
   const quickPicks = useMemo(
     () => [
       { label: t("3 months"), date: isoDay(addDays(today, 90)) },
@@ -91,7 +109,12 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
         ...profile,
         ...(date ? { metaPrazo: date } : {}),
         ...(targetKg ? { pesoMetaKg: Math.round(targetKg * 10) / 10 } : {}),
-        ...(profile.metaIniciadaEm ? {} : { metaIniciadaEm: today }),
+        // Set together, once, the first time a goal is established here — an
+        // edit to an already-running goal (e.g. nudging the target weight)
+        // shouldn't reset either. pesoInicialKg anchors the route's
+        // gaining-vs-losing direction check (route/status.ts); leaving it
+        // unset meant a goal created through this screen never got one.
+        ...(profile.metaIniciadaEm ? {} : { metaIniciadaEm: today, pesoInicialKg: profile.pesoKg }),
       });
     },
     onSuccess: async () => {
@@ -181,6 +204,26 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
           className="tap-target h-12 text-base"
         />
       </div>
+
+      {pace && !pace.ok ? (
+        <div className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
+          {t(
+            "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
+            { rate: pace.weeklyKg, safe: pace.safeWeeklyKg, weeks: pace.suggestedWeeks },
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 h-11 w-full"
+            onClick={() => {
+              setDate(isoDay(addDays(today, Math.ceil(pace.suggestedWeeks * 7))));
+              setReason(null);
+            }}
+          >
+            {t("Use the steadier pace")}
+          </Button>
+        </div>
+      ) : null}
 
       <Button
         type="button"

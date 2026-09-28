@@ -27,18 +27,30 @@ function sessionsBetween(workouts: Workout[], from: string, to: string): number 
 }
 
 /**
- * Was the metric behind this checkpoint reached on or before its target date?
- * `startWeightKg` (the weight the user began the route at) tells a weight
- * checkpoint which direction counts as progress — without it, "below target"
- * would read as success even for a bulking goal, where the target is above
- * where the user started.
+ * Which direction counts as progress for this route's weight checkpoints:
+ * derived from the checkpoints themselves (earliest target value vs latest),
+ * since that's always fresh. A profile's remembered "starting weight" can go
+ * stale once a user sets a new goal in the opposite direction (e.g. a bulk
+ * after a cut) without that field being refreshed, which briefly made a
+ * freshly re-mapped route read every checkpoint as already achieved.
  */
+function weightDirection(checkpoints: Checkpoint[]): 1 | -1 | null {
+  const weightCps = checkpoints
+    .filter((c) => c.metric?.kind === "weight")
+    .sort((a, b) => a.targetDate.localeCompare(b.targetDate));
+  const first = weightCps[0]?.metric;
+  const last = weightCps[weightCps.length - 1]?.metric;
+  if (!first || !last || first.value === last.value) return null;
+  return last.value > first.value ? 1 : -1;
+}
+
+/** Was the metric behind this checkpoint reached on or before its target date? */
 export function metricHit(
   cp: Checkpoint,
   workouts: Workout[],
   sets: WorkoutSet[],
   bodyWeightKg: number | null,
-  startWeightKg?: number | null,
+  direction?: 1 | -1 | null,
 ): boolean {
   const metric = cp.metric;
   if (!metric) return false;
@@ -52,10 +64,9 @@ export function metricHit(
   }
   if (metric.kind === "weight" && bodyWeightKg != null) {
     if (Math.abs(bodyWeightKg - metric.value) <= 0.7) return true;
-    // Gaining (target above where the route started): hit once at/above it.
-    if (startWeightKg != null && metric.value > startWeightKg) return bodyWeightKg >= metric.value;
-    // Losing, or direction unknown: hit once at/below it (the original rule).
-    return bodyWeightKg <= metric.value;
+    // Gaining: hit once at/above target. Losing, or direction unknown
+    // (a route with only one weight checkpoint): hit once at/below it.
+    return direction === 1 ? bodyWeightKg >= metric.value : bodyWeightKg <= metric.value;
   }
   return false;
 }
@@ -81,8 +92,6 @@ export interface EvaluateInput {
   sets: WorkoutSet[];
   cross: CrossTrainingLog[];
   bodyWeightKg: number | null;
-  /** Weight the user started the route at, so a gain-goal checkpoint isn't misread as "below target = done". */
-  startWeightKg?: number | null;
   hadDrop: boolean;
   now?: Date;
 }
@@ -94,15 +103,15 @@ export function evaluateCheckpoints({
   sets,
   cross,
   bodyWeightKg,
-  startWeightKg,
   hadDrop,
   now = new Date(),
 }: EvaluateInput): Evaluation[] {
   const today = isoDay(now);
+  const direction = weightDirection(checkpoints);
   const out: Evaluation[] = [];
 
   for (const cp of checkpoints) {
-    const hit = metricHit(cp, workouts, sets, bodyWeightKg, startWeightKg);
+    const hit = metricHit(cp, workouts, sets, bodyWeightKg, direction);
 
     if (hit && cp.status !== "achieved") {
       out.push({

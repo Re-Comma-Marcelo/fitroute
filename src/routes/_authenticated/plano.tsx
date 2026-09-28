@@ -147,8 +147,9 @@ function PlanPage() {
 
   const budget = useMemo(() => deriveTimeBudget(intake), [intake]);
   const pace = useMemo(
-    () => checkPace(intake.weightKg, intake.targetWeightKg, intake.timelineWeeks),
-    [intake.weightKg, intake.targetWeightKg, intake.timelineWeeks],
+    () =>
+      checkPace(intake.weightKg, intake.targetWeightKg, intake.timelineWeeks, intake.experience),
+    [intake.weightKg, intake.targetWeightKg, intake.timelineWeeks, intake.experience],
   );
   const timeWarning = useMemo(() => checkTimeFit(intake, budget), [intake, budget]);
 
@@ -219,7 +220,10 @@ function PlanPage() {
           ...profile,
           metaPrazo: goalDate,
           metaIniciadaEm: isoDay(new Date()),
-          ...(profile.pesoInicialKg ? {} : { pesoInicialKg: intake.weightKg || profile.pesoKg }),
+          // Refreshed alongside metaIniciadaEm, not just set once — see the
+          // matching comment in onboarding.tsx.
+          pesoInicialKg: intake.weightKg || profile.pesoKg,
+          trainingExperience: intake.experience,
           ...(targetWeight ? { pesoMetaKg: targetWeight } : {}),
         });
       } catch {

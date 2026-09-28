@@ -96,12 +96,15 @@ function RoutePage() {
       .sort((a, b) => a.targetDate.localeCompare(b.targetDate));
     if (!weightCheckpoints.length) return [];
     // There's no separately persisted "route start date" today — the earliest
-    // checkpoint's createdAt (when the route was last (re-)mapped) is the
-    // practical anchor for where week 1 begins.
-    const routeStartIso = checkpoints
+    // *weight* checkpoint's createdAt (when the route was last (re-)mapped)
+    // is the practical anchor for where week 1 begins. Scoped to weight
+    // checkpoints only, not the whole array: a leftover hand-made checkpoint
+    // from long before the last re-map would otherwise anchor week 1 way too
+    // early, shifting every week's label out of sync with the calendar.
+    const routeStartIso = weightCheckpoints
       .reduce(
         (earliest, c) => (c.createdAt < earliest ? c.createdAt : earliest),
-        checkpoints[0]!.createdAt,
+        weightCheckpoints[0]!.createdAt,
       )
       .slice(0, 10);
     const bounds = [routeStartIso, ...weightCheckpoints.map((c) => c.targetDate)];
@@ -129,7 +132,6 @@ function RoutePage() {
         cross,
         // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
         bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
-        startWeightKg: profile?.pesoInicialKg ?? null,
         hadDrop: false,
       });
       if (cancelled || !changes.length) return;
@@ -159,7 +161,7 @@ function RoutePage() {
       cancelled = true;
     };
     // Runs when the route or the logs change identity.
-  }, [checkpoints, profile, queryClient, t]);
+  }, [checkpoints, queryClient, t]);
 
   const generate = useMutation({
     mutationFn: async () => {
@@ -304,6 +306,7 @@ function RoutePage() {
             <RoutePath
               checkpoints={checkpoints}
               weekMarkers={weekMarkers}
+              photos={photos}
               currentId={current?.id ?? null}
               startLabel={t("Start")}
               goalLabel={goalDate ? formatDate(goalDate) : t("Goal")}
