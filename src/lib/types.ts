@@ -17,6 +17,13 @@ export type CoachNoteKind = "checkin" | "observation";
  * drives calorie targets, not training-day frequency.
  */
 export type TrainingGoal = "muscle" | "strength" | "fat-loss" | "comeback";
+/**
+ * Training age, derived once (years trained + consistency, see
+ * plan/experience.ts's deriveExperience()) and reused wherever a safe pace
+ * depends on it — most notably the muscle-gain rate in plan/guardrails.ts,
+ * which is experience-tiered per the Aragon/Helms rate-of-gain model.
+ */
+export type Experience = "beginner" | "intermediate" | "advanced";
 
 export interface AvoidedExercise {
   exerciseId: string;
@@ -59,6 +66,8 @@ export interface Profile {
   metaProteinaG?: number | undefined;
   /** Training-style goal from the first onboarding quiz — undefined if skipped. */
   trainingGoal?: TrainingGoal | undefined;
+  /** Training age, derived from onboarding/plan-interview answers — undefined if neither ran. */
+  trainingExperience?: Experience | undefined;
 }
 
 /** A different way to perform the same exercise (e.g. grip width) — shares

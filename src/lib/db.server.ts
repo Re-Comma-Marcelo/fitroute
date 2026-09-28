@@ -105,6 +105,7 @@ export const toProfile = (r: Row) => ({
   metaKcal: r["meta_kcal"] == null ? undefined : Number(r["meta_kcal"]),
   metaProteinaG: r["meta_proteina_g"] == null ? undefined : Number(r["meta_proteina_g"]),
   trainingGoal: (r["training_goal"] ?? undefined) as Profile["trainingGoal"],
+  trainingExperience: (r["training_experience"] ?? undefined) as Profile["trainingExperience"],
 });
 
 export const fromProfile = (p: Row, userId: string) => ({
@@ -133,6 +134,7 @@ export const fromProfile = (p: Row, userId: string) => ({
   meta_kcal: p["metaKcal"] ?? null,
   meta_proteina_g: p["metaProteinaG"] ?? null,
   training_goal: p["trainingGoal"] ?? null,
+  training_experience: p["trainingExperience"] ?? null,
 });
 
 export const toExercise = (r: Row) => ({

@@ -160,6 +160,8 @@ function OnboardingPage() {
       objetivo: goalToObjetivo(complete.goal),
       // Reused by the weekly plan generator's training-frequency guideline.
       trainingGoal: goalToTrainingGoal(complete.goal),
+      // Reused by the route's muscle-gain pace check (see plan/guardrails.ts).
+      trainingExperience: yearsToExperience(complete.trainingYears),
       metaTreinosSemana: sortDays(complete.days).length,
       onboardingConcluidoEm: today,
       ...(goalDate

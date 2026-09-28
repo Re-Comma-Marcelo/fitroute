@@ -10,6 +10,7 @@ import { getProfile, saveProfile } from "@/lib/data/profile";
 import { buildCoachContext } from "@/lib/route/context";
 import { daysBetween, isoDay, addDays } from "@/lib/route/cadence";
 import { suggestGoalDate } from "@/lib/route-ai.functions";
+import { checkPace } from "@/lib/plan/guardrails";
 import { formatDate, weightUnitLabel } from "@/lib/format";
 import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
@@ -55,6 +56,23 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
         (profile.pesoMetaKg
           ? String(Math.round(toDisplayWeight(profile.pesoMetaKg, unit) * 10) / 10)
           : "")),
+  );
+
+  const targetKgForPace = useMemo(() => {
+    const parsed = Number(weightText.replace(",", "."));
+    return weightText.trim() && Number.isFinite(parsed) ? fromDisplayWeight(parsed, unit) : null;
+  }, [weightText, unit]);
+  const weeksOut = daysOut !== null ? daysOut / 7 : null;
+  // Never checked against research before: this screen let a goal+date
+  // combination through with no pace validation at all, unlike the plan
+  // interview's checkPace() call. Undefined experience defaults to
+  // "intermediate" (checkPace()'s own default) rather than guessing.
+  const pace = useMemo(
+    () =>
+      profile
+        ? checkPace(profile.pesoKg, targetKgForPace, weeksOut, profile.trainingExperience)
+        : null,
+    [profile, targetKgForPace, weeksOut],
   );
 
   const quickPicks = useMemo(
@@ -186,6 +204,26 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
           className="tap-target h-12 text-base"
         />
       </div>
+
+      {pace && !pace.ok ? (
+        <div className="rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
+          {t(
+            "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
+            { rate: pace.weeklyKg, safe: pace.safeWeeklyKg, weeks: pace.suggestedWeeks },
+          )}
+          <Button
+            type="button"
+            variant="outline"
+            className="mt-2 h-11 w-full"
+            onClick={() => {
+              setDate(isoDay(addDays(today, Math.ceil(pace.suggestedWeeks * 7))));
+              setReason(null);
+            }}
+          >
+            {t("Use the steadier pace")}
+          </Button>
+        </div>
+      ) : null}
 
       <Button
         type="button"

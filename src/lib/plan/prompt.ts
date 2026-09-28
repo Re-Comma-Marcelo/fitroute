@@ -2,7 +2,12 @@ import { exercises } from "../data/mocks";
 import { meals } from "../data/meals.mock";
 import { CONSISTENCY_LABEL, TRAINING_YEARS_LABEL } from "./experience";
 import { GOAL_PROMPT_LABEL } from "./frequency";
-import { CONSULT_NOTE, WEEKLY_PACE_PCT, filterMeals } from "./guardrails";
+import {
+  CONSULT_NOTE,
+  FAT_LOSS_WEEKLY_PACE_PCT,
+  MUSCLE_GAIN_WEEKLY_PACE_PCT,
+  filterMeals,
+} from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
 import { describeSports, sportEmphasis } from "./sports";
 import {
@@ -81,9 +86,13 @@ export function intakeSummary(intake: PlanIntake): string {
 }
 
 export function goalPrompt(intake: PlanIntake): string {
+  const gainPct = MUSCLE_GAIN_WEEKLY_PACE_PCT[intake.experience] * 100;
   return [
     "You translate a vague fitness goal into concrete numbers using mainstream, established exercise and nutrition science.",
-    `Sustainable bodyweight change is about ${WEEKLY_PACE_PCT * 100}% of bodyweight per week (mainstream guidance spans 0.5-1%, this app targets the midpoint — the same figure checkPace() enforces in code). Never encourage faster.`,
+    `Sustainable rates of bodyweight change are NOT the same for gaining and losing — the same figures checkPace() enforces in code:`,
+    `- Losing: about ${FAT_LOSS_WEEKLY_PACE_PCT * 100}% of bodyweight per week (Garthe et al. 2011 found this preserves lean mass and performance far better than a faster ~1.4%/week deficit).`,
+    `- Gaining: about ${gainPct}% of bodyweight per week for this user's training experience (${intake.experience}) — the Aragon/Helms rate-of-gain model. Faster than this is mostly fat, not muscle.`,
+    "Never encourage faster than the figure for the direction this goal actually needs.",
     "Return JSON only, matching this shape:",
     '{"targetWeightLowKg":number,"targetWeightHighKg":number,"bodyCompNote":string,"timelineWeeks":number,"rationale":string,"unrealistic":boolean,"saferTimelineWeeks":number}',
     "rationale: one or two short sentences the user will read. bodyCompNote: a rough body-composition estimate in plain words.",
