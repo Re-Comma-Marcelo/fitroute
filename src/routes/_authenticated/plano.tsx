@@ -219,7 +219,9 @@ function PlanPage() {
           ...profile,
           metaPrazo: goalDate,
           metaIniciadaEm: isoDay(new Date()),
-          ...(profile.pesoInicialKg ? {} : { pesoInicialKg: intake.weightKg || profile.pesoKg }),
+          // Refreshed alongside metaIniciadaEm, not just set once — see the
+          // matching comment in onboarding.tsx.
+          pesoInicialKg: intake.weightKg || profile.pesoKg,
           ...(targetWeight ? { pesoMetaKg: targetWeight } : {}),
         });
       } catch {

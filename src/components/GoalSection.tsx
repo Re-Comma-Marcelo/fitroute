@@ -91,7 +91,12 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
         ...profile,
         ...(date ? { metaPrazo: date } : {}),
         ...(targetKg ? { pesoMetaKg: Math.round(targetKg * 10) / 10 } : {}),
-        ...(profile.metaIniciadaEm ? {} : { metaIniciadaEm: today }),
+        // Set together, once, the first time a goal is established here — an
+        // edit to an already-running goal (e.g. nudging the target weight)
+        // shouldn't reset either. pesoInicialKg anchors the route's
+        // gaining-vs-losing direction check (route/status.ts); leaving it
+        // unset meant a goal created through this screen never got one.
+        ...(profile.metaIniciadaEm ? {} : { metaIniciadaEm: today, pesoInicialKg: profile.pesoKg }),
       });
     },
     onSuccess: async () => {

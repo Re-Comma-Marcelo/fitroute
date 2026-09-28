@@ -40,23 +40,30 @@ export interface RouteGeometry {
 
 /**
  * Builds a vertical snaking path for `count` nodes (start + checkpoints + goal).
- * Nodes alternate left/right of the centre, each with its own swing and gap
- * (seeded by index) so the route doesn't repeat the same bend over and over.
+ * Nodes still alternate left/right of the centre (so consecutive nodes never
+ * collide), but three things vary per node so no two stretches of the route
+ * read as the same shape: how far each swing reaches, how much vertical gap
+ * follows it, and a slow drift of the centre line itself — so two nodes on
+ * the same side, far apart in the route, don't land at the same x either.
  */
 export function buildRoute(count: number, width = 320, gap = 96): RouteGeometry {
   const n = Math.max(2, count);
   const cx = width / 2;
-  const baseSwing = Math.min(90, width / 2 - 44);
+  const maxSwing = Math.min(85, width / 2 - 55);
+  const driftPhase = hash01(1) * Math.PI * 2;
 
   let y = 32;
   const nodes: PathNode[] = [];
   for (let i = 0; i < n; i++) {
     const isEnd = i === 0 || i === n - 1;
-    const swingVariance = 0.8 + hash01(i * 7 + 3) * 0.4; // 0.8x - 1.2x
-    const swing = baseSwing * (isEnd ? 0.45 : swingVariance);
-    nodes.push({ x: cx + (i % 2 === 0 ? -swing : swing), y });
+    const swingVariance = 0.6 + hash01(i * 7 + 3) * 0.75; // 0.6x - 1.35x
+    const swing = maxSwing * (isEnd ? 0.45 : swingVariance);
+    // Low-frequency sine, not per-node noise, so the centre line meanders in
+    // slow sweeps across many nodes instead of jittering node to node.
+    const drift = Math.sin(i * 0.35 + driftPhase) * 18;
+    nodes.push({ x: cx + drift + (i % 2 === 0 ? -swing : swing), y });
     if (i < n - 1) {
-      const gapVariance = 0.85 + hash01(i * 13 + 5) * 0.3; // 0.85x - 1.15x
+      const gapVariance = 0.75 + hash01(i * 13 + 5) * 0.6; // 0.75x - 1.35x
       y += gap * gapVariance;
     }
   }

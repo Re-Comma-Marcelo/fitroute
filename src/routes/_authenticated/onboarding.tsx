@@ -166,7 +166,11 @@ function OnboardingPage() {
         ? {
             metaPrazo: goalDate,
             metaIniciadaEm: today,
-            ...(profile.pesoInicialKg ? {} : { pesoInicialKg: profile.pesoKg }),
+            // Refreshed alongside metaIniciadaEm, not just set once: a new
+            // goal needs its own starting weight, or the route's "gaining vs
+            // losing" direction check (see route/status.ts) reads against a
+            // weight from a previous, possibly opposite-direction goal.
+            pesoInicialKg: profile.pesoKg,
           }
         : {}),
     });
