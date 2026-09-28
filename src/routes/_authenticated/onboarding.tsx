@@ -34,7 +34,6 @@ import {
   buildStarterPlan,
   goalToObjetivo,
   goalToTrainingGoal,
-  nearestCleanDayCount,
   sortDays,
   templateFor,
   yearsToExperience,
