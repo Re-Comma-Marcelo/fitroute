@@ -45,23 +45,29 @@ export interface RouteGeometry {
  * read as the same shape: how far each swing reaches, how much vertical gap
  * follows it, and a slow drift of the centre line itself — so two nodes on
  * the same side, far apart in the route, don't land at the same x either.
+ * The raw swing+drift is generous (it's what makes the route feel wide), but
+ * every node is then clamped into a safe band so a marker pill centred on it
+ * never runs past the edge of a narrow phone screen.
  */
 export function buildRoute(count: number, width = 320, gap = 96): RouteGeometry {
   const n = Math.max(2, count);
   const cx = width / 2;
-  const maxSwing = Math.min(85, width / 2 - 55);
+  const maxSwing = width / 2;
   const driftPhase = hash01(1) * Math.PI * 2;
+  const safeMin = width * 0.25;
+  const safeMax = width * 0.75;
 
   let y = 32;
   const nodes: PathNode[] = [];
   for (let i = 0; i < n; i++) {
     const isEnd = i === 0 || i === n - 1;
-    const swingVariance = 0.6 + hash01(i * 7 + 3) * 0.75; // 0.6x - 1.35x
-    const swing = maxSwing * (isEnd ? 0.45 : swingVariance);
+    const swingVariance = 0.55 + hash01(i * 7 + 3) * 0.8; // 0.55x - 1.35x
+    const swing = maxSwing * (isEnd ? 0.4 : swingVariance);
     // Low-frequency sine, not per-node noise, so the centre line meanders in
     // slow sweeps across many nodes instead of jittering node to node.
-    const drift = Math.sin(i * 0.35 + driftPhase) * 18;
-    nodes.push({ x: cx + drift + (i % 2 === 0 ? -swing : swing), y });
+    const drift = Math.sin(i * 0.35 + driftPhase) * (width * 0.12);
+    const rawX = cx + drift + (i % 2 === 0 ? -swing : swing);
+    nodes.push({ x: Math.max(safeMin, Math.min(safeMax, rawX)), y });
     if (i < n - 1) {
       const gapVariance = 0.75 + hash01(i * 13 + 5) * 0.6; // 0.75x - 1.35x
       y += gap * gapVariance;

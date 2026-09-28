@@ -4,6 +4,7 @@
  * button and the end of the plan interview all call it.
  */
 import { getCheckpoints, removeCheckpoint, saveCheckpoint } from "@/lib/data/route";
+import { formatKg } from "@/lib/format";
 import { buildCoachContext } from "./context";
 import type { CoachContext } from "./context";
 import { checkpointDates } from "./cadence";
@@ -20,9 +21,11 @@ type AiCheckpoint = {
 };
 
 type RouteCopy = {
-  progress: string;
-  consistency: string;
-  final: string;
+  /** "Goal {n}: {value}" — what's on schedule at this point, not a pep talk. */
+  goal: (n: number, value: string) => string;
+  finalGoal: (value: string) => string;
+  sessionsGoal: (n: number, count: number) => string;
+  finalSessions: (count: number) => string;
   progressDescription: string;
   consistencyDescription: string;
   finalDescription: string;
@@ -31,9 +34,10 @@ type RouteCopy = {
 function routeCopy(language: string): RouteCopy {
   if (language === "nl") {
     return {
-      progress: "Eerste vooruitgang",
-      consistency: "Ritme vasthouden",
-      final: "Doel bereikt",
+      goal: (n, value) => `Doelstelling ${n}: ${value}`,
+      finalGoal: (value) => `Einddoel: ${value}`,
+      sessionsGoal: (n, count) => `Doelstelling ${n}: ${count}x trainen`,
+      finalSessions: (count) => `Einddoel: ${count}x trainen`,
       progressDescription: "Controleer je voortgang en stuur je training bij waar nodig.",
       consistencyDescription: "Houd je geplande trainingsritme vast tot dit meetpunt.",
       finalDescription: "Evalueer je resultaat ten opzichte van je hoofddoel.",
@@ -41,18 +45,20 @@ function routeCopy(language: string): RouteCopy {
   }
   if (language === "pt") {
     return {
-      progress: "Primeiro progresso",
-      consistency: "Manter o ritmo",
-      final: "Meta alcançada",
+      goal: (n, value) => `Meta ${n}: ${value}`,
+      finalGoal: (value) => `Meta final: ${value}`,
+      sessionsGoal: (n, count) => `Meta ${n}: ${count}x treinos`,
+      finalSessions: (count) => `Meta final: ${count}x treinos`,
       progressDescription: "Confira seu progresso e ajuste o treino quando necessário.",
       consistencyDescription: "Mantenha o ritmo de treinos planejado até este marco.",
       finalDescription: "Avalie seu resultado em relação ao objetivo principal.",
     };
   }
   return {
-    progress: "First progress",
-    consistency: "Hold the rhythm",
-    final: "Goal reached",
+    goal: (n, value) => `Goal ${n}: ${value}`,
+    finalGoal: (value) => `Final goal: ${value}`,
+    sessionsGoal: (n, count) => `Goal ${n}: ${count}x training`,
+    finalSessions: (count) => `Final goal: ${count}x training`,
     progressDescription: "Review your progress and adjust your training where needed.",
     consistencyDescription: "Keep your planned training rhythm through this checkpoint.",
     finalDescription: "Evaluate your result against your main goal.",
@@ -69,37 +75,42 @@ function fallbackCheckpoints(
   const lift = context.bestLifts[0];
   return dates.map((date, index) => {
     const isFinal = index === dates.length - 1;
-    const progress = (index + 1) / dates.length;
+    const n = index + 1;
+    const progress = n / dates.length;
     if (context.goal.targetWeightKg && context.currentWeightKg) {
+      const value =
+        Math.round(
+          (context.currentWeightKg +
+            (context.goal.targetWeightKg - context.currentWeightKg) * progress) *
+            10,
+        ) / 10;
       return {
-        title: isFinal ? copy.final : copy.progress,
+        title: isFinal ? copy.finalGoal(formatKg(value)) : copy.goal(n, formatKg(value)),
         description: isFinal ? copy.finalDescription : copy.progressDescription,
         date,
         metricKind: "weight",
-        value:
-          Math.round(
-            (context.currentWeightKg +
-              (context.goal.targetWeightKg - context.currentWeightKg) * progress) *
-              10,
-          ) / 10,
+        value,
       };
     }
     if (lift?.kg) {
+      const value = Math.round(lift.kg * (1 + 0.025 * n) * 2) / 2;
+      const label = `${lift.nome} ${formatKg(value)}`;
       return {
-        title: isFinal ? copy.final : copy.progress,
+        title: isFinal ? copy.finalGoal(label) : copy.goal(n, label),
         description: isFinal ? copy.finalDescription : copy.progressDescription,
         date,
         metricKind: "lift",
         exerciseId: lift.exerciseId,
-        value: Math.round(lift.kg * (1 + 0.025 * (index + 1)) * 2) / 2,
+        value,
       };
     }
+    const count = Math.max(1, context.weeklyTarget) * 4;
     return {
-      title: isFinal ? copy.final : copy.consistency,
+      title: isFinal ? copy.finalSessions(count) : copy.sessionsGoal(n, count),
       description: isFinal ? copy.finalDescription : copy.consistencyDescription,
       date,
       metricKind: "sessions",
-      value: Math.max(1, context.weeklyTarget) * 4,
+      value: count,
     };
   });
 }

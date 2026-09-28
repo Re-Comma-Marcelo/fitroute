@@ -79,7 +79,7 @@ export function RoutePath({
   }
 
   return (
-    <div className="relative mx-auto w-full max-w-[340px]">
+    <div className="relative mx-auto w-full max-w-[400px]">
       <svg
         viewBox={`0 0 ${geo.width} ${geo.height}`}
         className="w-full"
@@ -198,7 +198,7 @@ export function RoutePath({
                 type="button"
                 onClick={() => onSelect(cp)}
                 className={cn(
-                  "tap-target flex max-w-[190px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
+                  "tap-target flex max-w-[178px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
                   achieved && "border-primary/40 bg-primary/10",
                   isCurrent &&
                     "border-primary bg-primary/15 shadow-[0_0_40px_-2px_oklch(0.6_0.23_286.2)]",
