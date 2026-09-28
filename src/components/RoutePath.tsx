@@ -1,12 +1,25 @@
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Check, Flag, MapPin } from "lucide-react";
 import { RouteMark } from "@/components/RouteLogo";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { buildRoute, pathThrough } from "@/lib/route/path";
 import type { Checkpoint, ProgressPhoto } from "@/lib/route/types";
 import type { WeekMarker } from "@/lib/route/weight-progress";
 import { useT } from "@/lib/i18n";
 import { formatDate, formatKg } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+/**
+ * Plain hex/rgba, not oklch() — oklch() as a raw SVG attribute value or
+ * inside a Tailwind arbitrary bracket (as opposed to a CSS custom property
+ * consumed through Tailwind's own colour pipeline, which is what the rest of
+ * the app's purple relies on) isn't reliably parsed everywhere, and silently
+ * drops the whole declaration rather than falling back to anything visible.
+ * Same purple as --primary in styles.css (oklch(0.599 0.2299 286.2) = #7C5CFF).
+ */
+const PURPLE = "#7C5CFF";
+const PURPLE_LIGHT = "#9C8CFF";
+const PURPLE_DARK = "#5B3FE0";
 
 type RouteNode =
   | { kind: "checkpoint"; date: string; checkpoint: Checkpoint; ordinal: number }
@@ -44,7 +57,7 @@ export function RoutePath({
   // optimizer), silently breaking the url(#...) reference and leaving only
   // the thin white line visible with no purple gradient/glow at all.
   const gradientId = useId();
-  const glowId = useId();
+  const [viewingPhoto, setViewingPhoto] = useState<ProgressPhoto | null>(null);
 
   let ordinal = 0;
   const middle: RouteNode[] = [
@@ -95,16 +108,9 @@ export function RoutePath({
       >
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="oklch(0.78 0.19 286.2)" />
-            <stop offset="100%" stopColor="oklch(0.48 0.24 286.2)" />
+            <stop offset="0%" stopColor={PURPLE_LIGHT} />
+            <stop offset="100%" stopColor={PURPLE_DARK} />
           </linearGradient>
-          <filter id={glowId} x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
         </defs>
         <path
           d={geo.d}
@@ -121,11 +127,12 @@ export function RoutePath({
             fill="none"
             // Trailing colour is the fallback SVG itself uses if the url()
             // reference ever fails to resolve, instead of silently painting
-            // nothing.
-            stroke={`url(#${gradientId}) oklch(0.599 0.2299 286.2)`}
+            // nothing. A CSS drop-shadow (not an SVG feGaussianBlur filter)
+            // gives the glow — far more consistently supported.
+            stroke={`url(#${gradientId}) ${PURPLE}`}
             strokeWidth={4.5}
             strokeLinecap="round"
-            filter={`url(#${glowId})`}
+            style={{ filter: `drop-shadow(0 0 6px ${PURPLE}) drop-shadow(0 0 3px ${PURPLE})` }}
           />
         ) : null}
         {whiteTravelled ? (
@@ -158,18 +165,23 @@ export function RoutePath({
               <div
                 className={cn(
                   "flex flex-col items-center gap-1 rounded-2xl border px-2.5 py-1.5",
-                  has
-                    ? "border-primary-foreground/25 bg-card shadow-[0_0_16px_-6px_oklch(0.72_0.2_286.2)]"
-                    : "border-dashed border-border/60",
+                  has ? "border-primary-foreground/25 bg-card" : "border-dashed border-border/60",
                 )}
+                style={has ? { boxShadow: `0 0 16px -6px ${PURPLE}` } : undefined}
               >
                 {photo ? (
-                  <img
-                    src={photo.url}
-                    alt=""
-                    loading="lazy"
-                    className="h-8 w-8 rounded-lg object-cover"
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setViewingPhoto(photo)}
+                    aria-label={t("View photo")}
+                  >
+                    <img
+                      src={photo.url}
+                      alt=""
+                      loading="lazy"
+                      className="h-8 w-8 rounded-lg object-cover"
+                    />
+                  </button>
                 ) : null}
                 <span className="whitespace-nowrap text-[8px] font-medium uppercase tracking-wide text-muted-foreground/80">
                   {t("Week of {date}", { date: formatDate(n.marker.weekStartIso) })}
@@ -197,12 +209,22 @@ export function RoutePath({
                 <span className="absolute inset-0 -z-10 animate-pulse rounded-2xl bg-primary/35 blur-lg" />
               ) : null}
               {photo ? (
-                <img
-                  src={photo.url}
-                  alt=""
-                  loading="lazy"
-                  className="absolute -right-1.5 -top-1.5 z-10 size-6 rounded-full border-2 border-background object-cover"
-                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewingPhoto(photo);
+                  }}
+                  aria-label={t("View photo")}
+                  className="absolute -right-1.5 -top-1.5 z-10"
+                >
+                  <img
+                    src={photo.url}
+                    alt=""
+                    loading="lazy"
+                    className="size-6 rounded-full border-2 border-background object-cover"
+                  />
+                </button>
               ) : null}
               <button
                 type="button"
@@ -210,10 +232,10 @@ export function RoutePath({
                 className={cn(
                   "tap-target flex max-w-[178px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
                   achieved && "border-primary/40 bg-primary/10",
-                  isCurrent &&
-                    "border-primary bg-primary/15 shadow-[0_0_40px_-2px_oklch(0.6_0.23_286.2)]",
+                  isCurrent && "border-primary bg-primary/15",
                   !achieved && !isCurrent && "border-border bg-card",
                 )}
+                style={isCurrent ? { boxShadow: `0 0 40px -2px ${PURPLE}` } : undefined}
               >
                 <span
                   className={cn(
@@ -247,6 +269,18 @@ export function RoutePath({
           <span className="text-[11px] font-semibold text-primary">{goalLabel}</span>
         </div>
       </Marker>
+
+      <Dialog open={viewingPhoto !== null} onOpenChange={(open) => !open && setViewingPhoto(null)}>
+        <DialogContent className="max-w-sm border-none bg-transparent p-0 shadow-none">
+          {viewingPhoto ? (
+            <img
+              src={viewingPhoto.url}
+              alt={t("Progress photo")}
+              className="w-full rounded-2xl object-cover"
+            />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
