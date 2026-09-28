@@ -151,7 +151,8 @@ export function buildStarterPlan(
   const allDays = sortDays(answers.days);
   const dayCount = nearestCleanDayCount(allDays.length || DEFAULT_ANSWERS.days.length);
   // Keep only what a clean split needs — an extra, unevenly-distributed day defeats the point.
-  const days = allDays.slice(0, dayCount);
+  // Schedule every picked day; the template is chosen from the nearest clean count.
+  const days = allDays;
   const template = templateFor(dayCount);
   const prescription = prescriptionFor(answers);
 

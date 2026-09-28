@@ -34,7 +34,6 @@ import {
   buildStarterPlan,
   goalToObjetivo,
   goalToTrainingGoal,
-  nearestCleanDayCount,
   sortDays,
   templateFor,
   yearsToExperience,
@@ -282,7 +281,7 @@ function OnboardingPage() {
     goalToTrainingGoal(complete.goal),
     yearsToExperience(complete.trainingYears),
   );
-  const dayCap = nearestCleanDayCount(frequencyRange.maxDays);
+  const dayCap = frequencyRange.maxDays;
 
   return (
     <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-4">
