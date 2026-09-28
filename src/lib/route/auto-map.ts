@@ -5,9 +5,10 @@
  */
 import { getCheckpoints, removeCheckpoint, saveCheckpoint } from "@/lib/data/route";
 import { formatKg } from "@/lib/format";
+import { checkPace, type PaceCheck } from "@/lib/plan/guardrails";
 import { buildCoachContext } from "./context";
 import type { CoachContext } from "./context";
-import { checkpointDates } from "./cadence";
+import { checkpointDates, daysBetween } from "./cadence";
 import type { CheckpointMetric } from "./types";
 import { generateCheckpoints } from "@/lib/route-ai.functions";
 
@@ -117,15 +118,30 @@ function fallbackCheckpoints(
 
 export class RouteMapError extends Error {}
 
+export interface MapRouteResult {
+  count: number;
+  /** Set (and !ok) when goalDate asks for a weight change faster than research supports for this user. */
+  pace: PaceCheck | null;
+}
+
 /**
  * Generates the coach's checkpoints for a goal date. Hand-made checkpoints are
  * kept; the coach's own ones are only replaced once generation succeeded.
  */
-export async function mapRoute(goalDate: string, language: string): Promise<number> {
+export async function mapRoute(goalDate: string, language: string): Promise<MapRouteResult> {
   const dates = checkpointDates(goalDate);
   if (!dates.length) throw new RouteMapError("too-short");
 
   const context = await buildCoachContext();
+  const pace =
+    context.currentWeightKg && context.goal.targetWeightKg
+      ? checkPace(
+          context.currentWeightKg,
+          context.goal.targetWeightKg,
+          daysBetween(new Date(), goalDate) / 7,
+          context.experience,
+        )
+      : null;
   let generated: AiCheckpoint[] = [];
   try {
     const result = (await generateCheckpoints({ data: { context, goalDate, dates, language } })) as
@@ -162,5 +178,5 @@ export async function mapRoute(goalDate: string, language: string): Promise<numb
       ...(metric ? { metric } : {}),
     });
   }
-  return generated.length;
+  return { count: generated.length, pace };
 }

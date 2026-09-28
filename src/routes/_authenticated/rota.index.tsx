@@ -31,7 +31,7 @@ import {
   removeCheckpoint,
   saveCheckpoint,
 } from "@/lib/data/route";
-import { getProfile } from "@/lib/data/profile";
+import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getWorkoutLog } from "@/lib/data/workouts";
 import { getBodyWeightLog } from "@/lib/data/body-weight";
 import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
@@ -40,6 +40,8 @@ import { isoDay, addDays } from "@/lib/route/cadence";
 import { currentCheckpoint, evaluateCheckpoints, nearestCheckpoint } from "@/lib/route/status";
 import { weekMarkers as buildWeekMarkers, type WeekMarker } from "@/lib/route/weight-progress";
 import type { Checkpoint } from "@/lib/route/types";
+import type { PaceCheck } from "@/lib/plan/guardrails";
+import { getCheckIns, hydrateCheckIns } from "@/lib/coach/weekly-checkin";
 
 import { formatDate } from "@/lib/format";
 import { useLanguage, useT } from "@/lib/i18n";
@@ -120,11 +122,13 @@ function RoutePage() {
     if (!checkpoints.length) return;
     let cancelled = false;
     void (async () => {
+      await hydrateCheckIns();
       const [log, cross, weights] = await Promise.all([
         getWorkoutLog(),
         getCrossTraining(),
         getBodyWeightLog(),
       ]);
+      const checkIns = getCheckIns();
       const changes = evaluateCheckpoints({
         checkpoints,
         workouts: log.workouts,
@@ -133,6 +137,7 @@ function RoutePage() {
         // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
         bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
         hadDrop: false,
+        checkIns,
       });
       if (cancelled || !changes.length) return;
       for (const change of changes) {
@@ -145,12 +150,30 @@ function RoutePage() {
           });
         }
         if (change.next.status === "adjusted") {
+          const message =
+            change.reason === "issue"
+              ? t("I moved '{title}' two weeks later — you flagged an issue that week.", {
+                  title: change.next.title,
+                })
+              : change.reason === "performance_drop"
+                ? t(
+                    "I moved '{title}' two weeks later — a performance dip explains the shortfall.",
+                    {
+                      title: change.next.title,
+                    },
+                  )
+                : t("I moved '{title}' two weeks later — your week was fuller than planned.", {
+                    title: change.next.title,
+                  });
           await logCoachingEvent({
             kind: "checkpoint_adjusted",
-            message: t("I moved '{title}' two weeks later — your week was fuller than planned.", {
-              title: change.next.title,
-            }),
-            cause: "cross_training",
+            message,
+            cause:
+              change.reason === "issue"
+                ? "one_off"
+                : change.reason === "performance_drop"
+                  ? "pattern"
+                  : "cross_training",
           });
         }
       }
@@ -163,18 +186,40 @@ function RoutePage() {
     // Runs when the route or the logs change identity.
   }, [checkpoints, queryClient, t]);
 
+  const [paceWarning, setPaceWarning] = useState<PaceCheck | null>(null);
+
   const generate = useMutation({
     mutationFn: async () => {
       if (!goalDate) throw new Error("no-goal");
-      await mapRoute(goalDate, lang);
+      return mapRoute(goalDate, lang);
     },
 
-    onSuccess: async () => {
+    onSuccess: async (result) => {
+      setPaceWarning(result.pace && !result.pace.ok ? result.pace : null);
       await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
       toast.success(t("Your route is mapped."));
     },
     onError: () =>
       toast.error(t("Could not map your route right now. You can still add checkpoints yourself.")),
+  });
+
+  // Stretches the goal date to the pace checkPace() suggests, then re-maps —
+  // same fix GoalSection offers, reachable here too since a route can be
+  // generated (or re-generated) straight from this screen.
+  const useSaferPace = useMutation({
+    mutationFn: async () => {
+      if (!paceWarning || !profile) return null;
+      const saferDate = isoDay(addDays(new Date(), Math.ceil(paceWarning.suggestedWeeks * 7)));
+      await saveProfile({ ...profile, metaPrazo: saferDate });
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      return mapRoute(saferDate, lang);
+    },
+    onSuccess: async (result) => {
+      setPaceWarning(result?.pace && !result.pace.ok ? result.pace : null);
+      await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
+      toast.success(t("Route re-mapped with a steadier pace."));
+    },
+    onError: () => toast.error(t("Could not re-map the route right now.")),
   });
 
   // The app maps the route itself: with a goal date and no checkpoints yet,
@@ -283,6 +328,28 @@ function RoutePage() {
                   {current.description}
                 </p>
               ) : null}
+            </div>
+          ) : null}
+
+          {paceWarning ? (
+            <div className="mt-3 rounded-xl border border-warn/40 bg-warn/10 p-3 text-xs leading-relaxed text-warn">
+              {t(
+                "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
+                {
+                  rate: paceWarning.weeklyKg,
+                  safe: paceWarning.safeWeeklyKg,
+                  weeks: paceWarning.suggestedWeeks,
+                },
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-2 h-11 w-full"
+                disabled={useSaferPace.isPending}
+                onClick={() => useSaferPace.mutate()}
+              >
+                {useSaferPace.isPending ? t("Re-mapping...") : t("Use the steadier pace")}
+              </Button>
             </div>
           ) : null}
 

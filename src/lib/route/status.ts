@@ -1,17 +1,29 @@
 /**
  * Evaluates checkpoints against logged training. A passed checkpoint becomes
  * achieved when its metric is hit, adjusted when there is a real reason for the
- * shortfall (cross-training load, a detected drop), and missed otherwise.
+ * shortfall (cross-training load, a reported issue, a detected drop), and
+ * missed otherwise.
  */
 import type { CrossTrainingLog, Workout, WorkoutSet } from "@/lib/types";
 import type { Checkpoint } from "./types";
 import { addDays, isoDay } from "./cadence";
+
+/** Minimal shape of a weekly check-in — just what a contextual reason needs. */
+export interface CheckInFlag {
+  /** ISO date (Monday) of the week this check-in covers. */
+  weekKey: string;
+  issues: string[];
+}
+
+export type AdjustReason = "cross_training" | "issue" | "performance_drop";
 
 export interface Evaluation {
   checkpoint: Checkpoint;
   next: Checkpoint;
   /** True when the checkpoint changed and should be persisted. */
   changed: boolean;
+  /** Why an "adjusted" change happened — unset for achieved/missed changes. */
+  reason?: AdjustReason;
 }
 
 function bestLift(sets: WorkoutSet[], exerciseId: string, until: Date): number {
@@ -73,17 +85,26 @@ export function metricHit(
 
 /**
  * A shortfall counts as "the coach moved it" when something in the data
- * explains it: heavy cross-training, or a detected performance drop.
+ * explains it: heavy cross-training, a reported issue (shoulder/back/knee/
+ * tired) in a weekly check-in covering the run-up to this checkpoint, or a
+ * detected performance drop. Returns which one, so the caller can say why
+ * instead of a generic "adjusted".
  */
-export function hasContextualReason(
+export function contextualReason(
   cp: Checkpoint,
   cross: CrossTrainingLog[],
   hadDrop: boolean,
-): boolean {
-  if (hadDrop) return true;
+  checkIns: CheckInFlag[] = [],
+): AdjustReason | null {
+  if (hadDrop) return "performance_drop";
   const from = isoDay(addDays(new Date(cp.targetDate), -21));
   const load = cross.filter((c) => c.data >= from && c.data <= cp.targetDate);
-  return load.length >= 3;
+  if (load.length >= 3) return "cross_training";
+  const flagged = checkIns.some(
+    (c) => c.weekKey >= from && c.weekKey <= cp.targetDate && c.issues.some((i) => i !== "nothing"),
+  );
+  if (flagged) return "issue";
+  return null;
 }
 
 export interface EvaluateInput {
@@ -93,6 +114,8 @@ export interface EvaluateInput {
   cross: CrossTrainingLog[];
   bodyWeightKg: number | null;
   hadDrop: boolean;
+  /** Weekly check-in issue flags, so a reported injury can explain a shortfall. */
+  checkIns?: CheckInFlag[];
   now?: Date;
 }
 
@@ -104,6 +127,7 @@ export function evaluateCheckpoints({
   cross,
   bodyWeightKg,
   hadDrop,
+  checkIns = [],
   now = new Date(),
 }: EvaluateInput): Evaluation[] {
   const today = isoDay(now);
@@ -125,7 +149,8 @@ export function evaluateCheckpoints({
     if (cp.status === "achieved" || cp.status === "missed") continue;
 
     // Passed and not hit.
-    if (cp.status === "upcoming" && hasContextualReason(cp, cross, hadDrop)) {
+    const reason = cp.status === "upcoming" ? contextualReason(cp, cross, hadDrop, checkIns) : null;
+    if (reason) {
       out.push({
         checkpoint: cp,
         next: {
@@ -135,6 +160,7 @@ export function evaluateCheckpoints({
           updatedAt: new Date().toISOString(),
         },
         changed: true,
+        reason,
       });
       continue;
     }

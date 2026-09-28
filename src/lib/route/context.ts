@@ -13,6 +13,7 @@ import { getCheckpoints } from "@/lib/data/route";
 import { currentCheckpoint } from "./status";
 import type { Checkpoint } from "./types";
 import { formatKg } from "@/lib/format";
+import type { Experience } from "@/lib/types";
 
 export interface CoachContext {
   goal: {
@@ -22,6 +23,8 @@ export interface CoachContext {
     deadline: string | null;
   };
   currentWeightKg: number | null;
+  /** Training age, for the muscle-gain pace check (see plan/guardrails.ts) — defaults to "intermediate" when never set. */
+  experience: Experience;
   weeklyTarget: number;
   sessionsLast30: number;
   routines: { nome: string; exercicios: string[] }[];
@@ -63,6 +66,7 @@ export async function buildCoachContext(): Promise<CoachContext> {
     },
     // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
     currentWeightKg: weights[weights.length - 1]?.pesoKg ?? profile.pesoKg ?? null,
+    experience: profile.trainingExperience ?? "intermediate",
     weeklyTarget: profile.metaTreinosSemana,
     sessionsLast30: log.workouts.filter(
       (w) => w.finalizadoEm && w.iniciadoEm.slice(0, 10) >= sinceIso,
