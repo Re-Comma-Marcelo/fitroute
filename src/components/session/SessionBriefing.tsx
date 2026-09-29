@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowUp, Flame, Loader2, MessageSquareQuote } from "lucide-react";
 
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { READINESS_LEVELS } from "@/lib/coach/readiness";
@@ -135,9 +136,7 @@ export function SessionBriefing({
               key={`${ex.exerciseId}-${i}`}
               className="flex items-center gap-3 px-4 py-2.5 text-sm"
             >
-              <span className="w-4 shrink-0 text-xs text-muted-foreground tabular-nums">
-                {i + 1}
-              </span>
+              <ExerciseThumb round exerciseId={ex.exerciseId} nome={ex.nome} className="size-8" />
               <span className="min-w-0 flex-1 truncate font-medium">{ex.nome}</span>
               {preview.up ? (
                 <ArrowUp

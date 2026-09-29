@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, ListOrdered, MoreHorizontal } from "lucide-react";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { formatDuration, formatKg } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -21,6 +22,7 @@ export function SessionHeader({
   segments,
   exerciseIdx,
   currentProgress,
+  exerciseId,
   exerciseName,
   blockLabel,
   onCollapse,
@@ -37,6 +39,8 @@ export function SessionHeader({
   exerciseIdx: number;
   /** Share (0-1) of the current exercise's sets already done. */
   currentProgress: number;
+  /** Catalog id of the current exercise, for its picture next to the name. */
+  exerciseId?: string | undefined;
   exerciseName: string;
   blockLabel?: string | undefined;
   onCollapse: () => void;
@@ -145,7 +149,10 @@ export function SessionHeader({
           })}
         </div>
 
-        <div className="flex items-center gap-2 px-2 pb-2.5">
+        <div className="flex items-center gap-3 px-2 pb-2.5">
+          {exerciseId ? (
+            <ExerciseThumb round exerciseId={exerciseId} nome={exerciseName} className="size-11" />
+          ) : null}
           <div className="min-w-0 flex-1">
             <p className="label-caps text-primary">
               {t("Exercise {position} of {total}", { position, total })}

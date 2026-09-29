@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowDown, ArrowUp, Check, Flag, Pause, Play, Plus, StickyNote } from "lucide-react";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,17 +86,26 @@ export function SessionSheet({
                     ex.pulado && "opacity-50",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold tabular-nums",
-                      done
-                        ? "bg-success/15 text-success"
-                        : current
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-surface-3 text-muted-foreground",
-                    )}
-                  >
-                    {done ? <Check className="size-4" strokeWidth={3} /> : idx + 1}
+                  {/* The exercise's picture, with where it stands pinned to its corner. */}
+                  <span className="relative shrink-0">
+                    <ExerciseThumb
+                      round
+                      exerciseId={ex.exerciseId}
+                      nome={ex.nome}
+                      className={cn("size-10", current && "ring-2 ring-primary")}
+                    />
+                    <span
+                      className={cn(
+                        "absolute -bottom-1 -right-1 grid size-5 place-items-center rounded-full border-2 border-background text-[10px] font-bold tabular-nums",
+                        done
+                          ? "bg-success text-background"
+                          : current
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-surface-3 text-muted-foreground",
+                      )}
+                    >
+                      {done ? <Check className="size-3" strokeWidth={3.5} /> : idx + 1}
+                    </span>
                   </span>
                   <span className="min-w-0 flex-1">
                     <span

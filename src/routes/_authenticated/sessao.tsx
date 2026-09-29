@@ -1442,6 +1442,7 @@ function SessionPage() {
             ? exercise.sets.filter((s) => s.concluida).length / exercise.sets.length
             : 0
         }
+        exerciseId={exercise?.exerciseId}
         exerciseName={exercise?.nome ?? t("Add an exercise to start")}
         blockLabel={exercise ? blockLabel[exercise.exerciseId] : undefined}
         onCollapse={() => navigate({ to: "/treino" })}

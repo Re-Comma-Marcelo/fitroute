@@ -646,6 +646,7 @@ function ProfilePage() {
                     >
                       <div className="flex items-center gap-2.5">
                         <ExerciseThumb
+                          exerciseId={a.exerciseId}
                           grupo={ex?.grupoPrimario}
                           nome={ex?.nome}
                           className="size-10"

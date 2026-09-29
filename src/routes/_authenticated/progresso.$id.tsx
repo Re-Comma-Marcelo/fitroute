@@ -14,6 +14,7 @@ import {
   YAxis,
 } from "recharts";
 import { PageHeader } from "@/components/AppShell";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -311,18 +312,28 @@ function WorkoutDetail() {
 
           return (
             <section key={exId} className="rounded-xl border border-border bg-card p-4">
-              <h2 className="text-base font-semibold">{exerciseName(exId)}</h2>
-              {replaced ? (
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                  <Repeat2 className="size-3.5 shrink-0" aria-hidden />
-                  {exerciseGroup(replaced)
-                    ? t("instead of {name} ({group})", {
-                        name: exerciseName(replaced),
-                        group: exerciseGroup(replaced),
-                      })
-                    : t("instead of {name}", { name: exerciseName(replaced) })}
-                </p>
-              ) : null}
+              <div className="flex items-center gap-3">
+                <ExerciseThumb
+                  round
+                  exerciseId={exId}
+                  nome={exerciseName(exId)}
+                  className="size-10"
+                />
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-base font-semibold">{exerciseName(exId)}</h2>
+                  {replaced ? (
+                    <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Repeat2 className="size-3.5 shrink-0" aria-hidden />
+                      {exerciseGroup(replaced)
+                        ? t("instead of {name} ({group})", {
+                            name: exerciseName(replaced),
+                            group: exerciseGroup(replaced),
+                          })
+                        : t("instead of {name}", { name: exerciseName(replaced) })}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
               <ul className="mt-2 space-y-1 text-sm">
                 {exSets.map((s) => (
                   <li key={s.id} className="flex items-center justify-between gap-2 tabular-nums">

@@ -127,6 +127,7 @@ export function PlanReview({
                       return (
                         <div key={ex.exerciseId} className="flex items-center gap-3">
                           <ExerciseThumb
+                            exerciseId={ex.exerciseId}
                             grupo={exercise?.grupoPrimario}
                             nome={exercise?.nome}
                             className="h-10 w-10 shrink-0"

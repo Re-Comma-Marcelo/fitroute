@@ -744,7 +744,12 @@ function RoutineCard({
                     aria-label={t("How to perform {name}", { name: nome })}
                     className="tap-target flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition-colors active:bg-surface-3"
                   >
-                    <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
+                    <ExerciseThumb
+                      round
+                      exerciseId={re.exerciseId}
+                      grupo={ex?.grupoPrimario}
+                      nome={ex?.nome}
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <p className="truncate text-sm font-semibold">{nome}</p>
