@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { ArrowUp, Flame, Loader2, MessageSquareQuote } from "lucide-react";
 
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { READINESS_LEVELS } from "@/lib/coach/readiness";
@@ -42,7 +43,8 @@ export function SessionBriefing({
   session: ActiveSession;
   /** Rebuilds the session lighter (or back to full); resolves false on failure. */
   onDeload: (on: boolean) => Promise<boolean>;
-  onBegin: (choices: BriefingChoices) => void;
+  /** `from` is where "Let's go" sat on screen, for the hand-off animation. */
+  onBegin: (choices: BriefingChoices, from?: DOMRect) => void;
 }) {
   const t = useT();
   const [readiness, setReadiness] = useState<Readiness | null>(null);
@@ -90,9 +92,9 @@ export function SessionBriefing({
     if (ok) hapticTick();
   }
 
-  function begin() {
+  function begin(from?: DOMRect) {
     hapticSuccess();
-    onBegin({ readiness, warmup: warmup && warmupSets > 0 });
+    onBegin({ readiness, warmup: warmup && warmupSets > 0 }, from);
   }
 
   return (
@@ -134,9 +136,7 @@ export function SessionBriefing({
               key={`${ex.exerciseId}-${i}`}
               className="flex items-center gap-3 px-4 py-2.5 text-sm"
             >
-              <span className="w-4 shrink-0 text-xs text-muted-foreground tabular-nums">
-                {i + 1}
-              </span>
+              <ExerciseThumb round exerciseId={ex.exerciseId} nome={ex.nome} className="size-8" />
               <span className="min-w-0 flex-1 truncate font-medium">{ex.nome}</span>
               {preview.up ? (
                 <ArrowUp
@@ -240,7 +240,7 @@ export function SessionBriefing({
         size="lg"
         className="h-14 w-full shrink-0 rounded-2xl text-base font-semibold"
         disabled={switching}
-        onClick={begin}
+        onClick={(e) => begin(e.currentTarget.getBoundingClientRect())}
       >
         {t("Let's go")}
       </Button>

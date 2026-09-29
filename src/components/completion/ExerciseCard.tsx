@@ -64,6 +64,8 @@ export function ExerciseCard({
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const exercise = exercisesQuery.data?.find((e) => e.id === exerciseId);
   const loop = exercise ? exerciseLoopUrl(exercise) : null;
+  // Keep the picture's slot while the catalog loads, so it lands in place.
+  const showMedia = Boolean(preview) && (Boolean(loop) || exercisesQuery.isPending);
 
   const historyQuery = useQuery({
     queryKey: ["exercise-history", exerciseId],
@@ -160,20 +162,22 @@ export function ExerciseCard({
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.25 }}
               >
-                {preview && loop ? (
+                {showMedia ? (
                   <div className="h-24 w-32 shrink-0 overflow-hidden rounded-2xl bg-surface-3">
-                    <img
-                      src={loop}
-                      alt={t("How to perform {name}", { name: exerciseName })}
-                      loading="eager"
-                      className="size-full object-contain"
-                    />
+                    {loop ? (
+                      <img
+                        src={loop}
+                        alt={t("How to perform {name}", { name: exerciseName })}
+                        loading="eager"
+                        className="size-full object-contain"
+                      />
+                    ) : null}
                   </div>
                 ) : null}
                 <div
                   className={cn(
                     "flex flex-col items-center gap-1",
-                    !preview || !loop ? "mt-auto" : undefined,
+                    !showMedia ? "mt-auto" : undefined,
                   )}
                 >
                   <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
