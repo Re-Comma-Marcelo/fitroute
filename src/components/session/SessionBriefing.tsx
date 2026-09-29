@@ -42,7 +42,8 @@ export function SessionBriefing({
   session: ActiveSession;
   /** Rebuilds the session lighter (or back to full); resolves false on failure. */
   onDeload: (on: boolean) => Promise<boolean>;
-  onBegin: (choices: BriefingChoices) => void;
+  /** `from` is where "Let's go" sat on screen, for the hand-off animation. */
+  onBegin: (choices: BriefingChoices, from?: DOMRect) => void;
 }) {
   const t = useT();
   const [readiness, setReadiness] = useState<Readiness | null>(null);
@@ -90,9 +91,9 @@ export function SessionBriefing({
     if (ok) hapticTick();
   }
 
-  function begin() {
+  function begin(from?: DOMRect) {
     hapticSuccess();
-    onBegin({ readiness, warmup: warmup && warmupSets > 0 });
+    onBegin({ readiness, warmup: warmup && warmupSets > 0 }, from);
   }
 
   return (
@@ -240,7 +241,7 @@ export function SessionBriefing({
         size="lg"
         className="h-14 w-full shrink-0 rounded-2xl text-base font-semibold"
         disabled={switching}
-        onClick={begin}
+        onClick={(e) => begin(e.currentTarget.getBoundingClientRect())}
       >
         {t("Let's go")}
       </Button>

@@ -1,3 +1,5 @@
+import { Fragment, useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 import { ChevronDown, ListOrdered, MoreHorizontal } from "lucide-react";
 import { formatDuration, formatKg } from "@/lib/format";
 import { useT } from "@/lib/i18n";
@@ -46,6 +48,11 @@ export function SessionHeader({
   const t = useT();
   const total = segments.filter((s) => s !== "skipped").length;
   const position = segments.slice(0, exerciseIdx + 1).filter((s) => s !== "skipped").length;
+  // Checkpoints only pop when they are reached now, not when a session resumes.
+  const mounted = useRef(false);
+  useEffect(() => {
+    mounted.current = true;
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card">
@@ -90,29 +97,50 @@ export function SessionHeader({
         </div>
 
         <div
-          className="flex gap-1 px-2 pb-2 pt-0.5"
+          className="flex items-center px-2 pb-2 pt-0.5"
           role="img"
           aria-label={t("Exercise {position} of {total}", { position, total })}
         >
           {/* Progress only. It used to be a 4 px tall button that jumped exercises:
               a stray thumb on the sticky header silently left sets behind.
-              Two lines per exercise, like the Route mark: purple marks where you
-              are, white follows one step behind as the sets get done. */}
+              One continuous route: two lines per exercise, like the Route mark —
+              purple marks where you are, white follows one step behind as the
+              sets get done — and a checkpoint closing each exercise. A skipped
+              one stays on the route as a dotted detour, never a gap. */}
           {segments.map((status, idx) => {
             const purple = status === "done" || status === "current" ? 1 : 0;
             const white =
               status === "done" ? 1 : status === "current" ? clampUnit(currentProgress) : 0;
+            const checkpoint: CheckpointState =
+              status === "done" || (status === "current" && white >= 1)
+                ? "done"
+                : status === "current"
+                  ? "next"
+                  : status === "skipped"
+                    ? "skipped"
+                    : "pending";
             return (
-              <span
-                key={idx}
-                className={cn(
-                  "flex flex-1 flex-col gap-[2px]",
-                  status === "skipped" && "opacity-40",
+              <Fragment key={idx}>
+                {status === "skipped" ? (
+                  <span className="flex h-2 flex-1 items-center text-muted-foreground/50">
+                    <span
+                      className="h-[3px] w-full"
+                      style={{
+                        backgroundImage:
+                          "radial-gradient(circle, currentColor 1px, transparent 1.2px)",
+                        backgroundSize: "5px 3px",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                  </span>
+                ) : (
+                  <span className="flex flex-1 flex-col gap-[2px]">
+                    <SegmentLine fill={purple} className="bg-primary" />
+                    <SegmentLine fill={white} className="bg-foreground" />
+                  </span>
                 )}
-              >
-                <SegmentLine fill={purple} className="bg-primary" />
-                <SegmentLine fill={white} className="bg-foreground" />
-              </span>
+                <Checkpoint state={checkpoint} pop={mounted.current} />
+              </Fragment>
             );
           })}
         </div>
@@ -149,13 +177,40 @@ function clampUnit(n: number) {
   return Number.isFinite(n) ? Math.max(0, Math.min(1, n)) : 0;
 }
 
-/** One of the two lines of a segment: a muted track filled from the left. */
+type CheckpointState = "done" | "next" | "pending" | "skipped";
+
+/**
+ * The stop that closes an exercise on the route. Done: both lines meet in a
+ * white dot ringed in purple. Next: the purple ring you are walking to.
+ * Pending: a ring on the muted track. Skipped: a smaller, quiet ring — passed
+ * by, not failed.
+ */
+function Checkpoint({ state, pop }: { state: CheckpointState; pop: boolean }) {
+  return (
+    <motion.span
+      key={state}
+      aria-hidden="true"
+      className={cn(
+        "shrink-0 rounded-full",
+        state === "done" && "size-2.5 border-2 border-primary bg-foreground",
+        state === "next" && "size-2.5 border-2 border-primary bg-card",
+        state === "pending" && "size-2.5 border-2 border-surface-3 bg-card",
+        state === "skipped" && "mx-px size-2 border border-muted-foreground/50 bg-card",
+      )}
+      initial={pop && state === "done" ? { scale: 0.3 } : false}
+      animate={{ scale: 1 }}
+      transition={{ type: "spring", stiffness: 520, damping: 16 }}
+    />
+  );
+}
+
+/** One of the two lines of a segment: a muted track filled from the left, flush with its checkpoints. */
 function SegmentLine({ fill, className }: { fill: number; className: string }) {
   return (
-    <span className="relative h-[3px] overflow-hidden rounded-full bg-surface-3">
+    <span className="relative h-[3px] overflow-hidden bg-surface-3">
       <span
         className={cn(
-          "absolute inset-0 origin-left rounded-full transition-transform duration-500 ease-out",
+          "absolute inset-0 origin-left transition-transform duration-500 ease-out",
           className,
         )}
         style={{ transform: `scaleX(${fill})` }}
