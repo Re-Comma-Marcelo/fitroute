@@ -19,7 +19,7 @@
       {
         "name": "get_training_context",
         "title": "Get Route context",
-        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
+        "description": "Returns the exercise and meal libraries plus, when the user is connected, their profile, the meals they eat in a day, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -193,16 +193,32 @@
                     "description": "mealId",
                     "type": "string"
                   },
+                  "morning_snack": {
+                    "description": "mealId (a snack meal)",
+                    "type": "string"
+                  },
                   "lunch": {
                     "description": "mealId",
                     "type": "string"
                   },
                   "snack": {
-                    "description": "mealId",
+                    "description": "mealId (afternoon snack)",
+                    "type": "string"
+                  },
+                  "pre_workout": {
+                    "description": "mealId (a snack meal)",
+                    "type": "string"
+                  },
+                  "post_workout": {
+                    "description": "mealId (a snack meal)",
                     "type": "string"
                   },
                   "dinner": {
                     "description": "mealId",
+                    "type": "string"
+                  },
+                  "supper": {
+                    "description": "mealId (a snack meal, late evening)",
                     "type": "string"
                   }
                 },

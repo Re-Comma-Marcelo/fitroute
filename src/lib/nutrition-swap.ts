@@ -17,9 +17,13 @@ const TAG_PRIORITY: Record<TrainingTag, { tag: MealTag; label: string }> = {
 /** Share of the daily budget a slot is expected to cover. */
 const SLOT_SHARE: Record<MealSlot, number> = {
   breakfast: 0.25,
+  morning_snack: 0.1,
   lunch: 0.35,
   snack: 0.12,
+  pre_workout: 0.1,
+  post_workout: 0.15,
   dinner: 0.28,
+  supper: 0.1,
 };
 
 export interface SwapContext {

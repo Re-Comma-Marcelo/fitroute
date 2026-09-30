@@ -53,6 +53,7 @@ import { dict as round31Dict } from "./dict/round31";
 import { dict as round32Dict } from "./dict/round32";
 import { dict as round33Dict } from "./dict/round33";
 import { dict as round34Dict } from "./dict/round34";
+import { dict as round35Dict } from "./dict/round35";
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as crossTrainingDict } from "./dict/cross-training";
@@ -126,6 +127,7 @@ const FRAGMENTS: DictFragment[] = [
   round32Dict,
   round33Dict,
   round34Dict,
+  round35Dict,
   foldersDict,
   authDict,
 ];

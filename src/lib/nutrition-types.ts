@@ -1,4 +1,12 @@
-export type MealSlot = "breakfast" | "lunch" | "snack" | "dinner";
+export type MealSlot =
+  | "breakfast"
+  | "morning_snack"
+  | "lunch"
+  | "snack"
+  | "pre_workout"
+  | "post_workout"
+  | "dinner"
+  | "supper";
 
 export interface MealSlotSchedule {
   /** 24h "HH:MM" the user usually eats this meal. */

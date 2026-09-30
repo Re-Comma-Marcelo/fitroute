@@ -1,6 +1,7 @@
 import { defineTool } from "@lovable.dev/mcp-js";
 import { exercises as mockExercises } from "@/lib/data/mocks";
 import { meals } from "@/lib/data/meals.mock";
+import { DEFAULT_SCHEDULE, MEAL_SLOTS } from "@/lib/meal-slots";
 import { dbModule, optionalMcpUser } from "../db";
 
 type ExerciseRow = {
@@ -34,7 +35,7 @@ export default defineTool({
   name: "get_training_context",
   title: "Get Route context",
   description:
-    "Returns the exercise and meal libraries plus, when the user is connected, their profile, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
+    "Returns the exercise and meal libraries plus, when the user is connected, their profile, the meals they eat in a day, recent workouts, recent coach notes and current training folder (standard routines, variations and the swaps they keep making). Call this first — routines and diets may only use ids from here.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {
@@ -45,6 +46,7 @@ export default defineTool({
     let recentWorkouts: unknown[] = [];
     let recentNotes: unknown[] = [];
     let trainingFolder: Record<string, unknown> | null = null;
+    let schedule = DEFAULT_SCHEDULE;
 
     try {
       const { db } = await dbModule();
@@ -89,6 +91,22 @@ export default defineTool({
           .limit(10);
         if (!notes.error) recentNotes = notes.data ?? [];
 
+        const times = await client
+          .from("meal_schedule")
+          .select("slot, slot_time, enabled")
+          .eq("user_id", userId);
+        if (!times.error && times.data) {
+          const saved = new Map(
+            (times.data as { slot: string; slot_time: string; enabled: boolean }[]).map((r) => [
+              r.slot,
+              { time: r.slot_time, enabled: r.enabled },
+            ]),
+          );
+          schedule = Object.fromEntries(
+            MEAL_SLOTS.map((s) => [s, { ...DEFAULT_SCHEDULE[s], ...saved.get(s) }]),
+          ) as typeof DEFAULT_SCHEDULE;
+        }
+
         trainingFolder = await loadTrainingFolder(client, userId, library);
       }
     } catch {
@@ -103,7 +121,7 @@ export default defineTool({
       howToUse: [
         "Route is a strength-training + nutrition app.",
         "Use create_routine to build a workout routine, create_week_diet to plan meals and log_coach_note to record soreness/injuries or a weekly check-in. When the user is connected these write straight into the app (and still return an import code as a fallback).",
-        "Only use exerciseId / mealId values from the libraries below. Respect anything in the profile's avoidExercises and available equipment, and only pick meals whose slots include the slot you are filling.",
+        "Only use exerciseId / mealId values from the libraries below. Respect anything in the profile's avoidExercises and available equipment, and only pick meals whose slots include the slot you are filling (morning_snack, pre_workout, post_workout and supper take snack meals). Plan only the moments in mealsInDay.",
         "Routines live in training folders (one block/cycle each). trainingFolder.standardRoutines is the plan; trainingFolder.variations are alternatives for short-on-time, social or pain days. commonSwaps shows which standard exercises the user keeps replacing, with what and why — prefer those substitutes, and suggest making a swap standard when it happens most sessions. To add an alternative, call create_routine with role 'variation', variationOf and reason.",
       ],
       profile: profile
@@ -123,6 +141,10 @@ export default defineTool({
             language: profile["idioma"],
           }
         : null,
+      // The eating moments the user has in their day, in time order.
+      mealsInDay: MEAL_SLOTS.filter((s) => schedule[s].enabled)
+        .sort((a, b) => schedule[a].time.localeCompare(schedule[b].time))
+        .map((s) => ({ slot: s, time: schedule[s].time })),
       recentWorkouts,
       recentNotes,
       trainingFolder,
