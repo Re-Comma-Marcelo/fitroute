@@ -1,4 +1,13 @@
-import { Apple, Croissant, Moon, UtensilsCrossed } from "lucide-react";
+import {
+  Apple,
+  Coffee,
+  Croissant,
+  Dumbbell,
+  Moon,
+  MoonStar,
+  UtensilsCrossed,
+  Zap,
+} from "lucide-react";
 import type { MealSlot } from "@/lib/nutrition-types";
 
 /**
@@ -11,9 +20,13 @@ import type { MealSlot } from "@/lib/nutrition-types";
  */
 const BY_SLOT: Record<MealSlot, { Icon: typeof Apple; tint: string }> = {
   breakfast: { Icon: Croissant, tint: "text-train" },
+  morning_snack: { Icon: Coffee, tint: "text-chart-3" },
   lunch: { Icon: UtensilsCrossed, tint: "text-diet" },
   snack: { Icon: Apple, tint: "text-chart-3" },
+  pre_workout: { Icon: Zap, tint: "text-train" },
+  post_workout: { Icon: Dumbbell, tint: "text-diet" },
   dinner: { Icon: Moon, tint: "text-primary" },
+  supper: { Icon: MoonStar, tint: "text-primary" },
 };
 
 export function MealThumb({
@@ -26,7 +39,7 @@ export function MealThumb({
   size?: "md" | "lg";
   className?: string;
 }) {
-  const { Icon, tint } = BY_SLOT[slot ?? "lunch"];
+  const { Icon, tint } = BY_SLOT[slot ?? "lunch"] ?? BY_SLOT.lunch;
   const box = size === "lg" ? "size-16 rounded-2xl" : "size-12 rounded-xl";
   const icon = size === "lg" ? "size-7" : "size-5";
   return (

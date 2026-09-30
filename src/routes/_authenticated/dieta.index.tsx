@@ -32,6 +32,7 @@ import { useT } from "@/lib/i18n";
 import {
   MEAL_SLOTS,
   activeSlots,
+  mealFitsSlot,
   addDays,
   getMealSchedule,
   getMeals,
@@ -173,7 +174,7 @@ function TodayPage() {
     // ingredients the user actually has at home.
     const weekIds = weekMenuIds;
     for (const slot of pool.slice(0, 3)) {
-      const candidates = allMeals.filter((m) => m.slots.includes(slot) && !used.has(m.id));
+      const candidates = allMeals.filter((m) => mealFitsSlot(m, slot) && !used.has(m.id));
       const inWeek = candidates.filter((m) => weekIds.includes(m.id));
       const ranked = rankMeals(inWeek.length ? inWeek : candidates, {
         slot,
@@ -334,7 +335,7 @@ function TodayPage() {
           <button
             type="button"
             onClick={() => setTimingOpen(true)}
-            aria-label={t("Timing")}
+            aria-label={t("Your meals")}
             className="tap-target flex size-10 items-center justify-center rounded-full border border-border text-muted-foreground"
           >
             <Clock className="size-4" />

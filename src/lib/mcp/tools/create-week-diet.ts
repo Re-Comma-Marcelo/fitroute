@@ -2,9 +2,8 @@ import { defineTool } from "@lovable.dev/mcp-js";
 import { z } from "zod";
 import { meals } from "@/lib/data/meals.mock";
 import { encodeBridgeCode, type DietPayload } from "@/lib/claude-bridge";
+import { MEAL_SLOTS as SLOTS, SLOT_BASE, mealFitsSlot } from "@/lib/meal-slots";
 import { dbModule, requireMcpUser } from "../db";
-
-const SLOTS = ["breakfast", "lunch", "snack", "dinner"] as const;
 
 export default defineTool({
   name: "create_week_diet",
@@ -20,9 +19,13 @@ export default defineTool({
             .regex(/^\d{4}-\d{2}-\d{2}$/)
             .describe("ISO date, yyyy-mm-dd."),
           breakfast: z.string().optional().describe("mealId"),
+          morning_snack: z.string().optional().describe("mealId (a snack meal)"),
           lunch: z.string().optional().describe("mealId"),
-          snack: z.string().optional().describe("mealId"),
+          snack: z.string().optional().describe("mealId (afternoon snack)"),
+          pre_workout: z.string().optional().describe("mealId (a snack meal)"),
+          post_workout: z.string().optional().describe("mealId (a snack meal)"),
           dinner: z.string().optional().describe("mealId"),
+          supper: z.string().optional().describe("mealId (a snack meal, late evening)"),
         }),
       )
       .min(1)
@@ -46,9 +49,9 @@ export default defineTool({
           problems.push(`${day.date} ${slot}: unknown mealId "${mealId}"`);
           continue;
         }
-        if (!meal.slots.includes(slot)) {
+        if (!mealFitsSlot(meal, slot)) {
           problems.push(
-            `${day.date} ${slot}: "${meal.name}" is not a ${slot} meal (valid: ${meal.slots.join(", ")})`,
+            `${day.date} ${slot}: "${meal.name}" is not a ${SLOT_BASE[slot]} meal (valid: ${meal.slots.join(", ")})`,
           );
           continue;
         }

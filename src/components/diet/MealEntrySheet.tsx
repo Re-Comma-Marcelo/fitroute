@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Star } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
-import { MEAL_SLOTS, SLOT_LABEL, getMeals, mealSchedule } from "@/lib/data/nutrition";
+import { SLOT_LABEL, getMeals, mealSchedule, slotChoices } from "@/lib/data/nutrition";
 import { scaleMeal } from "@/lib/data/diet-entries";
 import { getMealFavorites } from "@/lib/nutrition-local";
 import { MealThumb } from "@/components/diet/MealThumb";
@@ -91,7 +91,7 @@ export function MealEntrySheet({
         </SheetHeader>
 
         <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
-          {MEAL_SLOTS.map((s) => (
+          {slotChoices(slot).map((s) => (
             <button
               key={s}
               type="button"

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { useT } from "@/lib/i18n";
 import { fileToPhotoDataUrl } from "@/lib/photo";
 import { estimateMealFromPhoto, estimateMealFromText } from "@/lib/nutrition-ai.functions";
-import { MEAL_SLOTS, SLOT_LABEL, createCustomMeal } from "@/lib/data/nutrition";
+import { SLOT_LABEL, createCustomMeal, slotChoices } from "@/lib/data/nutrition";
 import type { Aisle, Meal, MealIngredient, MealSlot, MealTag } from "@/lib/nutrition-types";
 
 type Mode = "input" | "review";
@@ -387,7 +387,7 @@ function SlotPicker({ slot, setSlot }: { slot: MealSlot; setSlot: (s: MealSlot) 
     <div>
       <h3 className="text-xs font-semibold text-muted-foreground">{t("Meal slot")}</h3>
       <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
-        {MEAL_SLOTS.map((s) => (
+        {slotChoices(slot).map((s) => (
           <button
             key={s}
             type="button"
