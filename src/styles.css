@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./styles/theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -10,17 +11,15 @@
  * The @theme inline block maps CSS custom properties to Tailwind utility
  * classes (e.g. --color-primary -> bg-primary, text-primary).
  *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ * Raw values live in ONE place: src/styles/theme.css (Forja tokens). The
+ * :root block below only maps the legacy shadcn/semantic names onto those
+ * tokens, so older screens and the ui/ primitives follow the same palette.
+ * Never put a literal colour here — add a token to theme.css instead.
  */
 
 @theme inline {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--ff-ui);
+  --font-display: var(--ff-ui);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -44,7 +43,7 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
+  --color-accent: var(--accent-surface);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
@@ -81,73 +80,62 @@
 }
 
 :root {
-  /* Route — dark-mode-first. Profundidade por luminância, nunca por sombra.
-   * Papéis exclusivos: roxo = marca/ação, laranja = dados de treino,
-   * teal = dados de nutrição, verde = sucesso/PR, vermelho = erro/alerta. */
+  /* Legacy semantic names → Forja tokens (theme.css). Roles: turquoise =
+   * brand/action/progress, orange = effort (PRs, stalls, live workout),
+   * recovery = nutrition/recovery data, red = errors only. No purple. */
   --radius: 1rem;
-  /* Superfícies */
-  --background: oklch(0.1493 0.0046 264.47); /* #0A0B0D */
-  --card: oklch(0.1809 0.0052 248.12); /* #101214 */
-  --surface-2: oklch(0.1989 0.0051 248.08); /* #141618 */
-  --surface-3: oklch(0.2256 0.0066 258.36); /* #1A1C1F */
-  /* Texto */
-  --foreground: oklch(0.9784 0.0011 197.14); /* #F7F8F8 */
-  --card-foreground: oklch(0.9784 0.0011 197.14);
-  --popover: oklch(0.1989 0.0051 248.08);
-  --popover-foreground: oklch(0.9784 0.0011 197.14);
-  --secondary: oklch(0.1989 0.0051 248.08);
-  --secondary-foreground: oklch(0.9784 0.0011 197.14);
-  --muted: oklch(0.2256 0.0066 258.36);
-  --muted-foreground: oklch(0.6488 0.0146 262.36); /* #8A8F98 */
-  --text-muted: oklch(0.4876 0.0108 258.36); /* #5C6066 */
-  --accent: oklch(0.2256 0.0066 258.36);
-  --accent-foreground: oklch(0.9784 0.0011 197.14);
-  /* Roxo — marca e ação (nunca em gráficos) */
-  --primary: oklch(0.599 0.2299 286.2); /* #7C5CFF */
-  --primary-foreground: oklch(1 0 0);
-  --primary-hover: oklch(0.6458 0.2024 288.48); /* #8D71FF */
-  --primary-pressed: oklch(0.5444 0.218 285.33); /* #6B4EE6 */
-  --ring: oklch(0.599 0.2299 286.2);
-  /* Controles fortes secundários herdam o roxo da marca */
-  --info: oklch(0.599 0.2299 286.2);
-  --info-foreground: oklch(1 0 0);
-  /* Laranja — dados de treino (nunca em botões) */
-  --train: oklch(0.7045 0.1926 39.23); /* #FF6B35 */
-  --train-dim: oklch(0.4162 0.1058 40.94); /* #7A3418 */
-  /* Aviso/manutenção = cinza neutro (nunca laranja de treino, nunca vermelho de erro) */
-  --warn: oklch(0.6488 0.0146 262.36); /* #8A8F98 */
-  --warn-foreground: oklch(0.1493 0.0046 264.47);
-  /* Teal — dados de nutrição (nunca em botões) */
-  --diet: oklch(0.776 0.1512 166.17); /* #2DD4A0 */
-  /* Verde — semântica positiva */
-  --success: oklch(0.8003 0.1821 151.71); /* #4ADE80 */
-  --success-bg: oklch(0.2888 0.0489 152.66); /* #16321F */
-  /* Vermelho — só texto/badge/toast de erro */
-  --destructive: oklch(0.6535 0.1954 26.84); /* #F0524A */
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(1 0 0 / 6%);
-  --input: oklch(1 0 0 / 10%);
-  --chart-1: oklch(0.7045 0.1926 39.23);
-  --chart-2: oklch(0.776 0.1512 166.17);
-  --chart-3: oklch(0.86 0.1 168);
-  --chart-4: oklch(0.62 0.14 172);
-  --chart-5: oklch(0.4162 0.1058 40.94);
-  --sidebar: oklch(0.1809 0.0052 248.12);
-  --sidebar-foreground: oklch(0.9784 0.0011 197.14);
-  --sidebar-primary: oklch(0.599 0.2299 286.2);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.1989 0.0051 248.08);
-  --sidebar-accent-foreground: oklch(0.9784 0.0011 197.14);
-  --sidebar-border: oklch(1 0 0 / 6%);
-  --sidebar-ring: oklch(0.599 0.2299 286.2);
-  --gradient-veil: linear-gradient(
-    to top,
-    oklch(0.1493 0.0046 264.47) 6%,
-    oklch(0.1493 0.0046 264.47 / 92%) 34%,
-    oklch(0.1493 0.0046 264.47 / 45%) 70%,
-    oklch(0.1493 0.0046 264.47 / 15%) 100%
-  );
-  /* Sem sombras decorativas: profundidade vem da luminância da superfície. */
+  /* Surfaces */
+  --background: var(--bg);
+  --card: var(--surface-1);
+  --popover: var(--surface-2);
+  --secondary: var(--surface-2);
+  --muted: var(--surface-3);
+  /* shadcn's "accent" is a hover surface, not the brand accent. */
+  --accent-surface: var(--surface-3);
+  /* Text */
+  --foreground: var(--text);
+  --card-foreground: var(--text);
+  --popover-foreground: var(--text);
+  --secondary-foreground: var(--text);
+  --muted-foreground: var(--label);
+  --text-muted: var(--inactive);
+  --accent-foreground: var(--text);
+  /* Brand / action */
+  --primary: var(--accent);
+  --primary-foreground: var(--on-accent);
+  --primary-hover: var(--recovery);
+  --primary-pressed: var(--accent);
+  --ring: var(--accent);
+  --info: var(--accent);
+  --info-foreground: var(--on-accent);
+  /* Effort — training data, PRs, stalls */
+  --train: var(--effort);
+  --train-dim: var(--effort-tint-bg);
+  --warn: var(--effort-tint-text);
+  --warn-foreground: var(--on-accent);
+  /* Nutrition / recovery */
+  --diet: var(--recovery);
+  --success: var(--positive);
+  --success-bg: var(--accent-tint-bg);
+  --destructive: var(--danger);
+  --destructive-foreground: var(--text);
+  --border: var(--divider);
+  --input: var(--neutral-tint-border);
+  --chart-1: var(--effort);
+  --chart-2: var(--accent);
+  --chart-3: var(--recovery);
+  --chart-4: var(--route-upcoming);
+  --chart-5: var(--route-rest);
+  --sidebar: var(--surface-1);
+  --sidebar-foreground: var(--text);
+  --sidebar-primary: var(--accent);
+  --sidebar-primary-foreground: var(--on-accent);
+  --sidebar-accent: var(--surface-2);
+  --sidebar-accent-foreground: var(--text);
+  --sidebar-border: var(--divider);
+  --sidebar-ring: var(--accent);
+  /* Solid veil (no gradient) behind text on small cover thumbnails. */
+  --gradient-veil: linear-gradient(var(--glass-bg), var(--glass-bg));
   --shadow-elegant: none;
 }
 

@@ -107,8 +107,8 @@ export const dict: DictFragment = {
     "(already planned)": "(já planejado)",
     Calories: "Calorias",
     "{after}/{target}{unit} · {left}{unit} left": "{after}/{target}{unit} · faltam {left}{unit}",
-    "Grey is what is already planned today, purple is what this meal adds.":
-      "Cinza é o que já está planejado hoje, roxo é o que esta refeição adiciona.",
+    "Grey is what is already planned today, the light bar is what this meal adds.":
+      "Cinza é o que já está planejado hoje, a barra clara é o que esta refeição adiciona.",
     "Impact on the week": "Impacto na semana",
     "Your planned week sits at {kcal} kcal of {totalKcal} ({pct}% of the weekly budget). This meal alone is {mealPct}% of the week and {proteinPct}% of weekly protein.":
       "Sua semana planejada está em {kcal} kcal de {totalKcal} ({pct}% do orçamento semanal). Esta refeição sozinha representa {mealPct}% da semana e {proteinPct}% da proteína semanal.",
@@ -263,8 +263,8 @@ export const dict: DictFragment = {
     "(already planned)": "(alweer gepland)",
     Calories: "Calorieën",
     "{after}/{target}{unit} · {left}{unit} left": "{after}/{target}{unit} · {left}{unit} over",
-    "Grey is what is already planned today, purple is what this meal adds.":
-      "Grijs is wat al gepland is voor vandaag, paars is wat deze maaltijd toevoegt.",
+    "Grey is what is already planned today, the light bar is what this meal adds.":
+      "Grijs is wat al gepland is voor vandaag, de lichte balk is wat deze maaltijd toevoegt.",
     "Impact on the week": "Impact op de week",
     Ingredients: "Ingrediënten",
     "Remove from today": "Verwijderen van vandaag",

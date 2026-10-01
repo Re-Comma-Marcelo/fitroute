@@ -66,6 +66,10 @@ This app exposes itself as an MCP server so a user can connect their own Claude 
 
 `src/lib/coach/*` holds the rule-based adaptive coaching logic (recommendations, plateau detection, performance-drop detection, rest-day logic, weekly check-ins, today's-session card, etc.) — these are plain functions over workout/profile data, not LLM calls. `src/lib/plan/*` is the AI-assisted onboarding/interview plan generator (schema, guardrails, prompt construction, a `gateway.server.ts` that calls out to the model). Files ending `-ai.functions.ts` / `-ai.server.ts` at the top of `src/lib` (`nutrition-ai.*`, `plan-ai.functions.ts`, `route-ai.functions.ts`) are the server-fn/server boundary for those AI features.
 
+### Design tokens
+
+All colours, surfaces, type and spacing live in [src/styles/theme.css](src/styles/theme.css) (CSS variables + Tailwind v4 `@theme`, utilities like `bg-fj-accent`, `rounded-card`, `glass`, `mono-label`, `metric`). `src/styles.css` only maps the legacy shadcn names onto those tokens. No hardcoded colours or sizes in components. Shared Home/Train building blocks are in `src/components/forja/`; hero/routine photos are mapped in [src/config/heroImages.ts](src/config/heroImages.ts).
+
 ### Path alias
 
 `@/*` → `src/*` (see [tsconfig.json](tsconfig.json) and `components.json`). shadcn/ui components live in `src/components/ui/` (style "new-york", Tailwind CSS variables, no RSC) — prefer extending/composing these over introducing a new UI primitive library.

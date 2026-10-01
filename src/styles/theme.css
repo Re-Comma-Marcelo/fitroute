@@ -1,0 +1,250 @@
+/*
+ * Forja design tokens — the single source of truth for colour, surface,
+ * type, shape and spacing. Components never hardcode any of these values:
+ * they use the Tailwind utilities registered in the @theme block below
+ * (bg-fj-accent, text-fj-label, rounded-card, …) or the @utility classes
+ * further down (glass, coach-surface, mono-label, metric, …).
+ *
+ * The legacy shadcn variables in styles.css (--primary, --background, …)
+ * are pointed at these tokens, so every older screen picks up the palette
+ * without its layout changing.
+ */
+
+:root {
+  /* ---- Colour ---- */
+  --bg: #0d171c;
+  --accent: #8edcd6; /* turquoise: primary buttons, active tab, progress, links, route */
+  --on-accent: #0b1e22; /* text on turquoise, never white */
+  --recovery: #d4f2ef;
+  --effort: #ff5b1f; /* orange: PRs, stalling, live workout — sparingly */
+  --text: #eef4f5;
+  --text-2: #c9d8db;
+  --label: #a9c2c7;
+  --inactive: #8e889e;
+  --divider: rgba(255, 255, 255, 0.08);
+
+  /* Opaque surfaces for the screens that keep their old layout. */
+  --surface-1: #12212a;
+  --surface-2: #162831;
+  --surface-3: #1c303a;
+  --danger: #f0524a;
+  --positive: #8edcd6;
+
+  /* Tints */
+  --accent-tint-bg: rgba(142, 220, 214, 0.14);
+  --accent-tint-border: rgba(142, 220, 214, 0.4);
+  --effort-tint-bg: rgba(255, 91, 31, 0.14);
+  --effort-tint-text: #ffb08f;
+  --effort-tint-border: rgba(255, 91, 31, 0.4);
+  --neutral-tint-bg: rgba(255, 255, 255, 0.06);
+  --neutral-tint-border: rgba(255, 255, 255, 0.12);
+
+  /* Route line */
+  --route-done: var(--accent);
+  --route-rest: #4e6870;
+  --route-upcoming: #8fb3b9;
+  --route-node: #ffffff;
+  --route-halo: rgba(142, 220, 214, 0.35);
+
+  /* ---- Surfaces ---- */
+  --glass-bg: rgba(12, 28, 36, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-filter: blur(24px) saturate(140%);
+  --coach-bg: rgba(142, 220, 214, 0.12);
+  --coach-border: rgba(142, 220, 214, 0.34);
+  --strip-line: rgba(255, 255, 255, 0.12);
+  --nav-bg: rgba(13, 23, 28, 0.72);
+  --nav-filter: blur(20px);
+  --nav-border: rgba(255, 255, 255, 0.08);
+  --dashed-border: rgba(255, 255, 255, 0.22);
+  --grain-opacity: 0.12;
+  --grain-url: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+
+  /* ---- Hero ---- */
+  --hero-h: 560px;
+  --hero-content-top: 330px;
+  --hero-overlay: linear-gradient(
+    180deg,
+    rgba(13, 23, 28, 0.62) 0%,
+    rgba(13, 23, 28, 0.1) 26%,
+    rgba(13, 23, 28, 0) 48%,
+    rgba(13, 23, 28, 0.85) 88%,
+    #0d171c 100%
+  );
+  --hero-glow-size: 320px;
+  --hero-glow-blur: 100px;
+  --hero-glow-opacity: 0.18;
+  --hero-scroll-range: 340px;
+
+  /* ---- Text on photos ---- */
+  --shadow-on-photo: 0 1px 2px rgba(5, 12, 15, 0.55), 0 2px 12px rgba(5, 12, 15, 0.6);
+  --shadow-label-on-photo: 0 1px 2px rgba(5, 12, 15, 0.7), 0 0 10px rgba(5, 12, 15, 0.65);
+  --shadow-metric: -7px 0 7px rgba(142, 220, 214, 0.28);
+
+  /* ---- Type ---- */
+  --ff-ui: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --ff-label: "Geist Mono", ui-monospace, monospace;
+  --ff-metric: "Archivo", "Geist", ui-sans-serif, sans-serif;
+  --fs-h1: 32px;
+  --fs-body: 15px;
+  --fs-coach: 16px;
+  --fs-meta: 13px;
+  --fs-label: 11px;
+  --fs-micro: 9px;
+  --fs-name: 16px;
+  --metric-16: 16px;
+  --metric-22: 22px;
+  --metric-28: 28px;
+  --metric-40: 40px;
+  --unit-ratio: 0.5;
+  --tracking-label: 0.14em;
+  --tracking-tight: -0.02em;
+  --metric-stretch: 118%;
+
+  /* ---- Shape & spacing ---- */
+  --r-card: 22px;
+  --r-strip: 20px;
+  --r-daybar: 18px;
+  --r-day: 14px;
+  --r-thumb: 16px;
+  --r-button: 999px;
+  --page-x: 20px;
+  --page-top: max(50px, calc(env(safe-area-inset-top) + 12px));
+  --gap-block: 12px;
+  --pad-card: 16px;
+  --pad-list: 14px;
+  --button-h: 46px;
+  --icon-button: 40px;
+  --day-h: 44px;
+  --thumb: 56px;
+  --nav-h: 82px;
+  --daybar-top: 98px;
+}
+
+@theme inline {
+  --color-fj-bg: var(--bg);
+  --color-fj-accent: var(--accent);
+  --color-fj-on-accent: var(--on-accent);
+  --color-fj-recovery: var(--recovery);
+  --color-fj-effort: var(--effort);
+  --color-fj-text: var(--text);
+  --color-fj-text-2: var(--text-2);
+  --color-fj-label: var(--label);
+  --color-fj-inactive: var(--inactive);
+  --color-fj-divider: var(--divider);
+  --color-fj-glass: var(--glass-bg);
+  --color-fj-glass-border: var(--glass-border);
+  --color-fj-accent-tint: var(--accent-tint-bg);
+  --color-fj-effort-tint: var(--effort-tint-bg);
+  --color-fj-effort-text: var(--effort-tint-text);
+  --color-fj-neutral-tint: var(--neutral-tint-bg);
+  --color-fj-strip-line: var(--strip-line);
+  --color-fj-dashed: var(--dashed-border);
+
+  --font-ui: var(--ff-ui);
+  --font-label: var(--ff-label);
+  --font-metric: var(--ff-metric);
+
+  --text-h1: var(--fs-h1);
+  --text-body: var(--fs-body);
+  --text-coach: var(--fs-coach);
+  --text-meta: var(--fs-meta);
+  --text-label: var(--fs-label);
+  --text-micro: var(--fs-micro);
+  --text-name: var(--fs-name);
+
+  --radius-card: var(--r-card);
+  --radius-strip: var(--r-strip);
+  --radius-daybar: var(--r-daybar);
+  --radius-day: var(--r-day);
+  --radius-thumb: var(--r-thumb);
+  --radius-button: var(--r-button);
+
+  --spacing-page-x: var(--page-x);
+  --spacing-page-top: var(--page-top);
+  --spacing-block: var(--gap-block);
+  --spacing-card: var(--pad-card);
+  --spacing-list: var(--pad-list);
+  --spacing-button: var(--button-h);
+  --spacing-icon-button: var(--icon-button);
+  --spacing-day: var(--day-h);
+  --spacing-thumb: var(--thumb);
+  --spacing-nav: var(--nav-h);
+}
+
+/* ---- Surfaces ---- */
+
+@utility glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+
+@utility coach-surface {
+  background: var(--coach-bg);
+  border: 1px solid var(--coach-border);
+  -webkit-backdrop-filter: var(--glass-filter);
+  backdrop-filter: var(--glass-filter);
+}
+
+@utility nav-surface {
+  background: var(--nav-bg);
+  border-top: 1px solid var(--nav-border);
+  -webkit-backdrop-filter: var(--nav-filter);
+  backdrop-filter: var(--nav-filter);
+}
+
+@utility grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+  opacity: var(--grain-opacity);
+  background-image: var(--grain-url);
+}
+
+@utility hero-overlay {
+  background-image: var(--hero-overlay);
+}
+
+/* ---- Type ---- */
+
+@utility mono-label {
+  font-family: var(--ff-label);
+  font-weight: 500;
+  font-size: var(--fs-label);
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-label);
+  color: var(--label);
+}
+
+@utility metric {
+  font-family: var(--ff-metric);
+  font-style: italic;
+  font-weight: 700;
+  font-stretch: var(--metric-stretch);
+  font-variation-settings: "wdth" 118;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  text-shadow: var(--shadow-metric);
+}
+
+@utility h1-hero {
+  font-family: var(--ff-ui);
+  font-size: var(--fs-h1);
+  font-weight: 500;
+  letter-spacing: var(--tracking-tight);
+  line-height: 1.1;
+}
+
+@utility on-photo {
+  text-shadow: var(--shadow-on-photo);
+}
+
+@utility label-on-photo {
+  font-weight: 500;
+  text-shadow: var(--shadow-label-on-photo);
+}

@@ -269,7 +269,7 @@ function Sparkline({ points, direction }: { points: number[]; direction: LiftTre
     .join(" ");
   const stroke =
     direction === "up"
-      ? "rgb(52 211 153)"
+      ? "var(--accent)"
       : direction === "down"
         ? "var(--destructive)"
         : "var(--muted-foreground)";

@@ -120,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: OG_IMAGE },
       { name: "twitter:site", content: "@Lovable" },
-      { name: "theme-color", content: "#0A0B0D" },
+      { name: "theme-color", content: "#0D171C" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
@@ -136,7 +136,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@1,62..125,700&family=Geist+Mono:wght@500&family=Geist:wght@400;500;600&display=swap",
       },
 
       { rel: "manifest", href: "/manifest.webmanifest" },
@@ -191,7 +191,6 @@ function RootComponent() {
     });
     return () => subscription.unsubscribe();
   }, [router, queryClient]);
-
 
   return (
     <QueryClientProvider client={queryClient}>

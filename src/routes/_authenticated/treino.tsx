@@ -7,13 +7,13 @@ import { useEffect, useMemo, useState } from "react";
 import { RoutineTemplateSheet } from "@/components/RoutineTemplateSheet";
 import {
   AlertTriangle,
+  Check,
   ChevronDown,
   ChevronRight,
   Copy,
+  MessageSquare,
   Pencil,
-  Play,
   Plus,
-  Sparkles,
   Trash2,
   TrendingUp,
 } from "lucide-react";
@@ -36,13 +36,31 @@ import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
 import { TodayCoachCard } from "@/components/TodayCoachCard";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { CoachChatButton } from "@/components/CoachChatSheet";
+import { HeroPage } from "@/components/forja/HeroPage";
+import { GlassCard, MonoLabel } from "@/components/forja/GlassCard";
+import { StatStrip } from "@/components/forja/StatStrip";
+import { DayBar, type DayBarDay } from "@/components/forja/DayBar";
+import { Chip, type ChipTone } from "@/components/forja/Chip";
+import { IconButton, iconButtonClass } from "@/components/forja/IconButton";
+import { PillButton } from "@/components/forja/PillButton";
+import { Metric } from "@/components/forja/Metric";
+import { sessionImage } from "@/config/heroImages";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
-import type { Exercise, Routine, Workout } from "@/lib/types";
-import { getWorkouts } from "@/lib/data/workouts";
-import { formatDurationShort, formatKg, relativeDays } from "@/lib/format";
-import { routineCover } from "@/lib/exercise-image";
+import type { Exercise, Routine, Workout, WorkoutSet } from "@/lib/types";
+import { getWorkoutLog, getWorkouts } from "@/lib/data/workouts";
+import {
+  formatDurationShort,
+  formatKg,
+  formatWeekdayLong,
+  formatWeekdayShort,
+  relativeDays,
+  weightUnitLabel,
+} from "@/lib/format";
+import { isoDay } from "@/lib/home-metrics";
 import { EMPTY_TARGETS, getWeeklyTargets, type WeeklyTargets } from "@/lib/weekly-targets";
 
 import {
@@ -63,7 +81,6 @@ import { swapCandidates } from "@/lib/coach/swap";
 import { cn } from "@/lib/utils";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import type { CoachInsight } from "@/lib/coach/types";
-import { CoachChatButton, CoachChatRow } from "@/components/CoachChatSheet";
 
 export const Route = createFileRoute("/_authenticated/treino")({
   head: () => ({
@@ -80,8 +97,40 @@ export const Route = createFileRoute("/_authenticated/treino")({
 function weekStart() {
   const now = new Date();
   const day = (now.getDay() + 6) % 7; // Monday = 0
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() - day).getTime();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() - day);
 }
+
+/** First sentence only; the rest lives behind "See why". */
+function firstSentence(text: string): string {
+  const trimmed = text.trim();
+  const match = trimmed.match(/^[\s\S]*?[.?!](?=\s|$)/);
+  return (match ? match[0] : trimmed).replace(/!+/g, ".");
+}
+
+function chipTone(insight: CoachInsight): ChipTone {
+  if (insight.plateauType === "strength") return "up";
+  if (insight.plateauType === "fatigue") return "calm";
+  return insight.severity === "warning" ? "warn" : "up";
+}
+
+function shortLabel(insight: CoachInsight): string {
+  switch (insight.plateauType) {
+    case "strength":
+      return "Increase";
+    case "single-exercise":
+      return "Stalled";
+    case "fatigue":
+      return "Ease off";
+    default:
+      return insight.title;
+  }
+}
+
+type DayView =
+  | { kind: "today" }
+  | { kind: "done"; workout: Workout; routine: Routine | undefined }
+  | { kind: "planned"; routine: Routine }
+  | { kind: "rest"; past: boolean; missed: Routine | undefined };
 
 function TrainPage() {
   const t = useT();
@@ -93,6 +142,9 @@ function TrainPage() {
   const [swaps, setSwaps] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [whyOpen, setWhyOpen] = useState(false);
+  const todayIso = isoDay(new Date());
+  const [selectedDay, setSelectedDay] = useState(todayIso);
 
   useEffect(() => {
     setActive(loadActiveSession());
@@ -101,12 +153,14 @@ function TrainPage() {
 
   const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const logQuery = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
 
-  const routines = routinesQuery.data ?? [];
-  const workouts = workoutsQuery.data ?? [];
-  const exercises = exercisesQuery.data ?? [];
+  const routines = useMemo(() => routinesQuery.data ?? [], [routinesQuery.data]);
+  const workouts = useMemo(() => workoutsQuery.data ?? [], [workoutsQuery.data]);
+  const sets = useMemo(() => logQuery.data?.sets ?? [], [logQuery.data]);
+  const exercises = useMemo(() => exercisesQuery.data ?? [], [exercisesQuery.data]);
   const profile = profileQuery.data;
 
   const coachQuery = useQuery({
@@ -143,7 +197,7 @@ function TrainPage() {
 
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
-  const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start);
+  const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start.getTime());
   const doneThisWeek = weekWorkouts.length;
   const volumeThisWeek = Math.round(weekWorkouts.reduce((s, w) => s + w.volumeTotalKg, 0));
   const [overrideRest, setOverrideRest] = useState(false);
@@ -167,16 +221,12 @@ function TrainPage() {
   }, [coach?.recommendedRoutineId, coach?.routineId, routines, exercises]);
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
-  const orderedRoutines = useMemo(() => {
-    if (!coach?.recommendedRoutineId) return routines;
-    const rec = routines.find((r) => r.id === coach.recommendedRoutineId);
-    if (!rec) return routines;
-    return [rec, ...routines.filter((r) => r.id !== rec.id)];
-  }, [routines, coach?.recommendedRoutineId]);
+  const todayRoutine = routines.find((r) => r.id === activeChoiceId);
+  const isRestToday = !!coach?.restDay && !overrideRest && !active;
 
   // One pass over the history instead of a filter+sort per routine card.
   const lastByRoutine = useMemo(() => {
-    const map = new Map<string, (typeof workouts)[number]>();
+    const map = new Map<string, Workout>();
     for (const w of workouts) {
       if (!w.routineId) continue;
       const current = map.get(w.routineId);
@@ -184,6 +234,77 @@ function TrainPage() {
     }
     return map;
   }, [workouts]);
+
+  /** Most recent working weight per exercise — the planned load for a future day. */
+  const lastWeight = useMemo(() => {
+    const startedAt = new Map(workouts.map((w) => [w.id, w.iniciadoEm]));
+    const latest = new Map<string, { at: string; kg: number }>();
+    for (const s of sets) {
+      if (!s.concluida || s.pesoKg <= 0) continue;
+      const at = startedAt.get(s.workoutId) ?? "";
+      const prev = latest.get(s.exerciseId);
+      if (!prev || at > prev.at || (at === prev.at && s.pesoKg > prev.kg)) {
+        latest.set(s.exerciseId, { at, kg: s.pesoKg });
+      }
+    }
+    return latest;
+  }, [workouts, sets]);
+
+  /* ---------- the week ---------- */
+
+  const week = useMemo(() => {
+    const days: (DayBarDay & { date: Date })[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+      const iso = isoDay(date);
+      const planned = routines.some((r) => (r.diasSemana ?? []).includes(date.getDay()));
+      const done = workouts.some((w) => w.finalizadoEm && isoDay(new Date(w.iniciadoEm)) === iso);
+      days.push({
+        iso,
+        date,
+        label: formatWeekdayShort(date).replace(/\./g, "").slice(0, 2).toUpperCase(),
+        training: planned || done || (iso === todayIso && !isRestToday && !!todayRoutine),
+        isToday: iso === todayIso,
+      });
+    }
+    return days;
+    // start is derived from today; recompute when the data changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routines, workouts, todayIso, isRestToday, todayRoutine]);
+
+  const selected = week.find((d) => d.iso === selectedDay) ?? week.find((d) => d.isToday)!;
+
+  const view = useMemo<DayView>(() => {
+    if (selected.iso === todayIso) return { kind: "today" };
+    const done = workouts
+      .filter((w) => w.finalizadoEm && isoDay(new Date(w.iniciadoEm)) === selected.iso)
+      .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
+    if (done) {
+      return {
+        kind: "done",
+        workout: done,
+        routine: routines.find((r) => r.id === done.routineId),
+      };
+    }
+    const planned = routines.find((r) => (r.diasSemana ?? []).includes(selected.date.getDay()));
+    const past = selected.iso < todayIso;
+    if (planned && !past) return { kind: "planned", routine: planned };
+    return { kind: "rest", past, missed: planned };
+  }, [selected, todayIso, workouts, routines]);
+
+  /** The routine the hero, stats and Start button are about. */
+  const shownRoutine =
+    view.kind === "today"
+      ? isRestToday
+        ? undefined
+        : todayRoutine
+      : view.kind === "planned"
+        ? view.routine
+        : view.kind === "done"
+          ? view.routine
+          : undefined;
+
+  /* ---------- actions ---------- */
 
   async function startRoutine(routineId: string, opts: { deload?: boolean } = {}) {
     if (active) {
@@ -241,279 +362,552 @@ function TrainPage() {
     }
   }
 
-  return (
-    <AppShell
-      title={t("Train")}
-      action={
-        <div className="flex items-center gap-1">
-          <CoachChatButton />
-          <Button asChild variant="secondary" size="icon" className="tap-target size-11">
-            <Link to="/rotina/$id" params={{ id: "nova" }} aria-label={t("Create new routine")}>
-              <Plus className="size-6" />
-            </Link>
-          </Button>
-        </div>
-      }
-    >
-      {active ? (
-        <div className="mb-6 rounded-2xl border border-primary/20 bg-primary/10 p-4">
-          <p className="text-sm font-semibold text-primary">{t("Unfinished workout")}</p>
-          <p className="mt-1 text-base font-semibold">{sessionLabel(active)}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t("Started {time} · {duration} · {sets} sets logged", {
-              time: new Date(active.iniciadoEm).toLocaleTimeString(undefined, {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-              duration: formatDurationShort(sessionElapsed(active)),
-              sets: sessionSetsDone(active),
-            })}
-          </p>
-          <p className="mt-0.5 text-xs font-semibold text-foreground/80">
-            {t("Next up")}: {currentExerciseName(active)}
-          </p>
-          <div className="mt-3 flex gap-2">
-            <Button className="flex-1 font-semibold" onClick={() => navigate({ to: "/sessao" })}>
-              <Play className="mr-2 size-4" /> {t("Resume workout")}
-            </Button>
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" size="icon" className="tap-target size-11 shrink-0">
-                  <Trash2 className="size-5 text-destructive" />
-                  <span className="sr-only">{t("Discard workout")}</span>
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    {t("Everything you logged in this session will be lost.")}
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => {
-                      clearActiveSession();
-                      setActive(null);
-                    }}
-                  >
-                    {t("Discard")}
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      ) : null}
+  /* ---------- intro on the photo ---------- */
 
-      <section>
-        <div className="flex items-end justify-between">
-          <h2 className="label-caps">{t("Weekly goal")}</h2>
-          <p className="font-display text-sm font-semibold tabular-nums">
-            <span className="text-train">{doneThisWeek}</span>
-            <span className="text-muted-foreground">/{meta}</span>
-          </p>
+  const dayName = formatWeekdayLong(selected.date);
+  let introLabel: string;
+  let introTitle: string;
+  let introLine: string | null = null;
+  let labelTone: "accent" | "text" | "effort" = "accent";
+
+  if (view.kind === "today") {
+    if (active) {
+      introLabel = t("Live · in progress");
+      introTitle = sessionLabel(active);
+      introLine = t("Next up: {exercise}.", { exercise: currentExerciseName(active) });
+      labelTone = "effort";
+    } else if (isRestToday && coach?.restDay) {
+      introLabel = t("Today · rest");
+      introTitle = coach.restDay.title;
+      introLine = firstSentence(coach.restDay.line);
+    } else {
+      introLabel = !coach
+        ? t("Today")
+        : coach.isSwitch
+          ? t("Your pick today")
+          : t("Recommended today");
+      introTitle = coach?.routineName ?? todayRoutine?.nome ?? t("Start a workout");
+      introLine = coach ? firstSentence(coach.line) : null;
+    }
+  } else if (view.kind === "done") {
+    introLabel = t("{day} · done", { day: dayName });
+    introTitle = view.routine?.nome ?? t("Free session");
+    introLine = t("{duration}, {volume} moved.", {
+      duration: formatDurationShort(view.workout.duracaoSeg),
+      volume: formatKg(view.workout.volumeTotalKg),
+    });
+    labelTone = "text";
+  } else if (view.kind === "planned") {
+    introLabel = t("{day} · planned", { day: dayName });
+    introTitle = view.routine.nome;
+    introLine = t("{count} exercises, about {min} min.", {
+      count: view.routine.exercicios.length,
+      min: estimateRoutineMinutes(view.routine),
+    });
+    labelTone = "text";
+  } else {
+    introLabel =
+      view.past && view.missed
+        ? t("{day} · not logged", { day: dayName })
+        : t("{day} · rest", { day: dayName });
+    introTitle = view.missed?.nome ?? t("Rest day");
+    introLine = view.past && view.missed ? t("Nothing logged that day.") : t("No session planned.");
+    labelTone = "text";
+  }
+
+  const canSeeWhy = view.kind === "today" && !active && !!coach;
+
+  const top = (
+    <>
+      <div className="flex items-center justify-between">
+        <MonoLabel onPhoto className="text-fj-text">
+          {t("Train")}
+        </MonoLabel>
+        <div className="flex items-center gap-2">
+          <CoachChatButton className={iconButtonClass}>
+            <MessageSquare className="size-[18px]" strokeWidth={1.9} />
+          </CoachChatButton>
+          <IconButton asChild aria-label={t("Create new routine")}>
+            <Link to="/rotina/$id" params={{ id: "nova" }}>
+              <Plus className="size-5" strokeWidth={1.9} />
+            </Link>
+          </IconButton>
         </div>
-        <div
-          className="mt-3 flex gap-1"
-          role="img"
-          aria-label={t("{doneThisWeek} of {meta} sessions this week", { doneThisWeek, meta })}
+      </div>
+      <DayBar
+        days={week}
+        selected={selected.iso}
+        onSelect={setSelectedDay}
+        className="mt-[calc(var(--daybar-top)-var(--page-top)-var(--icon-button))]"
+      />
+    </>
+  );
+
+  const intro = (
+    <div className="on-photo">
+      <MonoLabel
+        onPhoto
+        className={cn(
+          "block",
+          labelTone === "accent" && "text-fj-accent",
+          labelTone === "effort" && "text-fj-effort",
+          labelTone === "text" && "text-fj-text-2",
+        )}
+      >
+        {introLabel}
+      </MonoLabel>
+      <h1 className="h1-hero mt-2 text-fj-text">{introTitle}</h1>
+      {introLine ? (
+        <p className="mt-2 text-coach leading-[1.4] text-fj-text-2">{introLine}</p>
+      ) : null}
+      {canSeeWhy ? (
+        <button
+          type="button"
+          onClick={() => setWhyOpen(true)}
+          className="label-on-photo mt-2 text-meta text-fj-accent"
         >
-          {Array.from({ length: meta }, (_, i) => (
-            <span
-              key={i}
-              className={cn(
-                "h-1.5 flex-1 rounded-full",
-                i < doneThisWeek ? "bg-train" : "bg-surface-3",
-              )}
-            />
-          ))}
-        </div>
-        {targets.volumeKg > 0 ? (
-          <div className="mt-3">
-            <div className="flex items-end justify-between">
-              <p className="label-caps">{t("Volume target")}</p>
-              <p className="text-xs font-semibold tabular-nums text-muted-foreground">
-                {formatKg(volumeThisWeek)} / {formatKg(targets.volumeKg)}
-              </p>
-            </div>
-            <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-surface-3">
-              <span
-                className="block h-full rounded-full bg-train"
-                style={{
-                  width: `${Math.min(100, Math.round((volumeThisWeek / targets.volumeKg) * 100))}%`,
-                }}
-              />
-            </div>
+          {t("See why")}
+        </button>
+      ) : null}
+    </div>
+  );
+
+  /* ---------- per-exercise chips for today's routine ---------- */
+
+  const todayChips =
+    view.kind === "today" && !isRestToday && todayRoutine
+      ? todayRoutine.exercicios
+          .map((re) => {
+            const insight = insights[todayRoutine.id]?.[re.exerciseId];
+            const ex = exercises.find((e) => e.id === re.exerciseId);
+            if (!insight || insight.severity === "info" || !ex) return null;
+            return { nome: ex.nome, insight };
+          })
+          .filter((v): v is { nome: string; insight: CoachInsight } => v !== null)
+      : [];
+
+  /* ---------- stats ---------- */
+
+  const last = shownRoutine ? lastByRoutine.get(shownRoutine.id) : undefined;
+  const ago = (() => {
+    if (!last) return { value: "—" as string | number, unit: undefined as string | undefined };
+    const days = Math.max(
+      0,
+      Math.round((Date.now() - new Date(last.iniciadoEm).getTime()) / 86400000),
+    );
+    return days >= 14
+      ? { value: Math.floor(days / 7), unit: t("w") }
+      : { value: days, unit: t("d") };
+  })();
+
+  const listRoutines = routines.filter(
+    (r) => !(coach?.recommendedRoutineId && r.id === coach.recommendedRoutineId),
+  );
+
+  return (
+    <AppShell hero title={t("Train")}>
+      <HeroPage image={sessionImage(shownRoutine?.nome ?? introTitle)} top={top} intro={intro}>
+        {todayChips.length ? (
+          <div className="flex flex-wrap gap-2">
+            {todayChips.map((c) => (
+              <InsightChip key={c.nome} name={c.nome} insight={c.insight} />
+            ))}
           </div>
         ) : null}
-      </section>
 
-      {coach?.restDay && !overrideRest && !active ? (
-        <section className="mt-5 rounded-2xl border border-border bg-card p-4">
-          <p className="label-caps text-muted-foreground">{t("Coach · today")}</p>
-          <p className="mt-1 font-display text-lg font-semibold">{coach.restDay.title}</p>
-          <p className="mt-1 text-sm leading-snug text-muted-foreground">{coach.restDay.line}</p>
-          <ul className="mt-3 space-y-1.5">
-            {coach.restDay.why.map((w) => (
-              <li key={w} className="flex gap-2 text-xs leading-relaxed text-muted-foreground">
-                <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/60" />
-                {w}
-              </li>
+        <StatStrip
+          stats={[
+            { label: t("Ex."), value: shownRoutine ? shownRoutine.exercicios.length : "—" },
+            {
+              label: t("Time"),
+              value: shownRoutine ? estimateRoutineMinutes(shownRoutine) : "—",
+              unit: shownRoutine ? t("min") : undefined,
+            },
+            { label: t("Ago"), value: ago.value, unit: ago.unit },
+            { label: t("Week"), value: `${doneThisWeek}/${meta}`, color: "accent" },
+          ]}
+        />
+        {targets.volumeKg > 0 ? (
+          <p className="-mt-1 px-1 text-meta text-fj-label">
+            {t("Volume target")}: {formatKg(volumeThisWeek)} / {formatKg(targets.volumeKg)}
+          </p>
+        ) : null}
+
+        {view.kind === "done" ? (
+          <DoneSession workout={view.workout} sets={sets} exercises={exercises} />
+        ) : null}
+        {view.kind === "planned" ? (
+          <PlannedSession routine={view.routine} exercises={exercises} lastWeight={lastWeight} />
+        ) : null}
+
+        {active ? (
+          <ActiveBanner
+            active={active}
+            onResume={() => navigate({ to: "/sessao" })}
+            onDiscard={() => {
+              clearActiveSession();
+              setActive(null);
+            }}
+          />
+        ) : view.kind === "today" || view.kind === "planned" ? (
+          <div className="grid grid-cols-[1fr_auto] gap-2">
+            {isRestToday && view.kind === "today" ? (
+              <PillButton onClick={() => setOverrideRest(true)}>{t("Train anyway")}</PillButton>
+            ) : (
+              <PillButton
+                disabled={!(shownRoutine ?? todayRoutine) || loading !== null}
+                onClick={() => {
+                  const id = shownRoutine?.id ?? activeChoiceId;
+                  if (id) void startRoutine(id);
+                }}
+              >
+                {t("Start workout")}
+              </PillButton>
+            )}
+            <PillButton variant="secondary" disabled={loading !== null} onClick={startBlank}>
+              {t("Blank")}
+            </PillButton>
+          </div>
+        ) : null}
+
+        <div className="mt-3 flex items-center justify-between px-1">
+          <MonoLabel>{t("My training")}</MonoLabel>
+          <span className="text-meta text-fj-label">
+            {t("{count} routines", { count: routines.length })}
+          </span>
+        </div>
+
+        {routinesQuery.isError ? (
+          <QueryError
+            message={t("Could not load your routines.")}
+            onRetry={() => void routinesQuery.refetch()}
+          />
+        ) : routinesQuery.isLoading ? (
+          <div className="space-y-3">
+            {[0, 1].map((i) => (
+              <div key={i} className="glass h-20 animate-pulse rounded-card" />
+            ))}
+          </div>
+        ) : routines.length === 0 ? (
+          <GlassCard className="text-center">
+            <p className="text-name font-medium">{t("No routines yet.")}</p>
+            <p className="mt-1 text-meta text-fj-label">
+              {t(
+                "A routine is your list of exercises, sets and rep ranges — the coach uses it to plan each day.",
+              )}
+            </p>
+            <div className="mt-4 flex flex-col gap-2">
+              <PillButton asChild>
+                <Link to="/rotina/$id" params={{ id: "nova" }}>
+                  {t("Create routine")}
+                </Link>
+              </PillButton>
+              <PillButton variant="secondary" onClick={() => setTemplatesOpen(true)}>
+                {t("Start from a template")}
+              </PillButton>
+            </div>
+          </GlassCard>
+        ) : (
+          <ul className="flex flex-col gap-block">
+            {listRoutines.map((r) => (
+              <RoutineCard
+                key={r.id}
+                r={r}
+                exercises={exercises}
+                last={lastByRoutine.get(r.id)}
+                insights={insights[r.id] ?? {}}
+                isChoice={r.id === activeChoiceId}
+                open={expanded === r.id}
+                onToggle={() => setExpanded((prev) => (prev === r.id ? null : r.id))}
+                active={!!active}
+                loading={loading}
+                onStart={(opts) => startRoutine(r.id, opts ?? {})}
+                onPick={() => pickRoutine(r.id)}
+                onDuplicate={() => void duplicate(r.id, r.nome)}
+              />
             ))}
           </ul>
-          {nextPreview ? (
-            <div className="mt-3 rounded-xl border border-border/70 bg-surface-2 p-3">
-              <p className="label-caps text-muted-foreground">{t("Next session")}</p>
-              <p className="mt-1 truncate text-sm font-semibold">{nextPreview.nome}</p>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                {nextPreview.primeiros.join(" · ")}
-                {nextPreview.restantes > 0 ? ` · +${nextPreview.restantes} ${t("more")}` : ""}
-              </p>
-              <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
-                ~{nextPreview.minutos} {t("min")}
-              </p>
-            </div>
-          ) : null}
+        )}
 
-          <Button
-            variant="secondary"
-            className="mt-3 h-11 w-full font-semibold"
-            onClick={() => setOverrideRest(true)}
-          >
-            {t("Train anyway")}
-          </Button>
-        </section>
-      ) : null}
-
-      {coachQuery.isLoading || !coach ? (
-        routines.length ? (
-          <div className="mt-5 h-24 animate-pulse rounded-2xl bg-card" />
-        ) : null
-      ) : coach.restDay && !overrideRest && !active ? null : (
-        <TodayCoachCard
-          model={coach}
-          swapOptions={swapOptions}
-          routineExercises={routineExercises}
-          swaps={swaps}
-          onSwap={(original, replacement) =>
-            setSwaps((prev) => ({ ...prev, [original]: replacement }))
-          }
-          onStart={(opts) => coach.routineId && startRoutine(coach.routineId, opts)}
-          onNoteSaved={() => coachQuery.refetch()}
-          busy={loading !== null}
-        />
-      )}
-
-      <div className="mt-4">
-        <CoachChatRow />
-      </div>
-
-      {/* While a workout is running the banner above is the only start action. */}
-      {active ? null : (
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <Button
-            className="h-14 w-full text-base font-semibold"
-            disabled={!activeChoiceId || loading !== null}
-            onClick={() => activeChoiceId && startRoutine(activeChoiceId)}
-          >
-            <Play className="mr-1 size-5" />
-            {t("Start")}
-          </Button>
-          <Button
-            variant="outline"
-            className="h-14 w-full text-base font-semibold"
-            disabled={loading !== null}
-            onClick={startBlank}
-          >
-            {t("Blank")}
-          </Button>
-        </div>
-      )}
-
-      <h2 className="label-caps mt-8 mb-3">{t("My routines")}</h2>
-
-      {routinesQuery.isError ? (
-        <QueryError
-          message={t("Could not load your routines.")}
-          onRetry={() => void routinesQuery.refetch()}
-        />
-      ) : routinesQuery.isLoading ? (
-        <div className="space-y-3">
-          {[0, 1].map((i) => (
-            <div key={i} className="h-28 animate-pulse rounded-2xl bg-card" />
-          ))}
-        </div>
-      ) : routines.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-card p-6 text-center">
-          <p className="font-display text-sm font-semibold">{t("No routines yet.")}</p>
-          <p className="mt-1 text-xs leading-snug text-muted-foreground">
-            {t(
-              "A routine is your list of exercises, sets and rep ranges — the coach uses it to plan each day.",
-            )}
-          </p>
-
-          <div className="mt-3 flex flex-wrap gap-2">
-            <Button asChild>
+        {routines.length > 0 ? (
+          <div className="grid grid-cols-2 gap-2">
+            <PillButton variant="dashed" asChild>
               <Link to="/rotina/$id" params={{ id: "nova" }}>
-                <Plus className="mr-2 size-4" /> {t("Create routine")}
+                <Plus className="size-4" /> {t("New routine")}
               </Link>
-            </Button>
-            <Button variant="outline" onClick={() => setTemplatesOpen(true)}>
-              {t("Start from a template")}
-            </Button>
+            </PillButton>
+            <PillButton variant="dashed" onClick={() => setTemplatesOpen(true)}>
+              {t("From a template")}
+            </PillButton>
           </div>
-        </div>
-      ) : (
-        <ul className="space-y-3">
-          {orderedRoutines.map((r) => (
-            <RoutineCard
-              key={r.id}
-              r={r}
-              exercises={exercises}
-              last={lastByRoutine.get(r.id)}
-              insights={insights[r.id] ?? {}}
-              recommended={r.id === coach?.recommendedRoutineId}
-              isChoice={r.id === activeChoiceId}
-              open={expanded === r.id}
-              onToggle={() => setExpanded((prev) => (prev === r.id ? null : r.id))}
-              active={!!active}
-              loading={loading}
-              onStart={(opts) => startRoutine(r.id, opts ?? {})}
-              onPick={() => pickRoutine(r.id)}
-              onDuplicate={() => void duplicate(r.id, r.nome)}
-              t={t}
-            />
-          ))}
-        </ul>
-      )}
-
-      {orderedRoutines.length > 0 ? (
-        <Button
-          variant="outline"
-          className="tap-target mt-3 w-full"
-          onClick={() => setTemplatesOpen(true)}
-        >
-          {t("Start from a template")}
-        </Button>
-      ) : null}
+        ) : null}
+      </HeroPage>
 
       <RoutineTemplateSheet
         open={templatesOpen}
         onOpenChange={setTemplatesOpen}
         exercises={exercises}
       />
+
+      {/* "See why": the full, unchanged coach reasoning plus everything the recommended routine card had. */}
+      <Sheet open={whyOpen} onOpenChange={setWhyOpen}>
+        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto">
+          <SheetHeader className="pb-2">
+            <SheetTitle>{introTitle}</SheetTitle>
+          </SheetHeader>
+          <div className="space-y-4 pb-6">
+            {isRestToday && coach?.restDay ? (
+              <RestDayDetails
+                verdict={coach.restDay}
+                next={nextPreview}
+                onTrainAnyway={() => {
+                  setOverrideRest(true);
+                  setWhyOpen(false);
+                }}
+              />
+            ) : coach ? (
+              <TodayCoachCard
+                defaultOpen
+                model={coach}
+                swapOptions={swapOptions}
+                routineExercises={routineExercises}
+                swaps={swaps}
+                onSwap={(original, replacement) =>
+                  setSwaps((prev) => ({ ...prev, [original]: replacement }))
+                }
+                onStart={(opts) => coach.routineId && startRoutine(coach.routineId, opts)}
+                onNoteSaved={() => coachQuery.refetch()}
+                busy={loading !== null}
+              />
+            ) : null}
+            {todayRoutine && !isRestToday ? (
+              <RoutineDetails
+                r={todayRoutine}
+                exercises={exercises}
+                insights={insights[todayRoutine.id] ?? {}}
+                isChoice
+                active={!!active}
+                loading={loading}
+                onStart={(opts) => startRoutine(todayRoutine.id, opts ?? {})}
+                onPick={() => pickRoutine(todayRoutine.id)}
+                onDuplicate={() => void duplicate(todayRoutine.id, todayRoutine.nome)}
+              />
+            ) : null}
+          </div>
+        </SheetContent>
+      </Sheet>
     </AppShell>
   );
 }
+
+/* ---------- day views ---------- */
+
+function DoneSession({
+  workout,
+  sets,
+  exercises,
+}: {
+  workout: Workout;
+  sets: WorkoutSet[];
+  exercises: Exercise[];
+}) {
+  const t = useT();
+  const rows = useMemo(() => {
+    const own = sets.filter((s) => s.workoutId === workout.id);
+    const order = [
+      ...new Set(own.sort((a, b) => a.ordemExercicio - b.ordemExercicio).map((s) => s.exerciseId)),
+    ];
+    return order.map((id) => {
+      const mine = own.filter((s) => s.exerciseId === id);
+      return {
+        id,
+        nome: exercises.find((e) => e.id === id)?.nome ?? t("Exercise"),
+        done: mine.some((s) => s.concluida),
+        sets: mine.filter((s) => s.concluida).length,
+      };
+    });
+  }, [sets, workout.id, exercises, t]);
+
+  return (
+    <GlassCard>
+      <ul className="space-y-2">
+        {rows.map((r) => (
+          <li key={r.id} className="flex items-center gap-3">
+            <span
+              className={cn(
+                "grid size-5 shrink-0 place-items-center rounded-full",
+                r.done ? "bg-fj-accent text-fj-on-accent" : "border border-fj-glass-border",
+              )}
+            >
+              {r.done ? <Check className="size-3" /> : null}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-body">{r.nome}</span>
+            <span className="text-meta text-fj-label">{t("{count} sets", { count: r.sets })}</span>
+          </li>
+        ))}
+      </ul>
+      <PillButton variant="secondary" asChild className="mt-card w-full">
+        <Link to="/resumo/$id" params={{ id: workout.id }}>
+          {t("View session")}
+        </Link>
+      </PillButton>
+    </GlassCard>
+  );
+}
+
+function PlannedSession({
+  routine,
+  exercises,
+  lastWeight,
+}: {
+  routine: Routine;
+  exercises: Exercise[];
+  lastWeight: Map<string, { at: string; kg: number }>;
+}) {
+  const t = useT();
+  return (
+    <GlassCard>
+      <ul className="space-y-3">
+        {[...routine.exercicios]
+          .sort((a, b) => a.ordem - b.ordem)
+          .map((re) => {
+            const kg = lastWeight.get(re.exerciseId)?.kg;
+            return (
+              <li key={re.id} className="flex items-center gap-3">
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-body">
+                    {exercises.find((e) => e.id === re.exerciseId)?.nome ?? t("Exercise")}
+                  </span>
+                  <span className="block text-meta text-fj-label">
+                    {t("{count} sets · {min}-{max} reps", {
+                      count: re.seriesAlvo,
+                      min: re.repsMin,
+                      max: re.repsMax,
+                    })}
+                  </span>
+                </span>
+                {kg ? (
+                  <Metric
+                    value={formatKg(kg, { unit: false })}
+                    unit={weightUnitLabel()}
+                    size={22}
+                  />
+                ) : (
+                  <span className="text-meta text-fj-label">{t("new")}</span>
+                )}
+              </li>
+            );
+          })}
+      </ul>
+      <PillButton variant="secondary" asChild className="mt-card w-full">
+        <Link to="/rotina/$id" params={{ id: routine.id }}>
+          {t("View plan")}
+        </Link>
+      </PillButton>
+    </GlassCard>
+  );
+}
+
+function RestDayDetails({
+  verdict,
+  next,
+  onTrainAnyway,
+}: {
+  verdict: { title: string; line: string; why: string[] };
+  next: { nome: string; primeiros: string[]; restantes: number; minutos: number } | null;
+  onTrainAnyway: () => void;
+}) {
+  const t = useT();
+  return (
+    <div className="space-y-3">
+      <p className="text-body leading-[1.4]">{verdict.line}</p>
+      <ul className="space-y-1.5">
+        {verdict.why.map((w) => (
+          <li key={w} className="flex gap-2 text-meta leading-relaxed text-muted-foreground">
+            <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/60" />
+            {w}
+          </li>
+        ))}
+      </ul>
+      {next ? (
+        <div className="rounded-card border border-border bg-surface-2 p-list">
+          <MonoLabel>{t("Next session")}</MonoLabel>
+          <p className="mt-1 truncate text-body font-medium">{next.nome}</p>
+          <p className="mt-0.5 truncate text-meta text-muted-foreground">
+            {next.primeiros.join(" · ")}
+            {next.restantes > 0 ? ` · +${next.restantes} ${t("more")}` : ""}
+          </p>
+          <p className="mt-0.5 text-meta tabular-nums text-muted-foreground">
+            {t("~{min} min", { min: next.minutos })}
+          </p>
+        </div>
+      ) : null}
+      <PillButton variant="secondary" className="w-full" onClick={onTrainAnyway}>
+        {t("Train anyway")}
+      </PillButton>
+    </div>
+  );
+}
+
+function ActiveBanner({
+  active,
+  onResume,
+  onDiscard,
+}: {
+  active: ActiveSession;
+  onResume: () => void;
+  onDiscard: () => void;
+}) {
+  const t = useT();
+  return (
+    <GlassCard>
+      <MonoLabel className="text-fj-effort">{t("Unfinished workout")}</MonoLabel>
+      <p className="mt-2 text-name font-medium">{sessionLabel(active)}</p>
+      <p className="mt-1 text-meta text-fj-label">
+        {t("Started {time} · {duration} · {sets} sets logged", {
+          time: new Date(active.iniciadoEm).toLocaleTimeString(undefined, {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          duration: formatDurationShort(sessionElapsed(active)),
+          sets: sessionSetsDone(active),
+        })}
+      </p>
+      <div className="mt-card flex gap-2">
+        <PillButton className="flex-1" onClick={onResume}>
+          {t("Resume workout")}
+        </PillButton>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <IconButton className="size-button" aria-label={t("Discard workout")}>
+              <Trash2 className="size-5 text-destructive" />
+            </IconButton>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t("Discard this workout?")}</AlertDialogTitle>
+              <AlertDialogDescription>
+                {t("Everything you logged in this session will be lost.")}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>{t("Cancel")}</AlertDialogCancel>
+              <AlertDialogAction onClick={onDiscard}>{t("Discard")}</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    </GlassCard>
+  );
+}
+
+/* ---------- routine list ---------- */
 
 function RoutineCard({
   r,
   exercises,
   last,
   insights,
-  recommended,
   isChoice,
   open,
   onToggle,
@@ -522,13 +916,11 @@ function RoutineCard({
   onStart,
   onPick,
   onDuplicate,
-  t,
 }: {
   r: Routine;
   exercises: Exercise[];
   last?: Workout | undefined;
   insights: Record<string, CoachInsight>;
-  recommended: boolean;
   isChoice: boolean;
   open: boolean;
   onToggle: () => void;
@@ -537,10 +929,9 @@ function RoutineCard({
   onStart: (opts?: { deload?: boolean }) => void;
   onPick: () => void;
   onDuplicate: () => void;
-  t: any;
 }) {
-  const [detail, setDetail] = useState<{ id: string; nome: string } | null>(null);
-  const flags = r.exercicios
+  const t = useT();
+  const flag = r.exercicios
     .map((re) => {
       const insight = insights[re.exerciseId];
       const ex = exercises.find((e) => e.id === re.exerciseId);
@@ -551,196 +942,195 @@ function RoutineCard({
     .sort(
       (a, b) =>
         (a.insight.severity === "warning" ? -1 : 1) - (b.insight.severity === "warning" ? -1 : 1),
-    )
-    .slice(0, 2);
+    )[0];
 
   return (
     <li
       className={cn(
-        "overflow-hidden rounded-2xl border bg-card",
-        isChoice ? "border-primary/40" : "border-border",
+        "glass overflow-hidden rounded-card",
+        isChoice && "border-[var(--accent-tint-border)]",
       )}
     >
       <button
         type="button"
         onClick={onToggle}
         aria-expanded={open}
-        className="flex w-full items-center gap-3 p-3 text-left"
+        className="flex w-full items-center gap-3 p-list text-left"
       >
-        <div className="relative size-14 shrink-0 overflow-hidden rounded-xl">
-          <img src={routineCover(r.id)} alt="" loading="lazy" className="size-full object-cover" />
-          <div className="veil absolute inset-0" />
-        </div>
+        <img
+          src={sessionImage(r.nome)}
+          alt=""
+          loading="lazy"
+          className="size-thumb shrink-0 rounded-thumb object-cover"
+        />
         <div className="min-w-0 flex-1">
-          {recommended ? (
-            <span className="mb-1 inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-primary">
-              <Sparkles className="size-3" /> {t("Recommended today")}
-            </span>
-          ) : null}
-          <p className="font-display text-lg font-semibold leading-tight">{r.nome}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t("{count} exercises", { count: r.exercicios.length })} ·{" "}
-            {t("~{minutes} min", { minutes: estimateRoutineMinutes(r) })} ·{" "}
+          <p className="truncate text-name font-medium text-fj-text">{r.nome}</p>
+          <p className="mt-0.5 truncate text-meta text-fj-label">
             {last
-              ? t("last {time} · {duration}", {
-                  time: relativeDays(last.iniciadoEm),
-                  duration: formatDurationShort(last.duracaoSeg),
-                })
-              : t("never trained")}
+              ? `${t("{minutes} min", { minutes: estimateRoutineMinutes(r) })} · ${relativeDays(last.iniciadoEm)}`
+              : t("new")}
           </p>
-          {flags.length && !open ? (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {flags.map((f) => (
-                <span
-                  key={f.nome}
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                    f.insight.severity === "warning"
-                      ? "bg-warn/15 text-warn"
-                      : "bg-primary/15 text-primary",
-                  )}
-                >
-                  {t("{name} · {label}", { name: f.nome, label: t(shortLabel(f.insight)) })}
-                </span>
-              ))}
-            </div>
+          {flag && !open ? (
+            <Chip tone={chipTone(flag.insight)} className="mt-2" tabIndex={-1}>
+              {t("{name} · {label}", { name: flag.nome, label: t(shortLabel(flag.insight)) })}
+            </Chip>
           ) : null}
         </div>
         <ChevronDown
-          className={cn(
-            "size-5 shrink-0 text-muted-foreground transition-transform",
-            open && "rotate-180",
-          )}
+          className={cn("size-5 shrink-0 text-fj-label transition-transform", open && "rotate-180")}
         />
       </button>
 
       {open ? (
-        <>
-          <ul className="space-y-1 border-t border-border px-3 py-2">
-            {r.exercicios.map((re) => {
-              const ex = exercises.find((e) => e.id === re.exerciseId);
-              const insight = insights[re.exerciseId];
-              const nome = ex?.nome ?? t("Exercise");
-              return (
-                <li key={re.id}>
-                  <button
-                    type="button"
-                    onClick={() => setDetail({ id: re.exerciseId, nome })}
-                    aria-label={t("How to perform {name}", { name: nome })}
-                    className="tap-target flex w-full items-center gap-3 rounded-xl px-1 py-2 text-left transition-colors active:bg-surface-3"
-                  >
-                    <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold">{nome}</p>
-                        {insight && insight.severity !== "info" ? (
-                          <InsightBadge insight={insight} />
-                        ) : null}
-                      </div>
-                      <p className="text-xs text-muted-foreground/80">
-                        {t("{count} sets · {min}-{max} reps", {
-                          count: re.seriesAlvo,
-                          min: re.repsMin,
-                          max: re.repsMax,
-                        })}
-                      </p>
-                    </div>
-                    <ChevronRight className="size-4 shrink-0 text-muted-foreground/70" />
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          <ExerciseDetailSheet
-            exerciseId={detail?.id ?? ""}
-            nome={detail?.nome ?? ""}
-            open={detail !== null}
-            onOpenChange={(o) => {
-              if (!o) setDetail(null);
-            }}
+        <div className="border-t border-fj-divider">
+          <RoutineDetails
+            r={r}
+            exercises={exercises}
+            insights={insights}
+            isChoice={isChoice}
+            active={active}
+            loading={loading}
+            onStart={onStart}
+            onPick={onPick}
+            onDuplicate={onDuplicate}
           />
-
-          <div className="space-y-2 px-3 pb-4">
-            <Button
-              variant={isChoice ? "default" : "secondary"}
-              className="h-12 w-full font-semibold"
-              disabled={loading !== null || active}
-              onClick={() => onStart()}
-            >
-              {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}
-            </Button>
-            <Button
-              variant="ghost"
-              className="h-10 w-full text-xs font-semibold text-muted-foreground"
-              disabled={loading !== null || active}
-              onClick={() => onStart({ deload: true })}
-            >
-              {t("Start lighter (deload)")}
-            </Button>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="ghost"
-                className="h-10 text-xs font-semibold"
-                disabled={isChoice}
-                onClick={onPick}
-              >
-                {isChoice ? t("Today's pick") : t("Make today's pick")}
-              </Button>
-              <Button asChild variant="ghost" className="h-10 text-xs font-semibold">
-                <Link to="/rotina/$id" params={{ id: r.id }}>
-                  <Pencil className="mr-1.5 size-3.5" /> {t("Edit routine")}
-                </Link>
-              </Button>
-            </div>
-            <Button
-              variant="ghost"
-              className="h-10 w-full text-xs font-semibold text-muted-foreground"
-              onClick={onDuplicate}
-            >
-              <Copy className="mr-1.5 size-3.5" /> {t("Duplicate routine")}
-            </Button>
-          </div>
-        </>
+        </div>
       ) : null}
     </li>
   );
 }
 
-function shortLabel(insight: CoachInsight): string {
-  switch (insight.plateauType) {
-    case "strength":
-      return "Increase";
-    case "single-exercise":
-      return "Stalled";
-    case "fatigue":
-      return "Ease off";
-    default:
-      return insight.title;
-  }
+/** The expanded routine: every exercise (tap for how-to) and every routine action. */
+function RoutineDetails({
+  r,
+  exercises,
+  insights,
+  isChoice,
+  active,
+  loading,
+  onStart,
+  onPick,
+  onDuplicate,
+}: {
+  r: Routine;
+  exercises: Exercise[];
+  insights: Record<string, CoachInsight>;
+  isChoice: boolean;
+  active: boolean;
+  loading: string | null;
+  onStart: (opts?: { deload?: boolean }) => void;
+  onPick: () => void;
+  onDuplicate: () => void;
+}) {
+  const t = useT();
+  const [detail, setDetail] = useState<{ id: string; nome: string } | null>(null);
+
+  return (
+    <>
+      <ul className="space-y-1 px-list py-2">
+        {r.exercicios.map((re) => {
+          const ex = exercises.find((e) => e.id === re.exerciseId);
+          const insight = insights[re.exerciseId];
+          const nome = ex?.nome ?? t("Exercise");
+          return (
+            <li key={re.id} className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setDetail({ id: re.exerciseId, nome })}
+                aria-label={t("How to perform {name}", { name: nome })}
+                className="tap-target flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-2 text-left"
+              >
+                <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-body font-medium">{nome}</p>
+                  <p className="text-meta text-fj-label">
+                    {t("{count} sets · {min}-{max} reps", {
+                      count: re.seriesAlvo,
+                      min: re.repsMin,
+                      max: re.repsMax,
+                    })}
+                  </p>
+                </div>
+              </button>
+              {insight && insight.severity !== "info" ? (
+                <InsightChip insight={insight} />
+              ) : (
+                <ChevronRight className="size-4 shrink-0 text-fj-label" />
+              )}
+            </li>
+          );
+        })}
+      </ul>
+
+      <ExerciseDetailSheet
+        exerciseId={detail?.id ?? ""}
+        nome={detail?.nome ?? ""}
+        open={detail !== null}
+        onOpenChange={(o) => {
+          if (!o) setDetail(null);
+        }}
+      />
+
+      <div className="space-y-2 px-list pb-card">
+        <PillButton
+          variant={isChoice ? "primary" : "secondary"}
+          className="w-full"
+          disabled={loading !== null || active}
+          onClick={() => onStart()}
+        >
+          {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}
+        </PillButton>
+        <Button
+          variant="ghost"
+          className="h-10 w-full text-meta font-medium text-fj-label"
+          disabled={loading !== null || active}
+          onClick={() => onStart({ deload: true })}
+        >
+          {t("Start lighter (deload)")}
+        </Button>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="ghost"
+            className="h-10 text-meta font-medium"
+            disabled={isChoice}
+            onClick={onPick}
+          >
+            {isChoice ? t("Today's pick") : t("Make today's pick")}
+          </Button>
+          <Button asChild variant="ghost" className="h-10 text-meta font-medium">
+            <Link to="/rotina/$id" params={{ id: r.id }}>
+              <Pencil className="mr-1.5 size-3.5" /> {t("Edit routine")}
+            </Link>
+          </Button>
+        </div>
+        <Button
+          variant="ghost"
+          className="h-10 w-full text-meta font-medium text-fj-label"
+          onClick={onDuplicate}
+        >
+          <Copy className="mr-1.5 size-3.5" /> {t("Duplicate routine")}
+        </Button>
+      </div>
+    </>
+  );
 }
 
-function InsightBadge({ insight }: { insight: CoachInsight }) {
+/** Coach status chip; tap for the full insight. */
+function InsightChip({ insight, name }: { insight: CoachInsight; name?: string }) {
   const t = useT();
-  const isWarning = insight.severity === "warning";
+  const tone = chipTone(insight);
+  const label = t(shortLabel(insight));
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button
-          type="button"
-          aria-label={t("{title} — see details", { title: insight.title })}
-          className={cn(
-            "inline-flex h-6 shrink-0 items-center gap-1 rounded-full px-2 text-[10px] font-semibold",
-            isWarning ? "bg-warn/15 text-warn" : "bg-primary/15 text-primary",
-          )}
-        >
-          {isWarning ? (
-            <AlertTriangle className="size-3" strokeWidth={3} />
-          ) : (
-            <TrendingUp className="size-3" strokeWidth={3} />
-          )}
-          {t(shortLabel(insight))}
-        </button>
+        <Chip tone={tone} aria-label={t("{title} — see details", { title: insight.title })}>
+          {tone === "warn" ? (
+            <AlertTriangle className="size-3" strokeWidth={2.5} />
+          ) : tone === "up" ? (
+            <TrendingUp className="size-3" strokeWidth={2.5} />
+          ) : null}
+          {name ? t("{name} · {label}", { name, label }) : label}
+        </Chip>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 text-sm">
         <p className="font-semibold">{insight.title}</p>
