@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Info, MessageSquare } from "lucide-react";
+import { Info } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExerciseHistoryCard } from "@/components/ExerciseHistoryCard";
-import { CoachChatPanel } from "@/components/CoachChatSheet";
 import { getExerciseTips } from "@/lib/coach/exercise-tips";
 import { exerciseLoopUrl, exerciseThumbUrl } from "@/lib/exerciseMedia";
 import { useT } from "@/lib/i18n";
@@ -119,31 +118,6 @@ export function ExerciseDetailSheet({
               <h3 className="label-caps mb-1.5">{t("Your history")}</h3>
               <ExerciseHistoryCard exerciseId={exerciseId} />
             </section>
-
-            <section>
-              <h3 className="label-caps mb-1.5 flex items-center gap-1.5">
-                <MessageSquare className="size-3.5" /> {t("Ask about this exercise")}
-              </h3>
-              <CoachChatPanel
-                exercise={{
-                  exerciseName: nome,
-                  tips: tipsQ.data?.tips ?? [],
-                  lastLabel: tipsQ.data?.lastLabel ?? null,
-                  bestLabel: tipsQ.data?.bestLabel ?? null,
-                  stalled: tipsQ.data?.stalled ?? false,
-                }}
-                suggestions={[
-                  t("Am I doing this right?"),
-                  t("Why does it hurt here?"),
-                  t("How do I progress?"),
-                ]}
-              />
-              <p className="mt-2 text-[11px] leading-snug text-muted-foreground">
-                {t(
-                  "For open-ended coaching, ask Claude — connect it in Profile → AI assistant and it reads this exercise's real history.",
-                )}
-              </p>
-            </section>
           </div>
         )}
       </SheetContent>
@@ -159,8 +133,8 @@ function Chip({ text }: { text: string }) {
   );
 }
 
-/** Tips + scoped chat only, for surfaces that already show media and history. */
-export function ExerciseCoachSection({ exerciseId, nome }: { exerciseId: string; nome: string }) {
+/** Tips only, for surfaces that already show media and history. */
+export function ExerciseCoachSection({ exerciseId }: { exerciseId: string }) {
   const t = useT();
   const tipsQ = useQuery({
     queryKey: ["exerciseTips", exerciseId],
@@ -186,26 +160,6 @@ export function ExerciseCoachSection({ exerciseId, nome }: { exerciseId: string;
           </ul>
         </section>
       ) : null}
-
-      <section>
-        <h3 className="label-caps mb-1.5 flex items-center gap-1.5">
-          <MessageSquare className="size-3.5" /> {t("Ask about this exercise")}
-        </h3>
-        <CoachChatPanel
-          exercise={{
-            exerciseName: nome,
-            tips: tipsQ.data?.tips ?? [],
-            lastLabel: tipsQ.data?.lastLabel ?? null,
-            bestLabel: tipsQ.data?.bestLabel ?? null,
-            stalled: tipsQ.data?.stalled ?? false,
-          }}
-          suggestions={[
-            t("Am I doing this right?"),
-            t("Why does it hurt here?"),
-            t("How do I progress?"),
-          ]}
-        />
-      </section>
     </div>
   );
 }

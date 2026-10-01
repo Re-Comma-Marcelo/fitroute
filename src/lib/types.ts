@@ -87,7 +87,15 @@ export interface Profile {
   trainingGoal?: TrainingGoal | undefined;
   /** Training age, derived from onboarding/plan-interview answers — undefined if neither ran. */
   trainingExperience?: Experience | undefined;
+  /** What the route measures: body weight (default) or one lift. */
+  metaTipo?: GoalKind | undefined;
+  /** Lift goal: which exercise, where it started and where it should get to (kg). */
+  metaExerciseId?: string | undefined;
+  metaLiftInicialKg?: number | undefined;
+  metaLiftKg?: number | undefined;
 }
+
+export type GoalKind = "weight" | "lift";
 
 /** A different way to perform the same exercise (e.g. grip width) — shares
  * the parent exercise's history and progression, just tags which way a set

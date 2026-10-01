@@ -1,6 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { CoachChatButton } from "@/components/CoachChatSheet";
-import { PillButton, pillClass } from "./PillButton";
+import { PillButton } from "./PillButton";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +11,6 @@ export function CoachCard({
   text,
   label,
   action,
-  askRo = true,
   why,
   link,
   className,
@@ -21,8 +19,6 @@ export function CoachCard({
   /** Defaults to "RO · COACH". */
   label?: string;
   action?: { label: string; onClick: () => void; disabled?: boolean } | undefined;
-  /** Show the secondary "Ask Ro" button that opens the coach chat. */
-  askRo?: boolean;
   /** Full reasoning, expanded in place by "See why". */
   why?: ReactNode;
   /** Extra text link next to "See why" (e.g. "Reply"). */
@@ -67,18 +63,11 @@ export function CoachCard({
         <div className="mt-3 text-body leading-[1.4] text-fj-text-2">{why}</div>
       ) : null}
 
-      {action || askRo ? (
+      {action ? (
         <div className="mt-card flex gap-2">
-          {action ? (
-            <PillButton className="flex-1" onClick={action.onClick} disabled={action.disabled}>
-              {action.label}
-            </PillButton>
-          ) : null}
-          {askRo ? (
-            <CoachChatButton className={pillClass("secondary", action ? "" : "flex-1")}>
-              {t("Ask Ro")}
-            </CoachChatButton>
-          ) : null}
+          <PillButton className="flex-1" onClick={action.onClick} disabled={action.disabled}>
+            {action.label}
+          </PillButton>
         </div>
       ) : null}
     </section>

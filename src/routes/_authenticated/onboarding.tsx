@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,6 +11,9 @@ import {
   Flag,
   Flame,
   Loader2,
+  Minus,
+  Plus,
+  RefreshCw,
   RotateCcw,
   Scale,
   Shuffle,
@@ -23,17 +26,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HevyImportPanel } from "@/components/import/HevyImportPanel";
 import { RouteMarkProgress } from "@/components/RouteLogo";
+import { logBodyWeight } from "@/lib/data/body-weight";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile, saveProfile } from "@/lib/data/profile";
-import { getCheckpoints, saveCheckpoint } from "@/lib/data/route";
+import { getCheckpoints } from "@/lib/data/route";
 import { saveRoutine } from "@/lib/data/routines";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatKg, weightUnitLabel } from "@/lib/format";
 import { useLanguage, useT } from "@/lib/i18n";
 import {
   DEFAULT_ANSWERS,
   buildStarterPlan,
   goalToObjetivo,
   goalToTrainingGoal,
+  sessionsPerWeek,
   sortDays,
   templateFor,
   yearsToExperience,
@@ -47,12 +52,19 @@ import { markOnboardingDone } from "@/lib/onboarding";
 import { pageMeta } from "@/lib/route-meta";
 import { mapRoute } from "@/lib/route/auto-map";
 import { addDays, isoDay } from "@/lib/route/cadence";
+import {
+  isAmbitiousLift,
+  suggestLiftTarget,
+  suggestTargetWeight,
+  type WeightDirection,
+} from "@/lib/route/goal-path";
 import { currentCheckpoint } from "@/lib/route/status";
 import type { Checkpoint } from "@/lib/route/types";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import type { FocusMuscle, Pace } from "@/lib/routine-templates";
 import { startRoutineSession } from "@/lib/start-session";
-import type { Routine } from "@/lib/types";
+import type { GoalKind, Routine } from "@/lib/types";
+import { fromDisplayWeight, toDisplayWeight } from "@/lib/units";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
@@ -72,14 +84,47 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
  * ends on a mapped route and the first workout, never on an empty home.
  */
 type Step =
-  "name" | "goal" | "days" | "pace" | "focus" | "experience" | "plan" | "route" | "import";
+  | "name"
+  | "goal"
+  | "days"
+  | "pace"
+  | "focus"
+  | "experience"
+  | "target"
+  | "plan"
+  | "route"
+  | "import";
 
-const QUESTIONS: Step[] = ["name", "goal", "experience", "days", "pace", "focus", "plan", "route"];
+const QUESTIONS: Step[] = [
+  "name",
+  "goal",
+  "experience",
+  "target",
+  "days",
+  "pace",
+  "focus",
+  "plan",
+  "route",
+];
 /** Sunday first, matching `Date#getDay()`. */
 const WEEK = [0, 1, 2, 3, 4, 5, 6] as const;
 const WEEK_OPTIONS = [8, 12, 16] as const;
-/** The first checkpoint is one finished workout, due within the first week. */
-const ANCHOR_DAYS = 7;
+/** Lifts that make a clear, measurable main goal. Built-in catalog ids. */
+const GOAL_LIFTS = ["e1", "e7", "e14", "e29"] as const;
+
+/** Which way the scale should move for each onboarding goal. */
+function directionFor(goal: StarterGoal): WeightDirection {
+  if (goal === "muscle-gain") return "gain";
+  if (goal === "fat-loss") return "lose";
+  if (goal === "muscle-cut") return "recomp";
+  return "maintain";
+}
+
+/** "73,5" or "73.5" in the display unit -> kg, or null when it isn't a weight. */
+function parseWeight(raw: string): number | null {
+  const value = Number(raw.replace(",", "."));
+  return Number.isFinite(value) && value > 0 ? fromDisplayWeight(value) : null;
+}
 
 interface MappedRoute {
   goalDate: string | null;
@@ -104,18 +149,34 @@ function OnboardingPage() {
   };
   const [name, setName] = useState("");
   const [answers, setAnswers] = useState<Partial<StarterAnswers>>({});
-  /** Weeks to the goal; `null` is "not sure yet", `undefined` is unanswered. */
-  const [weeks, setWeeks] = useState<number | null | undefined>(undefined);
+  /** Weeks to the goal: the route always has an end date to measure against. */
+  const [weeks, setWeeks] = useState<number>(16);
+  /** The main goal: body weight, or one lift. */
+  const [goalKind, setGoalKind] = useState<GoalKind | null>(null);
+  /** Typed in the display unit; parsed with parseWeight(). */
+  const [weightDraft, setWeightDraft] = useState("");
+  /** kg; null follows the research suggestion until the person changes it. */
+  const [targetKg, setTargetKg] = useState<number | null>(null);
+  const [liftId, setLiftId] = useState<string>(GOAL_LIFTS[0]);
+  const [liftDraft, setLiftDraft] = useState("");
+  const [liftTargetKg, setLiftTargetKg] = useState<number | null>(null);
+  /** Bumped by "New split": every slot swaps to its next alternative. */
+  const [variant, setVariant] = useState(0);
   const [creating, setCreating] = useState(false);
   const [starting, setStarting] = useState(false);
   const [route, setRoute] = useState<MappedRoute | null>(null);
 
-  // Someone replaying the flow from Profile already has a name.
+  const weightPrefilled = useRef(false);
+  // Someone replaying the flow from Profile already has a name and a weight.
   useEffect(() => {
     if (profileQ.data?.nome && !name) setName(profileQ.data.nome);
+    if (profileQ.data?.pesoKg && !weightPrefilled.current) {
+      weightPrefilled.current = true;
+      setWeightDraft(String(Math.round(toDisplayWeight(profileQ.data.pesoKg) * 10) / 10));
+    }
     // Prefill once; typing must not be overwritten by a refetch.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [profileQ.data?.nome]);
+  }, [profileQ.data?.nome, profileQ.data?.pesoKg]);
 
   const dayLabels = useMemo(() => {
     const narrow = new Intl.DateTimeFormat(locale, { weekday: "narrow" });
@@ -136,14 +197,33 @@ function OnboardingPage() {
       focusMuscles: answers.focusMuscles?.length
         ? answers.focusMuscles
         : DEFAULT_ANSWERS.focusMuscles,
+      flexiblePerWeek: answers.flexiblePerWeek ?? null,
     }),
     [answers],
   );
 
   const plan = useMemo(() => {
     if (step !== "plan" || !exercisesQ.data?.length) return null;
-    return buildStarterPlan(complete, exercisesQ.data, (source) => t(source));
-  }, [step, complete, exercisesQ.data, t]);
+    return buildStarterPlan(complete, exercisesQ.data, (source) => t(source), {
+      variant,
+      equipment: profileQ.data?.equipment ?? null,
+    });
+  }, [step, complete, exercisesQ.data, t, variant, profileQ.data?.equipment]);
+
+  // The main goal, made measurable for the chosen time frame.
+  const experience = yearsToExperience(complete.trainingYears);
+  const weightDirection = directionFor(complete.goal);
+  const currentKg = parseWeight(weightDraft);
+  const suggestedKg = currentKg
+    ? suggestTargetWeight(currentKg, weightDirection, weeks, experience)
+    : null;
+  const goalWeightKg = targetKg ?? suggestedKg;
+  const liftNowKg = parseWeight(liftDraft);
+  const suggestedLiftKg = liftNowKg ? suggestLiftTarget(liftNowKg, weeks, experience) : null;
+  const goalLiftKg = liftTargetKg ?? suggestedLiftKg;
+  // Keeping weight steady makes a flat weight line, so a lift is the default there.
+  const kind: GoalKind = goalKind ?? (weightDirection === "maintain" ? "lift" : "weight");
+  const goalReady = kind === "weight" ? !!currentKg : !!(liftNowKg && currentKg);
 
   const questionIndex = QUESTIONS.indexOf(step);
   const progressPct = questionIndex >= 0 ? ((questionIndex + 1) / QUESTIONS.length) * 100 : 0;
@@ -153,15 +233,20 @@ function OnboardingPage() {
     const profile = await getProfile();
     const trimmed = name.trim();
     const today = isoDay(new Date());
+    const startKg = currentKg ? Math.round(currentKg * 10) / 10 : profile.pesoKg;
+    // Today's weigh-in is the first point of the route's weekly averages.
+    if (currentKg) await logBodyWeight(today, startKg).catch(() => undefined);
+    const liftGoal = kind === "lift" && liftNowKg && goalLiftKg;
     await saveProfile({
       ...profile,
       nome: trimmed || profile.nome,
+      pesoKg: startKg,
       objetivo: goalToObjetivo(complete.goal),
       // Reused by the weekly plan generator's training-frequency guideline.
       trainingGoal: goalToTrainingGoal(complete.goal),
       // Reused by the route's muscle-gain pace check (see plan/guardrails.ts).
       trainingExperience: yearsToExperience(complete.trainingYears),
-      metaTreinosSemana: sortDays(complete.days).length,
+      metaTreinosSemana: sessionsPerWeek(complete),
       onboardingConcluidoEm: today,
       ...(goalDate
         ? {
@@ -171,26 +256,17 @@ function OnboardingPage() {
             // goal needs its own starting weight, or the route's "gaining vs
             // losing" direction check (see route/status.ts) reads against a
             // weight from a previous, possibly opposite-direction goal.
-            pesoInicialKg: profile.pesoKg,
+            pesoInicialKg: startKg,
+            metaTipo: liftGoal ? "lift" : "weight",
+            metaExerciseId: liftGoal ? liftId : undefined,
+            metaLiftInicialKg: liftGoal ? Math.round(liftNowKg * 10) / 10 : undefined,
+            metaLiftKg: liftGoal ? goalLiftKg : undefined,
+            // A lift goal keeps whatever weight target was there before.
+            ...(!liftGoal && goalWeightKg ? { pesoMetaKg: goalWeightKg } : {}),
           }
         : {}),
     });
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
-  }
-
-  /** One finished workout in the first week: the first thing to tick off. */
-  async function ensureAnchorCheckpoint() {
-    const existing = await getCheckpoints();
-    if (existing.some((cp) => cp.metric?.kind === "sessions" && cp.metric.value === 1)) return;
-    await saveCheckpoint({
-      title: t("First session logged"),
-      description: t("One finished workout in your first week. That is the whole checkpoint."),
-      targetDate: isoDay(addDays(new Date(), ANCHOR_DAYS)),
-      orderIndex: 0,
-      status: "upcoming",
-      source: "ai_suggested",
-      metric: { kind: "sessions", value: 1 },
-    });
   }
 
   async function startHere() {
@@ -217,11 +293,6 @@ function OnboardingPage() {
     } catch (error) {
       console.error("Failed to map the route from onboarding:", error);
       toast.message(t("Could not map the route right now. You can map it later on the Route tab."));
-    }
-    try {
-      await ensureAnchorCheckpoint();
-    } catch (error) {
-      console.error("Failed to add the first checkpoint:", error);
     }
     const checkpoints = await getCheckpoints().catch(() => [] as Checkpoint[]);
     await queryClient.invalidateQueries({ queryKey: ["route-checkpoints"] });
@@ -254,7 +325,7 @@ function OnboardingPage() {
   async function buildMyself() {
     setCreating(true);
     try {
-      await persistProfileAnswers(weeks ? isoDay(addDays(new Date(), weeks * 7)) : null);
+      await persistProfileAnswers(isoDay(addDays(new Date(), weeks * 7)));
     } catch (error) {
       console.error("Failed to save profile from onboarding:", error);
     } finally {
@@ -275,11 +346,14 @@ function OnboardingPage() {
       const current = a.days ?? [];
       return {
         ...a,
+        // Fixed days and "different every week" exclude each other.
+        flexiblePerWeek: null,
         days: current.includes(day) ? current.filter((d) => d !== day) : [...current, day],
       };
     });
 
   const pickedDays = sortDays(answers.days ?? []);
+  const flexible = answers.flexiblePerWeek ?? null;
   const canGoBack = step !== "name" && step !== "route";
 
   /** Evidence-based day range for this goal/experience — asked before "days" so it can cap the picker. */
@@ -377,18 +451,11 @@ function OnboardingPage() {
                   onClick={() => setWeeks(n)}
                 />
               ))}
-              <Chip
-                label={t("Not sure yet")}
-                selected={weeks === null}
-                onClick={() => setWeeks(null)}
-              />
             </div>
             <p className="mt-3 text-sm text-muted-foreground">
-              {weeks
-                ? t("Goal on {date}. The route gets checkpoints along the way.", {
-                    date: formatDate(isoDay(addDays(new Date(), weeks * 7))),
-                  })
-                : t("You can set a date later on the Route tab.")}
+              {t("Goal on {date}. The route gets checkpoints along the way.", {
+                date: formatDate(isoDay(addDays(new Date(), weeks * 7))),
+              })}
             </p>
 
             <Button
@@ -415,14 +482,123 @@ function OnboardingPage() {
                   selected={answers.trainingYears === years}
                   onClick={() => {
                     setAnswers((a) => ({ ...a, trainingYears: years }));
-                    setStep("days");
+                    setStep("target");
                   }}
                 />
               ))}
             </div>
             <div className="mt-auto">
-              <SkipLink onSkip={() => setStep("days")} />
+              <SkipLink onSkip={() => setStep("target")} />
             </div>
+          </section>
+        ) : null}
+
+        {step === "target" ? (
+          <section className="flex flex-1 flex-col">
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("What do you want to measure your progress by?")}
+            </h1>
+            <div className="mt-5 flex flex-wrap gap-2" role="group">
+              <Chip
+                label={t("My body weight")}
+                selected={kind === "weight"}
+                onClick={() => setGoalKind("weight")}
+              />
+              <Chip
+                label={t("A lift")}
+                selected={kind === "lift"}
+                onClick={() => setGoalKind("lift")}
+              />
+            </div>
+
+            <label htmlFor="onboarding-weight" className="label-caps mt-6 block">
+              {t("Your weight today ({unit})", { unit: weightUnitLabel() })}
+            </label>
+            <Input
+              id="onboarding-weight"
+              inputMode="decimal"
+              enterKeyHint="done"
+              value={weightDraft}
+              onChange={(e) => {
+                setWeightDraft(e.target.value);
+                setTargetKg(null);
+              }}
+              placeholder={weightUnitLabel()}
+              className="numeric-field mt-2 h-12 text-base"
+            />
+
+            {kind === "lift" ? (
+              <>
+                <p className="label-caps mt-5">{t("Which lift?")}</p>
+                <div className="mt-2 flex flex-wrap gap-2" role="group">
+                  {GOAL_LIFTS.map((id) => (
+                    <Chip
+                      key={id}
+                      label={exercisesQ.data?.find((e) => e.id === id)?.nome ?? id}
+                      selected={liftId === id}
+                      onClick={() => setLiftId(id)}
+                    />
+                  ))}
+                </div>
+                <label htmlFor="onboarding-lift" className="label-caps mt-5 block">
+                  {t("Your heaviest set of 5 now ({unit})", { unit: weightUnitLabel() })}
+                </label>
+                <Input
+                  id="onboarding-lift"
+                  inputMode="decimal"
+                  enterKeyHint="done"
+                  value={liftDraft}
+                  onChange={(e) => {
+                    setLiftDraft(e.target.value);
+                    setLiftTargetKg(null);
+                  }}
+                  placeholder={weightUnitLabel()}
+                  className="numeric-field mt-2 h-12 text-base"
+                />
+              </>
+            ) : null}
+
+            {kind === "weight" && currentKg && goalWeightKg ? (
+              <GoalStepper
+                label={t("Realistic in {weeks} weeks", { weeks })}
+                value={goalWeightKg}
+                step={0.5}
+                onChange={setTargetKg}
+                note={
+                  weightDirection === "maintain"
+                    ? t("Your goal keeps your weight steady, so the route tracks it around here.")
+                    : t(
+                        "Based on research on how fast your body can change at your level. You can adjust it.",
+                      )
+                }
+              />
+            ) : null}
+            {kind === "lift" && liftNowKg && goalLiftKg ? (
+              <GoalStepper
+                label={t("Realistic in {weeks} weeks", { weeks })}
+                value={goalLiftKg}
+                step={2.5}
+                onChange={setLiftTargetKg}
+                note={
+                  isAmbitiousLift(liftNowKg, goalLiftKg, weeks, experience)
+                    ? t(
+                        "That is faster than strength usually grows at your level. Possible, but the route will be tight.",
+                      )
+                    : t(
+                        "Based on how fast strength usually grows at your training level. You can adjust it.",
+                      )
+                }
+              />
+            ) : null}
+
+            <Button
+              className="tap-target mt-auto h-14 w-full gap-2"
+              disabled={!goalReady}
+              onClick={() => setStep("days")}
+            >
+              {t("Continue")} <ArrowRight className="size-4" />
+            </Button>
+            <SkipLink onSkip={() => setStep("days")} />
           </section>
         ) : null}
 
@@ -457,11 +633,42 @@ function OnboardingPage() {
                 );
               })}
             </div>
-            <p className="mt-3 text-sm text-muted-foreground">
-              {pickedDays.length
-                ? `${t("{count} day(s) a week", { count: pickedDays.length })} · ${t(templateFor(pickedDays.length).nome)}`
-                : t("Skip — you can change this later")}
-            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Chip
+                label={t("Different every week")}
+                selected={flexible !== null}
+                onClick={() =>
+                  setAnswers((a) => ({
+                    ...a,
+                    days: [],
+                    flexiblePerWeek: a.flexiblePerWeek ? null : frequencyRange.minDays,
+                  }))
+                }
+              />
+            </div>
+            {flexible !== null ? (
+              <>
+                <p className="label-caps mt-5">{t("How many times a week?")}</p>
+                <div className="mt-2 flex flex-wrap gap-2" role="group">
+                  {Array.from(
+                    { length: frequencyRange.maxDays - frequencyRange.minDays + 1 },
+                    (_, i) => frequencyRange.minDays + i,
+                  ).map((n) => (
+                    <Chip
+                      key={n}
+                      label={t("{count}x", { count: n })}
+                      selected={flexible === n}
+                      onClick={() => setAnswers((a) => ({ ...a, flexiblePerWeek: n }))}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : null}
+            {pickedDays.length || flexible !== null ? (
+              <p className="mt-3 text-sm text-muted-foreground">
+                {`${t("{count} day(s) a week", { count: sessionsPerWeek(complete) })} · ${t(templateFor(sessionsPerWeek(complete)).nome)}`}
+              </p>
+            ) : null}
             <p className="mt-1 text-xs text-muted-foreground/80">
               {t(
                 "{min}-{max} days is the evidence-based range for this goal and level — more doesn't train any better.",
@@ -470,7 +677,7 @@ function OnboardingPage() {
             </p>
             <Button
               className="tap-target mt-auto h-14 w-full gap-2"
-              disabled={!pickedDays.length}
+              disabled={!pickedDays.length && flexible === null}
               onClick={() => setStep("pace")}
             >
               {t("Continue")} <ArrowRight className="size-4" />
@@ -574,7 +781,7 @@ function OnboardingPage() {
             <p className="mt-1 text-sm text-muted-foreground">
               {t("{template} · {days} days · {min}-{max} reps", {
                 template: t(plan.template.nome),
-                days: sortDays(complete.days).length,
+                days: sessionsPerWeek(complete),
                 min: plan.prescription.repsMin,
                 max: plan.prescription.repsMax,
               })}
@@ -600,6 +807,15 @@ function OnboardingPage() {
               ))}
             </ul>
 
+            <button
+              type="button"
+              onClick={() => setVariant((v) => v + 1)}
+              className="tap-target mt-3 flex items-center justify-center gap-2 text-xs font-semibold text-primary"
+            >
+              <RefreshCw className="size-3.5" /> {t("New split with other exercises")}
+            </button>
+            <SplitRationale />
+
             <Button
               className="tap-target mt-auto h-14 w-full"
               disabled={creating}
@@ -618,7 +834,7 @@ function OnboardingPage() {
               </button>
               <span aria-hidden>·</span>
               <button type="button" className="tap-target" onClick={() => setStep("import")}>
-                {t("Import from Hevy")}
+                {t("Import from another app")}
               </button>
             </div>
           </section>
@@ -696,7 +912,9 @@ function OnboardingPage() {
 
         {step === "import" ? (
           <section>
-            <h1 className="text-2xl font-semibold tracking-tight">{t("Import from Hevy")}</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              {t("Import from another app")}
+            </h1>
             <div className="mt-4">
               <HevyImportPanel
                 onFinished={() => {
@@ -709,6 +927,86 @@ function OnboardingPage() {
           </section>
         ) : null}
       </div>
+    </div>
+  );
+}
+
+/** The suggested target, nudged up or down in plate-sized steps. */
+function GoalStepper({
+  label,
+  value,
+  step,
+  onChange,
+  note,
+}: {
+  label: string;
+  value: number;
+  step: number;
+  onChange: (kg: number) => void;
+  note: string;
+}) {
+  const t = useT();
+  return (
+    <div className="mt-6 rounded-2xl border border-primary/40 bg-primary/10 p-4">
+      <p className="label-caps">{label}</p>
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <button
+          type="button"
+          aria-label={t("Lower")}
+          onClick={() => onChange(Math.max(step, Math.round((value - step) * 10) / 10))}
+          className="tap-target grid size-11 place-items-center rounded-full border border-border bg-card"
+        >
+          <Minus className="size-4" />
+        </button>
+        <span className="text-2xl font-semibold tabular-nums">{formatKg(value)}</span>
+        <button
+          type="button"
+          aria-label={t("Higher")}
+          onClick={() => onChange(Math.round((value + step) * 10) / 10)}
+          className="tap-target grid size-11 place-items-center rounded-full border border-border bg-card"
+        >
+          <Plus className="size-4" />
+        </button>
+      </div>
+      <p className="mt-2 text-xs leading-snug text-muted-foreground">{note}</p>
+    </div>
+  );
+}
+
+/** Why the split looks the way it does, one tap away. */
+function SplitRationale() {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mt-1 text-center">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="tap-target text-xs font-semibold text-muted-foreground"
+      >
+        {open ? t("Hide") : t("How is this split built?")}
+      </button>
+      {open ? (
+        <ul className="mt-1 space-y-1.5 rounded-2xl border border-border bg-card p-3 text-left text-xs leading-snug text-muted-foreground">
+          <li>{t("Big compound lifts first, while you are fresh; isolation work after.")}</li>
+          <li>
+            {t(
+              "Pushing and pulling, knee and hip movements stay balanced, so every muscle is trained about twice a week.",
+            )}
+          </li>
+          <li>
+            {t(
+              "5 to 7 exercises a session. Past roughly 6 to 10 hard sets per muscle in one session, extra work mostly adds fatigue, not growth.",
+            )}
+          </li>
+          <li>
+            {t(
+              "Each muscle gets about 6 to 15 direct sets a week, plus work from the big lifts. Research supports about 10 to 20 for growth, so this is a start you can build on.",
+            )}
+          </li>
+        </ul>
+      ) : null}
     </div>
   );
 }

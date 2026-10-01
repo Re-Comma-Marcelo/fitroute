@@ -7,6 +7,7 @@ import { Flag, Flame, Share2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CountUp } from "@/components/CountUp";
+import { RouteMarkProgress } from "@/components/RouteLogo";
 import { getWorkout, getWorkouts, getWorkoutLog, getWorkoutSets } from "@/lib/data/workouts";
 import { pendingWorkouts } from "@/lib/offline-queue";
 import { getExercises } from "@/lib/data/exercises";
@@ -185,6 +186,8 @@ function SummaryPage() {
         <div className="veil absolute inset-0" />
       </div>
       <div className="relative mx-auto max-w-md">
+        {/* The R that grew between exercises closes here: the whole session is done. */}
+        <RouteMarkComplete className="mb-4 size-16" label={t("Workout complete")} />
         <p className="label-caps">{t("Session finished")}</p>
         <h1 className="mt-2 text-4xl font-semibold tracking-tight">{t("Workout done")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("Good work. Here is the summary.")}</p>
@@ -358,4 +361,14 @@ function Stat({ label, value }: { label: string; value: string }) {
       <dd className="num-big mt-1">{value}</dd>
     </div>
   );
+}
+
+/** The last stretch of the R drawing in, then settling into the full mark. */
+function RouteMarkComplete({ className, label }: { className?: string; label: string }) {
+  const [progress, setProgress] = useState(80);
+  useEffect(() => {
+    const id = window.requestAnimationFrame(() => setProgress(100));
+    return () => window.cancelAnimationFrame(id);
+  }, []);
+  return <RouteMarkProgress progress={progress} className={className} label={label} />;
 }

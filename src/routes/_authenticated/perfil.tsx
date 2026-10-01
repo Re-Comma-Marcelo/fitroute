@@ -32,7 +32,6 @@ import { FEATURES, setFeature, useFeature, type FeatureFlag } from "@/lib/featur
 import { fileToAvatarDataUrl } from "@/lib/avatar";
 import { getExercises } from "@/lib/data/exercises";
 import type { NivelAtividade, Objetivo, PreferredTime, Profile, Sexo } from "@/lib/types";
-import { CoachChatButton } from "@/components/CoachChatSheet";
 import { AvoidExerciseSheet } from "@/components/AvoidExerciseSheet";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { LANGS, useLanguage, useT } from "@/lib/i18n";
@@ -293,12 +292,7 @@ function ProfilePage() {
   const timeLabel = times.find((x) => x.value === form.preferredTime)?.label ?? "";
 
   return (
-    <AppShell
-      title={t("Profile")}
-      action={
-        <CoachChatButton className="tap-target inline-flex size-10 items-center justify-center rounded-full border border-border bg-card text-primary" />
-      }
-    >
+    <AppShell title={t("Profile")}>
       {/* Identity header — photo-led, one metadata line */}
       <section className="rounded-2xl border border-border/60 bg-card/70 p-4">
         <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3.5">

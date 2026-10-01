@@ -21,6 +21,10 @@ export interface CoachContext {
     startWeightKg: number | null;
     targetWeightKg: number | null;
     deadline: string | null;
+    /** The main goal is one lift instead of body weight. */
+    lift: { exerciseId: string; nome: string; startKg: number; targetKg: number } | null;
+    /** When the goal was set — where the route's line starts. */
+    startedOn: string | null;
   };
   currentWeightKg: number | null;
   /** Training age, for the muscle-gain pace check (see plan/guardrails.ts) — defaults to "intermediate" when never set. */
@@ -63,6 +67,21 @@ export async function buildCoachContext(): Promise<CoachContext> {
       startWeightKg: profile.pesoInicialKg ?? null,
       targetWeightKg: profile.pesoMetaKg ?? null,
       deadline: profile.metaPrazo ?? null,
+      lift:
+        profile.metaTipo === "lift" &&
+        profile.metaExerciseId &&
+        profile.metaLiftInicialKg &&
+        profile.metaLiftKg
+          ? {
+              exerciseId: profile.metaExerciseId,
+              nome:
+                exercises.find((e) => e.id === profile.metaExerciseId)?.nome ??
+                profile.metaExerciseId,
+              startKg: profile.metaLiftInicialKg,
+              targetKg: profile.metaLiftKg,
+            }
+          : null,
+      startedOn: profile.metaIniciadaEm ?? null,
     },
     // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
     currentWeightKg: weights[weights.length - 1]?.pesoKg ?? profile.pesoKg ?? null,

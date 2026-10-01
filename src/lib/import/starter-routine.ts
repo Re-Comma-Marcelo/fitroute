@@ -29,6 +29,11 @@ export interface StarterAnswers {
   goal: StarterGoal;
   /** Weekdays picked for training, 0 = Sunday … 6 = Saturday. */
   days: number[];
+  /**
+   * Set when the days differ every week: how many sessions a week, with no
+   * fixed weekdays. `days` is ignored then.
+   */
+  flexiblePerWeek?: number | null;
   /** How long they've trained, asked directly (matches the weekly plan interview). */
   trainingYears: TrainingYears;
   /** Short & few exercises vs. longer & more thorough sessions. null = today's default balance. */
@@ -44,7 +49,13 @@ export const DEFAULT_ANSWERS: StarterAnswers = {
   trainingYears: "1to3y",
   pace: null,
   focusMuscles: [],
+  flexiblePerWeek: null,
 };
+
+/** Sessions a week, whether picked as weekdays or as a count. */
+export function sessionsPerWeek(answers: Pick<StarterAnswers, "days" | "flexiblePerWeek">): number {
+  return answers.flexiblePerWeek ?? sortDays(answers.days).length;
+}
 
 /** Years under load only — the quiz doesn't ask about the last-6-months consistency the weekly interview does. */
 export function yearsToExperience(years: TrainingYears): StarterExperience {
@@ -147,18 +158,21 @@ export function buildStarterPlan(
   answers: StarterAnswers,
   library: Exercise[],
   translate: (source: string) => string = (s) => s,
+  options: { variant?: number; equipment?: string[] | null } = {},
 ): StarterPlan {
-  const allDays = sortDays(answers.days);
-  const dayCount = nearestCleanDayCount(allDays.length || DEFAULT_ANSWERS.days.length);
-  // Keep only what a clean split needs — an extra, unevenly-distributed day defeats the point.
-  // Schedule every picked day; the template is chosen from the nearest clean count.
-  const days = allDays;
+  // Days that change every week: the routines get no weekday, just a rotation.
+  const days = answers.flexiblePerWeek ? [] : sortDays(answers.days);
+  const dayCount = nearestCleanDayCount(
+    answers.flexiblePerWeek ?? (days.length || DEFAULT_ANSWERS.days.length),
+  );
   const template = templateFor(dayCount);
   const prescription = prescriptionFor(answers);
 
   let routines = buildTemplateRoutines(template, library, translate, {
     pace: answers.pace,
     focusMuscles: answers.focusMuscles,
+    variant: options.variant,
+    equipment: options.equipment,
   }).map((routine) => ({
     ...routine,
     exercicios: routine.exercicios.map((exercise) => ({
@@ -171,7 +185,10 @@ export function buildStarterPlan(
   }));
 
   // Two training days on a three-day template: keep only what fits the week.
-  if (days.length && days.length < routines.length) routines = routines.slice(0, days.length);
+  const perWeek = answers.flexiblePerWeek ?? days.length;
+  if (perWeek && perWeek < routines.length) routines = routines.slice(0, perWeek);
 
+  if (answers.flexiblePerWeek)
+    routines = routines.map((routine) => ({ ...routine, diasSemana: [] }));
   return { template, prescription, routines: spreadDays(routines, days) };
 }
