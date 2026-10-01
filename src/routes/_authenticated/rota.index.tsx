@@ -38,7 +38,11 @@ import { getCrossTraining, logCoachingEvent } from "@/lib/data/coaching";
 import { mapRoute } from "@/lib/route/auto-map";
 import { isoDay, addDays } from "@/lib/route/cadence";
 import { currentCheckpoint, evaluateCheckpoints, nearestCheckpoint } from "@/lib/route/status";
-import { weekMarkers as buildWeekMarkers, type WeekMarker } from "@/lib/route/weight-progress";
+import {
+  weekMarkers as buildWeekMarkers,
+  weeklyAverage,
+  type WeekMarker,
+} from "@/lib/route/weight-progress";
 import type { Checkpoint } from "@/lib/route/types";
 import type { PaceCheck } from "@/lib/plan/guardrails";
 import { getCheckIns, hydrateCheckIns } from "@/lib/coach/weekly-checkin";
@@ -134,8 +138,12 @@ function RoutePage() {
         workouts: log.workouts,
         sets: log.sets,
         cross,
-        // getBodyWeightLog() returns oldest-first — the most recent entry is the last one.
-        bodyWeightKg: weights[weights.length - 1]?.pesoKg ?? null,
+        // The last 7 days' average, so one heavy or light morning doesn't tick
+        // a checkpoint off; the latest entry (oldest-first log) when that week is empty.
+        bodyWeightKg:
+          weeklyAverage(weights, isoDay(addDays(new Date(), -6))) ??
+          weights[weights.length - 1]?.pesoKg ??
+          null,
         hadDrop: false,
         checkIns,
       });

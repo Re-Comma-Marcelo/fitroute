@@ -106,7 +106,36 @@ export const toProfile = (r: Row) => ({
   metaProteinaG: r["meta_proteina_g"] == null ? undefined : Number(r["meta_proteina_g"]),
   trainingGoal: (r["training_goal"] ?? undefined) as Profile["trainingGoal"],
   trainingExperience: (r["training_experience"] ?? undefined) as Profile["trainingExperience"],
+  metaTipo: (r["meta_tipo"] ?? undefined) as Profile["metaTipo"],
+  metaExerciseId: (r["meta_exercise_id"] ?? undefined) as string | undefined,
+  metaLiftInicialKg:
+    r["meta_lift_inicial_kg"] == null ? undefined : Number(r["meta_lift_inicial_kg"]),
+  metaLiftKg: r["meta_lift_kg"] == null ? undefined : Number(r["meta_lift_kg"]),
 });
+
+/**
+ * Columns added by later migrations (see scripts/supabase-migration-*.sql).
+ * A database that has not run them rejects the whole upsert, so the legacy
+ * write leaves them out entirely — sending them as null fails just the same.
+ */
+const LATER_PROFILE_COLUMNS = [
+  "meta_prazo",
+  "peso_meta_kg",
+  "meta_iniciada_em",
+  "onboarding_concluido_em",
+  "training_goal",
+  "training_experience",
+  "meta_tipo",
+  "meta_exercise_id",
+  "meta_lift_inicial_kg",
+  "meta_lift_kg",
+] as const;
+
+export function legacyProfileRow(row: Row): Row {
+  const out = { ...row };
+  for (const column of LATER_PROFILE_COLUMNS) delete out[column];
+  return out;
+}
 
 export const fromProfile = (p: Row, userId: string) => ({
   id: p["id"] ?? userId,
@@ -135,6 +164,10 @@ export const fromProfile = (p: Row, userId: string) => ({
   meta_proteina_g: p["metaProteinaG"] ?? null,
   training_goal: p["trainingGoal"] ?? null,
   training_experience: p["trainingExperience"] ?? null,
+  meta_tipo: p["metaTipo"] ?? null,
+  meta_exercise_id: p["metaExerciseId"] ?? null,
+  meta_lift_inicial_kg: p["metaLiftInicialKg"] ?? null,
+  meta_lift_kg: p["metaLiftKg"] ?? null,
 });
 
 export const toExercise = (r: Row) => ({

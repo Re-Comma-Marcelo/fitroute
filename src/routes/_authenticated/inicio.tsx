@@ -2,7 +2,7 @@ import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Check, ChevronRight, Scale, Search, CalendarDays } from "lucide-react";
+import { Check, ChevronRight, Search, CalendarDays } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,7 +12,7 @@ import { WeeklyCheckInCard } from "@/components/WeeklyCheckInCard";
 import { WeekMenuPrompt } from "@/components/diet/WeekMenuPrompt";
 import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
-import { WeightQuickLogBar } from "@/components/WeightQuickLogBar";
+import { TodayWeightCard } from "@/components/forja/TodayWeightCard";
 import { CoachNotesCard, useInactivityCheckIn } from "@/components/CoachNotesCard";
 import { HeroPage } from "@/components/forja/HeroPage";
 import { GlassCard, MonoLabel } from "@/components/forja/GlassCard";
@@ -87,7 +87,7 @@ function daysAgo(iso: string): number {
   return (Date.now() - new Date(iso).getTime()) / 86400000;
 }
 
-type SheetKey = "notes" | "checkin" | "weight" | "calendar" | null;
+type SheetKey = "notes" | "checkin" | "calendar" | null;
 
 export default function Inicio() {
   const t = useT();
@@ -278,6 +278,8 @@ export default function Inicio() {
           />
         ) : (
           <>
+            <TodayWeightCard />
+
             <Link to="/dieta" aria-label={t("See diet")}>
               <StatStrip
                 stats={[
@@ -315,7 +317,6 @@ export default function Inicio() {
               <CoachCard
                 text={t("Your weekly check-in is ready.")}
                 action={{ label: t("Start check-in"), onClick: () => setSheet("checkin") }}
-                askRo={false}
               />
             ) : null}
 
@@ -358,11 +359,6 @@ export default function Inicio() {
             {/* Everything else from the old dashboard, one tap away. */}
             <GlassCard padding="none" className="divide-y divide-fj-divider overflow-hidden">
               <MoreRow
-                icon={<Scale className="size-4" />}
-                label={t("Body weight today")}
-                onClick={() => setSheet("weight")}
-              />
-              <MoreRow
                 icon={<CalendarDays className="size-4" />}
                 label={t("Training calendar")}
                 onClick={() => setSheet("calendar")}
@@ -392,13 +388,6 @@ export default function Inicio() {
         title={t("Weekly check-in")}
       >
         <WeeklyCheckInCard />
-      </HomeSheet>
-      <HomeSheet
-        open={sheet === "weight"}
-        onClose={() => setSheet(null)}
-        title={t("Body weight today")}
-      >
-        <WeightQuickLogBar />
       </HomeSheet>
       <HomeSheet
         open={sheet === "calendar"}

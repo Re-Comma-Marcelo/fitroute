@@ -497,7 +497,7 @@ function LibraryPage() {
                 </div>
               </div>
 
-              <ExerciseCoachSection exerciseId={detail.id} nome={detail.nome} />
+              <ExerciseCoachSection exerciseId={detail.id} />
 
               {para ? (
                 <Button

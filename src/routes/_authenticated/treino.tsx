@@ -11,7 +11,6 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
-  MessageSquare,
   Pencil,
   Plus,
   Trash2,
@@ -37,7 +36,6 @@ import { TodayCoachCard } from "@/components/TodayCoachCard";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CoachChatButton } from "@/components/CoachChatSheet";
 import { HeroPage } from "@/components/forja/HeroPage";
 import { GlassCard, MonoLabel } from "@/components/forja/GlassCard";
 import { StatStrip } from "@/components/forja/StatStrip";
@@ -480,9 +478,6 @@ function TrainPage() {
           {t("Train")}
         </MonoLabel>
         <div className="flex items-center gap-2">
-          <CoachChatButton className={iconButtonClass}>
-            <MessageSquare className="size-[18px]" strokeWidth={1.9} />
-          </CoachChatButton>
           <IconButton asChild aria-label={t("Create new routine")}>
             <Link to="/rotina/$id" params={{ id: "nova" }}>
               <Plus className="size-5" strokeWidth={1.9} />

@@ -11,6 +11,7 @@ import type { CoachContext } from "./context";
 import { checkpointDates, daysBetween } from "./cadence";
 import type { CheckpointMetric } from "./types";
 import { generateCheckpoints } from "@/lib/route-ai.functions";
+import { pathValues } from "./goal-path";
 
 type AiCheckpoint = {
   title: string;
@@ -30,6 +31,10 @@ type RouteCopy = {
   progressDescription: string;
   consistencyDescription: string;
   finalDescription: string;
+  /** What the weekly average should read by this checkpoint. */
+  weightDescription: (value: string) => string;
+  /** The heaviest set on this lift by this checkpoint. */
+  liftDescription: (lift: string, value: string) => string;
 };
 
 function routeCopy(language: string): RouteCopy {
@@ -42,6 +47,9 @@ function routeCopy(language: string): RouteCopy {
       progressDescription: "Controleer je voortgang en stuur je training bij waar nodig.",
       consistencyDescription: "Houd je geplande trainingsritme vast tot dit meetpunt.",
       finalDescription: "Evalueer je resultaat ten opzichte van je hoofddoel.",
+      weightDescription: (value) =>
+        `Je weekgemiddelde zit rond ${value}. Zo blijf je op schema naar je doel.`,
+      liftDescription: (lift, value) => `Een set ${lift} op ${value}. Zo blijf je op schema.`,
     };
   }
   if (language === "pt") {
@@ -53,6 +61,10 @@ function routeCopy(language: string): RouteCopy {
       progressDescription: "Confira seu progresso e ajuste o treino quando necessário.",
       consistencyDescription: "Mantenha o ritmo de treinos planejado até este marco.",
       finalDescription: "Avalie seu resultado em relação ao objetivo principal.",
+      weightDescription: (value) =>
+        `Sua média semanal fica perto de ${value}. Assim você segue no ritmo do objetivo.`,
+      liftDescription: (lift, value) =>
+        `Uma série de ${lift} com ${value}. Assim você segue no ritmo.`,
     };
   }
   return {
@@ -63,7 +75,54 @@ function routeCopy(language: string): RouteCopy {
     progressDescription: "Review your progress and adjust your training where needed.",
     consistencyDescription: "Keep your planned training rhythm through this checkpoint.",
     finalDescription: "Evaluate your result against your main goal.",
+    weightDescription: (value) =>
+      `Your weekly average sits around ${value}. That keeps you on track for your goal.`,
+    liftDescription: (lift, value) => `One set of ${lift} at ${value}. That keeps you on track.`,
   };
+}
+
+/**
+ * The main goal as monthly steps on a straight line from where the goal
+ * started: body weight, or one lift. Empty when the goal isn't measurable
+ * yet (no target set), so the caller falls back to the coach.
+ */
+function goalCheckpoints(dates: string[], context: CoachContext, language: string): AiCheckpoint[] {
+  const copy = routeCopy(language);
+  const startIso = context.goal.startedOn ?? new Date().toISOString().slice(0, 10);
+  const lift = context.goal.lift;
+  if (lift) {
+    const values = pathValues(lift.startKg, lift.targetKg, startIso, dates, 2.5);
+    return dates.map((date, index) => {
+      const isFinal = index === dates.length - 1;
+      const value = values[index]!;
+      const label = `${lift.nome} ${formatKg(value)}`;
+      return {
+        title: isFinal ? copy.finalGoal(label) : copy.goal(index + 1, label),
+        description: isFinal
+          ? copy.finalDescription
+          : copy.liftDescription(lift.nome, formatKg(value)),
+        date,
+        metricKind: "lift",
+        exerciseId: lift.exerciseId,
+        value,
+      };
+    });
+  }
+  const start = context.goal.startWeightKg ?? context.currentWeightKg;
+  const target = context.goal.targetWeightKg;
+  if (!start || !target) return [];
+  const values = pathValues(start, target, startIso, dates, 0.1);
+  return dates.map((date, index) => {
+    const isFinal = index === dates.length - 1;
+    const value = values[index]!;
+    return {
+      title: isFinal ? copy.finalGoal(formatKg(value)) : copy.goal(index + 1, formatKg(value)),
+      description: isFinal ? copy.finalDescription : copy.weightDescription(formatKg(value)),
+      date,
+      metricKind: "weight",
+      value,
+    };
+  });
 }
 
 /** Keep route creation useful even when the coach service is temporarily unavailable. */
@@ -142,13 +201,17 @@ export async function mapRoute(goalDate: string, language: string): Promise<MapR
           context.experience,
         )
       : null;
-  let generated: AiCheckpoint[] = [];
-  try {
-    const result = (await generateCheckpoints({ data: { context, goalDate, dates, language } })) as
-      { ok: true; checkpoints: AiCheckpoint[] } | { ok: false; error: string };
-    if (result.ok && result.checkpoints.length) generated = result.checkpoints;
-  } catch {
-    // Route creation must not depend on the coach service being reachable.
+  // A measurable main goal maps itself: the numbers come from the goal, not a model.
+  let generated: AiCheckpoint[] = goalCheckpoints(dates, context, language);
+  if (!generated.length) {
+    try {
+      const result = (await generateCheckpoints({
+        data: { context, goalDate, dates, language },
+      })) as { ok: true; checkpoints: AiCheckpoint[] } | { ok: false; error: string };
+      if (result.ok && result.checkpoints.length) generated = result.checkpoints;
+    } catch {
+      // Route creation must not depend on the coach service being reachable.
+    }
   }
   if (!generated.length) generated = fallbackCheckpoints(dates, context, language);
 

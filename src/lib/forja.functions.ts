@@ -22,20 +22,19 @@ export const fetchProfile = createServerFn({ method: "GET" }).handler(async () =
 });
 
 export const persistProfile = createServerFn({ method: "POST" })
-  .inputValidator((data: { profile: Profile }) => data)
+  .inputValidator((data: { profile: Profile; legacy?: boolean }) => data)
   .handler(async ({ data }) => {
-    const { db, fromProfile, requireUserId, toProfile, unwrap } = await import("./db.server");
+    const { db, fromProfile, legacyProfileRow, requireUserId, toProfile, unwrap } =
+      await import("./db.server");
     const userId = await requireUserId();
+    const full = fromProfile(
+      { ...(data.profile as unknown as Record<string, unknown>), id: userId },
+      userId,
+    );
     const row = unwrap(
       await db()
         .from("profiles")
-        .upsert(
-          fromProfile(
-            { ...(data.profile as unknown as Record<string, unknown>), id: userId },
-            userId,
-          ),
-          { onConflict: "id" },
-        )
+        .upsert(data.legacy ? legacyProfileRow(full) : full, { onConflict: "id" })
         .select("*")
         .single(),
     ) as Record<string, unknown>;

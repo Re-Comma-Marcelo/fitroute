@@ -34,6 +34,10 @@ type GoalOverlay = Partial<
     | "onboardingConcluidoEm"
     | "trainingGoal"
     | "trainingExperience"
+    | "metaTipo"
+    | "metaExerciseId"
+    | "metaLiftInicialKg"
+    | "metaLiftKg"
   >
 >;
 
@@ -63,6 +67,10 @@ const OVERLAY_KEYS = [
   "onboardingConcluidoEm",
   "trainingGoal",
   "trainingExperience",
+  "metaTipo",
+  "metaExerciseId",
+  "metaLiftInicialKg",
+  "metaLiftKg",
 ] as const;
 
 function overlayFrom(wanted: Profile): GoalOverlay {
@@ -108,23 +116,14 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     const message = String((error as Error)?.message ?? error);
     const missingColumn =
       message.includes("PGRST204") ||
-      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em|training_goal|training_experience/.test(
+      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em|training_goal|training_experience|meta_tipo|meta_exercise_id|meta_lift/.test(
         message,
       ) ||
       /column .* does not exist/i.test(message);
     if (!missingColumn) throw error;
-    // Keep the goal on this device and retry without the unsupported fields.
+    // Keep the goal on this device and retry without the later-migration columns.
     writeGoalOverlay(overlayFrom(wanted));
-    const {
-      metaPrazo: _a,
-      pesoMetaKg: _b,
-      metaIniciadaEm: _c,
-      onboardingConcluidoEm: _d,
-      trainingGoal: _e,
-      trainingExperience: _f,
-      ...rest
-    } = wanted;
-    const saved = (await persistProfile({ data: { profile: rest as Profile } })) as Profile;
+    const saved = (await persistProfile({ data: { profile: wanted, legacy: true } })) as Profile;
     cache = withGoalOverlay(saved);
     return cache;
   }
