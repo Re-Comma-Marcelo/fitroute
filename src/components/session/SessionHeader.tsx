@@ -59,7 +59,7 @@ export function SessionHeader({
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-card">
+    <header className="sticky top-0 z-30 border-b border-border bg-card pt-[env(safe-area-inset-top)]">
       <div className="mx-auto max-w-md px-2 pt-1">
         <div className="flex items-center gap-0.5">
           <button

@@ -172,7 +172,7 @@ function SummaryPage() {
   }
 
   return (
-    <div className="route-enter relative min-h-screen bg-background px-4 py-10">
+    <div className="route-enter relative min-h-screen bg-background px-4 pb-10 pt-[calc(2.5rem+env(safe-area-inset-top))]">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-64 overflow-hidden">
         <img
           src={heroLogin}
