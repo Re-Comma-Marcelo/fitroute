@@ -1,51 +1,69 @@
 import { pageMeta } from "@/lib/route-meta";
 import { useQuery } from "@tanstack/react-query";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronRight, Dumbbell, Search, Timer } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Check, ChevronRight, Scale, Search, CalendarDays } from "lucide-react";
 
 import { AppShell } from "@/components/AppShell";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CountUp } from "@/components/CountUp";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { QueryError } from "@/components/QueryError";
-import { CoachChatButton } from "@/components/CoachChatSheet";
 import { WeeklyCheckInCard } from "@/components/WeeklyCheckInCard";
 import { WeekMenuPrompt } from "@/components/diet/WeekMenuPrompt";
 import { CrossTrainingSheet } from "@/components/CrossTrainingSheet";
 import { WorkoutCalendar } from "@/components/WorkoutCalendar";
 import { WeightQuickLogBar } from "@/components/WeightQuickLogBar";
+import { CoachNotesCard, useInactivityCheckIn } from "@/components/CoachNotesCard";
+import { HeroPage } from "@/components/forja/HeroPage";
+import { GlassCard, MonoLabel } from "@/components/forja/GlassCard";
+import { StatStrip } from "@/components/forja/StatStrip";
+import { CoachCard } from "@/components/forja/CoachCard";
+import { RouteLine } from "@/components/forja/RouteLine";
+import { Metric } from "@/components/forja/Metric";
+import { heroImages } from "@/config/heroImages";
 
 import { useT } from "@/lib/i18n";
 import { getProfile } from "@/lib/data/profile";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkoutLog } from "@/lib/data/workouts";
+import { getExercises } from "@/lib/data/exercises";
+import { getCoachNotes } from "@/lib/data/coach-notes";
+import { getCoachingEvents } from "@/lib/data/coaching";
 import { getTargets, isoDate } from "@/lib/data/nutrition";
 import { getDayNutrition } from "@/lib/data/diet-entries";
 import { onboardingDone } from "@/lib/onboarding";
 import { loadActiveSession, sessionLabel } from "@/lib/session-state";
 import { startRoutineSession } from "@/lib/start-session";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
-import { formatFullDate, formatNumber } from "@/lib/format";
-import type { Routine } from "@/lib/types";
+import {
+  formatDurationShort,
+  formatKg,
+  formatNumber,
+  formatTopDate,
+  formatWeekdayLong,
+  weightUnitLabel,
+} from "@/lib/format";
 import {
   isoDay,
+  latestPR,
   nextRoutine,
   sessionsThisWeek,
   weekStreak,
   weeklyVolume,
 } from "@/lib/home-metrics";
-import { RouteLogo } from "@/components/RouteLogo";
-import { RoutePreviewCard } from "@/components/RoutePreviewCard";
+import { checkInDue, checkInFor, hydrateCheckIns, planWeekKey } from "@/lib/coach/weekly-checkin";
 import { getCheckpoints } from "@/lib/data/route";
 import { currentCheckpoint } from "@/lib/route/status";
 import { routePace } from "@/lib/route/pace";
 import type { Checkpoint } from "@/lib/route/types";
+import type { CoachingEvent } from "@/lib/types";
 
 import { cn } from "@/lib/utils";
 
 const QUICKSTART_KEY = "iron-logger-quickstart-done";
+/** How long a performance-drop message stays on the Home coach card. */
+const DROP_MESSAGE_DAYS = 3;
+const PR_LABEL_DAYS = 7;
 
 export const Route = createFileRoute("/_authenticated/inicio")({
   component: Inicio,
@@ -58,10 +76,24 @@ export const Route = createFileRoute("/_authenticated/inicio")({
   }),
 });
 
+/** First sentence only — the rest lives behind "See why" or in the notes. */
+function firstSentence(text: string): string {
+  const trimmed = text.trim();
+  const match = trimmed.match(/^[\s\S]*?[.?!](?=\s|$)/);
+  return (match ? match[0] : trimmed).replace(/!+/g, ".");
+}
+
+function daysAgo(iso: string): number {
+  return (Date.now() - new Date(iso).getTime()) / 86400000;
+}
+
+type SheetKey = "notes" | "checkin" | "weight" | "calendar" | null;
+
 export default function Inicio() {
   const t = useT();
   const navigate = useNavigate();
   const [active, setActive] = useState(loadActiveSession());
+  const [sheet, setSheet] = useState<SheetKey>(null);
 
   useEffect(() => {
     const id = setInterval(() => setActive(loadActiveSession()), 1000);
@@ -74,6 +106,7 @@ export default function Inicio() {
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile });
   const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const logQ = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
+  const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const targetsQ = useQuery({ queryKey: ["nutritionTargets"], queryFn: getTargets });
   const today = isoDate(new Date());
   const dayFoodQ = useQuery({
@@ -81,6 +114,11 @@ export default function Inicio() {
     queryFn: () => getDayNutrition(today),
   });
   const checkpointsQ = useQuery({ queryKey: ["route-checkpoints"], queryFn: getCheckpoints });
+  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getCoachNotes });
+  const eventsQ = useQuery({ queryKey: ["coaching-events"], queryFn: getCoachingEvents });
+  // Pulls in check-ins saved on another device before deciding if one is due.
+  const checkInsQ = useQuery({ queryKey: ["weekly-checkins"], queryFn: hydrateCheckIns });
+  const inactivity = useInactivityCheckIn();
 
   const isLoading = profileQ.isLoading || routinesQ.isLoading || logQ.isLoading;
   /** A failed fetch must read as an error, never as "you have no data yet". */
@@ -88,19 +126,28 @@ export default function Inicio() {
 
   const workouts = useMemo(() => logQ.data?.workouts ?? [], [logQ.data]);
   const sets = useMemo(() => logQ.data?.sets ?? [], [logQ.data]);
-  const routines = routinesQ.data ?? [];
+  const routines = useMemo(() => routinesQ.data ?? [], [routinesQ.data]);
+  const exercises = useMemo(() => exercisesQ.data ?? [], [exercisesQ.data]);
+  const checkpoints = useMemo(() => checkpointsQ.data ?? [], [checkpointsQ.data]);
 
   const volume = useMemo(() => weeklyVolume(workouts, sets), [workouts, sets]);
   const sessions = useMemo(() => sessionsThisWeek(workouts), [workouts]);
   const streak = useMemo(() => weekStreak(workouts), [workouts]);
   const next = useMemo(() => nextRoutine(routines, workouts), [routines, workouts]);
+  const pr = useMemo(() => latestPR(workouts, sets), [workouts, sets]);
 
   const hasData = workouts.some((w) => w.finalizadoEm);
   const doneToday = useMemo(() => {
-    const today = isoDay(new Date());
-    return workouts.some((w) => w.finalizadoEm && isoDay(new Date(w.iniciadoEm)) === today);
+    const todayKey = isoDay(new Date());
+    return workouts.some((w) => w.finalizadoEm && isoDay(new Date(w.iniciadoEm)) === todayKey);
   }, [workouts]);
   const weekGoal = Math.max(1, profileQ.data?.metaTreinosSemana ?? 4);
+
+  const checkInIsDue = useMemo(
+    () => hasData && checkInDue() && !checkInFor(planWeekKey()),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hasData, checkInsQ.dataUpdatedAt, sheet],
+  );
 
   // First-run: brand-new accounts go through onboarding before the dashboard
   // paints. Completion comes from the profile, with the local flag as fallback.
@@ -110,10 +157,50 @@ export default function Inicio() {
     if (needsOnboarding) navigate({ to: "/onboarding", replace: true });
   }, [needsOnboarding, navigate]);
 
-  const kcalToday = dayFoodQ.data?.eaten.kcal ?? 0;
-  const proteinToday = dayFoodQ.data?.eaten.proteinG ?? 0;
-  const kcalTarget = targetsQ.data?.kcal ?? 0;
+  const kcalLeft = (targetsQ.data?.kcal ?? 0) - (dayFoodQ.data?.eaten.kcal ?? 0);
   const proteinTarget = targetsQ.data?.proteinG ?? 0;
+  const proteinLeft = proteinTarget - (dayFoodQ.data?.eaten.proteinG ?? 0);
+
+  /** Newest thing the coach wrote: a coach note or an adaptive coaching message. */
+  const latestNote = useMemo(() => {
+    const items = [
+      ...(notesQ.data ?? []).map((n) => ({ at: n.createdAt, text: n.content })),
+      ...(eventsQ.data ?? []).map((e) => ({ at: e.createdAt, text: e.message })),
+    ].sort((a, b) => b.at.localeCompare(a.at));
+    return items[0] ? firstSentence(items[0].text) : null;
+  }, [notesQ.data, eventsQ.data]);
+
+  const drop = useMemo<CoachingEvent | null>(
+    () =>
+      (eventsQ.data ?? [])
+        .filter((e) => e.kind === "performance_drop" && daysAgo(e.createdAt) <= DROP_MESSAGE_DAYS)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null,
+    [eventsQ.data],
+  );
+
+  const prLabel = useMemo(() => {
+    if (!pr?.date || daysAgo(pr.date) > PR_LABEL_DAYS) return null;
+    const name = exercises.find((e) => e.id === pr.exerciseId)?.nome;
+    if (!name) return null;
+    return t("{day} · {exercise} PR", { day: formatWeekdayLong(pr.date), exercise: name });
+  }, [pr, exercises, t]);
+
+  const lastSession = useMemo(() => {
+    const last = workouts
+      .filter((w) => w.finalizadoEm)
+      .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
+    if (!last) return null;
+    const exerciseCount = new Set(
+      sets.filter((s) => s.workoutId === last.id).map((s) => s.exerciseId),
+    ).size;
+    const routine = routines.find((r) => r.id === last.routineId);
+    return {
+      workout: last,
+      name: routine?.nome ?? t("Free session"),
+      exerciseCount,
+      prKg: pr && pr.date === last.iniciadoEm ? pr.pesoKg : null,
+    };
+  }, [workouts, sets, routines, pr, t]);
 
   async function primaryAction() {
     if (active) {
@@ -128,44 +215,58 @@ export default function Inicio() {
     navigate({ to: "/rotina/$id", params: { id: "nova" } });
   }
 
+  const name = profileQ.data?.nome.split(" ")[0] ?? t("Athlete");
+
+  const top = (
+    <div className="flex items-center justify-between">
+      <MonoLabel onPhoto className="text-fj-text">
+        {t("Route")}
+      </MonoLabel>
+      <MonoLabel onPhoto className="text-fj-text">
+        {formatTopDate(new Date())}
+      </MonoLabel>
+    </div>
+  );
+
+  const intro = (
+    <div className="on-photo">
+      {prLabel ? (
+        <MonoLabel onPhoto className="mb-2 block text-fj-effort">
+          {prLabel}
+        </MonoLabel>
+      ) : null}
+      <h1 className="h1-hero text-fj-text">
+        {isLoading ? (
+          <Skeleton className="inline-block h-8 w-48 align-middle" />
+        ) : (
+          t("{greeting}, {name}.", { greeting, name })
+        )}
+      </h1>
+      {latestNote ? (
+        <button
+          type="button"
+          onClick={() => setSheet("notes")}
+          className="mt-2 block text-left text-body leading-[1.4] text-fj-text-2"
+        >
+          {latestNote}
+        </button>
+      ) : null}
+    </div>
+  );
+
   if (needsOnboarding) {
     return (
-      <AppShell hideHeader title={t("Home")}>
-        <div className="pt-6">
-          <Skeleton className="h-44 w-full rounded-2xl" />
-        </div>
+      <AppShell hero title={t("Home")}>
+        <HeroPage image={heroImages.home} top={top} intro={null}>
+          <Skeleton className="h-44 w-full rounded-card" />
+        </HeroPage>
       </AppShell>
     );
   }
 
   return (
-    <AppShell hideHeader title={t("Home")}>
-      <div className="route-enter space-y-6 pb-28">
-        <header className="flex items-start justify-between gap-3 pt-2">
-          <div className="min-w-0">
-            <RouteLogo className="size-8" />
-            <h1 className="mt-2 font-display text-2xl font-semibold tracking-tight">
-              {greeting},{" "}
-              {isLoading ? (
-                <Skeleton className="inline-block h-6 w-24 align-middle" />
-              ) : (
-                (profileQ.data?.nome.split(" ")[0] ?? t("Athlete"))
-              )}
-            </h1>
-            <p className="mt-1 text-sm text-muted-foreground">{formatFullDate(new Date())}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-1">
-            <Link
-              to="/buscar"
-              aria-label={t("Search")}
-              className="tap-target flex size-11 items-center justify-center rounded-full bg-surface-3 text-muted-foreground"
-            >
-              <Search className="size-5" />
-            </Link>
-            <CoachChatButton />
-          </div>
-        </header>
-
+    <AppShell hero title={t("Home")}>
+      <HeroPage image={heroImages.home} top={top} intro={intro}>
         {loadFailed ? (
           <QueryError
             message={t("Could not load your dashboard.")}
@@ -177,218 +278,367 @@ export default function Inicio() {
           />
         ) : (
           <>
-            {/* Both assume a week of history; on day 1 the first workout comes first. */}
-            {hasData ? <WeeklyCheckInCard /> : null}
-            {hasData ? <WeekMenuPrompt /> : null}
+            <Link to="/dieta" aria-label={t("See diet")}>
+              <StatStrip
+                stats={[
+                  { label: t("Week"), value: `${sessions}/${weekGoal}` },
+                  {
+                    label: t("Kcal left"),
+                    value: targetsQ.data?.kcal
+                      ? formatNumber(Math.max(0, Math.round(kcalLeft)))
+                      : "—",
+                    color: "recovery",
+                  },
+                  {
+                    label: t("Protein left"),
+                    value:
+                      proteinTarget > 0 ? formatNumber(Math.max(0, Math.round(proteinLeft))) : "—",
+                    unit: proteinTarget > 0 ? "g" : undefined,
+                    color: "recovery",
+                  },
+                ]}
+              />
+            </Link>
 
-            {/* One line, every day: am I still on my route? */}
-            <RouteStatusLine checkpoints={checkpointsQ.data ?? []} />
-
-            <TodayCard
+            <TodayCoach
               loading={isLoading}
               activeLabel={active ? sessionLabel(active) : null}
               routine={next}
-              sessions={sessions}
-              goal={weekGoal}
               doneToday={doneToday}
+              inactivity={inactivity}
+              drop={drop}
               onStart={primaryAction}
+              onReply={() => setSheet("notes")}
             />
 
-            <WeightQuickLogBar />
+            {checkInIsDue ? (
+              <CoachCard
+                text={t("Your weekly check-in is ready.")}
+                action={{ label: t("Start check-in"), onClick: () => setSheet("checkin") }}
+                askRo={false}
+              />
+            ) : null}
 
-            <StatsRow
-              loading={isLoading}
-              hasData={hasData}
-              volume={volume}
-              sessions={sessions}
-              streak={streak}
-            />
+            {hasData ? <WeekMenuPrompt /> : null}
 
-            {!isLoading && <WorkoutCalendar workouts={workouts} />}
+            <RouteCard checkpoints={checkpoints} loading={checkpointsQ.isLoading} />
 
-            {/* Where you are on the way to your goal, day by day. */}
-            <RoutePreviewCard
-              checkpoints={checkpointsQ.data ?? []}
-              current={currentCheckpoint(checkpointsQ.data ?? [])}
-              goalDate={profileQ.data?.metaPrazo ?? null}
-              loading={checkpointsQ.isLoading}
-            />
+            {lastSession ? (
+              <GlassCard asChild>
+                <Link to="/resumo/$id" params={{ id: lastSession.workout.id }}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <MonoLabel>
+                        {t("Last session · {day}", {
+                          day: formatWeekdayLong(lastSession.workout.iniciadoEm),
+                        })}
+                      </MonoLabel>
+                      <p className="mt-2 truncate text-name font-medium">{lastSession.name}</p>
+                      <p className="mt-1 text-meta text-fj-label">
+                        {formatDurationShort(lastSession.workout.duracaoSeg)} ·{" "}
+                        {t("{count} exercises", { count: lastSession.exerciseCount })}
+                      </p>
+                    </div>
+                    {lastSession.prKg ? (
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        <Metric
+                          value={formatKg(lastSession.prKg, { unit: false })}
+                          unit={weightUnitLabel()}
+                          size={28}
+                          color="effort"
+                        />
+                        <MonoLabel className="text-fj-effort">{t("PR")}</MonoLabel>
+                      </div>
+                    ) : null}
+                  </div>
+                </Link>
+              </GlassCard>
+            ) : null}
 
-            <DietCard
-              kcal={kcalToday}
-              target={kcalTarget}
-              protein={proteinToday}
-              proteinTarget={proteinTarget}
-            />
+            {/* Everything else from the old dashboard, one tap away. */}
+            <GlassCard padding="none" className="divide-y divide-fj-divider overflow-hidden">
+              <MoreRow
+                icon={<Scale className="size-4" />}
+                label={t("Body weight today")}
+                onClick={() => setSheet("weight")}
+              />
+              <MoreRow
+                icon={<CalendarDays className="size-4" />}
+                label={t("Training calendar")}
+                onClick={() => setSheet("calendar")}
+              />
+              <MoreRow icon={<Search className="size-4" />} label={t("Search")} to="/buscar" />
+            </GlassCard>
 
-            <CrossTrainingSheet />
+            <CrossTrainingSheet className="glass rounded-card border-[var(--glass-border)] bg-transparent" />
 
             {!isLoading && (
               <QuickStartChecklist
                 hasRoutine={routines.length > 0}
                 hasWorkout={hasData}
-                hasRoute={(checkpointsQ.data?.length ?? 0) > 0}
+                hasRoute={checkpoints.length > 0}
               />
             )}
           </>
         )}
-      </div>
+      </HeroPage>
+
+      <HomeSheet open={sheet === "notes"} onClose={() => setSheet(null)} title={t("Coach notes")}>
+        <CoachNotesCard />
+      </HomeSheet>
+      <HomeSheet
+        open={sheet === "checkin"}
+        onClose={() => setSheet(null)}
+        title={t("Weekly check-in")}
+      >
+        <WeeklyCheckInCard />
+      </HomeSheet>
+      <HomeSheet
+        open={sheet === "weight"}
+        onClose={() => setSheet(null)}
+        title={t("Body weight today")}
+      >
+        <WeightQuickLogBar />
+      </HomeSheet>
+      <HomeSheet
+        open={sheet === "calendar"}
+        onClose={() => setSheet(null)}
+        title={t("Training calendar")}
+      >
+        <div className="space-y-4">
+          <StatsRow
+            loading={isLoading}
+            hasData={hasData}
+            volume={volume}
+            sessions={sessions}
+            streak={streak}
+          />
+          {!isLoading && <WorkoutCalendar workouts={workouts} />}
+        </div>
+      </HomeSheet>
     </AppShell>
   );
 }
 
-/* ---------- today's session + weekly goal ---------- */
+function HomeSheet({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto">
+        <SheetHeader className="pb-2">
+          <SheetTitle>{title}</SheetTitle>
+        </SheetHeader>
+        <div className="pb-6">{children}</div>
+      </SheetContent>
+    </Sheet>
+  );
+}
 
-/** The daily verdict on your route, in one tappable line. */
-function RouteStatusLine({ checkpoints }: { checkpoints: Checkpoint[] }) {
+function MoreRow({
+  icon,
+  label,
+  onClick,
+  to,
+}: {
+  icon: ReactNode;
+  label: string;
+  onClick?: () => void;
+  to?: "/buscar";
+}) {
+  const inner = (
+    <>
+      <span className="text-fj-label">{icon}</span>
+      <span className="flex-1 text-body">{label}</span>
+      <ChevronRight className="size-4 text-fj-label" />
+    </>
+  );
+  const cls = "tap-target flex w-full items-center gap-3 px-card py-3 text-left";
+  return to ? (
+    <Link to={to} className={cls}>
+      {inner}
+    </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={cls}>
+      {inner}
+    </button>
+  );
+}
+
+/* ---------- Ro: today's session, or what needs saying first ---------- */
+
+function TodayCoach({
+  loading,
+  activeLabel,
+  routine,
+  doneToday,
+  inactivity,
+  drop,
+  onStart,
+  onReply,
+}: {
+  loading: boolean;
+  activeLabel: string | null;
+  routine: ReturnType<typeof nextRoutine>;
+  doneToday: boolean;
+  inactivity: CoachingEvent | null;
+  drop: CoachingEvent | null;
+  onStart: () => void;
+  onReply: () => void;
+}) {
   const t = useT();
-  const pace = routePace(checkpoints);
-  if (pace.state === "no_route") return null;
+  if (loading) return <Skeleton className="h-40 w-full rounded-card" />;
 
-  const tone =
+  const startLabel = activeLabel
+    ? t("Resume workout")
+    : doneToday
+      ? t("Train again")
+      : routine
+        ? t("Start session")
+        : t("Create my routine");
+  const action = { label: startLabel, onClick: onStart };
+
+  if (activeLabel) {
+    return (
+      <CoachCard
+        text={t("{session} is still running.", { session: activeLabel })}
+        action={action}
+      />
+    );
+  }
+  if (inactivity) {
+    return (
+      <CoachCard
+        text={firstSentence(inactivity.message)}
+        why={
+          inactivity.message !== firstSentence(inactivity.message) ? inactivity.message : undefined
+        }
+        link={{ label: t("Reply"), onClick: onReply }}
+        action={action}
+      />
+    );
+  }
+  if (drop) {
+    return (
+      <CoachCard
+        text={firstSentence(drop.message)}
+        why={drop.message !== firstSentence(drop.message) ? drop.message : undefined}
+        action={action}
+      />
+    );
+  }
+  if (doneToday) {
+    return (
+      <CoachCard
+        text={
+          routine
+            ? t("Session logged. Up next: {routine}.", { routine: routine.nome })
+            : t("Session logged. Rest up for tomorrow.")
+        }
+        action={action}
+      />
+    );
+  }
+  return (
+    <CoachCard
+      text={
+        routine
+          ? t("{routine} today. {count} exercises, about {min} min.", {
+              routine: routine.nome,
+              count: routine.exercicios.length,
+              min: estimateRoutineMinutes(routine),
+            })
+          : t("No routine yet. Build one and I'll plan your days.")
+      }
+      action={action}
+    />
+  );
+}
+
+/* ---------- route ---------- */
+
+function RouteCard({ checkpoints, loading }: { checkpoints: Checkpoint[]; loading: boolean }) {
+  const t = useT();
+  if (loading) return <Skeleton className="h-36 w-full rounded-card" />;
+
+  const total = checkpoints.length;
+  if (total === 0) {
+    return (
+      <GlassCard asChild>
+        <Link to="/rota" className="flex items-center justify-between gap-3">
+          <span className="min-w-0">
+            <MonoLabel>{t("Your route")}</MonoLabel>
+            <span className="mt-2 block text-name font-medium">
+              {t("Map your route to your goal")}
+            </span>
+            <span className="mt-1 block text-meta text-fj-label">
+              {t("Set checkpoints on the way there")}
+            </span>
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-fj-label" />
+        </Link>
+      </GlassCard>
+    );
+  }
+
+  const ordered = [...checkpoints].sort((a, b) => a.orderIndex - b.orderIndex);
+  const reached = ordered.filter((c) => c.status === "achieved").length;
+  const current = currentCheckpoint(checkpoints);
+  const currentIndex = current ? ordered.findIndex((c) => c.id === current.id) : -1;
+  const pct = Math.round((reached / total) * 100);
+  const pace = routePace(checkpoints);
+  const paceLabel =
     pace.state === "behind"
-      ? "text-warning"
-      : pace.state === "ahead"
-        ? "text-success"
-        : "text-muted-foreground";
-  const label =
-    pace.state === "behind"
-      ? t("Drifting off your route — {days} day(s) behind", { days: pace.daysBehind })
+      ? t("{days} day(s) behind", { days: pace.daysBehind })
       : pace.state === "ahead"
         ? t("Ahead of your route")
         : t("On your route");
 
   return (
-    <Link
-      to="/rota"
-      className="tap-target flex items-center justify-between gap-2 rounded-2xl border border-border bg-card px-4 py-3"
-    >
-      <span className="min-w-0">
-        <span className={cn("block text-sm font-semibold", tone)}>{label}</span>
+    <GlassCard asChild>
+      <Link to="/rota">
+        <div className="flex items-center justify-between">
+          <MonoLabel>{t("Your route")}</MonoLabel>
+          <Metric value={pct} unit="%" size={22} color="accent" />
+        </div>
+        <RouteLine
+          total={total}
+          reached={reached}
+          currentIndex={currentIndex}
+          className="mt-3 h-16 w-full"
+        />
+        <div className="mt-3 flex items-baseline justify-between gap-3">
+          <p className="text-body">
+            {t("Checkpoint {x} of {y}", { x: Math.min(reached + 1, total), y: total })}
+          </p>
+          <p
+            className={cn(
+              "shrink-0 text-meta",
+              pace.state === "behind" ? "text-fj-effort-text" : "text-fj-label",
+            )}
+          >
+            {paceLabel}
+          </p>
+        </div>
         {pace.next ? (
-          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+          <p className="mt-1 truncate text-meta text-fj-label">
             {t("Next: {title}", { title: pace.next.title })}
-          </span>
+          </p>
         ) : null}
-      </span>
-      <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
-    </Link>
+      </Link>
+    </GlassCard>
   );
 }
 
-function TodayCard({
-  loading,
-  activeLabel,
-  routine,
-  sessions,
-  goal,
-  doneToday,
-  onStart,
-}: {
-  loading: boolean;
-  activeLabel: string | null;
-  routine: Routine | null;
-  sessions: number;
-  goal: number;
-  doneToday: boolean;
-  onStart: () => void;
-}) {
-  const t = useT();
-  if (loading) return <Skeleton className="h-44 w-full rounded-2xl" />;
-
-  const minutes = routine ? estimateRoutineMinutes(routine) : 0;
-  const done = Math.min(sessions, goal);
-  /** Already trained today: a compact "up next" card replaces the big CTA. */
-  const showDone = doneToday && !activeLabel;
-
-  if (showDone) {
-    return (
-      <Card className="rounded-2xl border-border bg-surface-1 p-3 shadow-elegant">
-        <div className="flex items-center gap-3">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-train/15 text-train">
-            <Check className="size-4" />
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold">{t("Session logged for today")}</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {routine
-                ? t("Up next: {routine}", { routine: routine.nome })
-                : t("Rest up for tomorrow.")}
-            </p>
-          </div>
-        </div>
-        <Button
-          onClick={onStart}
-          variant="outline"
-          size="sm"
-          className="tap-target mt-3 h-9 text-xs font-semibold"
-        >
-          <Dumbbell className="mr-1.5 size-3.5" /> {t("Train again")}
-        </Button>
-      </Card>
-    );
-  }
-
-  return (
-    <Card className="rounded-2xl border-border bg-surface-1 p-4 shadow-elegant">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="label-caps">{activeLabel ? t("In progress") : t("Today's session")}</p>
-          <p className="mt-1 truncate text-lg font-semibold">
-            {activeLabel ?? routine?.nome ?? t("Start a workout")}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {routine
-              ? `${t("{count} exercises", { count: routine.exercicios.length })} · ${t("~{min} min", { min: minutes })}`
-              : t("Pick a routine and start logging.")}
-          </p>
-        </div>
-        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-train/15 text-train">
-          {activeLabel ? <Timer className="size-5" /> : <Dumbbell className="size-5" />}
-        </span>
-      </div>
-
-      <div className="mt-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <p className="label-caps">{t("Weekly goal")}</p>
-          <p className="text-xs font-semibold tabular-nums text-muted-foreground">
-            {t("{sessions}/{target} sessions", { sessions, target: goal })}
-          </p>
-        </div>
-        <div
-          role="img"
-          aria-label={t("{sessions}/{target} sessions", { sessions, target: goal })}
-          className="mt-2 flex gap-1"
-        >
-          {Array.from({ length: goal }, (_, i) => (
-            <span
-              key={i}
-              className={cn("h-1.5 flex-1 rounded-full", i < done ? "bg-train" : "bg-surface-3")}
-            />
-          ))}
-        </div>
-      </div>
-
-      <Button onClick={onStart} className="mt-4 h-14 w-full text-base font-semibold">
-        {activeLabel ? (
-          <>
-            <Timer className="mr-2 size-5" /> {t("Resume workout")}
-          </>
-        ) : routine ? (
-          <>
-            <Dumbbell className="mr-2 size-5" /> {t("Start {routine}", { routine: routine.nome })}
-          </>
-        ) : (
-          <>
-            <Dumbbell className="mr-2 size-5" /> {t("Create my routine")}
-          </>
-        )}
-      </Button>
-    </Card>
-  );
-}
-
-/* ---------- three numbers in one row ---------- */
+/* ---------- this week's numbers (behind "Training calendar") ---------- */
 
 function StatsRow({
   loading,
@@ -404,7 +654,7 @@ function StatsRow({
   streak: number;
 }) {
   const t = useT();
-  if (loading) return <Skeleton className="h-24 w-full rounded-2xl" />;
+  if (loading) return <Skeleton className="h-24 w-full rounded-card" />;
 
   const pct = volume.deltaPct;
   const trend = volume.isRecord
@@ -415,99 +665,26 @@ function StatsRow({
 
   return (
     <div>
-      <div className="grid grid-cols-3 divide-x divide-border">
-        <div className="pr-3">
-          <p className="label-caps">{t("Volume")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
-            {hasData ? (
-              <>
-                <CountUp value={volume.current} format={(n) => formatNumber(Math.round(n))} />
-                <span className="ml-0.5 text-xs font-semibold text-muted-foreground">kg</span>
-              </>
-            ) : (
-              <span className="text-muted-foreground/40">0</span>
-            )}
-          </p>
-        </div>
-        <div className="px-3">
-          <p className="label-caps">{t("Workouts")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">{sessions}</p>
-        </div>
-        <div className="pl-3">
-          <p className="label-caps">{t("Streak")}</p>
-          <p className="mt-1 font-display text-xl font-semibold tabular-nums">
-            {streak}
-            <span className="ml-0.5 text-xs font-semibold text-muted-foreground">{t("wks")}</span>
-          </p>
-        </div>
-      </div>
+      <StatStrip
+        stats={[
+          {
+            label: t("Volume"),
+            value: hasData ? formatNumber(Math.round(volume.current)) : "0",
+            unit: "kg",
+          },
+          { label: t("Workouts"), value: sessions },
+          { label: t("Streak"), value: streak, unit: t("wks") },
+        ]}
+      />
       <p
         className={cn(
-          "mt-2 text-xs font-semibold",
-          volume.isRecord
-            ? "text-success"
-            : pct !== null && pct >= 0
-              ? "text-train"
-              : "text-muted-foreground",
+          "mt-2 text-meta font-medium",
+          volume.isRecord ? "text-fj-effort" : "text-fj-label",
         )}
       >
         {hasData ? trend : t("Your first workout lights this number up.")}
       </p>
     </div>
-  );
-}
-
-/* ---------- diet ---------- */
-
-function DietCard({
-  kcal,
-  target,
-  protein,
-  proteinTarget,
-}: {
-  kcal: number;
-  target: number;
-  protein: number;
-  proteinTarget: number;
-}) {
-  const t = useT();
-  const pct = target > 0 ? Math.max(0, Math.min(100, (kcal / target) * 100)) : 0;
-  const pPct = proteinTarget > 0 ? Math.max(0, Math.min(100, (protein / proteinTarget) * 100)) : 0;
-  return (
-    <Card className="rounded-2xl border-border bg-card p-4">
-      <div className="flex items-baseline justify-between gap-3">
-        <p className="label-caps">{t("Eaten today")}</p>
-        <Link to="/dieta" className="text-xs font-semibold text-primary underline-offset-2">
-          {t("See diet")}
-        </Link>
-      </div>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div>
-          <p className="text-base font-semibold tabular-nums text-diet">
-            {formatNumber(Math.round(kcal))}
-            <span className="ml-1 text-xs font-semibold text-muted-foreground">
-              {t("of {target} kcal", { target: formatNumber(Math.round(target)) })}
-            </span>
-          </p>
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
-            <div className="h-full rounded-full bg-diet" style={{ width: `${pct}%` }} />
-          </div>
-        </div>
-        {proteinTarget > 0 ? (
-          <div>
-            <p className="text-base font-semibold tabular-nums text-diet">
-              {formatNumber(Math.round(protein))}g
-              <span className="ml-1 text-xs font-semibold text-muted-foreground">
-                {t("of {target}g protein", { target: formatNumber(Math.round(proteinTarget)) })}
-              </span>
-            </p>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-3">
-              <div className="h-full rounded-full bg-diet/70" style={{ width: `${pPct}%` }} />
-            </div>
-          </div>
-        ) : null}
-      </div>
-    </Card>
   );
 }
 
@@ -548,32 +725,32 @@ function QuickStartChecklist({
   if (dismissed || complete) return null;
 
   return (
-    <Card className="rounded-2xl border-border bg-card p-4">
-      <p className="label-caps">{t("First stretch")}</p>
+    <GlassCard>
+      <MonoLabel>{t("First stretch")}</MonoLabel>
       <ul className="mt-3 space-y-2">
         {items.map((item) => (
-          <li key={item.label} className="flex items-center gap-2 text-sm">
+          <li key={item.label} className="flex items-center gap-2 text-body">
             <span
               className={cn(
                 "flex size-5 items-center justify-center rounded-full border",
-                item.done ? "border-success bg-success-bg text-success" : "border-border",
+                item.done
+                  ? "border-fj-accent bg-fj-accent text-fj-on-accent"
+                  : "border-fj-glass-border",
               )}
             >
               {item.done && <Check className="size-3" />}
             </span>
-            <span className={item.done ? "text-success" : "text-muted-foreground"}>
-              {item.label}
-            </span>
+            <span className={item.done ? "text-fj-text" : "text-fj-label"}>{item.label}</span>
           </li>
         ))}
       </ul>
       <Link
         to={hasRoutine && hasWorkout ? "/rota" : "/treino"}
-        className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-primary"
+        className="mt-3 inline-flex items-center gap-1 text-meta font-medium text-fj-accent"
       >
         {hasRoutine && hasWorkout ? t("My route") : t("Routines")}{" "}
         <ChevronRight className="size-3.5" />
       </Link>
-    </Card>
+    </GlassCard>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send, Sparkles } from "lucide-react";
 import { getCoachNotes } from "@/lib/data/coach-notes";
 import {
@@ -35,21 +35,18 @@ interface FeedItem {
   reply?: string | undefined;
 }
 
-/** Everything the coach and your check-ins recorded, newest first. */
-export function CoachNotesCard() {
-  const t = useT();
-  const [filter, setFilter] = useState<Filter>("all");
-  const [showAll, setShowAll] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [conversation, setConversation] = useState<{ role: "user" | "coach"; text: string }[]>([]);
-  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getCoachNotes });
+/**
+ * Proactive inactivity check-in: after N days without training the coach
+ * opens a thread (once per day). Shared by Home and the Coach notes feed, so
+ * the message shows up wherever the user looks first.
+ */
+export function useInactivityCheckIn(): CoachingEvent | null {
+  const qc = useQueryClient();
   const eventsQ = useQuery({ queryKey: ["coaching-events"], queryFn: getCoachingEvents });
   const workoutsQ = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
-  const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const [checkIn, setCheckIn] = useState<CoachingEvent | null>(null);
   const createdRef = useRef(false);
 
-  // Proactive check-in: surfaced here, without waiting for the user to open Train.
   useEffect(() => {
     if (createdRef.current) return;
     const workouts = workoutsQ.data;
@@ -73,8 +70,28 @@ export function CoachNotesCard() {
       cause: "none",
       message: inactivityMessage(days),
       detail: { days },
-    }).then(setCheckIn);
-  }, [workoutsQ.data, eventsQ.data]);
+    }).then((event) => {
+      setCheckIn(event);
+      // Another mounted feed must see it, or it would log a second one.
+      void qc.invalidateQueries({ queryKey: ["coaching-events"] });
+    });
+  }, [workoutsQ.data, eventsQ.data, qc]);
+
+  return checkIn;
+}
+
+/** Everything the coach and your check-ins recorded, newest first. */
+export function CoachNotesCard() {
+  const t = useT();
+  const [filter, setFilter] = useState<Filter>("all");
+  const [showAll, setShowAll] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [conversation, setConversation] = useState<{ role: "user" | "coach"; text: string }[]>([]);
+  const notesQ = useQuery({ queryKey: ["coach-notes"], queryFn: getCoachNotes });
+  const eventsQ = useQuery({ queryKey: ["coaching-events"], queryFn: getCoachingEvents });
+  const workoutsQ = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
+  const routinesQ = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
+  const checkIn = useInactivityCheckIn();
 
   const feed = useMemo<FeedItem[]>(() => {
     const notes: FeedItem[] = (notesQ.data ?? []).map((n) => ({

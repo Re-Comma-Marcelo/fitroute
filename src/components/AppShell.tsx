@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import type { ReactNode, RefObject } from "react";
+import { createContext, useContext, useEffect, useRef } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
 import { PendingSync } from "./PendingSync";
@@ -11,15 +11,28 @@ import { armReminder, armWeeklyCheckInReminder } from "@/lib/workout-reminder";
 import { checkInDue } from "@/lib/coach/weekly-checkin";
 import { useT } from "@/lib/i18n";
 
+/** The page's scroll container, for scroll-linked effects (hero blur). */
+const ScrollContainerContext = createContext<RefObject<HTMLElement | null> | null>(null);
+
+export function useScrollContainer(): RefObject<HTMLElement | null> | null {
+  return useContext(ScrollContainerContext);
+}
+
 export function AppShell({
   title,
   action,
   hideHeader = false,
+  hero = false,
   children,
 }: {
   title: string;
   action?: ReactNode;
   hideHeader?: boolean;
+  /**
+   * Full-bleed photo layout (Home, Train): no header, no side padding, and
+   * the tab bar floats over the content so its blur has something to blur.
+   */
+  hero?: boolean;
   children: ReactNode;
 }) {
   useLanguageSync();
@@ -59,6 +72,26 @@ export function AppShell({
     void node.offsetWidth;
     node.classList.add("route-enter");
   }, [pathname]);
+
+  if (hero) {
+    return (
+      <ScrollContainerContext.Provider value={mainRef}>
+        <div className="relative h-[100dvh] overflow-hidden bg-fj-bg">
+          <PendingSync />
+          <main
+            ref={mainRef}
+            className="route-enter h-full w-full overflow-y-auto overflow-x-hidden pb-[calc(var(--nav-h)+var(--gap-block)*4)]"
+          >
+            {children}
+          </main>
+          <div className="absolute inset-x-0 bottom-0 z-40">
+            <SessionMiniPlayer />
+            <BottomNav />
+          </div>
+        </div>
+      </ScrollContainerContext.Provider>
+    );
+  }
 
   return (
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">

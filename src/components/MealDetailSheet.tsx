@@ -274,7 +274,7 @@ export function MealDetailSheet({
               ))}
             </ul>
             <p className="mt-2 text-xs text-muted-foreground">
-              {t("Grey is what is already planned today, purple is what this meal adds.")}
+              {t("Grey is what is already planned today, the light bar is what this meal adds.")}
             </p>
           </section>
 

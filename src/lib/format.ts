@@ -114,6 +114,18 @@ export function formatWeekdayShort(value: Date | string): string {
   return new Intl.DateTimeFormat(currentLocale, { weekday: "short" }).format(asDate(value));
 }
 
+export function formatWeekdayLong(value: Date | string): string {
+  return new Intl.DateTimeFormat(currentLocale, { weekday: "long" }).format(asDate(value));
+}
+
+/** Compact top-of-screen date, e.g. "THU 1 OCT". */
+export function formatTopDate(value: Date | string): string {
+  const d = asDate(value);
+  const part = (opts: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(currentLocale, opts).format(d).replace(/\./g, "");
+  return `${part({ weekday: "short" })} ${d.getDate()} ${part({ month: "short" })}`.toUpperCase();
+}
+
 export function formatWeekdayDayMonth(value: Date | string): string {
   return new Intl.DateTimeFormat(currentLocale, {
     weekday: "long",

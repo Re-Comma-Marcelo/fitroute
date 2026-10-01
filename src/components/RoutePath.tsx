@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useState } from "react";
 import { Check, Flag, MapPin } from "lucide-react";
 import { RouteMark } from "@/components/RouteLogo";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -10,16 +10,11 @@ import { formatDate, formatKg } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 /**
- * Plain hex/rgba, not oklch() — oklch() as a raw SVG attribute value or
- * inside a Tailwind arbitrary bracket (as opposed to a CSS custom property
- * consumed through Tailwind's own colour pipeline, which is what the rest of
- * the app's purple relies on) isn't reliably parsed everywhere, and silently
- * drops the whole declaration rather than falling back to anything visible.
- * Same purple as --primary in styles.css (oklch(0.599 0.2299 286.2) = #7C5CFF).
+ * Colours come from theme.css tokens through the `style` prop (CSS custom
+ * properties resolve there; they don't as raw SVG presentation attributes).
  */
-const PURPLE = "#7C5CFF";
-const PURPLE_LIGHT = "#9C8CFF";
-const PURPLE_DARK = "#5B3FE0";
+const ROUTE = "var(--route-done)";
+const HALO = "var(--route-halo)";
 
 type RouteNode =
   | { kind: "checkpoint"; date: string; checkpoint: Checkpoint; ordinal: number }
@@ -29,7 +24,7 @@ type RouteNode =
  * The route itself: one curved line from where the user started to the goal,
  * with a node per checkpoint (and, for a weight goal, a smaller node per week
  * in between). Two overlaid tracks carry status, like the two lines under
- * each exercise in the session header: purple as soon as a point in time is
+ * each exercise in the session header: turquoise as soon as a point in time is
  * reached, white once the data actually confirms it.
  */
 export function RoutePath({
@@ -52,11 +47,6 @@ export function RoutePath({
   onSelect: (cp: Checkpoint) => void;
 }) {
   const t = useT();
-  // Unique per instance: a hardcoded id here would collide if the route ever
-  // renders more than once on a page (or gets id-stripped by a build
-  // optimizer), silently breaking the url(#...) reference and leaving only
-  // the thin white line visible with no purple gradient/glow at all.
-  const gradientId = useId();
   const [viewingPhoto, setViewingPhoto] = useState<ProgressPhoto | null>(null);
 
   let ordinal = 0;
@@ -76,7 +66,7 @@ export function RoutePath({
   const nodes = geo.nodes;
   const today = new Date().toISOString().slice(0, 10);
 
-  // "Purple marks where you are [in time], white follows one step behind [as
+  // "Turquoise marks where you are [in time], white follows one step behind [as
   // the data confirms it]" — the same two-signal idea as the exercise
   // progress bar in the session header, just walked along the route's curve
   // instead of a straight segment.
@@ -88,7 +78,7 @@ export function RoutePath({
   );
   const lastTimeIdx = timeReached.reduce((last, v, i) => (v ? i : last), -1);
   const lastDataIdx = dataFilled.reduce((last, v, i) => (v ? i : last), -1);
-  const purpleTravelled = lastTimeIdx >= 0 ? pathThrough(nodes.slice(0, lastTimeIdx + 2)) : "";
+  const travelled = lastTimeIdx >= 0 ? pathThrough(nodes.slice(0, lastTimeIdx + 2)) : "";
   const whiteTravelled = lastDataIdx >= 0 ? pathThrough(nodes.slice(0, lastDataIdx + 2)) : "";
 
   function photoForWeek(marker: WeekMarker): ProgressPhoto | undefined {
@@ -106,12 +96,6 @@ export function RoutePath({
         style={{ height: geo.height }}
         aria-hidden
       >
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={PURPLE_LIGHT} />
-            <stop offset="100%" stopColor={PURPLE_DARK} />
-          </linearGradient>
-        </defs>
         <path
           d={geo.d}
           fill="none"
@@ -121,18 +105,15 @@ export function RoutePath({
           strokeDasharray="2 10"
           className="text-border"
         />
-        {purpleTravelled ? (
+        {travelled ? (
           <path
-            d={purpleTravelled}
+            d={travelled}
             fill="none"
-            // Trailing colour is the fallback SVG itself uses if the url()
-            // reference ever fails to resolve, instead of silently painting
-            // nothing. A CSS drop-shadow (not an SVG feGaussianBlur filter)
-            // gives the glow — far more consistently supported.
-            stroke={`url(#${gradientId}) ${PURPLE}`}
             strokeWidth={4.5}
             strokeLinecap="round"
-            style={{ filter: `drop-shadow(0 0 6px ${PURPLE}) drop-shadow(0 0 3px ${PURPLE})` }}
+            // A CSS drop-shadow (not an SVG filter) gives the glow — far more
+            // consistently supported.
+            style={{ stroke: ROUTE, filter: `drop-shadow(0 0 6px ${HALO})` }}
           />
         ) : null}
         {whiteTravelled ? (
@@ -167,7 +148,7 @@ export function RoutePath({
                   "flex flex-col items-center gap-1 rounded-2xl border px-2.5 py-1.5",
                   has ? "border-primary-foreground/25 bg-card" : "border-dashed border-border/60",
                 )}
-                style={has ? { boxShadow: `0 0 16px -6px ${PURPLE}` } : undefined}
+                style={has ? { boxShadow: `0 0 16px -6px ${HALO}` } : undefined}
               >
                 {photo ? (
                   <button
@@ -235,7 +216,7 @@ export function RoutePath({
                   isCurrent && "border-primary bg-primary/15",
                   !achieved && !isCurrent && "border-border bg-card",
                 )}
-                style={isCurrent ? { boxShadow: `0 0 40px -2px ${PURPLE}` } : undefined}
+                style={isCurrent ? { boxShadow: `0 0 40px -2px ${HALO}` } : undefined}
               >
                 <span
                   className={cn(

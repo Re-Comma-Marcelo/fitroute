@@ -16,6 +16,7 @@ export function TodayCoachCard({
   onStart,
   onNoteSaved,
   busy,
+  defaultOpen = false,
 }: {
   model: TodayCardModel;
   /** exerciseId -> alternatives, for every exercise of today's routine. */
@@ -27,9 +28,11 @@ export function TodayCoachCard({
   onStart: (opts: { deload?: boolean }) => void;
   onNoteSaved: () => void;
   busy: boolean;
+  /** Start with the reasoning expanded (e.g. inside the "See why" sheet). */
+  defaultOpen?: boolean;
 }) {
   const t = useT();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const [swapFor, setSwapFor] = useState<string | null>(null);
   const preview = previewText(model);
   const flaggedIds = new Set(model.flagged.map((f) => f.exerciseId));
