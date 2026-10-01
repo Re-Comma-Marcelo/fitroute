@@ -28,7 +28,12 @@ const GOAL_KEY = "ironlogger.profileGoal.v1";
 type GoalOverlay = Partial<
   Pick<
     Profile,
-    "metaPrazo" | "pesoMetaKg" | "metaIniciadaEm" | "onboardingConcluidoEm" | "trainingGoal"
+    | "metaPrazo"
+    | "pesoMetaKg"
+    | "metaIniciadaEm"
+    | "onboardingConcluidoEm"
+    | "trainingGoal"
+    | "trainingExperience"
   >
 >;
 
@@ -57,6 +62,7 @@ const OVERLAY_KEYS = [
   "metaIniciadaEm",
   "onboardingConcluidoEm",
   "trainingGoal",
+  "trainingExperience",
 ] as const;
 
 function overlayFrom(wanted: Profile): GoalOverlay {
@@ -102,7 +108,7 @@ export async function saveProfile(next: Profile): Promise<Profile> {
     const message = String((error as Error)?.message ?? error);
     const missingColumn =
       message.includes("PGRST204") ||
-      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em|training_goal/.test(
+      /meta_prazo|peso_meta_kg|meta_iniciada_em|onboarding_concluido_em|training_goal|training_experience/.test(
         message,
       ) ||
       /column .* does not exist/i.test(message);
@@ -115,6 +121,7 @@ export async function saveProfile(next: Profile): Promise<Profile> {
       metaIniciadaEm: _c,
       onboardingConcluidoEm: _d,
       trainingGoal: _e,
+      trainingExperience: _f,
       ...rest
     } = wanted;
     const saved = (await persistProfile({ data: { profile: rest as Profile } })) as Profile;
