@@ -63,8 +63,20 @@ function countTotal(session: ActiveSession): number {
 }
 
 /**
+ * Reps a set is logged with when the user never touched the field: the target
+ * if there is one, else the top of the range. The field shows this same number,
+ * so the ✓ never records something that wasn't on screen.
+ */
+export function repsPadrao(
+  set: Pick<ActiveSet, "sugReps">,
+  ex: Pick<ActiveExercise, "repsMax">,
+): number {
+  return set.sugReps ?? ex.repsMax;
+}
+
+/**
  * Apply the target the app computed to the next pending working set: the grey
- * hint changes, typed values are never overwritten.
+ * hint changes, numbers the user set by hand are never overwritten.
  */
 export function applyNextTarget(
   ex: ActiveExercise,
@@ -76,8 +88,8 @@ export function applyNextTarget(
   if (!target || !next) return null;
   next.sugPeso = target.pesoKg;
   next.sugReps = target.reps;
-  next.pesoKg = "";
-  next.reps = "";
+  if (!next.editadoPeso) next.pesoKg = "";
+  if (!next.editadoReps) next.reps = "";
   return target.line;
 }
 
@@ -97,7 +109,7 @@ export function completeSet(
 
   // Logging in two taps: suggested values are accepted without typing anything.
   if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
-  if (!set.reps) set.reps = String(set.sugReps ?? ex.repsMax);
+  if (!set.reps) set.reps = String(repsPadrao(set, ex));
   set.concluida = true;
   if (ex.selectedVariantId) set.variantId = ex.selectedVariantId;
 
@@ -159,6 +171,9 @@ export function uncompleteSet(
   if (!set) return session;
   set.concluida = false;
   set.pr = false;
+  // The numbers were logged once; keep them if a later target is recomputed.
+  set.editadoPeso = set.pesoKg !== "";
+  set.editadoReps = set.reps !== "";
   return s;
 }
 

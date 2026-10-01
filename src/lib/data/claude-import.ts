@@ -3,7 +3,8 @@ import { tx } from "../format";
 import type { Routine } from "../types";
 import { exercises } from "./mocks";
 import { meals } from "./meals.mock";
-import { saveRoutine, newRoutineExercise } from "./routines";
+import { getRoutines, saveRoutine, newRoutineExercise } from "./routines";
+import { swapReasonLabel } from "../swap-reasons";
 import { SLOT_LABEL } from "./nutrition";
 import { addEntry, getEntriesForDates } from "./diet-entries";
 import { saveCoachNote } from "./coach-notes";
@@ -26,6 +27,16 @@ export function previewImport(payload: BridgePayload): ImportPreview {
       }
       return `${i + 1}. ${ex.nome} — ${e.sets} × ${e.repsMin}-${e.repsMax}`;
     });
+    if (payload.role === "variation") {
+      const reason = swapReasonLabel(payload.reason);
+      lines.unshift(
+        payload.variationOf
+          ? tx("Variation of {name}", { name: payload.variationOf })
+          : tx("Variation"),
+        ...(reason ? [tx(reason)] : []),
+      );
+      return { title: tx("Variation · {name}", { name: payload.name }), lines, warnings };
+    }
     return { title: tx("Routine · {name}", { name: payload.name }), lines, warnings };
   }
 
@@ -64,10 +75,27 @@ export function previewImport(payload: BridgePayload): ImportPreview {
 export async function applyImport(payload: BridgePayload): Promise<string> {
   if (payload.kind === "routine") {
     const valid = payload.exercises.filter((e) => exercises.some((x) => x.id === e.exerciseId));
+    const variation = payload.role === "variation";
+    const target = payload.variationOf?.trim();
+    // The standard it varies, by id or by name, among the user's routines.
+    const parent =
+      variation && target
+        ? (await getRoutines()).find(
+            (r) => r.id === target || r.nome.toLowerCase() === target.toLowerCase(),
+          )
+        : undefined;
     const routine: Routine = {
       id: "",
       nome: payload.name,
       descricao: payload.description,
+      ...(variation
+        ? {
+            papel: "variacao" as const,
+            diasSemana: [],
+            ...(parent ? { variacaoDe: parent.id } : {}),
+            ...(payload.reason ? { motivo: payload.reason } : {}),
+          }
+        : {}),
       exercicios: valid.map((e, i) => ({
         ...newRoutineExercise(e.exerciseId, i),
         seriesAlvo: e.sets,

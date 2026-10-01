@@ -20,11 +20,29 @@ export const routineExerciseSchema = z.object({
   notes: z.string().max(200).default(""),
 });
 
+export const swapReasonSchema = z.enum([
+  "busy",
+  "social",
+  "pain",
+  "equipment",
+  "difficulty",
+  "preference",
+]);
+
 export const routinePayloadSchema = z.object({
   kind: z.literal("routine"),
   name: z.string().min(1).max(60),
   description: z.string().max(200).default(""),
   exercises: z.array(routineExerciseSchema).min(1).max(15),
+  /**
+   * Folder role (optional, so older codes still import): a standard routine is
+   * the plan; a variation is kept for short-on-time / social / pain days.
+   */
+  role: z.enum(["standard", "variation"]).optional(),
+  /** Variation only: name or id of the standard routine it varies. */
+  variationOf: z.string().min(1).max(60).optional(),
+  /** Variation only: why it exists. */
+  reason: swapReasonSchema.optional(),
 });
 
 export const dietPayloadSchema = z.object({

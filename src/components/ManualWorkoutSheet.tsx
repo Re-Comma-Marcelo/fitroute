@@ -8,6 +8,7 @@ import { useT } from "@/lib/i18n";
 import { buildManualWorkout, type ManualEntryRow } from "@/lib/manual-workout";
 import { saveWorkout } from "@/lib/data/workouts";
 import { weightUnitLabel } from "@/lib/format";
+import { isoDate } from "@/lib/data/nutrition";
 import { fromDisplayWeight } from "@/lib/units";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ export function ManualWorkoutSheet({
   const t = useT();
   const { unit } = useWeightUnit();
   const queryClient = useQueryClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = isoDate(new Date());
 
   const [data, setData] = useState(today);
   const [duration, setDuration] = useState("60");
@@ -194,17 +195,22 @@ function NumberField({
   onChange: (value: number) => void;
   decimal?: boolean;
 }) {
+  // What's typed stays on screen while editing, so "72," survives until the "5".
+  const [draft, setDraft] = useState<string | null>(null);
   return (
     <label className="text-[11px] font-semibold text-muted-foreground">
       {label}
       <Input
-        value={value === 0 ? "" : String(value)}
+        value={draft ?? (value === 0 ? "" : String(value))}
         inputMode={decimal ? "decimal" : "numeric"}
         placeholder="0"
         onChange={(e) => {
-          const parsed = Number(e.target.value.replace(",", "."));
+          const raw = e.target.value.replace(decimal ? /[^\d.,]/g : /\D/g, "");
+          setDraft(raw);
+          const parsed = Number(raw.replace(",", "."));
           onChange(Number.isFinite(parsed) ? parsed : 0);
         }}
+        onBlur={() => setDraft(null)}
         className="numeric-field mt-1 h-11"
       />
     </label>

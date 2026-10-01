@@ -10,6 +10,7 @@ import { getFavorites } from "@/lib/favorites";
 import { getExerciseUsage } from "@/lib/exercise-usage";
 import { getProfile } from "@/lib/data/profile";
 import { rankSwapCandidates } from "@/lib/coach/swap";
+import { getPastSwaps } from "@/lib/data/folders";
 import { useT } from "@/lib/i18n";
 import type { Exercise } from "@/lib/types";
 
@@ -28,7 +29,7 @@ export function SessionExercisePickerSheet({
   onOpenChange: (open: boolean) => void;
   onPick: (exercise: Exercise) => void;
   /** When set, the sheet replaces this exercise: ranked alternatives come first. */
-  replacing?: { exerciseId: string; nome: string } | null;
+  replacing?: { exerciseId: string; nome: string; substituiDe?: string } | null;
   sessionExerciseIds?: string[];
 }) {
   const t = useT();
@@ -46,6 +47,13 @@ export function SessionExercisePickerSheet({
   const exercisesQ = useQuery({ queryKey: ["exercises"], queryFn: getExercises, enabled: open });
   const profileQ = useQuery({ queryKey: ["profile"], queryFn: getProfile, enabled: open });
   const all = exercisesQ.data ?? [];
+  /** The routine's exercise this slot stands for, even after an earlier swap. */
+  const original = replacing ? (replacing.substituiDe ?? replacing.exerciseId) : null;
+  const pastSwapsQ = useQuery({
+    queryKey: ["past-swaps", original],
+    queryFn: () => getPastSwaps(original!),
+    enabled: open && original !== null,
+  });
 
   const suggested = useMemo(() => {
     if (!replacing || term.trim()) return [];
@@ -53,9 +61,10 @@ export function SessionExercisePickerSheet({
       profile: profileQ.data ?? null,
       excludeIds: sessionExerciseIds,
       historyIds: Object.keys(usage),
+      pastSwapIds: pastSwapsQ.data ?? [],
       limit: 4,
     });
-  }, [replacing, term, all, profileQ.data, sessionExerciseIds, usage]);
+  }, [replacing, term, all, profileQ.data, sessionExerciseIds, usage, pastSwapsQ.data]);
 
   const list = useMemo(() => {
     const q = term.trim().toLowerCase();

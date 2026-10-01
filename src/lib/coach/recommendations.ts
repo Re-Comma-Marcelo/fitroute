@@ -1,3 +1,4 @@
+import { getCurrentFolder, isStandard, routinesInFolder } from "@/lib/data/folders";
 import { getRoutines } from "@/lib/data/routines";
 import { getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { getExercises } from "@/lib/data/exercises";
@@ -19,13 +20,18 @@ import type { Routine, Workout, WorkoutSet, Exercise, Profile, CoachNote } from 
 import type { CoachInsight, TodayPlan } from "./types";
 
 export async function getTodayPlan(): Promise<TodayPlan> {
-  const [routines, workouts, exercises, profile, notes] = await Promise.all([
+  const [allRoutines, workouts, exercises, profile, notes, folder] = await Promise.all([
     getRoutines(),
     getWorkouts(),
     getExercises(),
     getProfile(),
     getCoachNotes(),
+    // Folders are optional (migration not applied yet): fall back to every routine.
+    getCurrentFolder().catch(() => null),
   ]);
+  // The plan is the current folder: older folders' routines are not suggested.
+  const inFolder = folder ? routinesInFolder(allRoutines, folder.id, folder.id) : allRoutines;
+  const routines = inFolder.length ? inFolder : allRoutines;
   const allSets = workouts.length
     ? (await Promise.all(workouts.map((w) => getWorkoutSets(w.id)))).flat()
     : [];
@@ -64,9 +70,12 @@ function chooseRecommendation(
       (n.tags.includes("soreness") || n.tags.includes("injury")),
   );
 
+  // Variations are kept for when life gets in the way, never suggested on their own.
+  const standard = routines.filter(isStandard);
+  const candidates = standard.length ? standard : routines;
   let best: Routine | null = null;
   let bestScore = -Infinity;
-  for (const r of routines) {
+  for (const r of candidates) {
     const last = workouts
       .filter((w) => w.routineId === r.id && w.finalizadoEm)
       .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];
@@ -89,7 +98,7 @@ function chooseRecommendation(
     }
   }
 
-  const chosen = best ?? routines[0]!;
+  const chosen = best ?? candidates[0]!;
   const last = workouts
     .filter((w) => w.routineId === chosen.id && w.finalizadoEm)
     .sort((a, b) => b.iniciadoEm.localeCompare(a.iniciadoEm))[0];

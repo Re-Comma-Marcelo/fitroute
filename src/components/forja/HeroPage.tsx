@@ -42,7 +42,7 @@ export function HeroPage({
   const scale = useTransform(scrollY, [0, range], [1, 1.08]);
 
   return (
-    <div className="relative isolate min-h-full">
+    <div className="relative isolate min-h-full font-ui">
       <div aria-hidden className="grain" />
 
       {/* Sticky photo: zero layout height, so the content starts at the top. */}

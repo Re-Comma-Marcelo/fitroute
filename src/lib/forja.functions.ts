@@ -1,6 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 
-import type { CoachNote, Exercise, Profile, Routine, Workout, WorkoutSet } from "./types";
+import type {
+  CoachNote,
+  Exercise,
+  Profile,
+  Routine,
+  TrainingFolder,
+  Workout,
+  WorkoutSet,
+} from "./types";
 import type { MealSchedule, MealSlot, WeekPlan } from "./nutrition-types";
 
 // Every handler loads the server-only Supabase module dynamically so this
@@ -91,6 +99,10 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
     nome: String(r["nome"]),
     descricao: String(r["descricao"] ?? ""),
     diasSemana: ((r["dias_semana"] ?? []) as number[]).map(Number),
+    folderId: r["folder_id"] ?? undefined,
+    papel: r["papel"] ?? "padrao",
+    variacaoDe: r["variacao_de"] ?? null,
+    motivo: r["motivo"] ?? null,
     exercicios: items
       .filter((i: Record<string, unknown>) => i["routine_id"] === r["id"])
       .map(toRoutineExercise),
@@ -100,19 +112,43 @@ export const fetchRoutines = createServerFn({ method: "GET" }).handler(async () 
 export const persistRoutine = createServerFn({ method: "POST" })
   .inputValidator((data: { routine: Routine }) => data)
   .handler(async ({ data }) => {
-    const { db, requireUserId, uid, unwrap } = await import("./db.server");
+    const { currentFolderId, db, requireUserId, uid, unwrap } = await import("./db.server");
     const DEMO_USER_ID = await requireUserId();
     const client = db();
     const r = data.routine;
     const id = r.id || uid("r");
     const base = { id, user_id: DEMO_USER_ID, nome: r.nome, descricao: r.descricao };
-    // dias_semana comes from a later migration; fall back when it is missing.
-    const withDays = await client
-      .from("routines")
-      .upsert({ ...base, dias_semana: r.diasSemana ?? [] }, { onConflict: "id" })
-      .select("id");
-    if (withDays.error) {
+    const withDays = { ...base, dias_semana: r.diasSemana ?? [] };
+    // Folder columns are only sent when set, so a caller that never heard of
+    // folders cannot move a routine out of one.
+    const withFolder = {
+      ...withDays,
+      ...(r.folderId !== undefined ? { folder_id: r.folderId } : {}),
+      ...(r.papel !== undefined ? { papel: r.papel } : {}),
+      ...(r.variacaoDe !== undefined ? { variacao_de: r.variacaoDe } : {}),
+      ...(r.motivo !== undefined ? { motivo: r.motivo } : {}),
+    };
+    // dias_semana and the folder columns come from later migrations; fall back when missing.
+    let saved = await client.from("routines").upsert(withFolder, { onConflict: "id" }).select("id");
+    if (saved.error) {
+      saved = await client.from("routines").upsert(withDays, { onConflict: "id" }).select("id");
+    }
+    if (saved.error) {
       unwrap(await client.from("routines").upsert(base, { onConflict: "id" }).select("id"));
+    }
+    // A routine with no folder yet lands in the current one.
+    let folderId = r.folderId;
+    if (folderId === undefined) {
+      const current = await currentFolderId(DEMO_USER_ID);
+      if (current) {
+        await client
+          .from("routines")
+          .update({ folder_id: current })
+          .eq("id", id)
+          .is("folder_id", null)
+          .select("id");
+        folderId = current;
+      }
     }
     unwrap(await client.from("routine_exercises").delete().eq("routine_id", id).select("id"));
     const exercicios = r.exercicios.map((e, i) => ({ ...e, ordem: i, id: e.id || uid("rex") }));
@@ -136,7 +172,12 @@ export const persistRoutine = createServerFn({ method: "POST" })
           .select("id"),
       );
     }
-    return { ...r, id, exercicios } as Routine;
+    return {
+      ...r,
+      id,
+      exercicios,
+      ...(folderId !== undefined ? { folderId } : {}),
+    } as Routine;
   });
 
 export const removeRoutine = createServerFn({ method: "POST" })
@@ -174,30 +215,51 @@ export const fetchWorkoutLog = createServerFn({ method: "GET" }).handler(async (
 export const persistWorkout = createServerFn({ method: "POST" })
   .inputValidator((data: { workout: Workout; sets: WorkoutSet[] }) => data)
   .handler(async ({ data }) => {
-    const { db, requireUserId, uid, unwrap } = await import("./db.server");
+    const { currentFolderId, db, requireUserId, uid, unwrap } = await import("./db.server");
     const DEMO_USER_ID = await requireUserId();
     const client = db();
     const w = data.workout;
     const id = w.id || uid("w");
-    unwrap(
-      await client
-        .from("workouts")
-        .upsert(
-          {
-            id,
-            user_id: DEMO_USER_ID,
-            routine_id: w.routineId ?? null,
-            iniciado_em: w.iniciadoEm,
-            finalizado_em: w.finalizadoEm ?? null,
-            duracao_seg: w.duracaoSeg,
-            volume_total_kg: w.volumeTotalKg,
-            notas: w.notas,
-            origem: w.origem,
-          },
-          { onConflict: "id" },
-        )
-        .select("id"),
-    );
+    const base = {
+      id,
+      user_id: DEMO_USER_ID,
+      routine_id: w.routineId ?? null,
+      iniciado_em: w.iniciadoEm,
+      finalizado_em: w.finalizadoEm ?? null,
+      duracao_seg: w.duracaoSeg,
+      volume_total_kg: w.volumeTotalKg,
+      notas: w.notas,
+      origem: w.origem,
+    };
+    // Folder columns come from the folders migration and are only sent when
+    // set, so re-saving an old workout never moves it to another folder.
+    const withFolder = {
+      ...base,
+      ...(w.folderId !== undefined ? { folder_id: w.folderId } : {}),
+      ...(w.variacao !== undefined ? { variacao: w.variacao } : {}),
+      ...(w.motivo !== undefined ? { motivo: w.motivo } : {}),
+    };
+    const saved = await client
+      .from("workouts")
+      .upsert(withFolder, { onConflict: "id" })
+      .select("id");
+    if (saved.error) {
+      unwrap(await client.from("workouts").upsert(base, { onConflict: "id" }).select("id"));
+    }
+    // A session with no folder yet belongs to the one that is current now.
+    let folderId = w.folderId;
+    if (folderId === undefined) {
+      const current = await currentFolderId(DEMO_USER_ID);
+      if (current) {
+        await client
+          .from("workouts")
+          .update({ folder_id: current })
+          .eq("id", id)
+          .is("folder_id", null)
+          .select("id");
+        folderId = current;
+      }
+    }
     unwrap(await client.from("workout_sets").delete().eq("workout_id", id).select("id"));
     if (data.sets.length) {
       const rows = data.sets.map((s, i) => ({
@@ -212,30 +274,161 @@ export const persistWorkout = createServerFn({ method: "POST" })
         rpe: s.rpe ?? null,
         concluida: s.concluida,
       }));
-      // coach_note and variant_id come from later migrations; fall back in
-      // stages when a given deployment hasn't run them yet.
-      const withNoteAndVariant = await client
-        .from("workout_sets")
-        .insert(
-          rows.map((r, i) => ({
-            ...r,
-            coach_note: data.sets[i]?.coachNote ?? "",
-            variant_id: data.sets[i]?.variantId ?? null,
-          })),
-        )
-        .select("id");
-      if (withNoteAndVariant.error) {
-        const withNote = await client
+      // coach_note (coaching), variant_id (exercise variants) and
+      // substitui_exercise_id (folders) come from separate migrations; try the
+      // richest row first and drop optional columns until the insert fits.
+      const extras = (i: number) => ({
+        coach_note: data.sets[i]?.coachNote ?? "",
+        variant_id: data.sets[i]?.variantId ?? null,
+        substitui_exercise_id: data.sets[i]?.substituiExerciseId ?? null,
+      });
+      const attempts: (keyof ReturnType<typeof extras>)[][] = [
+        ["coach_note", "variant_id", "substitui_exercise_id"],
+        ["coach_note", "variant_id"],
+        ["coach_note", "substitui_exercise_id"],
+        ["coach_note"],
+      ];
+      let inserted = false;
+      for (const cols of attempts) {
+        const res = await client
           .from("workout_sets")
-          .insert(rows.map((r, i) => ({ ...r, coach_note: data.sets[i]?.coachNote ?? "" })))
+          .insert(
+            rows.map((r, i) => {
+              const all = extras(i);
+              return { ...r, ...Object.fromEntries(cols.map((c) => [c, all[c]])) };
+            }),
+          )
           .select("id");
-        if (withNote.error) {
-          unwrap(await client.from("workout_sets").insert(rows).select("id"));
+        if (!res.error) {
+          inserted = true;
+          break;
         }
+      }
+      if (!inserted) {
+        unwrap(await client.from("workout_sets").insert(rows).select("id"));
       }
     }
 
-    return { ...w, id } as Workout;
+    return { ...w, id, ...(folderId !== undefined ? { folderId } : {}) } as Workout;
+  });
+
+// ---- training folders -------------------------------------------------------
+
+/**
+ * The user's folders, oldest first. The first call creates the current folder
+ * (named `defaultName`) and files every existing routine and session in it;
+ * later calls adopt routines created elsewhere (e.g. over MCP) into the
+ * current folder. Returns [] until the folders migration has been applied.
+ */
+export const loadFolders = createServerFn({ method: "POST" })
+  .inputValidator((data: { defaultName: string }) => data)
+  .handler(async ({ data }) => {
+    const { db, isMissingTable, requireUserId, toFolder, uid, unwrap } =
+      await import("./db.server");
+    const userId = await requireUserId();
+    const client = db();
+    const res = await client
+      .from("training_folders")
+      .select("*")
+      .eq("user_id", userId)
+      .order("inicio_em");
+    if (res.error) {
+      if (isMissingTable(res.error)) return [] as TrainingFolder[];
+      throw new Error(res.error.message);
+    }
+    let rows = (res.data ?? []) as Record<string, unknown>[];
+
+    if (!rows.length) {
+      // First run: the whole history so far becomes the first folder.
+      const first = unwrap(
+        await client
+          .from("workouts")
+          .select("iniciado_em")
+          .eq("user_id", userId)
+          .order("iniciado_em")
+          .limit(1),
+      ) as Record<string, unknown>[];
+      const created = unwrap(
+        await client
+          .from("training_folders")
+          .insert({
+            id: uid("pf"),
+            user_id: userId,
+            nome: data.defaultName.trim() || "My training",
+            status: "atual",
+            inicio_em: first[0]?.["iniciado_em"] ?? new Date().toISOString(),
+          })
+          .select("*"),
+      ) as Record<string, unknown>[];
+      const folderId = String(created[0]?.["id"]);
+      await client
+        .from("workouts")
+        .update({ folder_id: folderId })
+        .eq("user_id", userId)
+        .is("folder_id", null)
+        .select("id");
+      rows = created;
+    }
+
+    const current = rows.find((r) => r["status"] === "atual");
+    if (current) {
+      await client
+        .from("routines")
+        .update({ folder_id: current["id"] })
+        .eq("user_id", userId)
+        .is("folder_id", null)
+        .select("id");
+    }
+    return rows.map(toFolder) as unknown as TrainingFolder[];
+  });
+
+/** Create or update a folder. Making one current archives the previous current one. */
+export const persistFolder = createServerFn({ method: "POST" })
+  .inputValidator((data: { folder: TrainingFolder }) => data)
+  .handler(async ({ data }) => {
+    const { db, requireUserId, toFolder, uid, unwrap } = await import("./db.server");
+    const userId = await requireUserId();
+    const client = db();
+    const f = data.folder;
+    const id = f.id || uid("pf");
+    if (f.id) {
+      const owner = unwrap(
+        await client.from("training_folders").select("user_id").eq("id", f.id).limit(1),
+      ) as Record<string, unknown>[];
+      if (owner[0] && owner[0]["user_id"] !== userId) {
+        throw new Response("Forbidden", { status: 403 });
+      }
+    }
+    if (f.status === "atual") {
+      unwrap(
+        await client
+          .from("training_folders")
+          .update({ status: "arquivada", fim_em: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("status", "atual")
+          .neq("id", id)
+          .select("id"),
+      );
+    }
+    const row = unwrap(
+      await client
+        .from("training_folders")
+        .upsert(
+          {
+            id,
+            user_id: userId,
+            nome: f.nome,
+            status: f.status,
+            origem_modelo_id: f.origemModeloId ?? null,
+            inicio_em: f.inicioEm || new Date().toISOString(),
+            fim_em: f.status === "atual" ? null : (f.fimEm ?? null),
+          },
+          { onConflict: "id" },
+        )
+        .select("*")
+        .single(),
+    ) as Record<string, unknown>;
+    return toFolder(row) as unknown as TrainingFolder;
   });
 
 export const removeWorkout = createServerFn({ method: "POST" })

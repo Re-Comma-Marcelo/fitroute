@@ -18,8 +18,11 @@
  */
 
 @theme inline {
-  --font-sans: var(--ff-ui);
-  --font-display: var(--ff-ui);
+  /* Archivo: one family, width axis 100–125%. Body at normal width; titles
+   * and big numbers expanded (see h1–h3, .font-display, num-hero/num-big).
+   * Home and Train switch to Geist (--ff-ui) inside HeroPage. */
+  --font-sans: var(--ff-app);
+  --font-display: var(--ff-app);
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -170,7 +173,6 @@
     color: var(--color-foreground);
     font-family: var(--font-sans);
     font-weight: 400;
-    font-feature-settings: "cv01", "ss03";
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -179,7 +181,14 @@
   h3 {
     font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.015em;
+    font-stretch: 125%;
+    letter-spacing: -0.01em;
+  }
+
+  /* Small display text (list titles, stat values) goes semi-expanded so
+   * truncated names keep room; full 125% is for headings and hero numbers. */
+  .font-display {
+    font-stretch: 112.5%;
   }
 
   /* Todos os dados numéricos em tabular-nums */
@@ -227,18 +236,22 @@
 }
 
 @utility num-hero {
+  font-family: var(--font-display);
+  font-stretch: 125%;
   font-size: 48px;
   font-weight: 600;
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   font-variant-numeric: tabular-nums;
 }
 
 @utility num-big {
+  font-family: var(--font-display);
+  font-stretch: 125%;
   font-size: 32px;
   font-weight: 600;
   line-height: 1.1;
-  letter-spacing: -0.015em;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 

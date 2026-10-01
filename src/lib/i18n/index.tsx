@@ -13,6 +13,7 @@ import { setFormatLocale } from "@/lib/format";
 import { dict as authDict } from "./dict/auth";
 import { dict as coachDict } from "./dict/coach";
 import { dict as dietDict } from "./dict/diet";
+import { dict as foldersDict } from "./dict/folders";
 import { dict as exerciseCompleteDict } from "./dict/exercise-complete";
 import { dict as exerciseVariantsDict } from "./dict/exercise-variants";
 import { dict as generatedDict } from "./dict/generated";
@@ -53,10 +54,12 @@ import { dict as round32Dict } from "./dict/round32";
 import { dict as round33Dict } from "./dict/round33";
 import { dict as round34Dict } from "./dict/round34";
 import { dict as round35Dict } from "./dict/round35";
+import { dict as round36Dict } from "./dict/round36";
 
 import { dict as sessionDict } from "./dict/session";
 import { dict as crossTrainingDict } from "./dict/cross-training";
 import { dict as sessionFocusDict } from "./dict/session-focus";
+import { dict as sessionStartDict } from "./dict/session-start";
 import { dict as weeklyCheckinDict } from "./dict/weekly-checkin";
 import { dict as shellDict } from "./dict/shell";
 import { dict as toolsDict } from "./dict/tools";
@@ -82,6 +85,7 @@ const FRAGMENTS: DictFragment[] = [
   upgradesDict,
   sessionDict,
   sessionFocusDict,
+  sessionStartDict,
   exerciseCompleteDict,
   exerciseVariantsDict,
   weeklyCheckinDict,
@@ -125,6 +129,8 @@ const FRAGMENTS: DictFragment[] = [
   round33Dict,
   round34Dict,
   round35Dict,
+  round36Dict,
+  foldersDict,
   authDict,
 ];
 

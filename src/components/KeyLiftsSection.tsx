@@ -87,7 +87,11 @@ export function KeyLiftsSection({
           {rows.map(({ exercise, trend }) => (
             <li key={exercise.id} className="rounded-2xl border border-border bg-card p-3">
               <div className="flex items-center gap-3">
-                <ExerciseThumb grupo={exercise.grupoPrimario} nome={exercise.nome} />
+                <ExerciseThumb
+                  exerciseId={exercise.id}
+                  grupo={exercise.grupoPrimario}
+                  nome={exercise.nome}
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-sm font-semibold leading-tight">
                     {exercise.nome}

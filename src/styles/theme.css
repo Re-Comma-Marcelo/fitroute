@@ -82,6 +82,7 @@
   --shadow-metric: -7px 0 7px rgba(142, 220, 214, 0.28);
 
   /* ---- Type ---- */
+  --ff-app: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --ff-ui: "Geist", ui-sans-serif, system-ui, sans-serif;
   --ff-label: "Geist Mono", ui-monospace, monospace;
   --ff-metric: "Archivo", "Geist", ui-sans-serif, sans-serif;

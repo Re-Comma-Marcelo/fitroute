@@ -11,6 +11,7 @@ import { saveCoachChat } from "@/lib/data/coaching";
 import { saveCoachNote } from "@/lib/data/coach-notes";
 import { getExerciseUsage } from "@/lib/exercise-usage";
 import { detectSwapIntent, rankSwapCandidates } from "@/lib/coach/swap";
+import { getPastSwaps } from "@/lib/data/folders";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { exerciseThumbUrl } from "@/lib/exerciseMedia";
 import type { Exercise } from "@/lib/types";
@@ -85,7 +86,11 @@ export function SessionCoachSheet({
 
   async function answer(question: string): Promise<Msg> {
     const q = question.toLowerCase();
-    const [exercises, profile] = await Promise.all([getExercises(), getProfile()]);
+    const [exercises, profile, pastSwapIds] = await Promise.all([
+      getExercises(),
+      getProfile(),
+      getPastSwaps(exerciseId).catch(() => [] as string[]),
+    ]);
     const target = exercises.find((e) => e.id === exerciseId);
     const intent = detectSwapIntent(q);
     const rank = (reason: ReturnType<typeof detectSwapIntent>["reason"], limit: number) =>
@@ -93,6 +98,7 @@ export function SessionCoachSheet({
         profile,
         excludeIds: sessionExerciseIds,
         historyIds: Object.keys(getExerciseUsage() as Record<string, number>),
+        pastSwapIds,
         reason,
         limit,
       });

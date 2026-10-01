@@ -1,6 +1,6 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useT } from "@/lib/i18n";
-import { MEAL_SLOTS, SLOT_LABEL } from "@/lib/data/nutrition";
+import { MEAL_SLOTS, SLOT_LABEL, mealSchedule } from "@/lib/data/nutrition";
 import { portionOf, scaleMeal, type DietEntry } from "@/lib/data/diet-entries";
 import { portionLabel } from "@/components/diet/MealEntryRow";
 import type { DayTotals, Meal, NutritionTargets } from "@/lib/nutrition-types";
@@ -65,7 +65,10 @@ export function MacroBreakdownSheet({
         </div>
 
         <ul className="mt-4 space-y-2">
-          {MEAL_SLOTS.map((slot) => {
+          {MEAL_SLOTS.filter(
+            // Moments outside the user's day only show up when something is on them.
+            (slot) => mealSchedule()[slot].enabled || entries.some((e) => e.slot === slot),
+          ).map((slot) => {
             const rows = entries.filter((e) => e.slot === slot && mealById(e.mealId));
             const anyEaten = rows.some((e) => e.eaten);
             return (

@@ -83,7 +83,12 @@ export function AvoidExerciseSheet({
                     selected ? "border-destructive/60 bg-destructive/10" : "border-border bg-card",
                   )}
                 >
-                  <ExerciseThumb grupo={ex.grupoPrimario} nome={ex.nome} className="size-10" />
+                  <ExerciseThumb
+                    exerciseId={ex.id}
+                    grupo={ex.grupoPrimario}
+                    nome={ex.nome}
+                    className="size-10"
+                  />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{ex.nome}</span>
                     <span className="block truncate text-xs capitalize text-muted-foreground">

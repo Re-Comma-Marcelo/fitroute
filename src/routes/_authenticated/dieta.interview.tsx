@@ -17,6 +17,7 @@ import {
   MEAL_SLOTS,
   SLOT_LABEL,
   activeSlots,
+  mealFitsSlot,
   getMealSchedule,
   getMeals,
   getTargets,
@@ -80,7 +81,7 @@ function InterviewPage() {
     const ordered = MEAL_SLOTS.filter((s) => slots.includes(s));
     return ordered.map((slot) => {
       const ranked = rankMeals(
-        meals.filter((m) => m.slots.includes(slot) && !seen.has(m.id)),
+        meals.filter((m) => mealFitsSlot(m, slot) && !seen.has(m.id)),
         { slot, targets, dayTotals: EMPTY, recentTags: tags },
       );
       const pool = ranked.slice(0, POOL_PER_SLOT).map((r) => {

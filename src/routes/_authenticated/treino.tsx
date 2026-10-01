@@ -53,6 +53,19 @@ import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
 import type { Exercise, Routine, Workout, WorkoutSet } from "@/lib/types";
 import { getWorkoutLog, getWorkouts } from "@/lib/data/workouts";
 import {
+  getFolders,
+  isStandard,
+  pastSwapsFor,
+  routinesInFolder,
+  variationSessionsOf,
+  workoutsInFolder,
+} from "@/lib/data/folders";
+import { FoldersSheet } from "@/components/folders/FoldersSheet";
+import { FolderVariations } from "@/components/folders/FolderVariations";
+import { FolderDetailSheet } from "@/components/folders/FolderDetailSheet";
+import { useFolderActions } from "@/components/folders/use-folder-actions";
+import {
+  formatDate,
   formatDurationShort,
   formatKg,
   formatWeekdayLong,
@@ -143,6 +156,9 @@ function TrainPage() {
   const [expanded, setExpanded] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [whyOpen, setWhyOpen] = useState(false);
+  const [foldersOpen, setFoldersOpen] = useState(false);
+  const [folderDetail, setFolderDetail] = useState<string | null>(null);
+  const { promoteRoutine, promoteSession } = useFolderActions();
   const todayIso = isoDay(new Date());
   const [selectedDay, setSelectedDay] = useState(todayIso);
 
@@ -153,39 +169,76 @@ function TrainPage() {
 
   const routinesQuery = useQuery({ queryKey: ["routines"], queryFn: getRoutines });
   const workoutsQuery = useQuery({ queryKey: ["workouts"], queryFn: getWorkouts });
-  const logQuery = useQuery({ queryKey: ["workoutLog"], queryFn: getWorkoutLog });
+  const logQuery = useQuery({ queryKey: ["workout-log"], queryFn: getWorkoutLog });
+  // Folders are optional: before the migration the list is empty and the tab
+  // shows every routine, as it always did.
+  const foldersQuery = useQuery({ queryKey: ["folders"], queryFn: getFolders });
   const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
   const profileQuery = useQuery({ queryKey: ["profile"], queryFn: getProfile });
 
-  const routines = useMemo(() => routinesQuery.data ?? [], [routinesQuery.data]);
+  const allRoutines = useMemo(() => routinesQuery.data ?? [], [routinesQuery.data]);
   const workouts = useMemo(() => workoutsQuery.data ?? [], [workoutsQuery.data]);
   const sets = useMemo(() => logQuery.data?.sets ?? [], [logQuery.data]);
+  const folders = foldersQuery.data ?? [];
+  const currentFolder = folders.find((f) => f.status === "atual") ?? null;
+  const currentFolderId = currentFolder?.id ?? null;
+
+  /** The current folder's routines: standard ones lead, variations sit below. */
+  const folderRoutines = useMemo(
+    () =>
+      currentFolderId
+        ? routinesInFolder(allRoutines, currentFolderId, currentFolderId)
+        : allRoutines,
+    [allRoutines, currentFolderId],
+  );
+  const routines = useMemo(() => folderRoutines.filter(isStandard), [folderRoutines]);
+  const variationRoutines = folderRoutines.filter((r) => !isStandard(r));
+  const folderSessions = useMemo(
+    () => (currentFolderId ? workoutsInFolder(workouts, currentFolderId, currentFolderId) : []),
+    [workouts, currentFolderId],
+  );
+
+  /** Recent sessions that strayed from a standard routine still on file. */
+  const variationSessions = useMemo(
+    () => variationSessionsOf(folderSessions, allRoutines, sets, 5),
+    [folderSessions, allRoutines, sets],
+  );
   const exercises = useMemo(() => exercisesQuery.data ?? [], [exercisesQuery.data]);
   const profile = profileQuery.data;
 
+  // A pick from another folder (made before switching) no longer counts.
+  const folderChoice =
+    choice && (!currentFolderId || folderRoutines.some((r) => r.id === choice)) ? choice : null;
   const coachQuery = useQuery({
-    queryKey: ["today-card", choice ?? "recommended"],
+    queryKey: ["today-card", folderChoice ?? "recommended"],
     enabled: routines.length > 0,
-    queryFn: () => getTodayCard(choice),
+    queryFn: () => getTodayCard(folderChoice),
   });
   const coach = coachQuery.data;
   const insights = coach?.insightsByRoutine ?? {};
 
   const swapOptions = useMemo(() => {
     if (!coach?.routineId || !profile) return {};
-    const routine = routines.find((r) => r.id === coach.routineId);
+    const routine = allRoutines.find((r) => r.id === coach.routineId);
     if (!routine) return {};
     const map: Record<string, Exercise[]> = {};
     for (const re of routine.exercicios) {
-      map[re.exerciseId] = swapCandidates(re.exerciseId, routine, exercises, profile);
+      map[re.exerciseId] = swapCandidates(
+        re.exerciseId,
+        routine,
+        exercises,
+        profile,
+        4,
+        pastSwapsFor(re.exerciseId, folderSessions, sets),
+      );
     }
     return map;
-  }, [coach, routines, exercises, profile]);
+  }, [coach, allRoutines, exercises, profile, folderSessions, sets]);
 
   /** Every exercise of today's routine, so any of them can be swapped for the day. */
   const routineExercises = useMemo(() => {
     if (!coach?.routineId) return [];
-    const routine = routines.find((r) => r.id === coach.routineId);
+    const routine = allRoutines.find((r) => r.id === coach.routineId);
     if (!routine) return [];
     return [...routine.exercicios]
       .sort((a, b) => a.ordem - b.ordem)
@@ -193,7 +246,7 @@ function TrainPage() {
         exerciseId: re.exerciseId,
         nome: exercises.find((e) => e.id === re.exerciseId)?.nome ?? re.exerciseId,
       }));
-  }, [coach, routines, exercises]);
+  }, [coach, allRoutines, exercises]);
 
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
@@ -207,7 +260,7 @@ function TrainPage() {
   /** What the next session looks like — shown on rest days so the plan stays visible. */
   const nextPreview = useMemo(() => {
     const id = coach?.recommendedRoutineId ?? coach?.routineId;
-    const routine = routines.find((r) => r.id === id);
+    const routine = allRoutines.find((r) => r.id === id);
     if (!routine) return null;
     const nomes = routine.exercicios
       .map((re) => exercises.find((e) => e.id === re.exerciseId)?.nome)
@@ -218,10 +271,10 @@ function TrainPage() {
       restantes: Math.max(0, nomes.length - 2),
       minutos: estimateRoutineMinutes(routine),
     };
-  }, [coach?.recommendedRoutineId, coach?.routineId, routines, exercises]);
+  }, [coach?.recommendedRoutineId, coach?.routineId, allRoutines, exercises]);
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
-  const todayRoutine = routines.find((r) => r.id === activeChoiceId);
+  const todayRoutine = allRoutines.find((r) => r.id === activeChoiceId);
   const isRestToday = !!coach?.restDay && !overrideRest && !active;
 
   // One pass over the history instead of a filter+sort per routine card.
@@ -283,7 +336,7 @@ function TrainPage() {
       return {
         kind: "done",
         workout: done,
-        routine: routines.find((r) => r.id === done.routineId),
+        routine: allRoutines.find((r) => r.id === done.routineId),
       };
     }
     const planned = routines.find((r) => (r.diasSemana ?? []).includes(selected.date.getDay()));
@@ -306,7 +359,10 @@ function TrainPage() {
 
   /* ---------- actions ---------- */
 
-  async function startRoutine(routineId: string, opts: { deload?: boolean } = {}) {
+  async function startRoutine(
+    routineId: string,
+    opts: { deload?: boolean; swaps?: Record<string, string> } = {},
+  ) {
     if (active) {
       navigate({ to: "/sessao" });
       return;
@@ -315,8 +371,8 @@ function TrainPage() {
     try {
       saveTodayChoice(routineId);
       const applied = Object.fromEntries(
-        Object.entries(swaps).filter(([original]) =>
-          routines
+        Object.entries(opts.swaps ?? swaps).filter(([original]) =>
+          allRoutines
             .find((r) => r.id === routineId)
             ?.exercicios.some((re) => re.exerciseId === original),
         ),
@@ -570,12 +626,30 @@ function TrainPage() {
           </div>
         ) : null}
 
-        <div className="mt-3 flex items-center justify-between px-1">
-          <MonoLabel>{t("My training")}</MonoLabel>
-          <span className="text-meta text-fj-label">
-            {t("{count} routines", { count: routines.length })}
-          </span>
-        </div>
+        {currentFolder ? (
+          <button
+            type="button"
+            onClick={() => setFoldersOpen(true)}
+            aria-label={t("Current folder: {name}. Open my folders", { name: currentFolder.nome })}
+            className="mt-3 flex items-center justify-between gap-3 px-1 text-left"
+          >
+            <MonoLabel className="truncate">{currentFolder.nome}</MonoLabel>
+            <span className="flex shrink-0 items-center gap-1 text-meta text-fj-label">
+              {t("{count} sessions since {date}", {
+                count: folderSessions.length,
+                date: formatDate(currentFolder.inicioEm),
+              })}
+              <ChevronDown className="size-4" />
+            </span>
+          </button>
+        ) : (
+          <div className="mt-3 flex items-center justify-between px-1">
+            <MonoLabel>{t("My training")}</MonoLabel>
+            <span className="text-meta text-fj-label">
+              {t("{count} routines", { count: routines.length })}
+            </span>
+          </div>
+        )}
 
         {routinesQuery.isError ? (
           <QueryError
@@ -629,6 +703,18 @@ function TrainPage() {
           </ul>
         )}
 
+        <FolderVariations
+          routines={variationRoutines}
+          sessions={variationSessions}
+          allRoutines={allRoutines}
+          exercises={exercises}
+          disabled={loading !== null || !!active}
+          onStartRoutine={(id) => void startRoutine(id)}
+          onRepeatSession={(s) => void startRoutine(s.routine.id, { swaps: s.swaps })}
+          onPromoteRoutine={(id) => void promoteRoutine(id)}
+          onPromoteSession={(s) => void promoteSession(s)}
+        />
+
         {routines.length > 0 ? (
           <div className="grid grid-cols-2 gap-2">
             <PillButton variant="dashed" asChild>
@@ -642,6 +728,30 @@ function TrainPage() {
           </div>
         ) : null}
       </HeroPage>
+
+      <FoldersSheet
+        open={foldersOpen}
+        onOpenChange={setFoldersOpen}
+        folders={folders}
+        routines={allRoutines}
+        workouts={workouts}
+        onOpenFolder={(id) => {
+          setFoldersOpen(false);
+          setFolderDetail(id);
+        }}
+      />
+
+      <FolderDetailSheet
+        folderId={folderDetail}
+        onOpenChange={(o) => {
+          if (!o) setFolderDetail(null);
+        }}
+        onStartRoutine={(id, swaps) => {
+          setFolderDetail(null);
+          void startRoutine(id, swaps ? { swaps } : {});
+        }}
+        startDisabled={loading !== null || !!active}
+      />
 
       <RoutineTemplateSheet
         open={templatesOpen}
@@ -1040,7 +1150,12 @@ function RoutineDetails({
                 aria-label={t("How to perform {name}", { name: nome })}
                 className="tap-target flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-2 text-left"
               >
-                <ExerciseThumb grupo={ex?.grupoPrimario} nome={ex?.nome} />
+                <ExerciseThumb
+                  round
+                  exerciseId={re.exerciseId}
+                  grupo={ex?.grupoPrimario}
+                  nome={ex?.nome}
+                />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-body font-medium">{nome}</p>
                   <p className="text-meta text-fj-label">
@@ -1075,7 +1190,7 @@ function RoutineDetails({
         <PillButton
           variant={isChoice ? "primary" : "secondary"}
           className="w-full"
-          disabled={loading !== null || active}
+          disabled={loading !== null}
           onClick={() => onStart()}
         >
           {active ? t("Resume in player") : t("Start {name}", { name: r.nome })}

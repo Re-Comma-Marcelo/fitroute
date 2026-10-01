@@ -27,15 +27,16 @@ import type {
   TrainingTag,
   WeekPlan,
 } from "../nutrition-types";
+import { DEFAULT_SCHEDULE, MEAL_SLOTS, mealFitsSlot } from "../meal-slots";
 
-export const MEAL_SLOTS: MealSlot[] = ["breakfast", "lunch", "snack", "dinner"];
-
-export const SLOT_LABEL: Record<MealSlot, string> = {
-  breakfast: "Breakfast",
-  lunch: "Lunch",
-  snack: "Snack",
-  dinner: "Dinner",
-};
+export {
+  DEFAULT_SCHEDULE,
+  MEAL_SLOTS,
+  SLOT_BASE,
+  SLOT_LABEL,
+  isMealSlot,
+  mealFitsSlot,
+} from "../meal-slots";
 
 /**
  * Supermarket sections. The union values stay in English (they are a data
@@ -48,13 +49,6 @@ export const AISLE_LABEL: Record<Aisle, string> = {
   Dairy: "Dairy",
   Frozen: "Frozen",
   Bakery: "Bakery",
-};
-
-export const DEFAULT_SCHEDULE: MealSchedule = {
-  breakfast: { time: "08:00", enabled: true },
-  lunch: { time: "12:30", enabled: true },
-  snack: { time: "16:00", enabled: true },
-  dinner: { time: "20:00", enabled: true },
 };
 
 // ---- state (hydrated from Supabase, cached in memory) ----------------------
@@ -84,12 +78,11 @@ async function hydrate(): Promise<void> {
       const raw = (state.schedule ?? {}) as Partial<
         Record<MealSlot, { time: string; enabled: boolean }>
       >;
-      scheduleCache = {
-        breakfast: { ...DEFAULT_SCHEDULE.breakfast, ...raw.breakfast },
-        lunch: { ...DEFAULT_SCHEDULE.lunch, ...raw.lunch },
-        snack: { ...DEFAULT_SCHEDULE.snack, ...raw.snack },
-        dinner: { ...DEFAULT_SCHEDULE.dinner, ...raw.dinner },
-      };
+      // Moments the user never touched (every optional one, for most) keep
+      // their default time and stay off.
+      scheduleCache = Object.fromEntries(
+        MEAL_SLOTS.map((s) => [s, { ...DEFAULT_SCHEDULE[s], ...raw[s] }]),
+      ) as MealSchedule;
       hydrated = true;
       hydrating = null;
     });
@@ -126,6 +119,19 @@ export function formatSlotTime(time: string): string {
 /** Slots the user actually eats, ordered by their scheduled time. */
 export function activeSlots(schedule: MealSchedule = mealSchedule()): MealSlot[] {
   return MEAL_SLOTS.filter((s) => schedule[s].enabled).sort(
+    (a, b) => hourOf(schedule[a].time) - hourOf(schedule[b].time),
+  );
+}
+
+/**
+ * The moments a slot picker offers: the user's day in time order, plus
+ * `current` when it was taken out of the day after something was put there.
+ */
+export function slotChoices(
+  current?: MealSlot,
+  schedule: MealSchedule = mealSchedule(),
+): MealSlot[] {
+  return MEAL_SLOTS.filter((s) => schedule[s].enabled || s === current).sort(
     (a, b) => hourOf(schedule[a].time) - hourOf(schedule[b].time),
   );
 }
@@ -178,7 +184,7 @@ export function allMeals(): Meal[] {
 
 export async function getMeals(slot?: MealSlot): Promise<Meal[]> {
   await hydrate();
-  const list = slot ? allMeals().filter((m) => m.slots.includes(slot)) : allMeals();
+  const list = slot ? allMeals().filter((m) => mealFitsSlot(m, slot)) : allMeals();
   return list.map((m) => ({ ...m }));
 }
 

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useT } from "@/lib/i18n";
 import { ArrowLeft, ChevronDown, ChevronUp, GripVertical, Link2, Plus, Trash2 } from "lucide-react";
 import { PageHeader } from "@/components/AppShell";
+import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -431,7 +432,13 @@ function RoutineEditor() {
                   <span className="tap-target flex cursor-grab items-center justify-center text-muted-foreground">
                     <GripVertical className="size-5" />
                   </span>
-                  <div className="flex-1">
+                  <ExerciseThumb
+                    round
+                    exerciseId={rex.exerciseId}
+                    nome={nomes[rex.exerciseId]}
+                    className="size-10"
+                  />
+                  <div className="min-w-0 flex-1">
                     <p className="text-base font-semibold leading-tight">
                       {nomes[rex.exerciseId] ?? t("Exercise")}
                     </p>

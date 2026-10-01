@@ -136,7 +136,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@1,62..125,700&family=Geist+Mono:wght@500&family=Geist:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,100..125,400..700;1,100..125,700&family=Geist+Mono:wght@500&family=Geist:wght@400;500;600&display=swap",
       },
 
       { rel: "manifest", href: "/manifest.webmanifest" },

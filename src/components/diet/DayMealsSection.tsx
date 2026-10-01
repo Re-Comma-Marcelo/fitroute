@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { MealEntryRow } from "@/components/diet/MealEntryRow";
-import { MEAL_SLOTS, SLOT_LABEL } from "@/lib/data/nutrition";
+import { MEAL_SLOTS, SLOT_LABEL, hourOf, mealSchedule } from "@/lib/data/nutrition";
 import { useT } from "@/lib/i18n";
 import type { DietEntry } from "@/lib/data/diet-entries";
 import type { Meal, MealSlot } from "@/lib/nutrition-types";
@@ -28,10 +28,17 @@ export function DayMealsSection({
   const t = useT();
   // An entry whose meal is no longer in the catalogue renders as nothing, so
   // it must not leave an empty eating-moment heading behind either.
-  const groups = MEAL_SLOTS.map((slot) => ({
-    slot,
-    items: entries.filter((e) => e.slot === slot && mealById(e.mealId)),
-  })).filter((g) => g.items.length);
+  // In the order of the user's own day, so a 6am pre-workout sits before breakfast.
+  const schedule = mealSchedule();
+  const ordered = [...MEAL_SLOTS].sort(
+    (a, b) => hourOf(schedule[a].time) - hourOf(schedule[b].time),
+  );
+  const groups = ordered
+    .map((slot) => ({
+      slot,
+      items: entries.filter((e) => e.slot === slot && mealById(e.mealId)),
+    }))
+    .filter((g) => g.items.length);
 
   return (
     <section className="mt-5">
