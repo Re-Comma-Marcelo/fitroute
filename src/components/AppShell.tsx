@@ -94,7 +94,7 @@ export function AppShell({
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background pt-[env(safe-area-inset-top)]">
       {hideHeader ? null : (
         <header className="z-30 shrink-0 bg-background/80 backdrop-blur-xl">
           <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">

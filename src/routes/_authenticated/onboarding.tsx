@@ -290,7 +290,7 @@ function OnboardingPage() {
   const dayCap = frequencyRange.maxDays;
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-4">
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-md flex-col px-4 pb-8 pt-[calc(1rem+env(safe-area-inset-top))]">
       <div className="mb-4 flex h-11 items-center justify-between">
         {canGoBack ? (
           <button
