@@ -4,11 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  Check,
   ChevronDown,
   ChevronUp,
   Dumbbell,
-  Flag,
   Flame,
   Loader2,
   Minus,
@@ -26,6 +24,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HevyImportPanel } from "@/components/import/HevyImportPanel";
 import { RouteMarkProgress } from "@/components/RouteLogo";
+import { RoutePath } from "@/components/RoutePath";
 import { logBodyWeight } from "@/lib/data/body-weight";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile, saveProfile } from "@/lib/data/profile";
@@ -887,11 +886,15 @@ function OnboardingPage() {
                 : t("You can set a date later on the Route tab.")}
             </p>
 
-            <CheckpointList
-              checkpoints={route.checkpoints}
-              goalDate={route.goalDate}
-              startLabel={name.trim() ? t("Start · {name}", { name: name.trim() }) : t("Start")}
-            />
+            <div className="-mx-1 mt-5">
+              <RoutePath
+                checkpoints={route.checkpoints}
+                currentId={currentCheckpoint(route.checkpoints)?.id ?? null}
+                startLabel={name.trim() ? t("Start · {name}", { name: name.trim() }) : t("Start")}
+                goalLabel={route.goalDate ? formatDate(route.goalDate) : t("Goal")}
+                onSelect={() => navigate({ to: "/rota", replace: true })}
+              />
+            </div>
 
             <Button
               className="tap-target mt-auto h-14 w-full"
@@ -1221,73 +1224,6 @@ function RoutineRow({
           ))}
         </ul>
       ) : null}
-    </li>
-  );
-}
-
-/**
- * The route as a short list: start, the checkpoints in date order and the
- * goal. Compact on purpose, so the first-workout button stays in reach.
- */
-function CheckpointList({
-  checkpoints,
-  goalDate,
-  startLabel,
-}: {
-  checkpoints: Checkpoint[];
-  goalDate: string | null;
-  startLabel: string;
-}) {
-  const t = useT();
-  const ordered = [...checkpoints].sort((a, b) => a.targetDate.localeCompare(b.targetDate));
-  const next = currentCheckpoint(checkpoints);
-  return (
-    <ol className="relative mt-5 space-y-3 pl-1">
-      <span
-        aria-hidden
-        className="absolute bottom-3 left-[11px] top-3 border-l-2 border-dashed border-border"
-      />
-      <Node tone="done" title={startLabel} subtitle={t("Today")} />
-      {ordered.map((cp) => (
-        <Node
-          key={cp.id}
-          tone={cp.status === "achieved" ? "done" : cp.id === next?.id ? "next" : "upcoming"}
-          title={cp.title}
-          subtitle={formatDate(cp.targetDate)}
-        />
-      ))}
-      {goalDate ? <Node tone="goal" title={t("Goal")} subtitle={formatDate(goalDate)} /> : null}
-    </ol>
-  );
-}
-
-function Node({
-  tone,
-  title,
-  subtitle,
-}: {
-  tone: "done" | "next" | "upcoming" | "goal";
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <li className="relative flex items-center gap-3">
-      <span
-        className={cn(
-          "relative z-10 grid size-5 shrink-0 place-items-center rounded-full border-2 bg-background",
-          tone === "done" && "border-primary bg-primary text-primary-foreground",
-          tone === "next" && "border-primary ring-4 ring-primary/20",
-          tone === "upcoming" && "border-border",
-          tone === "goal" && "border-primary bg-primary/15 text-primary",
-        )}
-      >
-        {tone === "done" ? <Check className="size-3" /> : null}
-        {tone === "goal" ? <Flag className="size-2.5" /> : null}
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold">{title}</span>
-        <span className="block text-xs text-muted-foreground tabular-nums">{subtitle}</span>
-      </span>
     </li>
   );
 }

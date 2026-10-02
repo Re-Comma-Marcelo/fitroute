@@ -16,6 +16,15 @@ import { cn } from "@/lib/utils";
 const ROUTE = "var(--route-done)";
 const HALO = "var(--route-halo)";
 
+/**
+ * What a checkpoint is about, without the "Goal 2:" / "Doelstelling 2:" lead
+ * that every title carries — the node's number already says that, and the
+ * lead pushed the actual value ("74,1 kg") out of the pill.
+ */
+function shortTitle(title: string): string {
+  return title.replace(/^[^:]{1,24}:\s*/, "") || title;
+}
+
 type RouteNode =
   | { kind: "checkpoint"; date: string; checkpoint: Checkpoint; ordinal: number }
   | { kind: "week"; date: string; marker: WeekMarker };
@@ -62,6 +71,12 @@ export function RoutePath({
     })),
   ].sort((a, b) => a.date.localeCompare(b.date));
 
+  // The last checkpoint is the goal itself: it takes the flag at the end
+  // instead of standing one step before a second, date-only goal marker.
+  const lastNode = middle[middle.length - 1];
+  const finalCp = lastNode?.kind === "checkpoint" ? lastNode.checkpoint : null;
+  if (finalCp) middle.pop();
+
   const geo = buildRoute(middle.length + 2);
   const nodes = geo.nodes;
   const today = new Date().toISOString().slice(0, 10);
@@ -78,8 +93,11 @@ export function RoutePath({
   );
   const lastTimeIdx = timeReached.reduce((last, v, i) => (v ? i : last), -1);
   const lastDataIdx = dataFilled.reduce((last, v, i) => (v ? i : last), -1);
-  const travelled = lastTimeIdx >= 0 ? pathThrough(nodes.slice(0, lastTimeIdx + 2)) : "";
-  const whiteTravelled = lastDataIdx >= 0 ? pathThrough(nodes.slice(0, lastDataIdx + 2)) : "";
+  // The merged final checkpoint sits on the goal node, so reaching it runs the line to the end.
+  const timeEnd = finalCp && today >= finalCp.targetDate ? middle.length : lastTimeIdx;
+  const dataEnd = finalCp?.status === "achieved" ? middle.length : lastDataIdx;
+  const travelled = timeEnd >= 0 ? pathThrough(nodes.slice(0, timeEnd + 2)) : "";
+  const whiteTravelled = dataEnd >= 0 ? pathThrough(nodes.slice(0, dataEnd + 2)) : "";
 
   function photoForWeek(marker: WeekMarker): ProgressPhoto | undefined {
     return photos.find((p) => p.takenAt >= marker.weekStartIso && p.takenAt < marker.weekEndIso);
@@ -211,7 +229,7 @@ export function RoutePath({
                 type="button"
                 onClick={() => onSelect(cp)}
                 className={cn(
-                  "tap-target flex max-w-[178px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
+                  "tap-target flex w-max max-w-[168px] items-center gap-2 rounded-2xl border px-3 py-2 text-left transition-colors",
                   achieved && "border-primary/40 bg-primary/10",
                   isCurrent && "border-primary bg-primary/15",
                   !achieved && !isCurrent && "border-border bg-card",
@@ -227,9 +245,9 @@ export function RoutePath({
                   {achieved ? <Check className="size-3.5" /> : n.ordinal}
                 </span>
                 <span className="min-w-0">
-                  <span className="flex items-center gap-1 truncate text-xs font-semibold leading-tight">
-                    <RouteMark className="size-3 shrink-0" />
-                    <span className="truncate">{cp.title}</span>
+                  <span className="flex items-start gap-1 text-xs font-semibold leading-tight">
+                    <RouteMark className="mt-px size-3 shrink-0" />
+                    <span className="line-clamp-2">{shortTitle(cp.title)}</span>
                   </span>
                   <span className="block text-[10px] text-muted-foreground tabular-nums">
                     {formatDate(cp.targetDate)}
@@ -243,12 +261,45 @@ export function RoutePath({
         );
       })}
 
-      {/* Goal marker */}
+      {/* Goal marker: the final checkpoint when there is one, else just the date. */}
       <Marker x={nodes[nodes.length - 1]!.x} y={nodes[nodes.length - 1]!.y} width={geo.width}>
-        <div className="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-3 py-1.5">
-          <Flag className="size-3.5 text-primary" />
-          <span className="text-[11px] font-semibold text-primary">{goalLabel}</span>
-        </div>
+        {finalCp ? (
+          <button
+            type="button"
+            onClick={() => onSelect(finalCp)}
+            className={cn(
+              "tap-target flex w-max max-w-[180px] items-center gap-2.5 rounded-2xl border px-3.5 py-2.5 text-left",
+              finalCp.status === "achieved"
+                ? "border-primary bg-primary/25"
+                : "border-primary/50 bg-primary/15",
+            )}
+            style={{ boxShadow: `0 0 28px -8px ${HALO}` }}
+          >
+            <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+              {finalCp.status === "achieved" ? (
+                <Check className="size-4" />
+              ) : (
+                <Flag className="size-3.5" />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block text-[10px] font-semibold uppercase tracking-wide text-primary">
+                {t("Goal")}
+              </span>
+              <span className="line-clamp-2 text-sm font-bold leading-tight">
+                {shortTitle(finalCp.title)}
+              </span>
+              <span className="block text-[10px] text-muted-foreground tabular-nums">
+                {formatDate(finalCp.targetDate)}
+              </span>
+            </span>
+          </button>
+        ) : (
+          <div className="flex items-center gap-2 rounded-full border border-primary/50 bg-primary/15 px-3 py-1.5">
+            <Flag className="size-3.5 text-primary" />
+            <span className="text-[11px] font-semibold text-primary">{goalLabel}</span>
+          </div>
+        )}
       </Marker>
 
       <Dialog open={viewingPhoto !== null} onOpenChange={(open) => !open && setViewingPhoto(null)}>
