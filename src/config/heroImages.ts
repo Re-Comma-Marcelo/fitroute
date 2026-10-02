@@ -1,46 +1,35 @@
 /**
- * Hero and routine photos. Photos are pre-processed (turquoise duotone,
- * motion blur, orange accents kept) — never add CSS colour filters on top.
- *
- * Every entry points at the same placeholder for now: drop the real files in
- * src/assets/ and swap the imports below.
+ * Hero photos. Photos are pre-processed (warm duotone in the home photo's
+ * tones, motion blur, a small orange accent) — never add CSS colour filters
+ * on top. New photos: same treatment, then add them to TRAIN_PHOTOS with the
+ * muscle groups they show.
  */
 import placeholder from "@/assets/hero-placeholder.jpg";
+import trainArms from "@/assets/train-arms.jpg";
+import trainGeneralLift from "@/assets/train-general-lift.jpg";
+import trainGeneralSled from "@/assets/train-general-sled.jpg";
 
-export type SessionType =
-  "push" | "pull" | "upper" | "lower" | "legs" | "fullBody" | "run" | "default";
+/**
+ * Train-page photos and the catalog muscle groups each one fits ("any" = a
+ * general training photo). A day's routine draws from the photos that match
+ * what it trains plus the general ones, one per day.
+ */
+const TRAIN_PHOTOS: { src: string; muscles: string[] | "any" }[] = [
+  { src: placeholder, muscles: ["Quads", "Hamstrings", "Glutes", "Lower back", "Back"] },
+  { src: trainArms, muscles: ["Biceps", "Triceps", "Forearms"] },
+  { src: trainGeneralSled, muscles: "any" },
+  { src: trainGeneralLift, muscles: "any" },
+];
+
+/** Photo for the Train hero: matches the routine's muscles, rotates by day. */
+export function trainPhoto(muscles: string[], date = new Date()): string {
+  const pool = TRAIN_PHOTOS.filter(
+    (photo) => photo.muscles === "any" || photo.muscles.some((m) => muscles.includes(m)),
+  );
+  const day = Math.floor(date.getTime() / 864e5);
+  return pool[day % pool.length]!.src;
+}
 
 export const heroImages = {
   home: placeholder,
-  session: {
-    push: placeholder,
-    pull: placeholder,
-    upper: placeholder,
-    lower: placeholder,
-    legs: placeholder,
-    fullBody: placeholder,
-    run: placeholder,
-    default: placeholder,
-  } satisfies Record<SessionType, string>,
 };
-
-/** Keyword match on the routine name (EN / PT / NL), first hit wins. */
-const KEYWORDS: [SessionType, RegExp][] = [
-  ["fullBody", /full[\s-]?body|corpo inteiro|hele lichaam|total/i],
-  ["push", /push|empurr|duw|peito|chest|borst/i],
-  ["pull", /pull|pux|trek|costas|back|rug/i],
-  ["upper", /upper|superior|boven/i],
-  ["lower", /lower|inferior|onder/i],
-  ["legs", /leg|perna|been|squat|agacha/i],
-  ["run", /run|corr|hardloop|cardio|jog/i],
-];
-
-export function sessionType(routineName: string | null | undefined): SessionType {
-  if (!routineName) return "default";
-  return KEYWORDS.find(([, re]) => re.test(routineName))?.[0] ?? "default";
-}
-
-/** Hero photo for a session/routine (also used for routine thumbnails). */
-export function sessionImage(routineName: string | null | undefined): string {
-  return heroImages.session[sessionType(routineName)];
-}

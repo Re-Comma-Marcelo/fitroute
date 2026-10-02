@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { equipmentLabel, muscleLabel } from "@/lib/labels";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles, Star } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -123,7 +124,7 @@ export function SessionExercisePickerSheet({
                         {e.nome}
                       </span>
                       <span className="mt-0.5 block text-xs capitalize text-muted-foreground">
-                        {e.grupoPrimario} · {e.equipamento}
+                        {muscleLabel(e.grupoPrimario)} · {equipmentLabel(e.equipamento)}
                       </span>
                     </span>
                   </button>
@@ -148,7 +149,7 @@ export function SessionExercisePickerSheet({
                     {e.nome}
                   </span>
                   <span className="mt-0.5 block text-xs capitalize text-muted-foreground">
-                    {e.grupoPrimario} · {e.equipamento}
+                    {muscleLabel(e.grupoPrimario)} · {equipmentLabel(e.equipamento)}
                   </span>
                 </span>
                 {favorites.includes(e.id) ? (

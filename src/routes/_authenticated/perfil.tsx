@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/route-meta";
+import { equipmentLabel } from "@/lib/labels";
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -595,7 +596,7 @@ function ProfilePage() {
                         : "border-border bg-card text-muted-foreground",
                     )}
                   >
-                    {t(item)}
+                    {equipmentLabel(item)}
                   </button>
                 );
               })}

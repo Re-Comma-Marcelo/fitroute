@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import { muscleLabel } from "@/lib/labels";
 import { useQuery } from "@tanstack/react-query";
 
 import { getExercises } from "@/lib/data/exercises";
@@ -69,7 +70,7 @@ export function SwapFinishPanel({
               <span className="min-w-0 truncate font-semibold text-foreground">{ex.nome}</span>
               {original?.grupoPrimario ? (
                 <span className="ml-auto shrink-0 rounded-full bg-train/12 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-train">
-                  {original.grupoPrimario}
+                  {muscleLabel(original.grupoPrimario)}
                 </span>
               ) : null}
             </li>

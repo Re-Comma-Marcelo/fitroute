@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { equipmentLabel, muscleLabel } from "@/lib/labels";
 import { useQuery } from "@tanstack/react-query";
 import { Check } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -61,7 +62,7 @@ export function TrackedLiftPickerSheet({
                       {e.nome}
                     </span>
                     <span className="mt-0.5 block text-xs capitalize text-muted-foreground">
-                      {e.grupoPrimario} · {e.equipamento}
+                      {muscleLabel(e.grupoPrimario)} · {equipmentLabel(e.equipamento)}
                     </span>
                   </span>
                   {tracked ? <Check className="size-5 shrink-0 text-primary" /> : null}

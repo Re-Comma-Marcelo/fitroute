@@ -1,4 +1,6 @@
 import { pageMeta } from "@/lib/route-meta";
+import { ResearchNote } from "@/components/ResearchNote";
+import { formatNumber } from "@/lib/format";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 
@@ -366,6 +368,21 @@ function TodayPage() {
           date={date}
           onOpenBreakdown={() => setBreakdownOpen(true)}
         />
+        {profileQ.data?.pesoKg ? (
+          <ResearchNote
+            className="mt-2 px-1"
+            text={
+              profileQ.data.objetivo === "cutting"
+                ? t("Protein {perKg} g/kg: in a deficit, more protein protects your muscle.", {
+                    perKg: formatNumber(targets.proteinG / profileQ.data.pesoKg, 1),
+                  })
+                : t("Protein {perKg} g/kg: past about 1.6 g/kg, more adds little extra muscle.", {
+                    perKg: formatNumber(targets.proteinG / profileQ.data.pesoKg, 1),
+                  })
+            }
+            sources={profileQ.data.objetivo === "cutting" ? ["helms2014"] : ["morton2018"]}
+          />
+        ) : null}
       </div>
 
       <div className="mt-4 flex gap-2">

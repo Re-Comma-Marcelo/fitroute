@@ -3,11 +3,20 @@
  * frame, and the checkpoints on the way there. Pure functions — the
  * onboarding suggests with them, auto-map builds the route with them.
  */
-import { FAT_LOSS_WEEKLY_PACE_PCT, MUSCLE_GAIN_WEEKLY_PACE_PCT } from "@/lib/plan/guardrails";
+import {
+  FAT_LOSS_WEEKLY_PACE_PCT,
+  GAIN_WARN_WEEKLY_PCT,
+  GENERAL_GAIN_WEEKLY_PCT,
+  LEAN_GAIN_WEEKLY_PCT,
+  MUSCLE_GAIN_MONTHLY_PCT,
+} from "@/lib/plan/guardrails";
 import type { Experience } from "@/lib/types";
 
-/** Which way the body weight should move for this goal. */
-export type WeightDirection = "gain" | "maintain" | "recomp" | "lose";
+/**
+ * Which way the body weight should move for this goal: "gain" is a lean
+ * bulk, "bulk" is gaining with fat accepted.
+ */
+export type WeightDirection = "gain" | "bulk" | "maintain" | "recomp" | "lose";
 
 /**
  * A recomposition (build muscle while losing fat) runs a smaller deficit than
@@ -38,13 +47,31 @@ export function suggestTargetWeight(
 ): number {
   const pace =
     direction === "gain"
-      ? MUSCLE_GAIN_WEEKLY_PACE_PCT[experience]
-      : direction === "lose"
-        ? -FAT_LOSS_WEEKLY_PACE_PCT
-        : direction === "recomp"
-          ? -RECOMP_WEEKLY_PACE_PCT
-          : 0;
+      ? LEAN_GAIN_WEEKLY_PCT[experience]
+      : direction === "bulk"
+        ? GENERAL_GAIN_WEEKLY_PCT
+        : direction === "lose"
+          ? -FAT_LOSS_WEEKLY_PACE_PCT
+          : direction === "recomp"
+            ? -RECOMP_WEEKLY_PACE_PCT
+            : 0;
   return roundTo(currentKg * (1 + pace * weeks), 0.5);
+}
+
+/** Likely muscle in a gain over `weeks` (Aragon's range), rounded to 0.5 kg. */
+export function estimateMuscleKg(
+  currentKg: number,
+  weeks: number,
+  experience: Experience,
+): [number, number] {
+  const months = weeks / 4.345;
+  const [low, high] = MUSCLE_GAIN_MONTHLY_PCT[experience];
+  return [roundTo(currentKg * low * months, 0.5), roundTo(currentKg * high * months, 0.5)];
+}
+
+/** True when a weight gain runs past the pace where it is mostly fat. */
+export function isFastGain(currentKg: number, targetKg: number, weeks: number): boolean {
+  return weeks > 0 && (targetKg - currentKg) / weeks > currentKg * GAIN_WARN_WEEKLY_PCT;
 }
 
 /** Working weight a lift can realistically reach after `weeks`, on 2.5 kg plates. */

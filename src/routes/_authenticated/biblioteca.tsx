@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/route-meta";
+import { equipmentLabel, muscleLabel } from "@/lib/labels";
 import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -180,7 +181,10 @@ function LibraryPage() {
       await queryClient.invalidateQueries({ queryKey: ["muscleGroups"] });
       setCreating(false);
       toast.success(
-        t("{name} added to {group}.", { name: created.nome, group: input.grupoPrimario }),
+        t("{name} added to {group}.", {
+          name: created.nome,
+          group: muscleLabel(input.grupoPrimario),
+        }),
       );
     } catch {
       toast.error(t("Could not save the exercise. Try again."));
@@ -342,7 +346,7 @@ function LibraryPage() {
                     <span className="veil absolute inset-0" />
                     <span className="absolute inset-x-3 bottom-2">
                       <span className="block truncate font-display text-base font-semibold">
-                        {folder.group}
+                        {muscleLabel(folder.group)}
                       </span>
                       <span className="block text-xs text-muted-foreground">
                         {t("{count} exercises", { count: folder.count })}
@@ -365,7 +369,7 @@ function LibraryPage() {
                   onClick={() => setGrupo(null)}
                   className="tap-target inline-flex items-center gap-1 rounded-full border border-primary/60 bg-primary/15 px-3 py-2 text-sm font-semibold text-primary"
                 >
-                  <ChevronLeft className="size-4" /> {grupo}
+                  <ChevronLeft className="size-4" /> {muscleLabel(grupo)}
                 </button>
               ) : null}
               {termo ? (
@@ -453,15 +457,15 @@ function LibraryPage() {
 
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">
-                  {detail.grupoPrimario}
+                  {muscleLabel(detail.grupoPrimario)}
                 </span>
                 {detail.gruposSecundarios.map((g) => (
                   <span key={g} className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
-                    {g}
+                    {muscleLabel(g)}
                   </span>
                 ))}
                 <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold">
-                  {detail.equipamento}
+                  {equipmentLabel(detail.equipamento)}
                 </span>
                 <button
                   type="button"
@@ -590,7 +594,7 @@ function NewExerciseSheet({
             <div className="flex flex-wrap gap-2">
               {groups.map((g) => (
                 <FilterChip key={g} active={grupo === g} onClick={() => setGrupo(g)}>
-                  {g}
+                  {muscleLabel(g)}
                 </FilterChip>
               ))}
             </div>
@@ -611,7 +615,7 @@ function NewExerciseSheet({
                       )
                     }
                   >
-                    {g}
+                    {muscleLabel(g)}
                   </FilterChip>
                 ))}
             </div>
@@ -622,7 +626,7 @@ function NewExerciseSheet({
             <div className="flex flex-wrap gap-2">
               {equipments.map((eq) => (
                 <FilterChip key={eq} active={equipamento === eq} onClick={() => setEquipamento(eq)}>
-                  {eq}
+                  {equipmentLabel(eq)}
                 </FilterChip>
               ))}
             </div>
@@ -682,7 +686,7 @@ function FilterRow({
         </FilterChip>
         {options.map((option) => (
           <FilterChip key={option} active={value === option} onClick={() => onChange(option)}>
-            {option}
+            {equipmentLabel(option)}
           </FilterChip>
         ))}
       </div>
@@ -747,7 +751,7 @@ function ExerciseRow({
             {exercise.nome}
           </span>
           <span className="block text-xs text-muted-foreground/80">
-            {exercise.grupoPrimario} · {exercise.equipamento}
+            {muscleLabel(exercise.grupoPrimario)} · {equipmentLabel(exercise.equipamento)}
           </span>
         </span>
         <ChevronRight className="size-4 shrink-0 text-muted-foreground" />

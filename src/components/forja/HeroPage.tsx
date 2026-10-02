@@ -47,7 +47,10 @@ export function HeroPage({
 
       {/* Sticky photo: zero layout height, so the content starts at the top. */}
       <div aria-hidden className="pointer-events-none sticky top-0 z-0 h-0">
-        <div className="relative h-[var(--hero-h)] w-full overflow-hidden">
+        <div
+          className="relative h-[var(--hero-h)] w-full overflow-hidden"
+          style={{ maskImage: "var(--hero-photo-mask)", WebkitMaskImage: "var(--hero-photo-mask)" }}
+        >
           {/* Scroll effect on a wrapper, so the cross-fade between photos keeps its own opacity. */}
           <motion.div
             className="absolute inset-0"

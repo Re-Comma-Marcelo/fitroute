@@ -1,4 +1,5 @@
 import type { ReactNode, RefObject } from "react";
+import { formatTopDate } from "@/lib/format";
 import { createContext, useContext, useEffect, useRef } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { BottomNav } from "./BottomNav";
@@ -98,7 +99,14 @@ export function AppShell({
       {hideHeader ? null : (
         <header className="z-30 shrink-0 bg-background/80 backdrop-blur-xl">
           <div className="mx-auto grid max-w-md grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 pb-3 pt-5">
-            <h1 className="truncate text-2xl font-semibold tracking-tight">{title}</h1>
+            <div className="min-w-0">
+              {/* The same small orange mono detail as Home's labels. */}
+              <p className="mono-label flex items-center gap-1.5 text-fj-effort">
+                <span aria-hidden className="size-1.5 rounded-full bg-fj-effort" />
+                {formatTopDate(new Date())}
+              </p>
+              <h1 className="mt-1 truncate text-2xl font-semibold tracking-tight">{title}</h1>
+            </div>
             {action}
           </div>
         </header>

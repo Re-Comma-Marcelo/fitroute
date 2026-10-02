@@ -278,8 +278,6 @@ export default function Inicio() {
           />
         ) : (
           <>
-            <TodayWeightCard />
-
             <Link to="/dieta" aria-label={t("See diet")}>
               <StatStrip
                 stats={[
@@ -312,6 +310,8 @@ export default function Inicio() {
               onStart={primaryAction}
               onReply={() => setSheet("notes")}
             />
+
+            <TodayWeightCard />
 
             {checkInIsDue ? (
               <CoachCard

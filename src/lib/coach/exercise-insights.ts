@@ -1,4 +1,5 @@
 import { getExercise } from "@/lib/data/exercises";
+import { tx } from "@/lib/format";
 import { getLastSetsForExercise, getWorkouts, getWorkoutSets } from "@/lib/data/workouts";
 import { suggestProgression } from "@/lib/progression";
 import { RPE_FATIGUE_MIN } from "@/lib/rpe";
@@ -63,7 +64,7 @@ export async function getExerciseInsight(
       id: `inc-${re.exerciseId}`,
       scope: "exercise",
       severity: "nudge",
-      title: "Weight increased",
+      title: tx("Weight increased"),
       body: suggestion.motivo,
       plateauType: "strength",
       exerciseId: re.exerciseId,
@@ -75,8 +76,10 @@ export async function getExerciseInsight(
       id: `stall-${re.exerciseId}`,
       scope: "exercise",
       severity: "nudge",
-      title: "Stalled",
-      body: "Same weight 3 sessions running — worth pushing for an extra rep or more load if form is clean.",
+      title: tx("Stalled"),
+      body: tx(
+        "Same weight 3 sessions running — worth pushing for an extra rep or more load if form is clean.",
+      ),
       plateauType: "single-exercise",
       exerciseId: re.exerciseId,
     };
@@ -94,8 +97,10 @@ export async function getExerciseInsight(
       id: `fatigue-${re.exerciseId}`,
       scope: "exercise",
       severity: "warning",
-      title: "Fatigue rising",
-      body: "Difficulty is climbing while the weight is flat. A lighter or deload session next time could help.",
+      title: tx("Fatigue rising"),
+      body: tx(
+        "Difficulty is climbing while the weight is flat. A lighter or deload session next time could help.",
+      ),
       plateauType: "fatigue",
       exerciseId: re.exerciseId,
     };
@@ -106,8 +111,8 @@ export async function getExerciseInsight(
       id: `drop-${re.exerciseId}`,
       scope: "exercise",
       severity: "warning",
-      title: "Performance dropped",
-      body: "Weight dropped from the last session. Prioritize recovery before pushing again.",
+      title: tx("Performance dropped"),
+      body: tx("Weight dropped from the last session. Prioritize recovery before pushing again."),
       plateauType: "fatigue",
       exerciseId: re.exerciseId,
     };
@@ -118,8 +123,11 @@ export async function getExerciseInsight(
     id: `hold-${re.exerciseId}`,
     scope: "exercise",
     severity: "info",
-    title: "Hold",
-    body: `Aim for ${re.repsMin}-${re.repsMax} reps before adding weight.`,
+    title: tx("Hold"),
+    body: tx("Aim for {min}-{max} reps before adding weight.", {
+      min: re.repsMin,
+      max: re.repsMax,
+    }),
     exerciseId: re.exerciseId,
   };
 }

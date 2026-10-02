@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { equipmentLabel, muscleLabel } from "@/lib/labels";
 import { useEffect, useState } from "react";
 import { Info } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -76,8 +77,8 @@ export function ExerciseDetailSheet({
 
             {exercise ? (
               <div className="flex flex-wrap gap-1.5">
-                <Chip text={exercise.grupoPrimario} />
-                <Chip text={exercise.equipamento} />
+                <Chip text={muscleLabel(exercise.grupoPrimario)} />
+                <Chip text={equipmentLabel(exercise.equipamento)} />
                 {tipsQ.data?.lastLabel ? (
                   <Chip text={t("Last: {value}", { value: tipsQ.data.lastLabel })} />
                 ) : null}

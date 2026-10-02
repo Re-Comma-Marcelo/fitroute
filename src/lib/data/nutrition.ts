@@ -244,6 +244,28 @@ const PROTEIN_G_PER_KG: Record<string, number> = {
   bulking: 1.8,
 };
 
+/**
+ * How big a surplus a gain goal needs. Iraki et al. 2019 pair a ~10-20%
+ * surplus with 0.25-0.5% bodyweight gain a week: a lean pace gets the low
+ * end (+12%), a goal that asks for ~0.45%/week or more (gaining with fat
+ * accepted) the top (+20%). Without a dated goal the lean default stays.
+ */
+function bulkSurplus(p: {
+  pesoInicialKg?: number | undefined;
+  pesoMetaKg?: number | undefined;
+  metaIniciadaEm?: string | undefined;
+  metaPrazo?: string | undefined;
+}): number {
+  const start = p.pesoInicialKg;
+  const target = p.pesoMetaKg;
+  if (!start || !target || !p.metaIniciadaEm || !p.metaPrazo) return 1.12;
+  const weeks =
+    (new Date(p.metaPrazo).getTime() - new Date(p.metaIniciadaEm).getTime()) /
+    (7 * 24 * 60 * 60 * 1000);
+  if (weeks <= 0) return 1.12;
+  return (target - start) / start / weeks >= 0.0045 ? 1.2 : 1.12;
+}
+
 /** Calories and macros the app calculates from the profile. */
 export function calculateTargets(p: {
   pesoKg: number;
@@ -252,6 +274,10 @@ export function calculateTargets(p: {
   idade?: number | undefined;
   nivelAtividade: string;
   objetivo: string;
+  pesoInicialKg?: number | undefined;
+  pesoMetaKg?: number | undefined;
+  metaIniciadaEm?: string | undefined;
+  metaPrazo?: string | undefined;
 }): NutritionTargets {
   const age = p.idade && p.idade > 0 ? p.idade : DEFAULT_AGE;
   const bmr = 10 * p.pesoKg + 6.25 * p.alturaCm - 5 * age + (p.sexo === "feminino" ? -161 : 5);
@@ -264,7 +290,7 @@ export function calculateTargets(p: {
   };
   let kcal = bmr * (mult[p.nivelAtividade] ?? 1.55);
   if (p.objetivo === "cutting") kcal *= 0.85;
-  if (p.objetivo === "bulking") kcal *= 1.12;
+  if (p.objetivo === "bulking") kcal *= bulkSurplus(p);
   kcal = Math.round(kcal / 10) * 10;
   const proteinG = Math.round(p.pesoKg * (PROTEIN_G_PER_KG[p.objetivo] ?? 2));
   const fatG = Math.round((kcal * 0.25) / 9);

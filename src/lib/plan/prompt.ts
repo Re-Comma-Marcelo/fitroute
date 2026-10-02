@@ -5,7 +5,9 @@ import { GOAL_PROMPT_LABEL } from "./frequency";
 import {
   CONSULT_NOTE,
   FAT_LOSS_WEEKLY_PACE_PCT,
-  MUSCLE_GAIN_WEEKLY_PACE_PCT,
+  GAIN_WARN_WEEKLY_PCT,
+  GENERAL_GAIN_WEEKLY_PCT,
+  LEAN_GAIN_WEEKLY_PCT,
   filterMeals,
 } from "./guardrails";
 import { deriveTimeBudget, hoursLabel, maxPrepMinutes } from "./life";
@@ -86,12 +88,13 @@ export function intakeSummary(intake: PlanIntake): string {
 }
 
 export function goalPrompt(intake: PlanIntake): string {
-  const gainPct = MUSCLE_GAIN_WEEKLY_PACE_PCT[intake.experience] * 100;
+  const gainPct = LEAN_GAIN_WEEKLY_PCT[intake.experience] * 100;
   return [
     "You translate a vague fitness goal into concrete numbers using mainstream, established exercise and nutrition science.",
     `Sustainable rates of bodyweight change are NOT the same for gaining and losing — the same figures checkPace() enforces in code:`,
     `- Losing: about ${FAT_LOSS_WEEKLY_PACE_PCT * 100}% of bodyweight per week (Garthe et al. 2011 found this preserves lean mass and performance far better than a faster ~1.4%/week deficit).`,
-    `- Gaining: about ${gainPct}% of bodyweight per week for this user's training experience (${intake.experience}) — the Aragon/Helms rate-of-gain model. Faster than this is mostly fat, not muscle.`,
+    `- Gaining while staying lean: about ${gainPct}% of bodyweight per week for this user's training experience (${intake.experience}) (Iraki et al. 2019: 0.25-0.5%/week on a 10-20% surplus).`,
+    `- Gaining with fat accepted: up to ${GENERAL_GAIN_WEEKLY_PCT * 100}% per week; never above ${GAIN_WARN_WEEKLY_PCT * 100}% (beyond that the gain is mostly fat — Garthe et al. 2013, Helms et al. 2023).`,
     "Never encourage faster than the figure for the direction this goal actually needs.",
     "Return JSON only, matching this shape:",
     '{"targetWeightLowKg":number,"targetWeightHighKg":number,"bodyCompNote":string,"timelineWeeks":number,"rationale":string,"unrealistic":boolean,"saferTimelineWeeks":number}',

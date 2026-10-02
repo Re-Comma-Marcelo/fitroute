@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { SourceLinks } from "@/components/ResearchNote";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -211,6 +212,9 @@ export function GoalSection({ onSaved }: { onSaved?: () => void }) {
             "That's about {rate} kg per week. A steadier {safe} kg per week — roughly {weeks} weeks — keeps strength and muscle.",
             { rate: pace.weeklyKg, safe: pace.safeWeeklyKg, weeks: pace.suggestedWeeks },
           )}
+          <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+            <SourceLinks sources={pace.gaining ? ["iraki2019", "helms2023"] : ["garthe2011"]} />
+          </p>
           <Button
             type="button"
             variant="outline"
