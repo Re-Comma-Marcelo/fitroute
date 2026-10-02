@@ -211,7 +211,7 @@ function SessionPage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionOpen, setSessionOpen] = useState(false);
   const [editSet, setEditSet] = useState<{ exIdx: number; setIdx: number } | null>(null);
-  /** Exercise-finished takeover: wave → the R grows with the session → next exercise. */
+  /** Exercise-finished takeover: card → checkmark → route → logo → next exercise. */
   const [completion, setCompletion] = useState<{
     originRect: DOMRect;
     completedName: string;
@@ -219,9 +219,6 @@ function SessionPage() {
     nextExerciseIdx: number;
     nextExerciseId: string;
     nextExerciseName: string;
-    /** Share of the session done before and after this exercise (0-1): the R grows between them. */
-    progressFrom: number;
-    progressTo: number;
   } | null>(null);
   const currentCardRef = useRef<HTMLLIElement>(null);
 
@@ -246,9 +243,6 @@ function SessionPage() {
     nextExerciseIdx: number;
     nextExerciseId: string;
     nextExerciseName: string;
-    /** Share of the session done before and after this exercise (0-1): the R grows between them. */
-    progressFrom: number;
-    progressTo: number;
   } | null>(null);
   /** Always the latest session, so handlers can compute without a deferred updater. */
   const sessionRef = useRef<ActiveSession | null>(null);
@@ -753,13 +747,7 @@ function SessionPage() {
       const rect = currentCardRef.current?.getBoundingClientRect();
       const nextEx = next.exercicios[effects.nextExerciseIdx];
       if (rect && nextEx && ex) {
-        const total = next.exercicios.length || 1;
-        const done = next.exercicios.filter(
-          (e) => e.sets.length > 0 && e.sets.every((st) => st.concluida),
-        ).length;
         pendingCompletionRef.current = {
-          progressFrom: Math.max(0, done - 1) / total,
-          progressTo: done / total,
           originRect: rect,
           completedName: ex.nome,
           completedDetail: effects.logged
@@ -1898,8 +1886,6 @@ function SessionPage() {
           completedDetail={completion.completedDetail}
           nextExerciseId={completion.nextExerciseId}
           nextExerciseName={completion.nextExerciseName}
-          progressFrom={completion.progressFrom}
-          progressTo={completion.progressTo}
           nextPreview={
             session?.exercicios[completion.nextExerciseIdx]
               ? exercisePreview(session.exercicios[completion.nextExerciseIdx]!)
