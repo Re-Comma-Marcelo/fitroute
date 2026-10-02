@@ -57,7 +57,7 @@ export function weightRationale(ex: ActiveExercise): WeightRationale {
   }
   return {
     lastTime,
-    why: tx("Same weight until every set reaches {max} reps; then it goes up.", {
+    why: tx("Around last time's weight until every set reaches {max} reps; then it goes up.", {
       max: ex.repsMax,
     }),
     sources: ["acsm2009"],

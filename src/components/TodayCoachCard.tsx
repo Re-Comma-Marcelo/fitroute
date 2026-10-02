@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { equipmentLabel } from "@/lib/labels";
 import { useT } from "@/lib/i18n";
 import { ChevronDown, Repeat2, Sparkles, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -176,7 +177,7 @@ export function TodayCoachCard({
                         )}
                       >
                         <span className="font-semibold">{alt.nome}</span>
-                        <span className="text-xs text-muted-foreground">{alt.equipamento}</span>
+                        <span className="text-xs text-muted-foreground">{equipmentLabel(alt.equipamento)}</span>
                       </button>
                     </li>
                   ))}

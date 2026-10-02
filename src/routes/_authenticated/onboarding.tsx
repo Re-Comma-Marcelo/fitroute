@@ -50,6 +50,7 @@ import {
 import { frequencyGuidance } from "@/lib/plan/frequency";
 import { TRAINING_YEARS_LABEL } from "@/lib/plan/experience";
 import type { Experience, TrainingYears } from "@/lib/plan/types";
+import { muscleLabel } from "@/lib/labels";
 import { markOnboardingDone } from "@/lib/onboarding";
 import { pageMeta } from "@/lib/route-meta";
 import { mapRoute } from "@/lib/route/auto-map";
@@ -746,8 +747,7 @@ function OnboardingPage() {
             </p>
             <div className="mt-6 grid grid-cols-2 gap-3" role="group">
               {
-                // Muscle-group names are shown in English throughout the app
-                // (see the exercise library) — never routed through t().
+                // Same display names as the exercise library (src/lib/labels.ts).
                 (
                   [
                     { value: "chest", label: "Chest" },
@@ -760,7 +760,7 @@ function OnboardingPage() {
                 ).map((o) => (
                   <OptionButton
                     key={o.value}
-                    label={o.label}
+                    label={muscleLabel(o.label)}
                     selected={Boolean(answers.focusMuscles?.includes(o.value))}
                     onClick={() => {
                       setAnswers((a) => {

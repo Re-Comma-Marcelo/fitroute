@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { equipmentLabel } from "@/lib/labels";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, Dumbbell, Loader2, Salad, Sparkles } from "lucide-react";
@@ -569,7 +570,7 @@ function PlanPage() {
                           : "border-border/60 text-muted-foreground",
                       )}
                     >
-                      {t(item)}
+                      {equipmentLabel(item)}
                     </button>
                   );
                 })}

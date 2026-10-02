@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { muscleLabel } from "@/lib/labels";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
@@ -92,7 +93,7 @@ export function AvoidExerciseSheet({
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-semibold">{ex.nome}</span>
                     <span className="block truncate text-xs capitalize text-muted-foreground">
-                      {ex.grupoPrimario}
+                      {muscleLabel(ex.grupoPrimario)}
                     </span>
                   </span>
                   <span

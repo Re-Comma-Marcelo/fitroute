@@ -1,4 +1,5 @@
 import { pageMeta } from "@/lib/route-meta";
+import { equipmentLabel, muscleLabel } from "@/lib/labels";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
@@ -91,7 +92,7 @@ function SearchPage() {
           kind: "exercise",
           id: e.id,
           title: e.nome,
-          subtitle: `${e.grupoPrimario} · ${e.equipamento}`,
+          subtitle: `${muscleLabel(e.grupoPrimario)} · ${equipmentLabel(e.equipamento)}`,
         }),
       );
     (mealsQuery.data ?? [])
