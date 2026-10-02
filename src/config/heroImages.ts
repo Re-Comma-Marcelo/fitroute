@@ -6,6 +6,7 @@
  */
 import placeholder from "@/assets/hero-placeholder.jpg";
 import trainArms from "@/assets/train-arms.jpg";
+import trainGeneralLift from "@/assets/train-general-lift.jpg";
 import trainGeneralSled from "@/assets/train-general-sled.jpg";
 
 /**
@@ -17,6 +18,7 @@ const TRAIN_PHOTOS: { src: string; muscles: string[] | "any" }[] = [
   { src: placeholder, muscles: ["Quads", "Hamstrings", "Glutes", "Lower back", "Back"] },
   { src: trainArms, muscles: ["Biceps", "Triceps", "Forearms"] },
   { src: trainGeneralSled, muscles: "any" },
+  { src: trainGeneralLift, muscles: "any" },
 ];
 
 /** Photo for the Train hero: matches the routine's muscles, rotates by day. */
