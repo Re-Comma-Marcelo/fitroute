@@ -84,20 +84,24 @@ export function saveCheckIn(entry: WeeklyCheckIn) {
 /**
  * Pulls check-ins saved from another device/browser into local storage, so
  * `checkInDue`/`checkInFor` (both local-only reads) see the full picture.
- * Remote rows win on a weekKey collision.
+ * Remote rows win on a weekKey collision. Returns the merged list — never
+ * undefined: React Query rejects undefined data, which kept `dataUpdatedAt`
+ * from moving, so screens never re-read the hydrated check-ins.
  */
-export async function hydrateCheckIns(): Promise<void> {
-  if (typeof window === "undefined") return;
+export async function hydrateCheckIns(): Promise<WeeklyCheckIn[]> {
+  if (typeof window === "undefined") return [];
   try {
     const remote = await fetchWeeklyCheckIns();
-    if (!remote.length) return;
-    const local = getCheckIns();
-    const remoteKeys = new Set(remote.map((r) => r.weekKey));
-    const merged = [...remote, ...local.filter((c) => !remoteKeys.has(c.weekKey))];
-    window.localStorage.setItem(KEY, JSON.stringify(merged.slice(0, 12)));
+    if (remote.length) {
+      const local = getCheckIns();
+      const remoteKeys = new Set(remote.map((r) => r.weekKey));
+      const merged = [...remote, ...local.filter((c) => !remoteKeys.has(c.weekKey))];
+      window.localStorage.setItem(KEY, JSON.stringify(merged.slice(0, 12)));
+    }
   } catch {
     // Table missing or offline — local state is the source of truth.
   }
+  return getCheckIns();
 }
 
 /**
