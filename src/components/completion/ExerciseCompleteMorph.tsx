@@ -21,12 +21,15 @@ export function ExerciseCompleteMorph({
   name,
   detail,
   onDone,
+  duration = MORPH_DURATION,
 }: {
   originRect: DOMRect;
   target: MorphTarget;
   name: string;
   detail: string;
   onDone: () => void;
+  /** Seconds; the mid-workout hand-off runs quicker than the session start. */
+  duration?: number;
 }) {
   return (
     <motion.div
@@ -45,14 +48,14 @@ export function ExerciseCompleteMorph({
         height: target.size,
         borderRadius: target.size / 2,
       }}
-      transition={{ duration: MORPH_DURATION, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: duration, ease: [0.22, 1, 0.36, 1] }}
       onAnimationComplete={onDone}
     >
       <motion.div
         className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 px-2 text-center"
         initial={{ opacity: 1 }}
         animate={{ opacity: 0 }}
-        transition={{ duration: MORPH_DURATION * 0.55, delay: MORPH_DURATION * 0.15 }}
+        transition={{ duration: duration * 0.55, delay: duration * 0.15 }}
       >
         <span className="truncate text-sm font-semibold">{name}</span>
         <span className="text-xs text-muted-foreground">{detail}</span>
@@ -61,14 +64,14 @@ export function ExerciseCompleteMorph({
         className="absolute inset-0 flex items-center justify-center bg-primary"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: MORPH_DURATION * 0.45, delay: MORPH_DURATION * 0.5 }}
+        transition={{ duration: duration * 0.45, delay: duration * 0.5 }}
       >
         <motion.svg
           viewBox={LOGO_VIEWBOX}
           className="size-[55%] text-primary-foreground"
           initial={{ scale: 0.5, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: MORPH_DURATION * 0.35, delay: MORPH_DURATION * 0.55 }}
+          transition={{ duration: duration * 0.35, delay: duration * 0.55 }}
         >
           <path d={CHECK_RIBBON_PATH} fill="currentColor" />
         </motion.svg>

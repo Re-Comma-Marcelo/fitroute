@@ -5,9 +5,13 @@ import { LOGO_PATH_INNER, LOGO_PATH_OUTER, LOGO_VIEWBOX, MORPH_CIRCLE_SIZE } fro
 import { CHECK_RIBBON_PATH, generateRoutePaths } from "./route-path";
 import type { MorphTarget } from "./ExerciseCompleteMorph";
 
-const HOLD_MS = 220;
-const ROUTE_DURATION = 0.6;
-const LOGO_DURATION = 0.65;
+/** Hold before the lines move (ms), the wander (s) and the landing on the mark (s). */
+export interface RevealPace {
+  holdMs: number;
+  route: number;
+  logo: number;
+}
+const DEFAULT_PACE: RevealPace = { holdMs: 220, route: 0.6, logo: 0.65 };
 
 /**
  * Phase 2: the checkmark splits into two lines that wander a short, curvy,
@@ -19,11 +23,13 @@ export function LogoRouteReveal({
   target,
   finalSize,
   onDone,
+  pace = DEFAULT_PACE,
 }: {
   target: MorphTarget;
   /** Display size (px) of the fully revealed logo. */
   finalSize: number;
   onDone: () => void;
+  pace?: RevealPace;
 }) {
   const outerRef = useRef<SVGPathElement>(null);
   const innerRef = useRef<SVGPathElement>(null);
@@ -49,7 +55,7 @@ export function LogoRouteReveal({
       if (box) {
         controls.push(
           animate(target.size, finalSize, {
-            duration: ROUTE_DURATION + LOGO_DURATION,
+            duration: pace.route + pace.logo,
             ease: [0.22, 1, 0.36, 1],
             onUpdate: (size) => {
               box.style.width = `${size}px`;
@@ -63,7 +69,7 @@ export function LogoRouteReveal({
 
       controls.push(
         animate(0, 1, {
-          duration: ROUTE_DURATION,
+          duration: pace.route,
           ease: "easeInOut",
           onUpdate: (t) => {
             outerRef.current?.setAttribute("d", toRoute.outer(t));
@@ -73,7 +79,7 @@ export function LogoRouteReveal({
           onComplete: () => {
             controls.push(
               animate(0, 1, {
-                duration: LOGO_DURATION,
+                duration: pace.logo,
                 ease: [0.16, 1, 0.3, 1],
                 onUpdate: (t) => {
                   outerRef.current?.setAttribute("d", toLogo.outer(t));
@@ -89,7 +95,7 @@ export function LogoRouteReveal({
           },
         }),
       );
-    }, HOLD_MS);
+    }, pace.holdMs);
 
     return () => {
       cancelled = true;
