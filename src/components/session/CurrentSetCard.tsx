@@ -1,9 +1,12 @@
-import { Check, ChevronDown, TrendingUp } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, HelpCircle, TrendingUp } from "lucide-react";
+import { ResearchNote } from "@/components/ResearchNote";
 import { SetFields, type SetField } from "@/components/session/SetFields";
 import { formatKg } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { isSerieTempo, isSerieValida } from "@/lib/progression";
 import type { ActiveExercise, ActiveSet } from "@/lib/session-state";
+import { weightRationale } from "@/lib/science/weight-rationale";
 import { cn } from "@/lib/utils";
 
 /**
@@ -107,6 +110,8 @@ export function CurrentSetCard({
         <SetFields set={set} exercise={exercise} onField={onField} big />
       </div>
 
+      {!warmupSet && !tempo ? <WhyThisWeight exercise={exercise} /> : null}
+
       {hint ? (
         <p className="mt-2 text-center text-[11px] leading-snug text-muted-foreground">{hint}</p>
       ) : null}
@@ -124,5 +129,34 @@ export function CurrentSetCard({
         {t("Complete set")}
       </button>
     </section>
+  );
+}
+
+/** "Why this weight?": last time, the rule behind today's number, and its source. */
+function WhyThisWeight({ exercise }: { exercise: ActiveExercise }) {
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const rationale = open ? weightRationale(exercise) : null;
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        className="tap-target inline-flex items-center gap-1 text-[11px] font-semibold text-primary"
+      >
+        <HelpCircle className="size-3.5" />
+        {t("Why this weight?")}
+      </button>
+      {rationale ? (
+        <div className="mt-1 rounded-xl bg-muted/40 px-3 py-2">
+          {/* When the weight goes up, the card already shows last session above the fields. */}
+          {rationale.lastTime && !exercise.sugestao?.aumentou ? (
+            <p className="text-[11px] font-semibold text-foreground/80">{rationale.lastTime}</p>
+          ) : null}
+          <ResearchNote text={rationale.why} sources={rationale.sources} className="mt-0.5" />
+        </div>
+      ) : null}
+    </div>
   );
 }

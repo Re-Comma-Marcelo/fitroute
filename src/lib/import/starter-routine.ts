@@ -21,7 +21,13 @@ import type { Exercise, Objetivo, Routine, TrainingGoal } from "../types";
  * 2012 on recomposition, or any mainstream bulk-vs-cut guide) resolves that.
  */
 export type StarterGoal =
-  "muscle-gain" | "muscle-maintain" | "muscle-cut" | "fat-loss" | "strength" | "comeback";
+  | "muscle-gain"
+  | "weight-gain"
+  | "muscle-maintain"
+  | "muscle-cut"
+  | "fat-loss"
+  | "strength"
+  | "comeback";
 
 export type StarterExperience = Experience;
 
@@ -66,7 +72,7 @@ export function yearsToExperience(years: TrainingYears): StarterExperience {
 
 /** What the goal means for the body objective kept on the profile (drives calorie targets). */
 export function goalToObjetivo(goal: StarterGoal): Objetivo {
-  if (goal === "muscle-gain") return "bulking";
+  if (goal === "muscle-gain" || goal === "weight-gain") return "bulking";
   if (goal === "muscle-cut" || goal === "fat-loss") return "cutting";
   return "manutencao"; // muscle-maintain, strength, comeback
 }
@@ -76,7 +82,7 @@ export function goalToTrainingGoal(goal: StarterGoal): TrainingGoal {
   if (goal === "strength") return "strength";
   if (goal === "fat-loss") return "fat-loss";
   if (goal === "comeback") return "comeback";
-  return "muscle"; // muscle-gain, muscle-maintain, muscle-cut
+  return "muscle"; // muscle-gain, weight-gain, muscle-maintain, muscle-cut
 }
 
 export interface Prescription {
@@ -96,7 +102,7 @@ export interface Prescription {
 function baseFor(goal: StarterGoal): Prescription {
   if (goal === "strength") return { sets: 4, repsMin: 3, repsMax: 6, restSec: 180 };
   if (goal === "fat-loss") return { sets: 3, repsMin: 12, repsMax: 20, restSec: 60 };
-  // muscle-gain / muscle-maintain / muscle-cut / comeback: standard hypertrophy range.
+  // muscle-gain / weight-gain / muscle-maintain / muscle-cut / comeback: standard hypertrophy range.
   return { sets: 3, repsMin: 8, repsMax: 12, restSec: 90 };
 }
 

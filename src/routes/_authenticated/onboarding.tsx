@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Scale,
   Shuffle,
+  TrendingUp,
   Zap,
   type LucideIcon,
 } from "lucide-react";
@@ -24,13 +25,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HevyImportPanel } from "@/components/import/HevyImportPanel";
 import { RouteMarkProgress } from "@/components/RouteLogo";
+import { ResearchNote } from "@/components/ResearchNote";
 import { RoutePath } from "@/components/RoutePath";
 import { logBodyWeight } from "@/lib/data/body-weight";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile, saveProfile } from "@/lib/data/profile";
 import { getCheckpoints } from "@/lib/data/route";
 import { saveRoutine } from "@/lib/data/routines";
-import { formatDate, formatKg, weightUnitLabel } from "@/lib/format";
+import { formatDate, formatKg, formatNumber, weightUnitLabel } from "@/lib/format";
+import { LEAN_GAIN_WEEKLY_PCT } from "@/lib/plan/guardrails";
 import { useLanguage, useT } from "@/lib/i18n";
 import {
   DEFAULT_ANSWERS,
@@ -46,12 +49,14 @@ import {
 } from "@/lib/import/starter-routine";
 import { frequencyGuidance } from "@/lib/plan/frequency";
 import { TRAINING_YEARS_LABEL } from "@/lib/plan/experience";
-import type { TrainingYears } from "@/lib/plan/types";
+import type { Experience, TrainingYears } from "@/lib/plan/types";
 import { markOnboardingDone } from "@/lib/onboarding";
 import { pageMeta } from "@/lib/route-meta";
 import { mapRoute } from "@/lib/route/auto-map";
 import { addDays, isoDay } from "@/lib/route/cadence";
 import {
+  estimateMuscleKg,
+  isFastGain,
   isAmbitiousLift,
   suggestLiftTarget,
   suggestTargetWeight,
@@ -114,6 +119,7 @@ const GOAL_LIFTS = ["e1", "e7", "e14", "e29"] as const;
 /** Which way the scale should move for each onboarding goal. */
 function directionFor(goal: StarterGoal): WeightDirection {
   if (goal === "muscle-gain") return "gain";
+  if (goal === "weight-gain") return "bulk";
   if (goal === "fat-loss") return "lose";
   if (goal === "muscle-cut") return "recomp";
   return "maintain";
@@ -564,11 +570,13 @@ function OnboardingPage() {
                 step={0.5}
                 onChange={setTargetKg}
                 note={
-                  weightDirection === "maintain"
-                    ? t("Your goal keeps your weight steady, so the route tracks it around here.")
-                    : t(
-                        "Based on research on how fast your body can change at your level. You can adjust it.",
-                      )
+                  <WeightGoalNote
+                    direction={weightDirection}
+                    currentKg={currentKg}
+                    targetKg={goalWeightKg}
+                    weeks={weeks}
+                    experience={experience}
+                  />
                 }
               />
             ) : null}
@@ -579,13 +587,18 @@ function OnboardingPage() {
                 step={2.5}
                 onChange={setLiftTargetKg}
                 note={
-                  isAmbitiousLift(liftNowKg, goalLiftKg, weeks, experience)
-                    ? t(
-                        "That is faster than strength usually grows at your level. Possible, but the route will be tight.",
-                      )
-                    : t(
-                        "Based on how fast strength usually grows at your training level. You can adjust it.",
-                      )
+                  <ResearchNote
+                    text={
+                      isAmbitiousLift(liftNowKg, goalLiftKg, weeks, experience)
+                        ? t(
+                            "That is faster than strength usually grows at your level. Possible, but the route will be tight.",
+                          )
+                        : t(
+                            "Strength grows fastest in your first years and slows down after. This target fits your level.",
+                          )
+                    }
+                    sources={["rhea2003"]}
+                  />
                 }
               />
             ) : null}
@@ -946,7 +959,7 @@ function GoalStepper({
   value: number;
   step: number;
   onChange: (kg: number) => void;
-  note: string;
+  note: ReactNode;
 }) {
   const t = useT();
   return (
@@ -971,9 +984,84 @@ function GoalStepper({
           <Plus className="size-4" />
         </button>
       </div>
-      <p className="mt-2 text-xs leading-snug text-muted-foreground">{note}</p>
+      <div className="mt-2 text-xs leading-snug text-muted-foreground">{note}</div>
     </div>
   );
+}
+
+/** One line on why this weight target, with the studies behind it. */
+function WeightGoalNote({
+  direction,
+  currentKg,
+  targetKg,
+  weeks,
+  experience,
+}: {
+  direction: WeightDirection;
+  currentKg: number;
+  targetKg: number;
+  weeks: number;
+  experience: Experience;
+}) {
+  const t = useT();
+  const [low, high] = estimateMuscleKg(currentKg, weeks, experience);
+  const muscle = `${formatKg(low, { unit: false })}–${formatKg(high)}`;
+  if ((direction === "gain" || direction === "bulk") && isFastGain(currentKg, targetKg, weeks)) {
+    return (
+      <ResearchNote
+        text={t("Faster than 0.75% a week is mostly fat: muscle still grows about {muscle}.", {
+          muscle,
+        })}
+        sources={["bray2012", "helms2023"]}
+      />
+    );
+  }
+  if (direction === "gain") {
+    return (
+      <ResearchNote
+        text={t(
+          "About {pct}% a week. Of that, roughly {muscle} is muscle; faster mostly adds fat.",
+          {
+            pct: formatNumber(LEAN_GAIN_WEEKLY_PCT[experience] * 100, 1),
+            muscle,
+          },
+        )}
+        sources={["iraki2019", "aragon", "helms2023"]}
+      />
+    );
+  }
+  if (direction === "bulk") {
+    return (
+      <ResearchNote
+        text={t(
+          "About 0.5% a week. Muscle still grows roughly {muscle}; the rest is fat and water.",
+          {
+            muscle,
+          },
+        )}
+        sources={["iraki2019", "larsonMeyer2022", "garthe2013"]}
+      />
+    );
+  }
+  if (direction === "lose") {
+    return (
+      <ResearchNote
+        text={t("About 0.7% a week keeps your muscle and strength; losing faster costs muscle.")}
+        sources={["garthe2011"]}
+      />
+    );
+  }
+  if (direction === "recomp") {
+    return (
+      <ResearchNote
+        text={t(
+          "A small deficit lets you build muscle while losing fat, so the scale moves slowly.",
+        )}
+        sources={["barakat2020"]}
+      />
+    );
+  }
+  return <p>{t("Your goal keeps your weight steady, so the route tracks it around here.")}</p>;
 }
 
 /** Why the split looks the way it does, one tap away. */
@@ -991,24 +1079,22 @@ function SplitRationale() {
         {open ? t("Hide") : t("How is this split built?")}
       </button>
       {open ? (
-        <ul className="mt-1 space-y-1.5 rounded-2xl border border-border bg-card p-3 text-left text-xs leading-snug text-muted-foreground">
-          <li>{t("Big compound lifts first, while you are fresh; isolation work after.")}</li>
-          <li>
-            {t(
-              "Pushing and pulling, knee and hip movements stay balanced, so every muscle is trained about twice a week.",
+        <div className="mt-1 space-y-2 rounded-2xl border border-border bg-card p-3 text-left">
+          <ResearchNote
+            text={t("Every muscle twice a week grows more than once a week.")}
+            sources={["schoenfeld2016"]}
+          />
+          <ResearchNote
+            text={t(
+              "About 10-20 hard sets per muscle a week; past ~6-10 in one session, extra sets mostly add fatigue. Hence 5-7 exercises.",
             )}
-          </li>
-          <li>
-            {t(
-              "5 to 7 exercises a session. Past roughly 6 to 10 hard sets per muscle in one session, extra work mostly adds fatigue, not growth.",
-            )}
-          </li>
-          <li>
-            {t(
-              "Each muscle gets about 6 to 15 direct sets a week, plus work from the big lifts. Research supports about 10 to 20 for growth, so this is a start you can build on.",
-            )}
-          </li>
-        </ul>
+            sources={["schoenfeld2017", "pelland2024"]}
+          />
+          <ResearchNote
+            text={t("What you train first gets your best sets, so the big lifts go first.")}
+            sources={["simao2012"]}
+          />
+        </div>
       ) : null}
     </div>
   );
@@ -1070,6 +1156,12 @@ function goalOptions(
       icon: Dumbbell,
       label: t("Build muscle & gain weight"),
       subtitle: t("A calorie surplus, focused on maximum growth"),
+    },
+    {
+      value: "weight-gain",
+      icon: TrendingUp,
+      label: t("Gain weight, fat is fine too"),
+      subtitle: t("A bigger surplus: more mass, but muscle grows at the same pace"),
     },
     {
       value: "muscle-maintain",

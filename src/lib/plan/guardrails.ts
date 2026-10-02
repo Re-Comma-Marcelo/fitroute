@@ -2,59 +2,77 @@ import type { Meal } from "../nutrition-types";
 import type { Experience, PlanIntake, TimeBudget } from "./types";
 
 /**
- * Evidence-based weekly bodyweight-change pace — gaining and losing are NOT
- * the same rate, so this used to be one flat number for both, which meant a
- * bulk running 2-13x faster than research supports could pass the check.
+ * Evidence-based weekly bodyweight-change pace. Gaining and losing are NOT
+ * the same rate, and for gaining the scale and the muscle are two different
+ * numbers. Sources: src/lib/science/sources.ts.
  *
- * - Fat loss: Garthe et al. 2011 (Int J Sport Nutr Exerc Metab 21(2):97-104)
- *   put elite athletes on a ~0.7%-bodyweight/week deficit vs a ~1.4%/week
- *   one; the slower group kept significantly more lean mass and
- *   performance. 0.7% sits inside the commonly cited 0.5-1%/week range, so
- *   it's used here as the single figure — unlike gaining, cutting faster
- *   mostly costs lean mass at any training age, not "wasted potential", so
- *   this one isn't tiered by experience.
- * - Muscle gain: the Aragon/Helms rate-of-gain model (the standard cited
- *   benchmark for natural lifters) — 1-1.5% bodyweight/month for a
- *   beginner, 0.5-1%/month intermediate, 0.25-0.5%/month advanced. Applying
- *   the fat-loss figure to a bulk (the old behaviour) would ask for
- *   3-8x that rate; weight gained that fast is mostly fat, not muscle.
- *   Converted to weekly (÷ 4.345) and using each range's midpoint below.
+ * - Fat loss: Garthe et al. 2011 put elite athletes on a ~0.7%/week deficit
+ *   vs ~1.4%/week; the slower group kept (even gained) lean mass and
+ *   strength. Not tiered by experience — cutting faster costs lean mass at
+ *   any training age.
+ * - Scale weight while building muscle ("lean bulk"): Iraki et al. 2019
+ *   recommend ~0.25-0.5% bodyweight/week for novice/intermediate lifters on
+ *   a ~10-20% surplus, more conservative for advanced. A scale gain is never
+ *   only muscle (some fat, water, glycogen), so it runs ahead of the muscle
+ *   rate below. Beginners sit at the top of the range, advanced below it.
+ * - "Just gain weight, fat is fine": the top of Iraki's range, 0.5%/week —
+ *   also about the ~0.45 kg/week sports-nutrition guidelines aim for
+ *   (Larson-Meyer et al. 2022). Muscle doesn't grow faster on a bigger
+ *   surplus: the extra is mostly fat (Garthe et al. 2013; Helms et al. 2023).
+ * - Above ~0.75%/week the app warns: that is overfeeding territory (Bray et
+ *   al. 2012, +40% energy for 8 weeks) where roughly half the gain is fat.
+ * - Muscle itself: Aragon's model — 1-1.5% bodyweight/month beginner,
+ *   0.5-1% intermediate, 0.25-0.5% advanced — only used to say how much of a
+ *   gain is likely muscle, never as the scale target (that was a bug).
  */
 export const FAT_LOSS_WEEKLY_PACE_PCT = 0.007;
-export const MUSCLE_GAIN_WEEKLY_PACE_PCT: Record<Experience, number> = {
-  beginner: 0.0029, // ~1.25%/month midpoint
-  intermediate: 0.0017, // ~0.75%/month midpoint
-  advanced: 0.0009, // ~0.375%/month midpoint
+export const LEAN_GAIN_WEEKLY_PCT: Record<Experience, number> = {
+  beginner: 0.004,
+  intermediate: 0.003,
+  advanced: 0.002,
+};
+export const GENERAL_GAIN_WEEKLY_PCT = 0.005;
+export const GAIN_WARN_WEEKLY_PCT = 0.0075;
+/** Aragon's monthly muscle-gain range, as a share of bodyweight. */
+export const MUSCLE_GAIN_MONTHLY_PCT: Record<Experience, [number, number]> = {
+  beginner: [0.01, 0.015],
+  intermediate: [0.005, 0.01],
+  advanced: [0.0025, 0.005],
 };
 
 export interface PaceCheck {
   /** Absolute weekly change implied by the request, in kg. */
   weeklyKg: number;
-  /** Safe weekly change for this bodyweight and direction. */
+  /** Steady weekly change for this bodyweight and direction. */
   safeWeeklyKg: number;
   ok: boolean;
   suggestedWeeks: number;
 }
 
-/** `experience` only matters when gaining — losing uses one figure for everyone. */
+/**
+ * Experience shapes the suggested lean pace (goal-path.ts), not the check. Gaining is only flagged past GAIN_WARN_WEEKLY_PCT, so both a
+ * lean bulk and a deliberate "just gain" goal pass.
+ */
 export function checkPace(
   currentKg: number,
   targetKg: number | null,
   weeks: number | null,
-  experience: Experience = "intermediate",
+  _experience: Experience = "intermediate",
 ): PaceCheck | null {
   if (!targetKg || !weeks || weeks <= 0) return null;
   const delta = Math.abs(currentKg - targetKg);
   if (delta <= 0) return null;
   const gaining = targetKg > currentKg;
-  const pacePct = gaining ? MUSCLE_GAIN_WEEKLY_PACE_PCT[experience] : FAT_LOSS_WEEKLY_PACE_PCT;
   const weeklyKg = delta / weeks;
-  const safeWeeklyKg = Math.max(gaining ? 0.05 : 0.15, currentKg * pacePct);
-  const ok = weeklyKg <= safeWeeklyKg * 1.05;
+  const safeWeeklyKg = Math.max(
+    gaining ? 0.05 : 0.15,
+    currentKg * (gaining ? GENERAL_GAIN_WEEKLY_PCT : FAT_LOSS_WEEKLY_PACE_PCT),
+  );
+  const limit = gaining ? currentKg * GAIN_WARN_WEEKLY_PCT : safeWeeklyKg * 1.05;
   return {
     weeklyKg: Math.round(weeklyKg * 100) / 100,
     safeWeeklyKg: Math.round(safeWeeklyKg * 100) / 100,
-    ok,
+    ok: weeklyKg <= limit,
     suggestedWeeks: Math.max(weeks, Math.ceil(delta / safeWeeklyKg)),
   };
 }
