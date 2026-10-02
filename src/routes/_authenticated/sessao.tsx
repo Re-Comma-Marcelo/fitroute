@@ -121,6 +121,7 @@ import { SwapFinishPanel, type SwapKeep } from "@/components/session/SwapFinishP
 import type { SetField } from "@/components/session/SetFields";
 import { ExerciseCompleteSequence } from "@/components/completion/ExerciseCompleteSequence";
 import { SessionStartIntro } from "@/components/session/SessionStartIntro";
+import { restSources } from "@/lib/science/rest-rationale";
 import { consumeSessionIntro, type SessionIntroOrigin } from "@/lib/session-intro";
 import type { BriefingChoices } from "@/components/session/SessionBriefing";
 
@@ -1456,6 +1457,11 @@ function SessionPage() {
         exerciseId={exercise?.exerciseId}
         exerciseName={exercise?.nome ?? t("Add an exercise to start")}
         blockLabel={exercise ? blockLabel[exercise.exerciseId] : undefined}
+        rest={
+          exercise && exercise.descansoSeg > 0
+            ? { seconds: exercise.descansoSeg, sources: restSources(exercise.descansoSeg) }
+            : undefined
+        }
         onCollapse={() => navigate({ to: "/treino" })}
         onOpenSession={() => setSessionOpen(true)}
         onOpenMenu={() => exercise && setMenuOpen(true)}

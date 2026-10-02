@@ -3,6 +3,12 @@ import type { DictFragment } from "../types";
 /** Research-backed advice: gain modes, split rationale, "why this weight?". */
 export const dict: DictFragment = {
   pt: {
+    "Rest {time}": "Descanso {time}",
+    "Protein {perKg} g/kg: in a deficit, more protein protects your muscle.":
+      "Proteína {perKg} g/kg: em déficit, mais proteína protege seus músculos.",
+    "Protein {perKg} g/kg: past about 1.6 g/kg, more adds little extra muscle.":
+      "Proteína {perKg} g/kg: acima de ~1,6 g/kg, mais proteína quase não adiciona músculo.",
+    "Pace: {pct}% of your weight a week": "Ritmo: {pct}% do seu peso por semana",
     "Gain weight, fat is fine too": "Ganhar peso, gordura também tudo bem",
     "A bigger surplus: more mass, but muscle grows at the same pace":
       "Um superávit maior: mais massa, mas o músculo cresce no mesmo ritmo",
@@ -38,6 +44,12 @@ export const dict: DictFragment = {
       "Perto do peso da última vez até cada série chegar a {max} reps; depois ele sobe.",
   },
   nl: {
+    "Rest {time}": "Rust {time}",
+    "Protein {perKg} g/kg: in a deficit, more protein protects your muscle.":
+      "Eiwit {perKg} g/kg: in een tekort beschermt extra eiwit je spieren.",
+    "Protein {perKg} g/kg: past about 1.6 g/kg, more adds little extra muscle.":
+      "Eiwit {perKg} g/kg: boven ~1,6 g/kg levert meer eiwit nauwelijks extra spier op.",
+    "Pace: {pct}% of your weight a week": "Tempo: {pct}% van je gewicht per week",
     "Gain weight, fat is fine too": "Aankomen, vet mag ook",
     "A bigger surplus: more mass, but muscle grows at the same pace":
       "Een groter overschot: meer massa, maar spier groeit even snel",

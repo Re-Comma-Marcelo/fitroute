@@ -23,7 +23,11 @@ export type SourceId =
   | "pelland2024"
   | "simao2012"
   | "acsm2009"
-  | "refalo2023";
+  | "refalo2023"
+  | "schoenfeld2016rest"
+  | "singer2024"
+  | "morton2018"
+  | "helms2014";
 
 export interface Source {
   /** "Iraki et al. 2019" — what the advice line names. */
@@ -139,5 +143,33 @@ export const SOURCES: Record<SourceId, Source> = {
     title: "Influence of Resistance Training Proximity-to-Failure on Skeletal Muscle Hypertrophy",
     journal: "Sports Medicine 53(3):649-665",
     url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9935748/",
+  },
+  schoenfeld2016rest: {
+    cite: "Schoenfeld et al. 2016",
+    title:
+      "Longer Interset Rest Periods Enhance Muscle Strength and Hypertrophy in Resistance-Trained Men",
+    journal: "J Strength Cond Res 30(7):1805-1812",
+    url: "https://pubmed.ncbi.nlm.nih.gov/26605807/",
+  },
+  singer2024: {
+    cite: "Singer et al. 2024",
+    title:
+      "Give it a rest: a systematic review with Bayesian meta-analysis on the effect of inter-set rest interval duration on muscle hypertrophy",
+    journal: "Frontiers in Sports and Active Living",
+    url: "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11349676/",
+  },
+  morton2018: {
+    cite: "Morton et al. 2018",
+    title:
+      "A systematic review, meta-analysis and meta-regression of the effect of protein supplementation on resistance training-induced gains in muscle mass and strength",
+    journal: "British Journal of Sports Medicine 52(6):376-384",
+    url: "https://pubmed.ncbi.nlm.nih.gov/28698222/",
+  },
+  helms2014: {
+    cite: "Helms et al. 2014",
+    title:
+      "A Systematic Review of Dietary Protein During Caloric Restriction in Resistance Trained Lean Athletes: A Case for Higher Intakes",
+    journal: "Int J Sport Nutr Exerc Metab 24:127-138",
+    url: "https://www.semanticscholar.org/paper/711decd066be689a40a1f5b5a4af3dce40c736af",
   },
 };

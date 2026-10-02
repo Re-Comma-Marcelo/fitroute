@@ -47,6 +47,8 @@ export interface PaceCheck {
   safeWeeklyKg: number;
   ok: boolean;
   suggestedWeeks: number;
+  /** Which way the goal moves — the sources behind the check differ. */
+  gaining: boolean;
 }
 
 /**
@@ -74,6 +76,7 @@ export function checkPace(
     safeWeeklyKg: Math.round(safeWeeklyKg * 100) / 100,
     ok: weeklyKg <= limit,
     suggestedWeeks: Math.max(weeks, Math.ceil(delta / safeWeeklyKg)),
+    gaining,
   };
 }
 

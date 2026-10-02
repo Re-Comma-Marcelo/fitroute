@@ -49,3 +49,30 @@ export function ResearchNote({
     </div>
   );
 }
+
+/** Just the source links, for a line that already says the rest (e.g. under a name). */
+export function SourceLinks({ sources }: { sources: SourceId[] }) {
+  return (
+    <>
+      {sources.map((id) => {
+        const source = SOURCES[id];
+        return source.url ? (
+          <a
+            key={id}
+            href={source.url}
+            target="_blank"
+            rel="noreferrer"
+            title={`${source.title} — ${source.journal}`}
+            className="font-semibold text-primary underline-offset-2 hover:underline"
+          >
+            {source.cite}
+          </a>
+        ) : (
+          <span key={id} title={source.title} className="font-semibold">
+            {source.cite}
+          </span>
+        );
+      })}
+    </>
+  );
+}

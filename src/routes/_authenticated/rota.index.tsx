@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SourceLinks } from "@/components/ResearchNote";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Maximize2, Minimize2, Plus, Sparkles, Target } from "lucide-react";
@@ -47,7 +48,7 @@ import type { Checkpoint } from "@/lib/route/types";
 import type { PaceCheck } from "@/lib/plan/guardrails";
 import { getCheckIns, hydrateCheckIns } from "@/lib/coach/weekly-checkin";
 
-import { formatDate } from "@/lib/format";
+import { formatDate, formatNumber } from "@/lib/format";
 import { useLanguage, useT } from "@/lib/i18n";
 
 export const Route = createFileRoute("/_authenticated/rota/")({
@@ -94,6 +95,17 @@ function RoutePage() {
     () => checkpoints.some((c) => c.metric?.kind === "weight"),
     [checkpoints],
   );
+
+  /** The weight goal's weekly pace, for the quiet "why this pace" line under the route. */
+  const goalPace = useMemo(() => {
+    const start = profile?.pesoInicialKg;
+    const target = profile?.pesoMetaKg;
+    if (!hasWeightGoal || !start || !target || !profile?.metaIniciadaEm || !goalDate) return null;
+    const weeks =
+      (new Date(goalDate).getTime() - new Date(profile.metaIniciadaEm).getTime()) / 6048e5;
+    if (weeks <= 0 || start === target) return null;
+    return { pctPerWeek: ((target - start) / start / weeks) * 100 };
+  }, [hasWeightGoal, profile, goalDate]);
 
   const weekMarkers = useMemo<WeekMarker[]>(() => {
     if (!showWeeks || checkpoints.length === 0) return [];
@@ -349,6 +361,11 @@ function RoutePage() {
                   weeks: paceWarning.suggestedWeeks,
                 },
               )}
+              <p className="mt-1 flex flex-wrap items-center gap-x-2 text-[11px] text-muted-foreground">
+                <SourceLinks
+                  sources={paceWarning.gaining ? ["iraki2019", "helms2023"] : ["garthe2011"]}
+                />
+              </p>
               <Button
                 type="button"
                 variant="outline"
@@ -388,6 +405,20 @@ function RoutePage() {
               onSelect={setSelected}
             />
           </div>
+
+          {goalPace ? (
+            <p className="mt-2 flex flex-wrap items-center justify-center gap-x-2 text-[11px] text-muted-foreground">
+              <span>
+                {t("Pace: {pct}% of your weight a week", {
+                  pct: formatNumber(Math.abs(goalPace.pctPerWeek), 2),
+                })}
+              </span>
+              <span aria-hidden>·</span>
+              <SourceLinks
+                sources={goalPace.pctPerWeek > 0 ? ["iraki2019", "helms2023"] : ["garthe2011"]}
+              />
+            </p>
+          ) : null}
 
           {hasWeightGoal ? (
             <Button

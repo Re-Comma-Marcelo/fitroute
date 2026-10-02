@@ -1,8 +1,10 @@
 import { Fragment, useEffect, useRef } from "react";
+import { SourceLinks } from "@/components/ResearchNote";
+import type { SourceId } from "@/lib/science/sources";
 import { motion } from "framer-motion";
 import { ChevronDown, ListOrdered, MoreHorizontal } from "lucide-react";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
-import { formatDuration, formatKg } from "@/lib/format";
+import { formatDuration, formatKg, formatRest } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +27,7 @@ export function SessionHeader({
   exerciseId,
   exerciseName,
   blockLabel,
+  rest,
   onCollapse,
   onOpenSession,
   onOpenMenu,
@@ -43,6 +46,8 @@ export function SessionHeader({
   exerciseId?: string | undefined;
   exerciseName: string;
   blockLabel?: string | undefined;
+  /** Rest after each set, with the study behind it — one quiet line under the name. */
+  rest?: { seconds: number; sources: SourceId[] } | undefined;
   onCollapse: () => void;
   onOpenSession: () => void;
   onOpenMenu: () => void;
@@ -165,6 +170,13 @@ export function SessionHeader({
               ) : null}
               <span className="min-w-0 truncate">{exerciseName}</span>
             </p>
+            {rest ? (
+              <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <span>{t("Rest {time}", { time: formatRest(rest.seconds) })}</span>
+                <span aria-hidden>·</span>
+                <SourceLinks sources={rest.sources} />
+              </p>
+            ) : null}
           </div>
           <button
             type="button"
