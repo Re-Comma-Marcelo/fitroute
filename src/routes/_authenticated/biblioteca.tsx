@@ -181,7 +181,10 @@ function LibraryPage() {
       await queryClient.invalidateQueries({ queryKey: ["muscleGroups"] });
       setCreating(false);
       toast.success(
-        t("{name} added to {group}.", { name: created.nome, group: muscleLabel(input.grupoPrimario) }),
+        t("{name} added to {group}.", {
+          name: created.nome,
+          group: muscleLabel(input.grupoPrimario),
+        }),
       );
     } catch {
       toast.error(t("Could not save the exercise. Try again."));

@@ -177,7 +177,9 @@ export function TodayCoachCard({
                         )}
                       >
                         <span className="font-semibold">{alt.nome}</span>
-                        <span className="text-xs text-muted-foreground">{equipmentLabel(alt.equipamento)}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {equipmentLabel(alt.equipamento)}
+                        </span>
                       </button>
                     </li>
                   ))}
