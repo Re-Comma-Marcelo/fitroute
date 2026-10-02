@@ -5,7 +5,7 @@ export type ChipTone = "up" | "warn" | "calm";
 
 const TONE: Record<ChipTone, string> = {
   up: "bg-fj-accent-tint text-fj-accent border-[var(--accent-tint-border)]",
-  warn: "bg-fj-effort-tint text-fj-effort-text border-[var(--effort-tint-border)]",
+  warn: "bg-fj-effort-tint text-fj-effort border-[var(--effort-tint-border)]",
   calm: "bg-fj-neutral-tint text-fj-text-2 border-[var(--neutral-tint-border)]",
 };
 

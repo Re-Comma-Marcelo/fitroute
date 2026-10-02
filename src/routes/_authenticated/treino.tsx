@@ -32,16 +32,14 @@ import { AppShell } from "@/components/AppShell";
 import { QueryError } from "@/components/QueryError";
 import { ExerciseThumb } from "@/components/ExerciseThumb";
 import { ExerciseDetailSheet } from "@/components/ExerciseDetailSheet";
-import { TodayCoachCard } from "@/components/TodayCoachCard";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { HeroPage } from "@/components/forja/HeroPage";
 import { GlassCard, MonoLabel } from "@/components/forja/GlassCard";
 import { StatStrip } from "@/components/forja/StatStrip";
 import { DayBar, type DayBarDay } from "@/components/forja/DayBar";
 import { Chip, type ChipTone } from "@/components/forja/Chip";
-import { IconButton, iconButtonClass } from "@/components/forja/IconButton";
+import { IconButton } from "@/components/forja/IconButton";
 import { PillButton } from "@/components/forja/PillButton";
 import { Metric } from "@/components/forja/Metric";
 import { trainPhoto } from "@/config/heroImages";
@@ -54,7 +52,6 @@ import { getWorkoutLog, getWorkouts } from "@/lib/data/workouts";
 import {
   getFolders,
   isStandard,
-  pastSwapsFor,
   routinesInFolder,
   variationSessionsOf,
   workoutsInFolder,
@@ -89,7 +86,6 @@ import {
 
 import { startBlankSession, startRoutineSession } from "@/lib/start-session";
 import { getTodayCard } from "@/lib/coach/today-card";
-import { swapCandidates } from "@/lib/coach/swap";
 import { cn } from "@/lib/utils";
 import { estimateRoutineMinutes } from "@/lib/routine-estimate";
 import type { CoachInsight } from "@/lib/coach/types";
@@ -122,8 +118,12 @@ function firstSentence(text: string): string {
 function chipTone(insight: CoachInsight): ChipTone {
   if (insight.plateauType === "strength") return "up";
   if (insight.plateauType === "fatigue") return "calm";
+  // A stall is a "nudge", but it is the one chip that asks for action: orange, listed first.
+  if (insight.plateauType === "single-exercise") return "warn";
   return insight.severity === "warning" ? "warn" : "up";
 }
+
+const CHIP_PRIORITY: Record<ChipTone, number> = { warn: 0, calm: 1, up: 2 };
 
 function shortLabel(insight: CoachInsight): string {
   switch (insight.plateauType) {
@@ -151,10 +151,8 @@ function TrainPage() {
   const [active, setActive] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState<string | null>(null);
   const [choice, setChoice] = useState<string | null>(null);
-  const [swaps, setSwaps] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
   const [templatesOpen, setTemplatesOpen] = useState(false);
-  const [whyOpen, setWhyOpen] = useState(false);
   const [foldersOpen, setFoldersOpen] = useState(false);
   const [folderDetail, setFolderDetail] = useState<string | null>(null);
   const { promoteRoutine, promoteSession } = useFolderActions();
@@ -216,37 +214,6 @@ function TrainPage() {
   const coach = coachQuery.data;
   const insights = coach?.insightsByRoutine ?? {};
 
-  const swapOptions = useMemo(() => {
-    if (!coach?.routineId || !profile) return {};
-    const routine = allRoutines.find((r) => r.id === coach.routineId);
-    if (!routine) return {};
-    const map: Record<string, Exercise[]> = {};
-    for (const re of routine.exercicios) {
-      map[re.exerciseId] = swapCandidates(
-        re.exerciseId,
-        routine,
-        exercises,
-        profile,
-        4,
-        pastSwapsFor(re.exerciseId, folderSessions, sets),
-      );
-    }
-    return map;
-  }, [coach, allRoutines, exercises, profile, folderSessions, sets]);
-
-  /** Every exercise of today's routine, so any of them can be swapped for the day. */
-  const routineExercises = useMemo(() => {
-    if (!coach?.routineId) return [];
-    const routine = allRoutines.find((r) => r.id === coach.routineId);
-    if (!routine) return [];
-    return [...routine.exercicios]
-      .sort((a, b) => a.ordem - b.ordem)
-      .map((re) => ({
-        exerciseId: re.exerciseId,
-        nome: exercises.find((e) => e.id === re.exerciseId)?.nome ?? re.exerciseId,
-      }));
-  }, [coach, allRoutines, exercises]);
-
   const meta = profile?.metaTreinosSemana ?? 4;
   const start = weekStart();
   const weekWorkouts = workouts.filter((w) => new Date(w.iniciadoEm).getTime() >= start.getTime());
@@ -255,22 +222,6 @@ function TrainPage() {
   const [overrideRest, setOverrideRest] = useState(false);
   const [targets, setTargets] = useState<WeeklyTargets>(EMPTY_TARGETS);
   useEffect(() => setTargets(getWeeklyTargets()), []);
-
-  /** What the next session looks like — shown on rest days so the plan stays visible. */
-  const nextPreview = useMemo(() => {
-    const id = coach?.recommendedRoutineId ?? coach?.routineId;
-    const routine = allRoutines.find((r) => r.id === id);
-    if (!routine) return null;
-    const nomes = routine.exercicios
-      .map((re) => exercises.find((e) => e.id === re.exerciseId)?.nome)
-      .filter((n): n is string => !!n);
-    return {
-      nome: routine.nome,
-      primeiros: nomes.slice(0, 2),
-      restantes: Math.max(0, nomes.length - 2),
-      minutos: estimateRoutineMinutes(routine),
-    };
-  }, [coach?.recommendedRoutineId, coach?.routineId, allRoutines, exercises]);
 
   const activeChoiceId = coach?.routineId ?? routines[0]?.id;
   const todayRoutine = allRoutines.find((r) => r.id === activeChoiceId);
@@ -380,7 +331,7 @@ function TrainPage() {
     try {
       saveTodayChoice(routineId);
       const applied = Object.fromEntries(
-        Object.entries(opts.swaps ?? swaps).filter(([original]) =>
+        Object.entries(opts.swaps ?? {}).filter(([original]) =>
           allRoutines
             .find((r) => r.id === routineId)
             ?.exercicios.some((re) => re.exerciseId === original),
@@ -401,7 +352,6 @@ function TrainPage() {
   function pickRoutine(routineId: string) {
     saveTodayChoice(routineId);
     setChoice(routineId);
-    setSwaps({});
   }
 
   /** Copy a routine so a variation can be edited without touching the original. */
@@ -452,7 +402,14 @@ function TrainPage() {
           ? t("Your pick today")
           : t("Recommended today");
       introTitle = coach?.routineName ?? todayRoutine?.nome ?? t("Start a workout");
-      introLine = coach ? firstSentence(coach.line) : null;
+      // Same calm line as a planned day; the per-exercise chips carry the details.
+      introLine = todayRoutine
+        ? t("{count} exercises, about {min} min.", {
+            count: todayRoutine.exercicios.length,
+            min: estimateRoutineMinutes(todayRoutine),
+          })
+        : null;
+      labelTone = "effort";
     }
   } else if (view.kind === "done") {
     introLabel = t("{day} · done", { day: dayName });
@@ -480,7 +437,7 @@ function TrainPage() {
     labelTone = "text";
   }
 
-  const canSeeWhy = view.kind === "today" && !active && !!coach;
+  const restOverridable = view.kind === "today" && !active && isRestToday && !!coach?.restDay;
 
   const top = (
     <>
@@ -522,13 +479,13 @@ function TrainPage() {
       {introLine ? (
         <p className="mt-2 text-coach leading-[1.4] text-fj-text-2">{introLine}</p>
       ) : null}
-      {canSeeWhy ? (
+      {restOverridable ? (
         <button
           type="button"
-          onClick={() => setWhyOpen(true)}
-          className="label-on-photo mt-2 text-meta text-fj-accent"
+          onClick={() => setOverrideRest(true)}
+          className="label-on-photo mt-2 text-meta font-medium text-fj-effort"
         >
-          {t("See why")}
+          {t("Train anyway")}
         </button>
       ) : null}
     </div>
@@ -546,6 +503,9 @@ function TrainPage() {
             return { nome: ex.nome, insight };
           })
           .filter((v): v is { nome: string; insight: CoachInsight } => v !== null)
+          // Two at most, the ones that need action first: a stall before an easy day before an increase.
+          .sort((a, b) => CHIP_PRIORITY[chipTone(a.insight)] - CHIP_PRIORITY[chipTone(b.insight)])
+          .slice(0, 2)
       : [];
 
   /* ---------- stats ---------- */
@@ -764,54 +724,6 @@ function TrainPage() {
         onOpenChange={setTemplatesOpen}
         exercises={exercises}
       />
-
-      {/* "See why": the full, unchanged coach reasoning plus everything the recommended routine card had. */}
-      <Sheet open={whyOpen} onOpenChange={setWhyOpen}>
-        <SheetContent side="bottom" className="max-h-[88vh] overflow-y-auto">
-          <SheetHeader className="pb-2">
-            <SheetTitle>{introTitle}</SheetTitle>
-          </SheetHeader>
-          <div className="space-y-4 pb-6">
-            {isRestToday && coach?.restDay ? (
-              <RestDayDetails
-                verdict={coach.restDay}
-                next={nextPreview}
-                onTrainAnyway={() => {
-                  setOverrideRest(true);
-                  setWhyOpen(false);
-                }}
-              />
-            ) : coach ? (
-              <TodayCoachCard
-                defaultOpen
-                model={coach}
-                swapOptions={swapOptions}
-                routineExercises={routineExercises}
-                swaps={swaps}
-                onSwap={(original, replacement) =>
-                  setSwaps((prev) => ({ ...prev, [original]: replacement }))
-                }
-                onStart={(opts) => coach.routineId && startRoutine(coach.routineId, opts)}
-                onNoteSaved={() => coachQuery.refetch()}
-                busy={loading !== null}
-              />
-            ) : null}
-            {todayRoutine && !isRestToday ? (
-              <RoutineDetails
-                r={todayRoutine}
-                exercises={exercises}
-                insights={insights[todayRoutine.id] ?? {}}
-                isChoice
-                active={!!active}
-                loading={loading}
-                onStart={(opts) => startRoutine(todayRoutine.id, opts ?? {})}
-                onPick={() => pickRoutine(todayRoutine.id)}
-                onDuplicate={() => void duplicate(todayRoutine.id, todayRoutine.nome)}
-              />
-            ) : null}
-          </div>
-        </SheetContent>
-      </Sheet>
     </AppShell>
   );
 }
@@ -921,47 +833,6 @@ function PlannedSession({
         </Link>
       </PillButton>
     </GlassCard>
-  );
-}
-
-function RestDayDetails({
-  verdict,
-  next,
-  onTrainAnyway,
-}: {
-  verdict: { title: string; line: string; why: string[] };
-  next: { nome: string; primeiros: string[]; restantes: number; minutos: number } | null;
-  onTrainAnyway: () => void;
-}) {
-  const t = useT();
-  return (
-    <div className="space-y-3">
-      <p className="text-body leading-[1.4]">{verdict.line}</p>
-      <ul className="space-y-1.5">
-        {verdict.why.map((w) => (
-          <li key={w} className="flex gap-2 text-meta leading-relaxed text-muted-foreground">
-            <span className="mt-1.5 size-1 shrink-0 rounded-full bg-muted-foreground/60" />
-            {w}
-          </li>
-        ))}
-      </ul>
-      {next ? (
-        <div className="rounded-card border border-border bg-surface-2 p-list">
-          <MonoLabel>{t("Next session")}</MonoLabel>
-          <p className="mt-1 truncate text-body font-medium">{next.nome}</p>
-          <p className="mt-0.5 truncate text-meta text-muted-foreground">
-            {next.primeiros.join(" · ")}
-            {next.restantes > 0 ? ` · +${next.restantes} ${t("more")}` : ""}
-          </p>
-          <p className="mt-0.5 text-meta tabular-nums text-muted-foreground">
-            {t("~{min} min", { min: next.minutos })}
-          </p>
-        </div>
-      ) : null}
-      <PillButton variant="secondary" className="w-full" onClick={onTrainAnyway}>
-        {t("Train anyway")}
-      </PillButton>
-    </div>
   );
 }
 
