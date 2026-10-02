@@ -118,6 +118,8 @@ function firstSentence(text: string): string {
 function chipTone(insight: CoachInsight): ChipTone {
   if (insight.plateauType === "strength") return "up";
   if (insight.plateauType === "fatigue") return "calm";
+  // A stall is a "nudge", but it is the one chip that asks for action: orange, listed first.
+  if (insight.plateauType === "single-exercise") return "warn";
   return insight.severity === "warning" ? "warn" : "up";
 }
 
