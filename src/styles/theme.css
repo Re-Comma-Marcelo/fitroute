@@ -36,6 +36,8 @@
   --effort-tint-bg: rgba(255, 91, 31, 0.14);
   --effort-tint-text: #ffb08f;
   --effort-tint-border: rgba(255, 91, 31, 0.4);
+  /* Body map: muscles a routine does not train. */
+  --muscle-idle: #2b3539;
   --neutral-tint-bg: rgba(255, 255, 255, 0.06);
   --neutral-tint-border: rgba(255, 255, 255, 0.12);
 
@@ -64,13 +66,30 @@
   /* Photo runs under the status bar (viewport-fit=cover), so grow by the inset. */
   --hero-h: calc(560px + env(safe-area-inset-top));
   --hero-content-top: calc(280px + var(--page-top));
+  /* Eased, not linear: a straight ramp ends in a visible band where it stops. */
   --hero-overlay: linear-gradient(
     180deg,
     rgba(13, 23, 28, 0.62) 0%,
     rgba(13, 23, 28, 0.1) 26%,
-    rgba(13, 23, 28, 0) 48%,
-    rgba(13, 23, 28, 0.85) 88%,
+    rgba(13, 23, 28, 0) 44%,
+    rgba(13, 23, 28, 0.04) 52%,
+    rgba(13, 23, 28, 0.12) 59%,
+    rgba(13, 23, 28, 0.24) 65%,
+    rgba(13, 23, 28, 0.38) 71%,
+    rgba(13, 23, 28, 0.53) 77%,
+    rgba(13, 23, 28, 0.68) 83%,
+    rgba(13, 23, 28, 0.81) 88%,
+    rgba(13, 23, 28, 0.91) 93%,
+    rgba(13, 23, 28, 0.97) 97%,
     #0d171c 100%
+  );
+  /* The photo itself fades out too, so its blurred bottom edge never shows. */
+  --hero-photo-mask: linear-gradient(
+    180deg,
+    #000 0%,
+    #000 72%,
+    rgba(0, 0, 0, 0.6) 86%,
+    transparent 100%
   );
   --hero-glow-size: 320px;
   --hero-glow-blur: 100px;

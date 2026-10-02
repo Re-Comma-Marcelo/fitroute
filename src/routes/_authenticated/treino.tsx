@@ -44,7 +44,8 @@ import { Chip, type ChipTone } from "@/components/forja/Chip";
 import { IconButton, iconButtonClass } from "@/components/forja/IconButton";
 import { PillButton } from "@/components/forja/PillButton";
 import { Metric } from "@/components/forja/Metric";
-import { sessionImage } from "@/config/heroImages";
+import { trainPhoto } from "@/config/heroImages";
+import { MuscleMap, routineMuscles } from "@/components/forja/MuscleMap";
 import { getExercises } from "@/lib/data/exercises";
 import { getProfile } from "@/lib/data/profile";
 import { duplicateRoutine, getRoutines } from "@/lib/data/routines";
@@ -355,6 +356,16 @@ function TrainPage() {
           ? view.routine
           : undefined;
 
+  /** Hero photo that fits what the shown routine trains; changes per day. */
+  const heroPhoto = useMemo(() => {
+    if (!shownRoutine) return trainPhoto([], selected.date);
+    const { primary } = routineMuscles(
+      shownRoutine.exercicios.map((e) => e.exerciseId),
+      exercises,
+    );
+    return trainPhoto(primary, selected.date);
+  }, [shownRoutine, exercises, selected.date]);
+
   /* ---------- actions ---------- */
 
   async function startRoutine(
@@ -557,7 +568,7 @@ function TrainPage() {
 
   return (
     <AppShell hero title={t("Train")}>
-      <HeroPage image={sessionImage(shownRoutine?.nome ?? introTitle)} top={top} intro={intro}>
+      <HeroPage image={heroPhoto} top={top} intro={intro}>
         {todayChips.length ? (
           <div className="flex flex-wrap gap-2">
             {todayChips.map((c) => (
@@ -1062,12 +1073,7 @@ function RoutineCard({
         aria-expanded={open}
         className="flex w-full items-center gap-3 p-list text-left"
       >
-        <img
-          src={sessionImage(r.nome)}
-          alt=""
-          loading="lazy"
-          className="size-thumb shrink-0 rounded-thumb object-cover"
-        />
+        <RoutineMuscleThumb routine={r} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-name font-medium text-fj-text">{r.nome}</p>
           <p className="mt-0.5 truncate text-meta text-fj-label">
@@ -1247,5 +1253,23 @@ function InsightChip({ insight, name }: { insight: CoachInsight; name?: string }
         <p className="mt-1 text-muted-foreground">{insight.body}</p>
       </PopoverContent>
     </Popover>
+  );
+}
+
+/** The routine's muscles on a small body map, in place of a photo thumbnail. */
+function RoutineMuscleThumb({ routine }: { routine: Routine }) {
+  const exercisesQuery = useQuery({ queryKey: ["exercises"], queryFn: getExercises });
+  const { primary, secondary } = useMemo(
+    () =>
+      routineMuscles(
+        routine.exercicios.map((e) => e.exerciseId),
+        exercisesQuery.data ?? [],
+      ),
+    [routine.exercicios, exercisesQuery.data],
+  );
+  return (
+    <span className="grid size-thumb shrink-0 place-items-center rounded-thumb bg-white/5">
+      <MuscleMap primary={primary} secondary={secondary} className="size-[88%]" />
+    </span>
   );
 }
