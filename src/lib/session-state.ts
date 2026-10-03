@@ -7,6 +7,7 @@ import {
   type ProgressionSuggestion,
 } from "./progression";
 import type { ExerciseVariant, Readiness, TipoSerie } from "./types";
+import { snapStoredKg } from "./units";
 
 export interface ActiveSet {
   id: string;
@@ -210,7 +211,9 @@ export function makeSets(
   return Array.from({ length: quantidade }, (_, i) => {
     const ant = base[i] ?? null;
     const tipoSerie: TipoSerie = ant?.tipoSerie ?? "normal";
-    const sugPeso = opts.pesoSugerido ?? ant?.pesoKg ?? null;
+    const pesoBase = opts.pesoSugerido ?? ant?.pesoKg ?? null;
+    // An old drifted log (8.8 kg) is not carried into today's set as-is.
+    const sugPeso = pesoBase !== null ? snapStoredKg(pesoBase) : null;
     return {
       id: `s_${Math.random().toString(36).slice(2, 9)}`,
       serieNum: i + 1,

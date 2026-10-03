@@ -7,7 +7,13 @@ import { formatKg, weightUnitLabel } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { incrementoPara, isSerieTempo } from "@/lib/progression";
 import type { ActiveExercise, ActiveSet } from "@/lib/session-state";
-import { displayStep, fromDisplayWeight, toDisplayWeight } from "@/lib/units";
+import {
+  displayStep,
+  fromDisplayWeight,
+  snapStoredKg,
+  stepKgOnGrid,
+  toDisplayWeight,
+} from "@/lib/units";
 import { useHoldRepeat } from "@/lib/use-hold-repeat";
 import { useWeightUnit } from "@/lib/use-weight-unit";
 import { cn } from "@/lib/utils";
@@ -71,6 +77,13 @@ export function SetFields({
 
   function stepKg(deltaKg: number) {
     const atualKg = Number(set.pesoKg) || set.sugPeso || set.antPeso || 0;
+    if (unit === "kg") {
+      // Kilograms move on the 0.25 kg plate grid: 8.8 + 1.25 must not become 10.05.
+      const nextKg = stepKgOnGrid(atualKg, deltaKg);
+      setDraft(String(nextKg));
+      onField("pesoKg", String(nextKg));
+      return;
+    }
     const step = displayStep(deltaKg, unit);
     const nextDisplay = Math.max(
       0,
@@ -85,6 +98,16 @@ export function SetFields({
     onField("reps", String(Math.max(0, Math.round(atual + delta))));
   }
 
+  /** Typing is left alone until the field is left; then 10.03 settles on 10. */
+  function settleWeight() {
+    setDraft(null);
+    if (set.pesoKg === "") return;
+    const kg = Number(set.pesoKg);
+    if (Number.isNaN(kg)) return;
+    const snapped = snapStoredKg(kg, unit);
+    if (snapped !== kg) onField("pesoKg", String(snapped));
+  }
+
   function acceptWeightTarget() {
     if (shownWeight === "" && alvoPeso !== "") writeWeight(alvoPeso);
   }
@@ -96,7 +119,7 @@ export function SetFields({
     <NumberField
       value={shownWeight}
       onChange={writeWeight}
-      onBlur={() => setDraft(null)}
+      onBlur={settleWeight}
       onFocus={acceptWeightTarget}
       onStep={(direction, bigStep) => stepKg(direction * (bigStep ? passoKg * 4 : passoKg))}
       scrub={{

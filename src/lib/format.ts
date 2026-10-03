@@ -72,7 +72,7 @@ export function relativeDays(iso: string): string {
  */
 export function formatKg(value: number, opts: { unit?: boolean } = {}): string {
   const shown = toDisplayWeight(value);
-  const number = shown.toLocaleString(currentLocale, { maximumFractionDigits: 1 });
+  const number = shown.toLocaleString(currentLocale, { maximumFractionDigits: 2 });
   return opts.unit === false ? number : `${number} ${unitLabel()}`;
 }
 
