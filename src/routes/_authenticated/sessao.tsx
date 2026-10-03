@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { hapticSuccess, hapticTick } from "@/lib/haptics";
 import { markScrubHintShown, shouldShowScrubHint } from "@/lib/use-value-scrub";
+import { snapStoredKg } from "@/lib/units";
 
 import { buildWarmupSets, withWarmup } from "@/lib/warmup";
 import { unlockRestAudio } from "@/lib/rest-audio";
@@ -919,9 +920,9 @@ function SessionPage() {
         ...base,
         serieNum: ex.sets.length + 1,
         tipoSerie: "normal",
-        sugPeso: last ? Number(last.pesoKg) || last.sugPeso : null,
+        sugPeso: last ? snapStoredKg(Number(last.pesoKg) || last.sugPeso || 0) || null : null,
         sugReps: last ? Number(last.reps) || last.sugReps : null,
-        pesoKg: last ? last.pesoKg : "",
+        pesoKg: last && last.pesoKg !== "" ? String(snapStoredKg(Number(last.pesoKg) || 0)) : "",
         reps: last ? last.reps : "",
       });
       return s;

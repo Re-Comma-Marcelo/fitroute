@@ -7,6 +7,7 @@ import {
   type ActiveSession,
   type ActiveSet,
 } from "./session-state";
+import { snapStoredKg } from "./units";
 
 /**
  * Everything the screen has to do after a set is ticked, computed in one
@@ -109,6 +110,11 @@ export function completeSet(
 
   // Logging in two taps: suggested values are accepted without typing anything.
   if (!set.pesoKg) set.pesoKg = String(set.sugPeso ?? set.antPeso ?? "");
+  // Whatever reached the ✓ (typed without leaving the field, repeated, an old
+  // drifted log) is recorded on the plate grid: 10.05 kg is logged as 10.
+  if (set.pesoKg !== "" && !Number.isNaN(Number(set.pesoKg))) {
+    set.pesoKg = String(snapStoredKg(Number(set.pesoKg)));
+  }
   if (!set.reps) set.reps = String(repsPadrao(set, ex));
   set.concluida = true;
   if (ex.selectedVariantId) set.variantId = ex.selectedVariantId;

@@ -130,16 +130,16 @@ export function prescribeExercise(
 
   const line = hard
     ? tx("{weight} kg x {reps} — last time was near your limit, so hold here and own every rep.", {
-        weight: formatNumber(pesoKg, 1),
+        weight: formatNumber(pesoKg, 2),
         reps,
       })
     : easy
       ? tx("{weight} kg x {reps} — should feel heavy, but you need all {reps} reps.", {
-          weight: formatNumber(pesoKg, 1),
+          weight: formatNumber(pesoKg, 2),
           reps,
         })
       : tx("{weight} kg x {reps} — aim for all {reps}, stop one rep before form breaks.", {
-          weight: formatNumber(pesoKg, 1),
+          weight: formatNumber(pesoKg, 2),
           reps,
         });
 
@@ -155,7 +155,7 @@ export function prescribeExercise(
         reps: Number(lastRampSet.reps),
         line: tx("Warm up first — {sets} ramp-up set(s), the last at {weight} kg x {reps}.", {
           sets: ramp.length,
-          weight: formatNumber(Number(lastRampSet.pesoKg), 1),
+          weight: formatNumber(Number(lastRampSet.pesoKg), 2),
           reps: Number(lastRampSet.reps),
         }),
       }

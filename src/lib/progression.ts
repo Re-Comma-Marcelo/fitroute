@@ -1,5 +1,6 @@
 import { formatNumber, tx } from "./format";
 import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
+import { snapStoredKg } from "./units";
 import type { TipoSerie, WorkoutSet } from "./types";
 
 /**
@@ -120,7 +121,7 @@ function media(valores: number[]): number | null {
 }
 
 function fmt(n: number): string {
-  return formatNumber(n, 1);
+  return formatNumber(n, 2);
 }
 
 export function suggestProgression(input: ProgressionInput): ProgressionSuggestion | null {
@@ -156,18 +157,18 @@ export function suggestProgression(input: ProgressionInput): ProgressionSuggesti
     : pseAlto
       ? tx("{summary} High RPE — hold {weight} kg.", {
           summary: resumo,
-          weight: fmt(pesoAnterior),
+          weight: fmt(snapStoredKg(pesoAnterior)),
         })
       : tx("{summary} Target range is {min}-{max} reps — hold {weight} kg.", {
           summary: resumo,
           min: input.repsMin,
           max: input.repsMax,
-          weight: fmt(pesoAnterior),
+          weight: fmt(snapStoredKg(pesoAnterior)),
         });
 
   return {
     pesoAnterior,
-    pesoSugerido: aumentou ? pesoAnterior + incrementoKg : pesoAnterior,
+    pesoSugerido: snapStoredKg(aumentou ? pesoAnterior + incrementoKg : pesoAnterior),
     incrementoKg,
     aumentou,
     pseMedio,

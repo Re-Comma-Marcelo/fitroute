@@ -1,6 +1,7 @@
 import { formatNumber, tx } from "./format";
 import { incrementoPara, roundToStep } from "./progression";
 import { RPE_EASY_MAX, RPE_NEAR_FAILURE_MIN } from "./rpe";
+import { snapStoredKg } from "./units";
 
 /**
  * Autoregulation between sets: the app decides the target for the next set from
@@ -43,7 +44,8 @@ export function nextSetTarget(
   const bigMiss = missedBy >= 2 || (grindy && missedBy > 0);
   const closeMiss = missedBy === 1 && !grindy;
 
-  let pesoKg = peso;
+  // Holding the weight still never repeats an off-grid one (10.05 → 10).
+  let pesoKg = snapStoredKg(peso);
   let alvo = reps;
   let kind: "easy" | "deload" | "hold" | "grind" | "climb";
 
@@ -70,7 +72,7 @@ export function nextSetTarget(
     kind = "climb";
   }
 
-  const weight = formatNumber(pesoKg, 1);
+  const weight = formatNumber(pesoKg, 2);
   const line =
     kind === "easy"
       ? tx(
